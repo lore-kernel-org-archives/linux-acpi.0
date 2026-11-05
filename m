@@ -1,49 +1,99 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793888810;
-	b=lLkcs0CvCNBhu2N7zJdN05bnhiweoyqe12MXrFdY6OngzG6LQOVI13JkROKPNVCfyXym
-	 6FrEAHgyTK4n4W9e/o7LPB5g8QidxeSLT22LsJkhrYNdr0/Araw21tfXqVgMHID02OWpy
-	 g7uNgWsk+V8vxSKDS2NfC7jWyrwf8BewmWgc1dxdm+ZM/Ha/wAAcH6y/sSrH2qawoJWLe
-	 jOaF3KF5w+j4Cnf8515SMfw+nUn26aiiB42zOEuG/+/j7Fbjnp9o2+4P3vFv5ezMop5B9
-	 csL4MDlLJEbEFtIq2klIfs5dLTn8wZWPDwN/dAfPmkkcnHE1muD1NwertxGE989Og5Q==
+	t=1793889774;
+	b=v18IACOw+FzfYBu41UkfYh+hpSqGTp1pPIm76ijVi2gGitEFu7LGEKOksZ3AUdmqkPZr
+	 mEla1rhw93R/o5I3h8fv0aB18H6ztfETjUUs6hVGkoLqKhF9x6pjVRYVkzjJbR8cZVzlj
+	 KnFda5kDS1PKCct6zJ8TNNGxVgMQfXK2nlNs09Yp7J8vOQ5Nt/Foz0ZO0ImMs4/pFeinZ
+	 6DjUUqhhwUl/915+8DNfpH9u/WFdclwxqYm312ceQfmocGyjQF/rryGCnprbvh/HVX16m
+	 0b/DbgK7lkUJPDcFfjaQfOrty5q6FmnKE/5BDb7fv3GZvw5Ltp4JOlTfAyzsTYi7EtQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793888810;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:From:
-	 Content-Language:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=8tdn6dFMYzvjD1/tcuOzz3T5ZY4fgIEe/XSJ/yOC0VU=;
-	b=lCx8OCW3LzeyYfCdkZwvOwZaGX8ZUJBPSmsW5ltm4Yb63wShO02CID3PsIbZnqVefRB+
-	 lnJc1Sn0lLQd5F03ddF79B6PS9ZAhMW5issZY4vk8Wc6PQPz7CEJ/Wedc3jrTPMaln9Jg
-	 zeScBcTmP1/H3e1Gg1h/pHCHdpM5uo6ckwuhQ10SnewFH4pEO71PGIEIq4p+74ya84T/u
-	 z3pKUCWqZIPhaqO2M5aThpto6Ok/FPi0d2gN66D6DGQU6wGpu8fg+NdjCgO5sU6BhYZM8
-	 V3dWxTB7ZBB6iiqCWVJpf/PrZevmPiK2hC1nMksolzky0Jh5vzGnDP8OnhjjoJsqSaA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793889774;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To:Organization;
+	bh=c9Qf0MhLQySpDb0sxxGf8i7JyLqINcuxDoFglNVjBEk=;
+	b=zdlj7OyU062fGJSfO0V8gzJfP67uVmre8Z9MnnBNjivrzY9uhw1lTlLsdUGoWOxOK9xa
+	 5pIRsuVXiVPJ01pB5iS5tXmb8sVtyE2OyXR+8cb36QfgJMESbgM6BnmCNp0CmuN6PCjKB
+	 OgE0AI8wr31J3t7TC24GCKxTIsEuArtpD2gGzTmQ8ydLqgJLa62L1trhgFeZrHI8elo/s
+	 k1t0BA1k/Fj9+le06cj+FiRv6TjXdI6uhQpF7MKCi1Ey5SReXERb27n5eLnfzisAIeF0s
+	 p062mINFsqH6XjDImlgV70TBP1vVKCjc9tGFw0ZaIIhVHbIwkrCy1J6xuaqz4zEMblA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=cJWAmd8Q;
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E4B04606A334;
-	Thu,  5 Nov 2026 14:26:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E4B04606A334
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=TtNHb+cv;
+	arc=none smtp.remote-ip=198.175.65.18
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9A21606A333;
+	Thu,  5 Nov 2026 14:42:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C9A21606A333
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=cJWAmd8Q
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0B3A2168F;
-	Thu,  5 Nov 2026 06:26:46 -0800 (PST)
-Received: from [10.57.91.118] (unknown [10.57.91.118])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 130253F673;
-	Thu,  5 Nov 2026 06:26:42 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1793888809; bh=S2PpLzqNd6JkA5UshEwL2dUlGxdSp5aBcBkcVghGE4w=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=cJWAmd8Q2UsNZWHQoK2zLyPyp1panymsoh5cGokf/cTF0mOzqj0pJ/HQKfw4vOOF6
-	 kcsPHroHUBVIkbtWoKbz4TQR8JeIK5Bn+5oJ0YbUt1S+GSWmGK7EJLSO3pkCjh1Ue/
-	 3QhpmR0AXAzkV765UiaqgUwErSvy04Af3Zj59n1k=
-Message-ID: <0438755d-dc1f-4c8c-b274-5555ef3d49a3@arm.com>
-Date: Thu, 5 Nov 2026 14:26:39 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=TtNHb+cv
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1793889772; x=1825425772;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=q1Pf8PUf4xOcPF8BGZqTYGEzo2UCfvkkF5uSVw81asg=;
+  b=TtNHb+cvhkcf/bVYIY15eH9A49MHzcUPcV/CG/mzmgOwuRNiKipn3HPP
+   PUl2UPivlxtiknv2RVaYaidHiu58t2fKZQzCrKNTkHstzXEUGjR5+gtZc
+   +c5SXdp3FJN6GU49DrItOIdXjRxiUfqinpc1DlZVuY8PPuIRScDAk7TGa
+   Zp56oAeLBa7HkB0WlGKL72y49PE7rf4Z11DhWtJX1QQLnjIm3j/7s5cOQ
+   a7s4/kL0SHQIu5THeyY5t5+Wrw/EZI5Utxv/irZ9FKw/9V4swY9xUjRky
+   jRx2EFVhSOzeTEpQuu76yjkJ23EQsJnIPzStihoCbGtlLPdk0yguuYu4i
+   A==;
+X-CSE-ConnectionGUID: ImdYJx8TQV+AxUY4FRqxgA==
+X-CSE-MsgGUID: 5+oK8vNwTCe4J04yZbcFcw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11957"; a="2698340"
+X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
+   d="scan'208";a="2698340"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 06:42:52 -0800
+X-CSE-ConnectionGUID: XAthWtFQSBCLu97ShSJCOg==
+X-CSE-MsgGUID: DhogsxNKSDyJ0JhxnZuhSQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
+   d="scan'208";a="7198542"
+Received: from amilburn-desk.amilburn-desk (HELO localhost) ([10.245.244.144])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 06:42:45 -0800
+Date: Thu, 5 Nov 2026 16:42:43 +0200
+From: Andy Shevchenko <andriy.shevchenko@intel.com>
+To: Alejandro Colomar <alx+linux-hardening@kernel.org>
+Cc: Bartosz Golaszewski <brgl@kernel.org>,
+	Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org,
+	Andreas Schwab <schwab@linux-m68k.org>,
+	Andy Shevchenko <andy@kernel.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Len Brown <lenb@kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linus Walleij <linusw@kernel.org>,
+	Namhyung Kim <namhyung@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v2 0/2] Add strprefix() and fix a bug with it
+Message-ID: <auyV47xUCr1EJ7A3@ashevche-desk.local>
+References: <cover.1793876837.git.alx@kernel.org>
+ <cover.1793882260.git.alx@kernel.org>
+ <qwpovcqznx6eltou4inmj3v62qhh6ouvihqnze7bobnd7lmcbw@rcri4e623icb>
+ <auyOkL1Vb1iKicS9@devuan>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -53,179 +103,64 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 10/17] driver core: Expose device trust authorization
- through sysfs
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Leon Romanovsky <leon@kernel.org>, "Rafael J. Wysocki"
- <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>,
- Dmitry Torokhov <dmitry.torokhov@gmail.com>, Andrew Lunn <andrew@lunn.ch>,
- Heiner Kallweit <hkallweit1@gmail.com>, Russell King
- <linux@armlinux.org.uk>, "David S. Miller" <davem@davemloft.net>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Johannes Berg <johannes@sipsolutions.net>, Jonathan Corbet <corbet@lwn.net>,
- Shuah Khan <skhan@linuxfoundation.org>, Randy Dunlap
- <rdunlap@infradead.org>, Bjorn Helgaas <bhelgaas@google.com>,
- "Joerg Roedel (AMD)" <joro@8bytes.org>,
- Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
- Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
- David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>,
- Johan Hovold <johan@kernel.org>, Eric Dumazet <edumazet@kernel.org>,
- Marcel Holtmann <marcel@holtmann.org>,
- Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
- Nipun Gupta <nipun.gupta@amd.com>, Nikhil Agarwal <nikhil.agarwal@amd.com>,
- Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
- linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
- linux-input@vger.kernel.org, netdev@vger.kernel.org,
- linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
- linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, iommu@lists.linux.dev,
- Jason Gunthorpe <jgg@ziepe.ca>
-References: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
- <20261105-device-trust-core-v1-10-1e536825b4eb@nvidia.com>
- <2026110514-bunkhouse-handset-6a3a@gregkh> <20261105132729.GB8298@unreal>
- <2026110535-engulf-precut-cf10@gregkh>
- <9d896ebb-6892-4cac-a7c5-41def47f0be0@arm.com>
- <2026110556-sculpture-immovable-ca8b@gregkh>
-From: Robin Murphy <robin.murphy@arm.com>
-Content-Language: en-GB
-In-Reply-To: <2026110556-sculpture-immovable-ca8b@gregkh>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <auyOkL1Vb1iKicS9@devuan>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On 2026-11-05 2:03 pm, Greg Kroah-Hartman wrote:
-> On Thu, Nov 05, 2026 at 01:59:20PM +0000, Robin Murphy wrote:
->> On 2026-11-05 1:40 pm, Greg Kroah-Hartman wrote:
->>> On Thu, Nov 05, 2026 at 03:27:29PM +0200, Leon Romanovsky wrote:
->>>> On Thu, Nov 05, 2026 at 08:10:14AM -0500, Greg Kroah-Hartman wrote:
->>>>> On Thu, Nov 05, 2026 at 01:42:23PM +0200, Leon Romanovsky wrote:
->>>>>> From: Leon Romanovsky <leonro@nvidia.com>
->>>>>>
->>>>>> An initrd must authorize a disabled device after attestation even if a
->>>>>> built-in driver already attempted to probe it.
->>>>>>
->>>>>> Expose requested trust_policy and read-only active trust. Allow explicit
->>>>>> disabled policy to advance once to adversary or full, fixing that decision
->>>>>> immediately. Reject later policy changes, including for a device claimed
->>>>>> before registration, while allowing same-value writes on live devices.
->>>>>> Keep initial unrestricted selection separate from explicit authorization
->>>>>> and bind-time commitment. Serialize writes with probing under the device
->>>>>> lock. Include the attributes in device ownership changes.
->>>>>>
->>>>>> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
->>>>>> ---
->>>>>>    Documentation/ABI/testing/sysfs-devices-trust |  51 +++++++++++++
->>>>>>    MAINTAINERS                                   |   1 +
->>>>>>    drivers/base/base.h                           |   6 ++
->>>>>>    drivers/base/core.c                           |  15 +++-
->>>>>>    drivers/base/trust.c                          | 102 ++++++++++++++++++++++++++
->>>>>>    5 files changed, 174 insertions(+), 1 deletion(-)
->>>>>>
->>>>>> diff --git a/Documentation/ABI/testing/sysfs-devices-trust b/Documentation/ABI/testing/sysfs-devices-trust
->>>>>> new file mode 100644
->>>>>> index 0000000000000..97e07a174769c
->>>>>> --- /dev/null
->>>>>> +++ b/Documentation/ABI/testing/sysfs-devices-trust
->>>>>> @@ -0,0 +1,51 @@
->>>>>> +What:		/sys/devices/.../trust
->>>>>> +Date:		September 2026
->>>>>> +Contact:	driver-core@lists.linux.dev
->>>>>> +Description:
->>>>>> +		(RO) The active trust level for the device. The values are
->>>>>> +		"disabled", "adversary", and "full". Driver core resolves
->>>>>> +		the level before DMA configuration and probe, and retains it
->>>>>> +		through removal and DMA cleanup. Outside a bind transaction
->>>>>> +		the level is "disabled". This does not imply that policy is
->>>>>> +		writable or that the device has never operated.
->>>>>> +
->>>>>> +What:		/sys/devices/.../trust_policy
->>>>>> +Date:		September 2026
->>>>>> +Contact:	driver-core@lists.linux.dev
->>>>>> +Description:
->>>>>> +		(RW) The requested trust policy for the device. The initial
->>>>>> +		value may be selected by the bus before the device is
->>>>>> +		registered; otherwise it is "default". The policy is resolved
->>>>>> +		to an active trust level before the device is probed.
->>>>>> +
->>>>>> +		The values are "default", "disabled", "adversary", and
->>>>>> +		"full". "default" lets the bus select the active trust level.
->>>>>> +		"disabled" prevents a functional driver from binding.
->>>>>> +		"adversary" requests operation with the restrictions that the
->>>>>> +		bus and DMA layers can enforce for a potentially malicious
->>>>>> +		device; it does not isolate DMA by itself. "full" requests
->>>>>> +		normal operation.
->>>>>> +
->>>>>> +		Before an operating level is committed, policy may change
->>>>>> +		freely until "disabled" is selected. Explicit "disabled"
->>>>>> +		blocks binding while allowing a later write of "adversary" or
->>>>>> +		"full". Repeated rejected probes preserve this opportunity.
->>>>>> +		Authorization immediately fixes the requested policy.
->>>>>> +		Returning to "default" or "disabled", or selecting another
->>>>>> +		mode, fails.
->>>>>> +
->>>>>> +		Successful resolution to an allowed level commits policy
->>>>>> +		and operating level before driver or DMA setup. Both remain
->>>>>> +		fixed for the device object's lifetime, including through
->>>>>> +		failed or deferred probes, unbind, reset, and driver reload.
->>>>>> +		Later binds must resolve to the same level, including when
->>>>>> +		the policy is "default". A resolver error or disabled result
->>>>>> +		before commitment leaves the policy's writability unchanged.
->>>>>
->>>>> I understand you are aproaching this from a PCI point-of-view, but many
->>>>> busses do not care or have DMA at all, and need to actually talk to the
->>>>> device before being able to even "add" it to the kernel.  So you are
->>>>> making a driver core-specific policy based on mentioning DMA here, when
->>>>> really that should only be a bus-specific thing, right?  Some busses
->>>>> might require DMA to happen (i.e. USB needs their host controllers to
->>>>> use DMA to even talk to the device at all).
->>>>>
->>>>> So can this be written to be more vague and generic and then put the
->>>>> specifics in the bus-specific portion?
->>>>
->>>> Yes, of course. The main point is that drivers must not communicate with
->>>> or configure hardware before attestation is approved. DMA is the PCI
->>>> way to communicate with hardware.
->>>
->>> That's a very vague statement of "must not communicate with".  Busses
->>> HAVE to talk to the device to determine what the device even is before
->>> it can add it to its internal bus list.  That's just how the hardware
->>> works, you can't say "no talking at all" otherwise that means that you
->>> never even know if a device is there (and for some busses, you'll miss
->>> the device entirely as they can only be found when the "host controller"
->>> tells the kernel that a device showed up, not later by manually
->>> scanning.)
->>>
->>> Think about reading PCI device ids, or USB configuration information,
->>> that's a bus-core thing.  Are you really thinking that non of this can
->>> be read from a device under this "policy"?
->>
->> Yup, and that's true even in the PCI TDISP case - there's a major amount of
->> "communication" and "configuration" involved in that. The principle which
->> should (hopefully) generalise is that a bus/host controller driver can
->> always interrogate its child device to perform whatever attestation and
->> general configuration is appropriate, but we won't hand off any _control_ of
->> that device to a specific device driver (nor enable potentially-impactful
->> bus-level features like DMA, interrupts, etc. if relevant) without the
->> requisite agreement between the bus code and the user.
+On Thu, Nov 05, 2026 at 03:16:45PM +0100, Alejandro Colomar wrote:
+> > Date: 2026-11-05 15:01:22+0100
+> > From: Bartosz Golaszewski <brgl@kernel.org>
+
+[...]
+
+> > I have no idea what causes it but I'm getting so many patches lately
+> > that are subsequent iterations of a series sent with In-Reply-To: header
+> > pointing to a previous thread.
 > 
-> I agree, that's fine, the bus core should always be able to talk to the
-> device, the "barrier" is where the device is handed to a driver for that
-> bus.  That's what I'm trying to say here, DMA is often needed before
-> that can ever happen, so no claims of "no dma is happening" should be
+> I don't know what others do, but in my case it's a conscious manual
+> action.  I use --in-reply-to in git-format-patch(1) to make all
+> revisions of patch sets be descendants of the cover letter of v1.
+> 
+> We do this in the Linux man-pages, as it helps me keep track of all
+> revisions of a patch set easily in mutt(1), without having to follow
+> links or use more-complex tools like b4(1).
+
+Exactly the same reason on my side to *not* put everything into a single
+thread!
+
+> > Don't do this. Each new iteration must be a separate thread. Please use
+> > b4 to manage patch series.
+> 
+> I won't use b4(1); I like bare git-send-email(1) and git-format-patch(1).
+> But yeah, I can send them as separate threads, if that's the preference
 > here.
 
-For the case of USB and co. it's also still fine - just perhaps wants 
-some clearer wording - since the endpoint itself is not performing DMA 
-operations. It might send some message which causes the host controller 
-device to DMA to/from a buffer owned by the host controller driver, but 
-that's perfectly OK since the host controller itself is not on its own 
-bus, and must have already been accepted by the PCI/platform/whatever 
-code to get to that point.
+Yes, in Linux kernel majority of the maintainers (a bit of speculation,
+I haven't counted, but it feels like this to me) do want separate threads.
+IIO with a huge traffic is one of them, tty/serial IIRC also does because
+it's how Greg's workflow is set up.
 
-Now if we had some bonkers kind of bus where the only way to identify an 
-endpoint was to give it DMA addresses to have it read a command 
-descriptor and write out its own data directly, then indeed there would 
-be little hope of being able to enforce much of a trust model for that...
+> Out of curiosity, what's the benefit of having separate threads?
 
-Thanks,
-Robin.
+^^^ See above.
+
+> (Or the converse question: what's the main problem of using a single
+>  thread?)
+
+In mutt for tracking I often delete the old email threads when they are
+considered closed to me (or archive, if you wish), I don't want a blast
+from the past for this. It's like starting fresh on each Monday :-)
+
+> They're morally a continuation of the previous threads, which is why it
+> makes sense to me to have them as subthreads.
+
+The email thread with big patch-series and discussions looks awful
+in such a setup (my opinion).
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
