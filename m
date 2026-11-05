@@ -1,49 +1,67 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793891373;
-	b=GGED4VF4KfgVYHs79Z//51w/FIh9SAaeylW+yIjkPWDHEemK/kXA+wXV8JMvxdw0+qzG
-	 TVNP0HprWB7vpFM5kxfsbDBgj5y+TvWC31IHcvViQYH5TsHGXIy9nrQZFGFpuhUqnTsdJ
-	 a+xyZbZUPehhJv4FAjs0ENC8TtfoXT5pY+rSY590CeoC+Arpu1BTYo1k+5BXV5qT8R9/P
-	 ByVsCP1TMDPZJD831XsYiMtI7BVy5nmsZO62sUjVCiPtfspRCbVm4A4ErKVRJXV8uDrC/
-	 GBIWS5ZZTPpn1FIb3VW09bZlMIgQ0bTYqUe6MtjvJK9+tabXuji2+2008otjNxsr4Ug==
+	t=1793891690;
+	b=VgcEPmDThyq5qViW2qA1NUCefXBKb7KFfpp6YRVh+fBaeKvdQctLAH8OxCObb7KxxhM7
+	 CC5pYvEFqB2Sqfl3lY2rLbaqV/YhkHr3jndRACIP4PTSz4xR9tA9gARx0G+hsbAvJ4waK
+	 bcc9u15+lwM8TRw+oPbxZvA4NZLC5uL4+N7bsZxhUxHTiePRLLHdLB8GwZMxyds4jKHew
+	 6EHDH4CAtd6Ga7gcgFSvLiWFbS1UOugpdKmA6DJnwAz9TLeU80R9Ytiba0ml3vffrvehj
+	 rxqfIKGuCuwqS1gRVXtrvm6dAML26W6kQwkNGV2wMxLD+3+ISZTDfbEo8PruaxQqoUw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793891373;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:From:
-	 Content-Language:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=lH1ltevs83dtmov7AeoaOtzW5b1IMJNtetcxHKo5Ado=;
-	b=Nz9cD+DF2P1kDqyExlOnCa67nVDrWZMK9t36SVIIix6GZMR9cb4vSI2sNzQSRmr3F24E
-	 gJSnfqkDM3OCWtqESpyBId9r7IWa25Is8BdOvYlXCYuRfqKTpui7jbpzWjS+gw/Fg746A
-	 62tmh73biVPmC8RobupqkZvDEI3JgxQ+RpvJsRaXd2Mq3+hgMiOyRb2t3jKVpodm4kO1m
-	 /FZYtdjQKEGQ9izS94KXkpN6q5CsSYFpgMQ0L4sXagawk1W3FeTdeHgNglpBTxPj6lzZY
-	 lSFhKrx3RhrTly47dLXifF4gK8sRM1bKWQh7JrQtzx/ItsgQuzzcwuHLO/jPCgyiHTg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793891690;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=yOzy2PAIq62MC1WpjHdTy2YV85p8V8fhM653keuOdKs=;
+	b=xKydwl4WhlfQvz50xcB6aVtTsGDwAzSYlXKgRxSNOGGrOs+XzeONms99gh68SuOztoOB
+	 VFlCyqUYFFr7VYXBnl/iOF/YpLAGzem/z9nb9inpXQyEKTnqp0wquilVyVGjqOdCOpp8c
+	 0pZQDmonlWZUbKhiQw7e2We673fPP+5xfkB2QpNv/f4jBSsHNCa8101EbntLh9wU3mjh2
+	 uAQeuxUsBLgLliHqHVQyCfqGCbe80goYsvePYWrNs3/fRxjh0GMDpQ2Cx0fsyostvtcHq
+	 pRRtvNfsijiRFC35u0gy+w9cEM+kIMBRGiYDB9XKKzs1jeHDE9kVc8iLI6ahHZ9TLlw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=VCP6qIrz;
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6EB6B606A329;
-	Thu,  5 Nov 2026 15:09:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6EB6B606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ePPkSbC7;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08D0F606A328;
+	Thu,  5 Nov 2026 15:14:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=VCP6qIrz
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A05CA168F;
-	Thu,  5 Nov 2026 07:09:28 -0800 (PST)
-Received: from [10.57.91.118] (unknown [10.57.91.118])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9AE573F628;
-	Thu,  5 Nov 2026 07:09:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1793891371; bh=pW1v+SUP5iuAtVIsaHMltHU2oqWWAZHypp8kLCcZOHA=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=VCP6qIrzd+r56KzOdIi37J2n2fCroMEvtLphSONkfOUnirk8EYH4j0XtxQdX/3TBt
-	 PP5lb+xbOY5mzrqL9Iqv1osvgW7aH1zNLJNnaAz9y/U8PgTn9C7kkI5uoRggE/hXKm
-	 6WM/59iEZkWbcJPHfUfA3mpaWUMPnq36yUF0B9XQ=
-Message-ID: <7b9329ab-01a7-45ae-b774-aec4e91da863@arm.com>
-Date: Thu, 5 Nov 2026 15:09:22 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ePPkSbC7
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A3EF1F00919;
+	Thu,  5 Nov 2026 15:14:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793891689;
+	bh=yOzy2PAIq62MC1WpjHdTy2YV85p8V8fhM653keuOdKs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=ePPkSbC7tJbK6ObzWMO3sw3edej37cbZKBQR/4pSWeo4Q0+4qm7XW2OxAEx7wlc6o
+	 eV2YqkF823NQgaf+R3xImy6QsO0eozb5tCF4pdfaIhCPVnnEVcDyvBHue3E4XrFXSL
+	 ClTaAQiVVIZYg/YBzJwpabzmusrqP/o2IghZg2s9C4KcKBJxedVqsGU+oEzFJ2geLj
+	 rT/9N8MEbaiZ4XJa2w25V61vrgJOYYszCKu0JN38YqMxDDabHiWTq/5smKKVk9LsJc
+	 BNINk2VIf4La4WSRDWkCserYPhESkFhFkFFRhb4yc2EDA8PdUZIoNs2FKMOjzmIaup
+	 NWvDCFrHfbNlw==
+Date: Thu, 5 Nov 2026 16:14:42 +0100
+From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org, 
+	Andreas Schwab <schwab@linux-m68k.org>, Andy Shevchenko <andy@kernel.org>, 
+	Daniel Scally <djrscally@gmail.com>, Danilo Krummrich <dakr@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans Verkuil <hverkuil-cisco@xs4all.nl>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+	Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, 
+	Linus Walleij <linusw@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>, 
+	Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v2 0/2] Add strprefix() and fix a bug with it
+Message-ID: <auycXnj5KXMyxhc4@devuan>
+References: <cover.1793876837.git.alx@kernel.org>
+ <cover.1793882260.git.alx@kernel.org>
+ <qwpovcqznx6eltou4inmj3v62qhh6ouvihqnze7bobnd7lmcbw@rcri4e623icb>
+ <auyOkL1Vb1iKicS9@devuan>
+ <3lj2ivlwz6wpf66u3ifg5lxlmqbe5gulcr56rd7zxcgrhx2pj6@dxdqaxsp5hvu>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -53,89 +71,113 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 10/17] driver core: Expose device trust authorization
- through sysfs
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Leon Romanovsky <leon@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>,
- Danilo Krummrich <dakr@kernel.org>,
- Dmitry Torokhov <dmitry.torokhov@gmail.com>,
- Heiner Kallweit <hkallweit1@gmail.com>, Russell King
- <linux@armlinux.org.uk>, "David S. Miller" <davem@davemloft.net>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Johannes Berg <johannes@sipsolutions.net>, Jonathan Corbet <corbet@lwn.net>,
- Shuah Khan <skhan@linuxfoundation.org>, Randy Dunlap
- <rdunlap@infradead.org>, Bjorn Helgaas <bhelgaas@google.com>,
- "Joerg Roedel (AMD)" <joro@8bytes.org>,
- Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
- Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
- David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>,
- Johan Hovold <johan@kernel.org>, Eric Dumazet <edumazet@kernel.org>,
- Marcel Holtmann <marcel@holtmann.org>,
- Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
- Nipun Gupta <nipun.gupta@amd.com>, Nikhil Agarwal <nikhil.agarwal@amd.com>,
- Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
- linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
- linux-input@vger.kernel.org, netdev@vger.kernel.org,
- linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
- linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, iommu@lists.linux.dev,
- Jason Gunthorpe <jgg@ziepe.ca>
-References: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
- <20261105-device-trust-core-v1-10-1e536825b4eb@nvidia.com>
- <2026110514-bunkhouse-handset-6a3a@gregkh> <20261105132729.GB8298@unreal>
- <2026110535-engulf-precut-cf10@gregkh>
- <9d896ebb-6892-4cac-a7c5-41def47f0be0@arm.com>
- <54c9476c-9f76-4ea1-a73a-c9937d6b463c@lunn.ch>
-From: Robin Murphy <robin.murphy@arm.com>
-Content-Language: en-GB
-In-Reply-To: <54c9476c-9f76-4ea1-a73a-c9937d6b463c@lunn.ch>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="pevfwlbhslllt3ga"
+Content-Disposition: inline
+In-Reply-To: <3lj2ivlwz6wpf66u3ifg5lxlmqbe5gulcr56rd7zxcgrhx2pj6@dxdqaxsp5hvu>
 
-On 2026-11-05 2:43 pm, Andrew Lunn wrote:
->> Yup, and that's true even in the PCI TDISP case - there's a major amount of
->> "communication" and "configuration" involved in that. The principle which
->> should (hopefully) generalise is that a bus/host controller driver can
->> always interrogate its child device to perform whatever attestation and
->> general configuration is appropriate, but we won't hand off any _control_ of
->> that device to a specific device driver (nor enable potentially-impactful
->> bus-level features like DMA, interrupts, etc. if relevant) without the
->> requisite agreement between the bus code and the user.
-> 
-> Maybe it would be good to list subsystems which the bus driver can
-> use, and cannot use.
-> 
-> You list interrupts as potentially being dangerous.
 
-Nope, "impactful" - as in "things the hardware may do by itself that 
-could impact the rest of the system". If it has wired interrupts, it may 
-assert them at will as an attempt at some mild DoS or to try to hit some 
-kind of known timing condition; if it has MSIs then it can effectively 
-attempt to write at least one arbitrary word of data to an arbitrary 
-address.
+--pevfwlbhslllt3ga
+Content-Type: text/plain; protected-headers=v1; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org, 
+	Andreas Schwab <schwab@linux-m68k.org>, Andy Shevchenko <andy@kernel.org>, 
+	Daniel Scally <djrscally@gmail.com>, Danilo Krummrich <dakr@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans Verkuil <hverkuil-cisco@xs4all.nl>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+	Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, 
+	Linus Walleij <linusw@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>, 
+	Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v2 0/2] Add strprefix() and fix a bug with it
+Message-ID: <auycXnj5KXMyxhc4@devuan>
+References: <cover.1793876837.git.alx@kernel.org>
+ <cover.1793882260.git.alx@kernel.org>
+ <qwpovcqznx6eltou4inmj3v62qhh6ouvihqnze7bobnd7lmcbw@rcri4e623icb>
+ <auyOkL1Vb1iKicS9@devuan>
+ <3lj2ivlwz6wpf66u3ifg5lxlmqbe5gulcr56rd7zxcgrhx2pj6@dxdqaxsp5hvu>
+MIME-Version: 1.0
+In-Reply-To: <3lj2ivlwz6wpf66u3ifg5lxlmqbe5gulcr56rd7zxcgrhx2pj6@dxdqaxsp5hvu>
 
-If the bus does happen to provide some way to physically prevent any 
-such device-initiated behaviour from propagating until we OK it, then 
-that's a nice thing to be able to include in our trust model.
-> What about reset
-> controllers, GPIOs, regulators? At least in the embedded world, the
-> bus driver might need to enable power, set a clock ticking, and take
-> the device out of reset via a GPIO, before the device pops into
-> existence and will enumerate on the bus.
+Hi Bartosz,
 
-External resources that a device only _consumes_ should not need to 
-factor into the trust of that device itself. If you want to worry from 
-the PoV of the device whether _it_ trusts those external providers, that 
-would be a whole other can of worms that I for one will run screaming 
-from as fast as possible :)
+> Date: 2026-11-05 16:00:59+0100
+> From: Bartosz Golaszewski <brgl@kernel.org>
+>
+[...]
+> >=20
+> > I won't use b4(1); I like bare git-send-email(1) and git-format-patch(1=
+).
+> > But yeah, I can send them as separate threads, if that's the preference
+> > here.
+> >=20
+>=20
+> Yes. It's also the preference mentioned in the kernel documentation for
+> multi-patch series.
 
-Thanks,
-Robin.
+Ok.
 
-> I don't see why interrupts are dangerous, which makes it hard for me
-> to determine if GPIOs and clocks, and regulators are also dangerous?
-> 
->     Andrew
+> > Out of curiosity, what's the benefit of having separate threads?
+> > (Or the converse question: what's the main problem of using a single
+> >  thread?)
+>=20
+> I may mark a thread in mutt as "done" for whatever reason and then all I
+> see is a reply under something I've already processed so I may as well
+> skip it. On the other hand: a new thread gets my full attention.
+>=20
+> Such sub-threads also can confuse tools like b4 that maintainer use to
+> queue patches.
 
+Thanks!
+
+> > They're morally a continuation of the previous threads, which is why it
+> > makes sense to me to have them as subthreads.
+> >=20
+>=20
+> That's what change-id is for in b4 tracking. That's also what the
+> changelog should contain: links to previous versions.
+
+This always felt to me a bad workaround for not using proper threads,
+but I'll accomodate my patch sets, anyway.  Thanks!
+
+
+Cheers,
+Alex
+
+[...]
+
+>=20
+> Thanks,
+> Bartosz
+
+--=20
+<https://www.alejandro-colomar.es>
+
+--pevfwlbhslllt3ga
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmrsnWEACgkQ64mZXMKQ
+wqnH+g/7BVp/kFhabayTy/pyEVUqpL4R0y0LOKFvvMn+dbfAK9GCB2S62fi2Hwn/
+S8jeu03LHEmccA+6yp39/A2yhPAd3jPtyK9UcLNgfPhCTMGj9MjIUpvNkl89PlYV
+C9HHZK2uw3IEfNiWBVlD0JjadKepmkbLJeJkCoNpoGWx0qz7t+Ki0XyhJqJcLH4b
+DJcGLp/o4ytvbxXKnn8GPZMach+YSe97ArvWW1kOFto01I8J+EW9cdTgpN1jyXl2
+ypmmU27/qgJ9ggVxRt0Ssx9EPCZscGUP/03T04Hht8nZFYxerOwTwUrbsagwRQsg
+RV+QK8GSNdtWTpSNzFBEfDtZX5oiShR8ViMKSgQsjoJcEJFrRrgcxP7k/T8u3wfk
+qDQirp66w5TxPCAuojq6FGob5EUqBiL1TmO1PBkG0txlc0chAztA5VpgnlTItPM/
+6LPt+dw1dcRAojOP1MrPGXSYTU0pOH6KiPjbacS4GbturWhoqS3WwWNQh9cIKFTk
+4Dx5pBqzIAm8M4oM8GNJvVJBW4cq6Jjm+mrrcaSNAsudbtqA5ohQOQpzSowMNMAi
+HvKXR9/PVi1AAkTxzRJvYPJ2sFHiCoD4EqiV6BII+daDEDxJM0JJpbUv5nm6Wvpi
+D/l1WrH3iKFs6M3Bm9HoQep0LPhQvl9EYQGJcxyrKSfCzEe03C8=
+=qTaI
+-----END PGP SIGNATURE-----
+
+--pevfwlbhslllt3ga--
