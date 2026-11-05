@@ -1,58 +1,102 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=114.242.206.163
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793877767;
-	b=FoAM5qnqFCBNL29yGQ/Vmbf5Vjsz274cA3VvNT1neDg6pmi9NM1UB0xcX/eYkxIVkW+J
-	 qsG+KR+mfYErAhI987V1qyflhhHZTzwvIXxJMRdlfjv8viRd221AuV94f9kU58m9w4fCg
-	 /YJU1SrnHHl3gnbM5iJBAx5tTPFJoAen2wW63ELPMVGquVnXHAdo7AuHQy1tlVUYm/UFZ
-	 /uE6/SrWMG4SnFgVjjcCmdYX4Z7wpyXUEMua5xHWqsFRLCXKFI0gBn7u+YBk06XAhzeK8
-	 1SO0BTGf8k//OTwb+Aw9fU4j9QfnkWFvQAKJ84xBQ+YzEdQFllMmU07h6nMVMjpv3KQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793877767;
-	h=DMARC-Filter:Received:Received:Subject:To:Cc:References:From:
-	 Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:Content-Type:
-	 Content-Language:Content-Transfer-Encoding:X-CM-TRANSID:
-	 X-CM-SenderInfo:X-Coremail-Antispam;
-	bh=cmaFW9ug8iVH0wND/xcVo7iynyR/9c9bPF8WcjdPRdQ=;
-	b=SIhdQwJTTZ9zpU86ek6LVeyDWaX+In4Ulh/q4i2bu0sFnO+RXb+xW5L7K4aypIbiRCHR
-	 MpZC4xuvoTL4Y4gO1uohW8OouloArPbCbqefp2BbYW4InuU73CRiEhJl137guR5qd90Wl
-	 IXZYl+y0bNi0wqN6wJW8e6ojTVcIwCSKknhlma+9k8GVsui9+xdtjWaKA2sekGOxMzhR3
-	 IOe+JUCCIjjs92sXq2fak+D7URAKYIyLRLildjH1kUv9DPc+WIySnGxdgNKBhcqtyMqFX
-	 n+u3MGpL2pJF4gJXHdEE/2VvwZaPCykuQxtk2b+e+2FmdYlmaNB2bvE1p4vfEOGd6jg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=loongson.cn;
-	spf=pass smtp.mailfrom=loongson.cn;
-	arc=none smtp.remote-ip=114.242.206.163
-Received: from mail.loongson.cn (mail.loongson.cn [114.242.206.163])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 01472606A332;
-	Thu,  5 Nov 2026 11:22:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 01472606A332
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=loongson.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=loongson.cn
-Received: from loongson.cn (unknown [10.20.42.62])
-	by gateway (Coremail) with SMTP id _____8Axj9EDZ+xqW6YcAA--.17677S3;
-	Thu, 05 Nov 2026 19:22:43 +0800 (CST)
-Received: from [127.0.0.1] (unknown [127.0.0.1])
-	by front1 (Coremail) with SMTP id qMiowJAxmM3+ZuxqIY4yAA--.37214S2;
-	Thu, 05 Nov 2026 19:22:40 +0800 (CST)
-Subject: Re: [PATCH v4 1/4] ACPICA: actbl2.h: Add bit constants of the Flags
- field in the IOVT IOMMU structure
-To: Huacai Chen <chenhuacai@kernel.org>
-Cc: rafael@kernel.org, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, lenb@kernel.org, linux-kernel@vger.kernel.org,
- lixianglai@loongson.cn, loongarch@lists.linux.dev,
- maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com
-References: <20260922121058.972734-2-maobibo@loongson.cn>
- <10bd45f8-2d37-42f0-b7d2-a4a84933c9b3@loongson.cn>
- <CAAhV-H7Vq2ayLJNLRSo5RRiWOcmF2BXT_QOhEDg_jWOzYteqWw@mail.gmail.com>
- <6f8a9203-6fb1-268a-8d37-37e69fbf2ee9@loongson.cn>
- <CAAhV-H5k8EJrAuqPH44y_+1gcXGCjCoozzK5ii9cLtiLDj5eog@mail.gmail.com>
- <66b9d482-d577-748c-729d-0fba70701d3d@loongson.cn>
- <CAAhV-H6PL6RLM3KA4BLQEt804FnsDE4CtKeB0KaW7Gj8rm2PMw@mail.gmail.com>
-From: Bibo Mao <maobibo@loongson.cn>
-Message-ID: <843a9418-2017-c2c6-45c5-38628e7e0bdb@loongson.cn>
-Date: Thu, 5 Nov 2026 19:23:54 +0800
-User-Agent: Mozilla/5.0 (X11; Linux loongarch64; rv:68.0) Gecko/20100101
- Thunderbird/68.7.0
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=209.85.218.54
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
+	t=1793877896;
+	b=Wqp1r9QaBDJu11xR5HRaT9JSb1NVJ3bqYRmQ96W2pK2rqLKwcz/j2CyDyepJgQZBaxJ5
+	 nMxJvc8iQtIBFHF6LALDzGQNRTOyMHqo4UjTzJOmX2/DqJpZEvTw2yE5zMSgY2Hmfb6u8
+	 c4yUb+XF/rfAXyXnbsc7XEcuVsoTnGBqB+4jn+0bvSjn4ZMcWpflI/RlebMNx01q72+gc
+	 u8saRS4I1Uy1RtJS22FhgHfes+Q1bwQOoUdxLHAFTz9Sw8WUPrn1dM7mxWI4MFohQSOA/
+	 1LRgzpHi0ob32XdtS+5/3N+1DivyP49XyAsNgesrcdmuqrS+SiShNHt3BsgmKU34jOw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793877896;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=HjqOLsC9Wph7UCiYV9mqAnewJ39Cf8CLpFtU3LV33mU=;
+	b=2ElAb8kbBt1mskZrV2OI7j7NiyBiEiJQ3ic71M+NKGpt281eUfbHQMVnc5VkuOpaI70d
+	 nACvxBWkBfstYA0xTlGxvyUAno0YWhYPMhztD4WPaYIcOFR/mOLGaMaqFpuYCmYSDZyh/
+	 eHkEXDabu24gxwYNmhtFO9ufjOr0UDmktjljxlZmapr0FC0qhxPseLfm8HvJOjMEy3oVN
+	 3QZOYcDQE/mdnKUxJdB2kff/VfhpIX6VmDqtWeN7Ww3/Rf/FsYffgL8mzUm5Z3T9TUghd
+	 fvnNnjJ7GUgva9OhXlRxAJuDRISUT8uHpJ5AVYRdNjSceATKJ3A51ajo3T5dEEq9z7g==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=CCyRuxf0;
+	arc=fail smtp.remote-ip=209.85.218.54
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CB4B606A329
+	for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2026 11:24:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3CB4B606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=CCyRuxf0
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-c4ced671398so269935466b.3
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Nov 2026 03:24:56 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1793877895; cv=none;
+        d=google.com; s=arc-20260327;
+        b=g3VJbpGRUQMtDjKYCWXB+kWQ3HoobNHnjKwdQ6Hl+sXLtTYvDGY4vz3iS4rS02Ueoy
+         IFA2IUHrY6u8bVs+CX8yYZDppHeFwrU5Yr8Hd7cbsTA+XDYeGQQ7B76wwyJS+zrv3moq
+         kZz1ZMjbPSQ9ZNYKEntplBWmmLZJZCEMWvN3uy/yF5jFKZuoF0mBh+aNkZbzi7/DO3RU
+         qSKMDjdhsIHMF3Qra4oDE0J41vm4rVirWcm/m0e1S3kkw7yk86xIiNolvC5G3VLJqIe/
+         PR4x3WnKbDYg+X6/ZAAtJPdoL8EsnldgX1PTl7yMDWETYhpA6XGiu/mfFaEeQsCXIUes
+         Rnyw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=HjqOLsC9Wph7UCiYV9mqAnewJ39Cf8CLpFtU3LV33mU=;
+        fh=CGwRoiLzTBCb07YkT4rg7DKXowOTwQ/kAAm1xlwWflE=;
+        b=qpuFKA5bpIDqykcq+7cLuIUhh4Oy/k5TBshI5deBB3qCqam/XD1SweYff+uSLLACpD
+         vLnCBSC/XLoEJZDwMoq7+iuA5ndZCUeokek29YYRbiweu0jJ/GvI6webZQkOAg0wf+9y
+         Jl3V7gi0a+MeoCW7oo0q43k3SmetO5D+dNw7XrfMJY+D/AAOdZlX/euLVqTZCB0ihNwI
+         Hxw5x+QJqk+9qK3+PWj0lkkAV+DaSjdfAbjAnnqciMZzVLeu5APUHTiODz3TmVnrSY4V
+         2n/Sb9nf4codVmxcxcBbvWaENf4wEdh0eecNbFzfZE7eVm/E9wQ87XFNwi5sXTHK2tyq
+         lmiA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793877895; x=1794482695; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=HjqOLsC9Wph7UCiYV9mqAnewJ39Cf8CLpFtU3LV33mU=;
+        b=CCyRuxf0P6J6k8bWApFVRzmmmQ4a3nezFhlH23PgLEzGEftofIdTYht54rkMPSxqZ2
+         /N6dWyeLvZ3t5ckDi74aRNo2yvUplMuzeF87p+SrRLFswIheQK11EAMfgONQoUmsEnEe
+         ak3lTmUJPNYDs7n+W3y+FrnQqNLfaVlgsCS7/AoEJSXFGJS/uoo6dTu0piEUOcSwoNXy
+         qSQc4qOwI5/lBCfCziXhsnKcQriiZn1/LpLXFBVGVCBa5Nm1lMvs3nCLwfOv1t+ObDwv
+         66A1hJWg9khNx60mm6v/I6sK000uQTULOFdYaXulbZrAc/k9t8/TzBP4LYJIO4G33uyO
+         snLw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793877895; x=1794482695;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=HjqOLsC9Wph7UCiYV9mqAnewJ39Cf8CLpFtU3LV33mU=;
+        b=JeQ5UL2nduhWoQydx2fpaxTnZvcoQMMaARzSwjV5lwsZeo8vTSpPM+5rSRyTHgY5Qz
+         4rqvKO05WxCvajDgH9LM3LDiKgaoFxBhnajMa0Z8FYSi+T8VBAQk1Zcw+MWhhoQ3bmUx
+         T1HLgcPG+AwyaHNyPIwx7BzxyrYfQCGR+emKpuqDgKdDpwlNDaxj+isMPNAKN9WbDCf5
+         /5aw0vByySxr6Pg8q/ZD1TV36d5FQ65tcE5HGOFFGZIdhB4Fa4fUigwLIK6ix8rZgVf2
+         JhHlV9nU609Thy7w4xdQWIesxCAVXiROym4pM1JfogvpFfDqcU+qqNFO9HLJH0zPGEOb
+         21MQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxkhSr9vP7XGjGIgtHpk8XpOoCJw483sgccdhbFv1dRFYpSRanwdNtIcG/s3M/zqVG4nTC9u0+DdYwK@vger.kernel.org
+X-Gm-Message-State: APuU4Z9iitaHdu7zaFdj0JuYfwxC/yEFkYNs0k5AFGvCSjJNPmFb0GPM
+	5eEBuddHXRE10+jBdyXoTfYqYoh2Rumjk1tssKF1kq2htwb8K2Crs08Z5T1fwdYDuSB4jNDm0Em
+	NIhnEPD3ZToPdhx1rAmM+8yIhXMetZo0=
+X-Gm-Gg: AYBFou23IkdqKZTXUgDNgfColS2vqz9yyu/FOBPgFaXEjCsm2yUm+f8wfZ37C8frW5l
+	tjppW+NL+cfzie8V/O0LjbZwB9L2IUMpKyRBSSHiLsTh+jhzm/7riv2lXvLFtwB2UN/0k0kHerQ
+	rCIgM63ht/G8mi7opKcL/Q0yan68bl7YRticIdYxqNJeQxvrEmvNDlmdkLuT+VCmgZ1iRmnI0uJ
+	weGZFHRO7T7y4tDEAsx6hIYde1lkbDGw2LcRjXyTg0hURA3/+2xPDbhBAf7fcJ/a5wxEVtIJZlx
+	K4UFaUzOHu8kJveSkSB17hN9pgg9z0F0G9wVqJb1Ntlyohb/LlZWa6xxXM8yEKlW/8u90g9300r
+	9S1kLc73ud7Df31eFvpejJ1TxJrxpKCsROHEgF8h9TN5MicYEvKAZENqBAVaXrQ6UTEwIoVdA7R
+	VKzUdrdHuIG3hTuhMSjogk/XTbqA07nFUjP0fw+Q4qMNFoegzZJNJW29E0LoQewf5jOo2vVqWcb
+	WSWtG1X/D0F1wG5Unqw8f+fSwq1tDFgss4wkbnvNI3X8E+dadFmvp+a36G4ug==
+X-Received: by 2002:a17:907:6d20:b0:c46:75e7:25af with SMTP id
+ a640c23a62f3a-c4ca7a0dcb0mr1704269766b.11.1793877894389; Thu, 05 Nov 2026
+ 03:24:54 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -62,166 +106,56 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-In-Reply-To: <CAAhV-H6PL6RLM3KA4BLQEt804FnsDE4CtKeB0KaW7Gj8rm2PMw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qMiowJAxmM3+ZuxqIY4yAA--.37214S2
-X-CM-SenderInfo: xpdruxter6z05rqj20fqof0/
-X-Coremail-Antispam: 1Uk129KBj93XoWxAFy7ZFyfZFyxtrWxWw4UAwc_yoWruF1xpF
-	4xGay5KFWDJr17Grn2qw1DuF15tryUGryIgw1jgryUCr9a9r1FqF4UJF4YkF97ZrZ8CF1I
-	vF1jyrW3WF1UAFgCm3ZEXasCq-sJn29KB7ZKAUJUUUU5529EdanIXcx71UUUUU7KY7ZEXa
-	sCq-sGcSsGvfJ3Ic02F40EFcxC0VAKzVAqx4xG6I80ebIjqfuFe4nvWSU5nxnvy29KBjDU
-	0xBIdaVrnRJUUUBvb4IE77IF4wAFF20E14v26r1j6r4UM7CY07I20VC2zVCF04k26cxKx2
-	IYs7xG6rWj6s0DM7CIcVAFz4kK6r1Y6r17M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48v
-	e4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_JFI_Gr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI
-	0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVCY1x0267AK
-	xVW8Jr0_Cr1UM2AIxVAIcxkEcVAq07x20xvEncxIr21l57IF6xkI12xvs2x26I8E6xACxx
-	1l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1Y6r17McIj6I8E87Iv
-	67AKxVW8JVWxJwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IY64vIr41lc7I2V7IY0VAS07
-	AlzVAYIcxG8wCY1x0262kKe7AKxVWUAVWUtwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE
-	7xkEbVWUJVW8JwCFI7km07C267AKxVWUtVW8ZwC20s026c02F40E14v26r1j6r18MI8I3I
-	0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAI
-	cVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr1lIxAIcV
-	CF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r4j6F4UMIIF0xvEx4A2jsIE
-	c7CjxVAFwI0_Gr0_Gr1UYxBIdaVFxhVjvjDU0xZFpf9x07jreOLUUUUU=
+References: <cover.1793876837.git.alx@kernel.org>
+In-Reply-To: <cover.1793876837.git.alx@kernel.org>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Date: Thu, 5 Nov 2026 13:24:18 +0200
+X-Gm-Features: AclHuK8KWMbqNnaK7YSgn2BAcqklpjMSStieDr0-B_LC0DeuPxzb2lhrGJOckGM
+Message-ID: <CAHp75VdFH146fNhw1ysUbgCPbpv+K++kWvbyZxU=V7tDh0T88Q@mail.gmail.com>
+Subject: Re: [PATCH v1 0/2] Add strprefix() and fix a bug with it
+To: Alejandro Colomar <alx@kernel.org>
+Cc: linux-hardening@vger.kernel.org, alx+linux-hardening@kernel.org, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
+	Andreas Schwab <schwab@linux-m68k.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Andy Shevchenko <andy@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, Daniel Scally <djrscally@gmail.com>, 
+	Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Hans Verkuil <hverkuil-cisco@xs4all.nl>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, 
+	Johan Hovold <johan@kernel.org>, Kees Cook <kees@kernel.org>, 
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Len Brown <lenb@kernel.org>, 
+	Linus Torvalds <torvalds@linux-foundation.org>, Linus Walleij <linusw@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>, 
+	Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Thu, Nov 5, 2026 at 1:13=E2=80=AFPM Alejandro Colomar <alx@kernel.org> w=
+rote:
+>
+> str_has_prefix() is based on sizes and lengths, which means it must
+> overload the valid length 0 to mean not found.  This is a typical
+> consequence of choosing to design an API around sizes and lengths, and
+> vanishes when moving to pointer-based similar APIs.
+>
+> This patch set adds strprefix(), deprecates str_has_prefix(), and uses
+> strprefix() in one place to fix a bug reported by Bartosz.
+>
+> We can later work on replacing the other uses of str_has_prefix(), which
+> might hide similar bugs.
+>
+> Testing
+> ~~~~~~~
+>
+> I've built this patch set with 'allmodconfig'.  I've not run the
+> resulting kernel, though.
 
+No, all lib/ new code should be accompanied with new (Kunit) test
+cases. Update the respective lib/tests/* for that or if not yet
+converted to Kunit something in lib/*test*.c
 
-On 2026/11/5 下午6:31, Huacai Chen wrote:
-> On Thu, Nov 5, 2026 at 5:49 PM Bibo Mao <maobibo@loongson.cn> wrote:
->>
->>
->>
->> On 2026/11/5 下午5:31, Huacai Chen wrote:
->>> On Thu, Nov 5, 2026 at 5:14 PM Bibo Mao <maobibo@loongson.cn> wrote:
->>>>
->>>>
->>>>
->>>> On 2026/10/23 下午3:59, Huacai Chen wrote:
->>>>> Bibo,
->>>>>
->>>>> Now I have applied this series but with some modifications, please
->>>>> double check and test the code.
->>>>>
->>>>> https://git.kernel.org/pub/scm/linux/kernel/git/chenhuacai/linux-loongson.git/log/?h=loongarch-next
->>>> In my v4 submit, it is:
->>>> +               case ACPI_IOVT_DEVICE_ENTRY_START:
->>>> +                       is_start = true;
->>>> +                       start_devid = ep->device_id;
->>>> +                       break;
->>>> however in rc1, it is modified as:
->>>>                    case ACPI_IOVT_DEVICE_ENTRY_START:
->>>>                            is_start = true;
->>>>                            entry->start_devid = ep->device_id;
->>>>                            break;
->>>> Here entry is not allocated and NULL pointer, it is allocated in
->>>> ACPI_IOVT_DEVICE_ENTRY_END switch case.
->>>>
->>>> I really do not know what is aid to modify it and let others to test.
->>> Sorry, it's my fault.
->>>
->>> In theory I should point out the modification (eliminating the local
->>> variable start_devid) and refresh a new version. But we have no time
->>> to do this because when the first patch is merged into the ACPI repo
->>> it is near the merge window.
->> Maybe our work style is different, I do not care much for the coding style.
->>>
->>> If you agree, I will submit such modifications to fix it.
->> fix is welcome.
->>>
->>> diff --git a/drivers/acpi/loongarch/iovt.c b/drivers/acpi/loongarch/iovt.c
->>> index 87cee4f0fc80..4cdac28a1fd0 100644
->>> --- a/drivers/acpi/loongarch/iovt.c
->>> +++ b/drivers/acpi/loongarch/iovt.c
->>> @@ -115,6 +115,10 @@ static int __init iovt_add_iommu(struct
->>> acpi_iovt_iommu *iommu)
->>>           for (i = 0; i < iommu->device_entry_num; i++) {
->>>                   switch (ep->type) {
->>>                   case ACPI_IOVT_DEVICE_ENTRY_START:
->>> +                       entry = kzalloc_obj(struct iovt_device_entry,
->>> GFP_ATOMIC);
->> There will be memory leak problem if there are START/START/END in the table.
-> That means a broken table? I think we don't need to consider broken
-> tables, because there may be kinds of broken pattern rather than just
-> a START/START/END.
-yes, START/END/START, START/START/END, START/SINGLE/END. what is the 
-relationship between "don't need to consider" and kinds of broken pattern?
-
-what is the policy from your side with such BIOS table? let memory leak 
-and continue?
-
-> 
-> Huacai
-> 
->>
->> Regards
->> Bibo Mao
->>> +                       if (!entry)
->>> +                               return -ENOMEM;
->>> +
->>>                           is_start = true;
->>>                           entry->start_devid = ep->device_id;
->>>                           break;
->>> @@ -122,10 +126,6 @@ static int __init iovt_add_iommu(struct
->>> acpi_iovt_iommu *iommu)
->>>                           if (!is_start)
->>>                                   break;
->>>
->>> -                       entry = kzalloc_obj(struct iovt_device_entry,
->>> GFP_ATOMIC);
->>> -                       if (!entry)
->>> -                               return -ENOMEM;
->>> -
->>>                           is_start = false;
->>>                           entry->end_devid = ep->device_id;
->>>                           list_add_tail(&entry->list, &np->ep_list);
->>>
->>> Huacai
->>>
->>>>
->>>>>
->>>>> Huacai
->>>>>
->>>>> On Mon, Oct 12, 2026 at 3:16 PM Bibo Mao <maobibo@loongson.cn> wrote:
->>>>>>
->>>>>> This change is already merged in acpica tree.
->>>>>>
->>>>>> slightly ping.
->>>>>>
->>>>>> On Tue, Sep 22, 2026 at 08:10:55PM +0800, Bibo Mao wrote:
->>>>>>     > According to the IOVT specification, define macros for each bit of the
->>>>>>     > Flags field in the IOVT IOMMU structure.
->>>>>>     >
->>>>>>     > Link: https://github.com/open-acpica/acpica/commit/352f750e4cc0
->>>>>>     > Signed-off-by: Bibo Mao <maobibo@loongson.cn>
->>>>>>     > ---
->>>>>>     >  include/acpi/actbl2.h | 7 +++++++
->>>>>>     >  1 file changed, 7 insertions(+)
->>>>>>     >
->>>>>>     > diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
->>>>>>     > index baef525367b5..76e4a5bc79b4 100644
->>>>>>     > --- a/include/acpi/actbl2.h
->>>>>>     > +++ b/include/acpi/actbl2.h
->>>>>>     > @@ -919,6 +919,13 @@ struct acpi_iovt_iommu {
->>>>>>     >       u32 device_entry_offset;
->>>>>>     >  };
->>>>>>     >
->>>>>>     > +/* Masks for Flags field above */
->>>>>>     > +#define ACPI_IOVT_IOMMU_PCI_DEVICE           (1<<0)
->>>>>>     > +#define ACPI_IOVT_IOMMU_PXM_VALID            (1<<1)
->>>>>>     > +#define ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT    (1<<2)
->>>>>>     > +#define ACPI_IOVT_IOMMU_HW_CAP_SUPPORT               (1<<3)
->>>>>>     > +#define ACPI_IOVT_IOMMU_MSI_INT_BYPASS               (1<<4)
->>>>>>     > +
->>>>>>     >  struct acpi_iovt_device_entry {
->>>>>>     >       u8 type;
->>>>>>     >       u8 length;
->>>>>>     > --
->>>>>>     > 2.39.3
->>>>>>     >
->>>>>>
->>>>
->>>>
->>
-
+--=20
+With Best Regards,
+Andy Shevchenko
