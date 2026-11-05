@@ -1,54 +1,67 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.198
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.223
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793844847;
-	b=xpaY4K+z1FNEDDIjywmiFCzDBUlFDcdqkLfP4XLmCVGrZqTAQg9Z8LGdaZo1gVjTD5XS
-	 vkV+JRmzY89q0x0PdwLO4kEaxyU+T+Djip2yEr3cp5Buj5i3w8v7+xBJ3M5DQHwW0ND6Y
-	 pUWMJx6CIX/Jre4FpykYoVnPJqY5db5tN1S8kbKciPHRxAoWmYaKcmq+dC5tdU80KzS9l
-	 /AHbHmWYwP/w506T9zQcQHTZCSwIV2GH/e1Uo6e6IJdWsGrUiMNcRbdBmaJHxiGd1MVQ4
-	 9gIbg0Cb0TQm611pBEeYFTus8NTzVHbvy6IKGWdDksSE7+U6mky0/mEvR5vUQW/AYUg==
+	t=1793847898;
+	b=P2ZHbltW5OT4kStliH1ogOQZUUHpA+2ys4k6UVQ5cRhuQyB9hw+KlVPG0nF7BhWrH/Fs
+	 c7+3OZvUSMU+2+BDj3JfEKO5VRJcmP0QB5Wv2ZwGr8uUI6fGdd8E7sv3GXiLOCK4X26Cx
+	 VO9HfvBUyZOd93GNo4pwfFy59wdUbe4U/75LNqCH7h/aqU59/v0c4D0NFlWqW8yGLgJ1Q
+	 qyMeQVGfrCe9yqRKZK+HiihuVfCsxeTJzqFYXBUrE+KnxjtlPSO6+Mp5aPm+8xeSmmufA
+	 Vug/O+x5g/v3S3WZAsCEsxfX6a993Km1e73Ax/qiUBe+H718wGqVCkRxZ2XKBw/KTlA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793844847;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=tXeq94tKXH8bHOz1amsH5XRU51n2PYOOTkgxfF1PjyI=;
-	b=o75zZtmaPoEH2GEx/SaHKpa31vcxD80tuP77fr+BnpTz1Rxclc6S4mo6IFHAGRCaAL9z
-	 y4hexYpsPGKDm64wVS7Q1QARbCb++/lLiPM9klmBU5g+Pa7+9F6Cl2UxhW0Hsdu7hSU+t
-	 AMtRDCbvtvaTAtuZ0lrhMKUsiY8KahHJCeCW90dnsklfxwc+l4/qoTFthVbd34xSx3ilL
-	 N2lNwS32Ca9UPqJe9BoJJCA2tYot0ozYn/wF6wJofqyqqUuuN00Gv9aFpXJWBvpHsCWUp
-	 qEupqqOebhBvED99j6VYtDY9GblbK3wPB3T7mUhKZLz6Sm5gLpzxnU/IBkFAGfumVzA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793847898;
+	h=DMARC-Filter:dkim-signature:Received:Received:Received:From:To:CC:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
+	 X-ClientProxiedBy;
+	bh=0TcPf4DJz9oCjCryBdJAxQ8ySyJ27lYq/N7TwYPrzG0=;
+	b=Oesn+KuFWQtRgcwEgJl9Ep4AsFbu+vMapuibehDGWchSrKb1a4AfNWXFzQXMwyDdGOl8
+	 cXu6CxfttIgvpmqYVQbWtBjTV4xzHMU4WwptcSEB8+lMfUDGADkuEshBjFAje1uHmRIL3
+	 GH6x4BMX1sdSRPn5VMXzI/QSSYaPyhhCWIvuHuQcQr5wWRx3InKS87I4wa1SFxreZV//5
+	 395psREFSh2CfObwYQV2TP+6cIpp6ZoQqHM9fHTJeuCOYVkTdvdVwv2kyKWOUpHxsRA/V
+	 Q/AXO3Q+auosDY8lG/hbTf1h1dEtYnMUrsvGQS/zDCqjS2bq5oH6sS0fUDSDYyhtO+w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=j2sTp789;
-	arc=none smtp.remote-ip=91.218.175.198
-Received: from mta0.migadu.com (out-198.mta0.migadu.com [91.218.175.198])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=huawei.com;
+	spf=pass smtp.mailfrom=huawei.com;
+	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=r6mBL1rd;
+	arc=none smtp.remote-ip=113.46.200.223
+Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3938606A31B
-	for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2026 02:14:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D3938606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39193606A328;
+	Thu,  5 Nov 2026 03:04:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 39193606A328
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=j2sTp789
-X-Envelope-To: linux-acpi@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=l5hRS8qgzR0WOCPLF0tQbQ+of37lp1oZsgw+XUQqwhg=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1793844844; v=1; x=1794449644;
- b=j2sTp789TAzH4+lGZ7lYWfaDwj4tzc9cwnz9VymVYz+93eIx1j2P1wIewQP0NcIfVbJQKLyf
- 0DO8NIIghKzDouBSBnDym1wAnQyGpqJsD9irj2dQSZrGObeDZJB96QtjMGxheDIwPErfv1cfpzT
- zdnAQ3fG/Xx2Ge3hDWonFfXo=
-X-Envelope-To: linux-acpi@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 7ce234fbb2517b84;
-	Thu, 05 Nov 2026 02:14:03 +0000
-X-Mizu-Trace-ID: 7ce234fbb2517b84
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <fc4939cc-84ec-4c5c-88a7-658ca800377d@linux.dev>
-Date: Thu, 5 Nov 2026 10:15:13 +0800
+	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=r6mBL1rd
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=0TcPf4DJz9oCjCryBdJAxQ8ySyJ27lYq/N7TwYPrzG0=;
+	b=r6mBL1rdSQv+jEsyjdtrI4VFJPJcWl6VlNZE1OItyv7IKiNXHX8URVkyX19R6QR2yz4NaVRBl
+	8ZMoJAKepCtqULwXR+KW6VpLbzvSFdB2qj56wkzqAZQWIGi33Ku36R5qB8tc31VwcZtZcKV6PQv
+	DMSO6kkTE3YNpnc/oa3kweg=
+Received: from mail.maildlp.com (unknown [172.19.163.163])
+	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4jKnGc67PSzmVBV;
+	Thu,  5 Nov 2026 11:04:40 +0800 (CST)
+Received: from kwepemo100017.china.huawei.com (unknown [7.202.195.215])
+	by mail.maildlp.com (Postfix) with ESMTPS id 10BC64048B;
+	Thu,  5 Nov 2026 11:04:52 +0800 (CST)
+Received: from localhost.localdomain (10.50.163.32) by
+ kwepemo100017.china.huawei.com (7.202.195.215) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.46; Thu, 5 Nov 2026 11:04:51 +0800
+From: Bowen Yu <yubowen8@huawei.com>
+To: <linuxarm@huawei.com>, <rafael@kernel.org>, <linux-acpi@vger.kernel.org>
+CC: <lenb@kernel.org>, <linux-kernel@vger.kernel.org>,
+	<zhanjie9@hisilicon.com>, <prime.zeng@hisilicon.com>,
+	<wanghuiqiang@huawei.com>, <xuwei5@huawei.com>, <yubowen8@huawei.com>,
+	<ouyiyong1@huawei.com>, <dengtao44@huawei.com>, <tangbin55@huawei.com>,
+	<mojunjun4@huawei.com>, <wuzhanlong@h-partners.com>
+Subject: [PATCH] ACPI: platform: Assign names to MEM resources from _DSD "reg-names"
+Date: Thu, 5 Nov 2026 11:04:50 +0800
+Message-ID: <20261105030450.1946871-1-yubowen8@huawei.com>
+X-Mailer: git-send-email 2.33.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -58,189 +71,92 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RESEND v2 01/51] alloc_tag: don't remove /proc/allocinfo
- under the codetag module lock
-To: Christian Brauner <brauner@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
- Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>,
- Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>,
- NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>,
- Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>,
- Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>,
- Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados
- <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>,
- Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>,
- linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org,
- linux-um@lists.infradead.org, linux-wireless@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org,
- ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org,
- coreteam@netfilter.org, kexec@lists.infradead.org,
- linux-pci@vger.kernel.org, linux-sound@vger.kernel.org,
- netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
- ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net,
- linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-cifs@vger.kernel.org, linux-fbdev@vger.kernel.org,
- linux-hwmon@vger.kernel.org, linux-mm@kvack.org, linux-sh@vger.kernel.org,
- linux-usb@vger.kernel.org, samba-technical@lists.samba.org,
- sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
- linux-doc@vger.kernel.org, linux-serial@vger.kernel.org,
- linux-atm-general@lists.sourceforge.net, Takashi Iwai <tiwai@suse.de>,
- linux-input@vger.kernel.org, linux-raid@vger.kernel.org,
- linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org,
- linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>,
- stable@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- Suren Baghdasaryan <surenb@google.com>
-References: <20261104-work-procfs-bugfixes-v2-0-021c84d852e0@kernel.org>
- <20261104-work-procfs-bugfixes-v2-1-021c84d852e0@kernel.org>
-Content-Language: en-US
-From: Hao Ge <hao.ge@linux.dev>
-In-Reply-To: <20261104-work-procfs-bugfixes-v2-1-021c84d852e0@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
+ kwepemo100017.china.huawei.com (7.202.195.215)
 
-Cc Suren
+ACPI _CRS resources carry no names, so platform_get_resource_byname()
+always fails for ACPI-created platform devices -- it skips any resource
+whose name is NULL. This prevents drivers shared between Device Tree
+and ACPI (via PRP0001) from using byname resource lookup.
 
-Hi Christian
+Add a new helper, acpi_platform_set_resource_names(), that reads the
+"reg-names" string array from _DSD and assigns names to MEM resources
+in the order they appear in _CRS. This mirrors the Device Tree
+"reg-names" property semantics. This property is optional, if absent
+the behavior will be unchanged.
 
-On 2026/11/5 03:06, Christian Brauner wrote:
-> codetag_alloc_module_section() takes the codetag type's mod_lock for
-> writing and calls reserve_module_tags() with it held. When that can't
-> reserve the tags, because the section's alignment doesn't fit, because
-> there are too many tags for the page flag bits or because the memory
-> for them can't be allocated, it shuts memory allocation profiling down
-> and removes /proc/allocinfo, still with mod_lock held.
-> 
-> remove_proc_entry() waits until every reader of the entry has let go of
-> it, and a reader of /proc/allocinfo takes mod_lock for reading in
-> allocinfo_start() while it holds the entry. So a module load that hits
-> one of those paths while /proc/allocinfo is being read waits for the
-> reader and the reader waits for the module load, for good.
-> 
-> Let a work item remove the entry in that case. The profiling is shut
-> down right away like before, the file just goes a moment later.
-> 
-> Fixes: 4835f747d3ed ("alloc_tag: support for page allocation tag compression")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+Tested on arm64 by injecting an SSDT through the initrd table upgrade
+mechanism that describes a PRP0001 test device with three MMIO
+resources and a matching "reg-names" package: a test driver using
+platform_get_resource_byname() resolved all three regions, and
+/proc/iomem shows the assigned names:
 
-Thanks.
+  f0000000-f0000fff : reg0
+  f0001000-f0001fff : reg1
+  f0002000-f0002fff : reg2
 
-is this a problem you have hit in practice?
-Sashiko discovered this issue earlier and reported it as follows:
+Signed-off-by: Bowen Yu <yubowen8@huawei.com>
+---
+ drivers/acpi/acpi_platform.c | 37 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-> diff --git a/mm/alloc_tag.c b/mm/alloc_tag.c
-> index 2070e682fe106..112a014d4b890 100644
-> --- a/mm/alloc_tag.c
-> +++ b/mm/alloc_tag.c
-> @@ -950,10 +950,12 @@ static void *reserve_module_tags(struct module *mod, unsigned long size,
->  		int grow_res;
->  
->  		module_tags.size = offset + size;
-> -		if (mem_alloc_profiling_enabled() && !tags_addressable()) {
-> +		if (!tags_addressable()) {
->  			shutdown_mem_profiling(true);
-This is a pre-existing issue, but does this shutdown_mem_profiling(true) call
-introduce an AB-BA deadlock between /proc/allocinfo file readers (pde->in_use)
-and module loading (cttype->mod_lock)?
-A user reading /proc/allocinfo acquires the procfs in_use reference in
-use_pde(), then blocks on down_read(&alloc_tag_cttype->mod_lock) in
-allocinfo_start().
-Concurrently, if a module loads and tags_addressable() fails,
-codetag_alloc_module_section() holds down_write(&cttype->mod_lock) and calls
-shutdown_mem_profiling(true), which removes the proc entry. This removal waits
-indefinitely for the in_use reference to drop to zero, hanging both procfs
-reads and module loading.
-> -			pr_warn("With module %s there are too many tags to fit in %d page flag bits. Memory allocation profiling is disabled!\n",
-> -				mod->name, NR_UNUSED_PAGEFLAG_BITS);
-> +			pr_warn_once("With module %s there are too many tags to fit in %d page flag bits. Memory allocation profiling is disabled!\n",
-> +				     mod->name, NR_UNUSED_PAGEFLAG_BITS);
-> +			release_module_tags(mod, false);
-> +			return ERR_PTR(-EAGAIN);
->  		}
->  
->  		grow_res = vm_module_tags_populate();
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index 80ea7121744d..61f04eacc2f0 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -108,6 +108,39 @@ static unsigned int acpi_platform_adjust_resources(struct acpi_device *adev,
+ 	return count;
+ }
+ 
++static void acpi_platform_set_resource_names(struct acpi_device *adev,
++					     struct resource *resources,
++					     int count)
++{
++	const char **names;
++	int mem_count = 0, mem_idx = 0;
++	int i, num;
++
++	/* reg-names is optional; skip entirely if not present in _DSD */
++	if (!fwnode_property_present(acpi_fwnode_handle(adev), "reg-names"))
++		return;
++
++	for (i = 0; i < count; i++)
++		if (resource_type(&resources[i]) == IORESOURCE_MEM)
++			mem_count++;
++	if (mem_count == 0)
++		return;
++
++	names = kcalloc(mem_count, sizeof(*names), GFP_KERNEL);
++	if (!names)
++		return;
++
++	num = fwnode_property_read_string_array(acpi_fwnode_handle(adev),
++						"reg-names", names, mem_count);
++	if (num == mem_count) {
++		for (i = 0; i < count; i++) {
++			if (resource_type(&resources[i]) == IORESOURCE_MEM)
++				resources[i].name = names[mem_idx++];
++		}
++	}
++	kfree(names);
++}
++
+ static void acpi_platform_fill_resource(struct device *parent,
+ 					const struct resource *src,
+ 					struct resource *dest)
+@@ -194,6 +227,10 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+ 				acpi_platform_fill_resource(parent, rentry->res,
+ 							    &resources[count++]);
+ 			}
++
++			acpi_platform_set_resource_names(adev, resources,
++							 count);
++
+ 			acpi_dev_free_resource_list(&resource_list);
+ 		}
+ 	}
+-- 
+2.33.0
 
-I previously sent a patch with a comparable idea, though Sashiko remained unconvinced.
-
-[patch]: https://lore.kernel.org/all/20260817062726.106511-3-hao.ge@linux.dev/
-
-[Sashiko's objections]: https://sashiko.dev/#/patchset/20260817062726.106511-1-hao.ge@linux.dev
-
-Could this patch perhaps wait for mine? No worries if this is inconvenient.
-
-Best regards                                                                                                                                                                                                                                                                  
-Hao
-
-> ---
->  mm/alloc_tag.c | 27 ++++++++++++++++++++++++---
->  1 file changed, 24 insertions(+), 3 deletions(-)
-> 
-> diff --git a/mm/alloc_tag.c b/mm/alloc_tag.c
-> index 82e2c3448dcf..7d7ad6704953 100644
-> --- a/mm/alloc_tag.c
-> +++ b/mm/alloc_tag.c
-> @@ -15,6 +15,7 @@
->  #include <linux/seq_file.h>
->  #include <linux/string_choices.h>
->  #include <linux/vmalloc.h>
-> +#include <linux/workqueue.h>
->  #include <linux/kmemleak.h>
->  #include <uapi/linux/alloc_tag.h>
->  
-> @@ -604,6 +605,26 @@ static void shutdown_mem_profiling(bool remove_file)
->  	mem_profiling_support = false;
->  }
->  
-> +static void remove_allocinfo_file(struct work_struct *work)
-> +{
-> +	remove_proc_entry(ALLOCINFO_FILE_NAME, NULL);
-> +}
-> +static DECLARE_WORK(remove_allocinfo_work, remove_allocinfo_file);
-> +
-> +/*
-> + * A module's tags are reserved with the codetag module lock held for
-> + * writing, and a reader of /proc/allocinfo takes that lock with the entry
-> + * pinned. Removing the entry there would wait for that reader for good, so
-> + * let a work item do it.
-> + */
-> +static void shutdown_mem_profiling_async(void)
-> +{
-> +	if (!mem_profiling_support)
-> +		return;
-> +	shutdown_mem_profiling(false);
-> +	schedule_work(&remove_allocinfo_work);
-> +}
-> +
->  void __init alloc_tag_sec_init(void)
->  {
->  	struct alloc_tag *last_codetag;
-> @@ -855,7 +876,7 @@ static void *reserve_module_tags(struct module *mod, unsigned long size,
->  		align = 1;
->  
->  	if (!ensure_alignment(align, &prepend)) {
-> -		shutdown_mem_profiling(true);
-> +		shutdown_mem_profiling_async();
->  		pr_err("%s: alignment %lu is incompatible with allocation tag indexing. Memory allocation profiling is disabled!\n",
->  			mod->name, align);
->  		return ERR_PTR(-EINVAL);
-> @@ -905,14 +926,14 @@ unlock:
->  
->  		module_tags.size = offset + size;
->  		if (mem_alloc_profiling_enabled() && !tags_addressable()) {
-> -			shutdown_mem_profiling(true);
-> +			shutdown_mem_profiling_async();
->  			pr_warn("With module %s there are too many tags to fit in %d page flag bits. Memory allocation profiling is disabled!\n",
->  				mod->name, NR_UNUSED_PAGEFLAG_BITS);
->  		}
->  
->  		grow_res = vm_module_tags_populate();
->  		if (grow_res) {
-> -			shutdown_mem_profiling(true);
-> +			shutdown_mem_profiling_async();
->  			pr_err("Failed to allocate memory for allocation tags in the module %s. Memory allocation profiling is disabled!\n",
->  			       mod->name);
->  			return ERR_PTR(grow_res);
-> 
