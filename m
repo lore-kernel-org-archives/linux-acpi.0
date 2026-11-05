@@ -1,84 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.16
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793904313;
-	b=k1j6T7TCGNJZhJUxFcC9Tx33kQyoqGHuZDthqIznaUJknPbcbtgGfLqq3kR7of3yTZP9
-	 8ham/Ed6NhU1DmO1Zf1/yDqFbYWD7X6XRChTfsqfNz0XtJ6Q7FZzOFvv34IFBZLvHUqXA
-	 WA9CzZt97d6LCTGIFy1WDYyjennH2uP93blVmjMXvkDqGqo8mm7d1WBvYiEvl398yMXq5
-	 MzNLhlTZDiv9+YN47THOIUCGl83fdOz7Yx1s0hdjuRN1sG+xfgOuNpgyq0MN1pIEb7+zV
-	 i7VAuJp0Ee2lBFxjArOYaMwSuh7Fr83e3kKo1BIhn1IRVvZnLWj7PpiuR/Fj9HWqsCw==
+	t=1793904407;
+	b=1jWTVbi7Fl27Z7q7gB48KML5bXwMWSKbsFlIaLWyJyx2qbE2RPRp1tPRtl8Nsvtlhfp3
+	 X7TFULcplfh+lPWrSTyzzJih0T0OmrQJRMIlqHS7r+KzsTnUdfr+dWI/KvbKQf7uCtiaf
+	 eOVvIj1lmxhuhTG0Zy8iqvWB6W9FWCLfMVycHjDSn7zqaFV9CxhWxLJ1QQZSZI9PheGNC
+	 hdtk6wErJvvmEMbuoZCLhcD4PXi6zqsUOY7irrJkQxa9frTfPwope1dn+HPIUyRgUJe7h
+	 oGYntTu+oEJOB5s7G6oZeUPHw6BRwPMNUoWH6G0W4qpIqnvj6U4IILShiQLm9kc8FDw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793904313;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=jkpPiFVr7OW6ZEzjFrqd12ut3tCHk/x8MPG6zAwfo3U=;
-	b=YLLeNP1MikpaEdsnHqnJwla+FrRltTlOrPZvW3dgLszOqI/84AS4WMWFUgEGy/GCDWzW
-	 Is/QVa3yv24vdUffRu96Mz/SoDk0bT+Q+itifWA8JvQnqF65/a70nTqPI1OvHZvIMyaSc
-	 3KkYwdyx7PjsUVBPeR0yGd1JUnD/EP5A8QF3yuj0lPfue8+m4WAg03FEco2oLhUIpwhOX
-	 rI4Tw6+EZY7Bwya3R53ucUNrc/qJ9vui+RQfxHMDRgZGIoeY1S93YhZPWj6tCELmwD7Pv
-	 0Y7+dKRyXa1hgTA64H7Q4NGsuheulwgrT6QLiMktq1JIEx4PCKPCPZ3McmdZ2py7K4g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793904407;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=VmEtoXLZN28Yd1Sc9a0UP35IDv5GvuAxj1+cjNXXo0A=;
+	b=Ze3nX7E/c+9sMAlciPns/x8UqywgeZYafTl2l616omEteblq5zdkgeN/HBU5iQFXGXOx
+	 nVviiQHxExUyQCEpiexa4HPxssXuY5CI6Nfj+en8wIKFsrkb39D+H6ehioTHUL8FwtNYJ
+	 /Vr8Loq3MnbZo663BUKL8g9QD7E29lfky3wu43dujt8cSQdZzKQ+ySxOLPH98RHo+ArYa
+	 uGuGTFUDIXvWkA4Gjbiz6JlxOYKhNCYADMC0XO/xwKl9ngMe0gmDHkVLNl/aBXfQ5uBsx
+	 8Ne8gtCNrttrs2CX+c4asxT8tKRcg/ZZQ7vDcdjddMHVbyv88FvoFynncQOb4YNcykA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=j+7DYonu;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=SRGx4E4F;
+	arc=none smtp.remote-ip=198.175.65.16
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88DD6606A328;
-	Thu,  5 Nov 2026 18:45:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62222606A31B;
+	Thu,  5 Nov 2026 18:46:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 62222606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=j+7DYonu
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62F951F000C1;
-	Thu,  5 Nov 2026 18:45:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793904313;
-	bh=jkpPiFVr7OW6ZEzjFrqd12ut3tCHk/x8MPG6zAwfo3U=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=j+7DYonurptTS7RzehMTEgOf9wG1aTqlc3KnZ72twymaiKE+9aaBYh4ZR3xt9nwNf
-	 iPjcUqWcJJ/TmuZv4J0TW/MfZzL1KxNLzAq7nsspdZ5FXIWfuTZOkiEAlZtR7n9DdW
-	 ic9w1kQ20zqlN4LBXtj07ur5q/WWXz1omMrRq26pEHJDna0AFm7GyILUQ0FHnuOf+M
-	 NQK5SJ63eAvkrMwx24rKRR8KylGEG42KDpwihrgODiDHvL4S+o+OKBmpU1n8U92Pth
-	 Pn2qD0Tss9S/1Vhg/R897RmGAOSKMYMQlnIlTHfejgwSx9LkiSKJdcBI+9MDWSnnGH
-	 mM0tVYrycArRQ==
-Date: Thu, 5 Nov 2026 20:45:10 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Heiner Kallweit <hkallweit1@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
-	Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Lu Baolu <baolu.lu@linux.intel.com>,
-	Johan Hovold <johan@kernel.org>, Eric Dumazet <edumazet@kernel.org>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-	Nipun Gupta <nipun.gupta@amd.com>,
-	Nikhil Agarwal <nikhil.agarwal@amd.com>,
-	Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
-	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-input@vger.kernel.org, netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-pci@vger.kernel.org,
-	iommu@lists.linux.dev, Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 03/17] net: phy: Attach generic PHY drivers through the
- driver core
-Message-ID: <20261105184510.GG8298@unreal>
-References: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
- <20261105-device-trust-core-v1-3-1e536825b4eb@nvidia.com>
- <ce4a9030-be44-42b6-ab5b-b830bce3502b@lunn.ch>
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=SRGx4E4F
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1793904406; x=1825440406;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=BIoVV/XC8o7hduXTLvTzUlJuObPVpFixG6DuvRMrrJw=;
+  b=SRGx4E4FdFoSqRuHpL0OcK28+JWaxedbkKn7nCCaKhNQ4avQO0xqrT2u
+   pPbBv/7laMYC//DKidIlHu7PnICgSNsvVdVy9gVwLAeOx5NCyk9dU7raB
+   2M1MdiznS8FSaGCvmEVaCkWkmqVTEkzC+hgX/q0yoDVTkfUIlsn8RJajl
+   pM2HO+zJtJRuFApMp6z/IO6TBDUANb6s1ygOaKU53GSfnZeHprktYxaok
+   REMmoa2RJ5NEC7aW01iNLbYXd5akBjJFW/K7qMkwrPmKeF4kxmuouxTmw
+   bdyrufXisE76T3K12SkA6cXzWZKIYnJxKkyz0jNJsI2aQcX7EavIZtKZQ
+   w==;
+X-CSE-ConnectionGUID: tZw4B/StSpW7R969yTzaWA==
+X-CSE-MsgGUID: oq3GEvEZROqfvQNiUWlh4g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11957"; a="2699940"
+X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
+   d="scan'208";a="2699940"
+Received: from fmviesa012.fm.intel.com ([10.60.135.152])
+  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 10:46:46 -0800
+X-CSE-ConnectionGUID: uWnG1K/lSwaeLTYKS1OBXw==
+X-CSE-MsgGUID: gK9hd52wROmPH6t9bxXt9g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
+   d="scan'208";a="8839788"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.125.110.122])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 10:46:45 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Tony Luck <tony.luck@intel.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Shuai Xue <xueshuai@linux.alibaba.com>,
+	Len Brown <lenb@kernel.org>,
+	Ben Cheatham <benjamin.cheatham@amd.com>
+Cc: Alison Schofield <alison.schofield@intel.com>,
+	linux-acpi@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
+	Pei Gao <pei.gao@intel.com>
+Subject: [PATCH] EINJ, CXL: Use PCI domain for CXL root port error injection
+Date: Thu,  5 Nov 2026 10:46:41 -0800
+Message-ID: <20261105184643.907678-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -88,23 +86,95 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ce4a9030-be44-42b6-ab5b-b830bce3502b@lunn.ch>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Nov 05, 2026 at 04:33:48PM +0100, Andrew Lunn wrote:
-> > +		if (err == -EBUSY) {
-> > +			/* Another bind owns the PHY, so nothing was probed here. */
-> > +			irq = phydev->irq;
-> > +			err = -EPROBE_DEFER;
-> > +		} else if (err == -EAGAIN) {
-> > +			err = -EPROBE_DEFER;
-> 
-> You cannot return -EPROBE_DEFER here. You are not guaranteed to be in
-> the context of a probe. Very likely, you are in the middle of the
-> ethernet drives open() call. Both probes happened a long time ago.
+CXL protocol error injection identifies the target root port to firmware
+using its PCI segment, bus, device, and function (SBDF).
 
-You are right, thanks
+The segment is taken from the PCI host bridge's domain_nr, which is
+only populated for emulated PCI domains. On ACPI systems, firmware
+receives segment 0 even when the target root port belongs to a nonzero
+segment, identifying the wrong PCI device for error injection.
 
-> 
-> 	Andrew
+Use the PCI domain of the target root port to obtain the correct segment.
+With the host bridge lookup removed, cxl_dport_get_sbdf() can return the
+SBDF directly.
+
+Reported-by: Pei Gao <pei.gao@intel.com>
+Fixes: 12fb28ea6b1c ("EINJ: Add CXL error type support")
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+
+The ACPI EINJ SBDF field limits the PCI segment to 8 bits, while PCI
+segment numbers can be 16 bits. A segment greater than 0xff would be
+silently truncated, potentially targeting the wrong device.
+
+I'm unsure how likely systems are to use segments above 0xff. Is this
+a practical concern? Would a range check to enforce the ACPI limit
+be warranted in a follow-up patch?
+---
+ drivers/acpi/apei/einj-cxl.c | 29 +++++++----------------------
+ 1 file changed, 7 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/acpi/apei/einj-cxl.c b/drivers/acpi/apei/einj-cxl.c
+index e70a416ec925..4c8f014378bc 100644
+--- a/drivers/acpi/apei/einj-cxl.c
++++ b/drivers/acpi/apei/einj-cxl.c
+@@ -47,25 +47,12 @@ int einj_cxl_available_error_type_show(struct seq_file *m, void *v)
+ }
+ EXPORT_SYMBOL_NS_GPL(einj_cxl_available_error_type_show, "CXL");
+ 
+-static int cxl_dport_get_sbdf(struct pci_dev *dport_dev, u64 *sbdf)
++static u64 cxl_dport_get_sbdf(struct pci_dev *dport_dev)
+ {
+-	struct pci_bus *pbus;
+-	struct pci_host_bridge *bridge;
+-	u64 seg = 0, bus;
++	u64 seg = pci_domain_nr(dport_dev->bus);
++	u64 bus = dport_dev->bus->number;
+ 
+-	pbus = dport_dev->bus;
+-	bridge = pci_find_host_bridge(pbus);
+-
+-	if (!bridge)
+-		return -ENODEV;
+-
+-	if (bridge->domain_nr != PCI_DOMAIN_NR_NOT_SET)
+-		seg = bridge->domain_nr;
+-
+-	bus = pbus->number;
+-	*sbdf = (seg << 24) | (bus << 16) | (dport_dev->devfn << 8);
+-
+-	return 0;
++	return (seg << 24) | (bus << 16) | (dport_dev->devfn << 8);
+ }
+ 
+ int einj_cxl_inject_rch_error(u64 rcrb, u64 type)
+@@ -87,7 +74,7 @@ EXPORT_SYMBOL_NS_GPL(einj_cxl_inject_rch_error, "CXL");
+ 
+ int einj_cxl_inject_error(struct pci_dev *dport, u64 type)
+ {
+-	u64 param4 = 0;
++	u64 sbdf;
+ 	int rc;
+ 
+ 	/* Only CXL error types can be specified */
+@@ -98,11 +85,9 @@ int einj_cxl_inject_error(struct pci_dev *dport, u64 type)
+ 	if (rc)
+ 		return rc;
+ 
+-	rc = cxl_dport_get_sbdf(dport, &param4);
+-	if (rc)
+-		return rc;
++	sbdf = cxl_dport_get_sbdf(dport);
+ 
+-	return einj_error_inject(type, 0x4, 0, 0, 0, param4);
++	return einj_error_inject(type, 0x4, 0, 0, 0, sbdf);
+ }
+ EXPORT_SYMBOL_NS_GPL(einj_cxl_inject_error, "CXL");
+ 
+
+base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+-- 
+2.37.3
+
