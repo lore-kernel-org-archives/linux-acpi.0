@@ -1,102 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=209.85.218.41
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
-	t=1793878075;
-	b=tyBBx2u43rjyiCOftPcSnxxFkqrwtVbO0YPa566Xl7fMPzUbaEMSF0SwA7aerKmpWzhJ
-	 uDTRdECroyXUBIZPEcn5QVkuAH3GR6hoYr6yx5onEuSlevjau2s+M6JYsvYhM36LY25LM
-	 E7kJStq8yW3Vwn4/BJlwjcz8xCAQ07auz0gqhSJMTAvGpnix0SAezQrLU8/broWuOn9/P
-	 7gfdPi3W+Dk3aeyglGu3cEPxu2cu3LJNh8wwkNGrMj1twbJ7zPDtTLHTROShN+zAHUCl3
-	 4yzE5Pc8X0W+aSbyYk8IudnErruNiM3FhUK4aw4F4EhUfOTr1flX9BPcwghtb9bG1CQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793878075;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=UgymWUGDvRFV30kELqGcA8Yq/kp5tSw6vqhDEg+/UkU=;
-	b=aTjxViDweeDjtLdkrVDio6cyuDwsEB91C9E7wHKfc8FSJK6oylmQP0y7WodWlAPChH6d
-	 Dxi8hzdYWfO21Oi7Xixd2rxH2cGCtjH3IeL4LDOZB91xWJxLkourDC7RkKQYgf//Wwefi
-	 7OXjUZWhfrc6l7nH2X/LeEqlt4I/iHJ3ekR3tUY4LaGalMD9ic0G6ayTwcsSf9cjP081d
-	 oO/8H4knF4dLlnfb5Huxm7BjK2wsb+rTQLPnRTdsieFg/ERJ2uGuTDw4aQWBspDVNikhu
-	 4JMUK/JtXfxjjuMq2UqhpDEqbHecBRkzed9uGGFAOeoH2DO9WfDlpr7JveXu4PVBwgg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=skgm5fm6;
-	arc=fail smtp.remote-ip=209.85.218.41
-Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.8
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793878599;
+	b=LU4Lw8iw3L4t8K/n9Hh6UJocvA+pzDOKA0VqDcJycGal9N9qVKv7jP40LTqCwmsDG66c
+	 GWerN5hzcQ+OcZNSUwp/UMiVhb4fXgnfGvP3sq8ArzqS60SepQ0IEOYh8eqyhMw+WdAHb
+	 xuhmdYlauENK5eAJsb4pjzkK9ziARyy8yFo+zbPd/4qvbxWMXT6dcmpey5FJuaTVwiTPy
+	 G7GetQSk5HEVd1DPBc2+4IddUJAVrFzwgoeYeBH4TsiBk2Nm6Ji/RB48GKXb6p72Ie8Mm
+	 ZLf3qzjHDrsWGIxEZth9e/Mbx6UQd/vShHRA42fUoWDV12vA+zsCez3IUmJSNvEmu1w==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793878599;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=30J4sbOlYJiNq7Z4tRszcjWu8hBcWrg7tEn3jlctPwo=;
+	b=xRxzWa8Xy4evAl6NaL+mYks4IQacTnLfihp+tzxY8uHo+NLYRbz3tSNSLnEL+1FfvDD2
+	 D3UZh7Sdoe6MocHg6nC5GUObrjQ/GPDZebN/rvGlBt+1pRd49aXzeOiCNfAVhObDYPjqo
+	 SYF5bSg2fqmzfE6lfpcNInuPiYYpxbPm5jQMqdiSoPLRyOvQtnFWh3lLz86ILih1SIJts
+	 zAyaf9Iz+mUIYRg/rSH7RZB2uaEGoZgCQ8tPkFM8HvoH9nbKCfxaFijqflQL51ChPlssy
+	 7VDNqq3k9XuUeQNw96pJK2OJHqW/ogIy4nTJ9Ufw8pEGM3hW82pHdNSrea78h3Z3XpQ==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=kH6kTpAi;
+	arc=none smtp.remote-ip=192.198.163.8
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93622606A32D
-	for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2026 11:27:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 93622606A32D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79418606A336;
+	Thu,  5 Nov 2026 11:36:37 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 79418606A336
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=skgm5fm6
-Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-c4ced671398so270329966b.3
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Nov 2026 03:27:54 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1793878073; cv=none;
-        d=google.com; s=arc-20260327;
-        b=srPtAMlB1yVfQCCRWtUcKd+sKSIkVsrLw5dW+zhfAlP62pBkEOXTXaXMfa71XHGv73
-         cMVbDIJCTFpU608Td0leDchgxgmnBBuQlv31MyaTjx2mmPK6Ow8y9SIKUc+TQsfueHr+
-         YhIS7K4UBjqQntHFb6093m60v1D8q8HIjT2iP04OTBI/tZyL7lLk9iw3MKdIWRd/ScAe
-         JZPcfPZVg2vb6kdBThL2jt3Ha9+PjZX3iR9WyUFVJxAUUJhS2Q3r19G7T91Ctlnu6mai
-         yxY3cmdPMaQKFQpw+jkgY4QlrKSoosjXRF6JfTtuA+uqSZTtTYfFJXpeQ1rjdh9I9vpW
-         swQw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=UgymWUGDvRFV30kELqGcA8Yq/kp5tSw6vqhDEg+/UkU=;
-        fh=Z69wCxrUqbDvngT53Ym8gvszGD4GbZDCXbZysg9ticQ=;
-        b=Exo9rHRiO+eXYlKs+pXE+OnUPCvfdjIPuU5upxNjH1yyfjaU0Q3u4XrUfRy8rQLK39
-         6NcEKlSDSRN/bw0STTfcm8w80+RAaHCjpVI4an11NT265WF9ipx6MlQu4+KVvv6Tp9dx
-         r4QVqRHFJINgIkLDCAJSHd7lmCoqvjBGTv0Ck3OCj8ezIj2SjFYvMNOcvY521wDluFmf
-         0QJd5/Jt+CUojd54R3F9dLyXcmyTJiXagmLctXp2YCmIkf2iiOhNgPkmv0ln331PHhKn
-         +a+Z6DIpsjt2p0KUIFvmFiQVt/WO9srK/6jwvtImFXU17v8kleVXtkMUNR0vxa4TMKCf
-         uJiw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793878073; x=1794482873; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=UgymWUGDvRFV30kELqGcA8Yq/kp5tSw6vqhDEg+/UkU=;
-        b=skgm5fm6oAWAgv/QVCq1EFm/mHk6ogMQEriq5kNbbrdxCpxscJsl+DVbnoxhuFlxLd
-         vpOEAXk4t8Us8lYbydo4Lkh/rrArrqli9+hvlvKBU8YfaDLyI9GZGKoooB/b0vdPaMYV
-         JuKkZi4KuhaladOnnC30rn5+5auFXjI7odgfwe3bCKV6tngTAW6ACSoUfVCWKJqsXKIX
-         jxEtLNpajovzg1ZAn6mqM9CQndl7qv0vcjhh+A3vKBUj/zkiqZVv5xWyOSeziy9qx4zd
-         Srk8GDlwmg/wA20VyrcEYyztNba9JvovUh1RMB2E2C1KTO6V0On70HG6wXIEyNfWKBLP
-         SN9A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793878073; x=1794482873;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=UgymWUGDvRFV30kELqGcA8Yq/kp5tSw6vqhDEg+/UkU=;
-        b=szHuwneyM43GxVlUv+Vnc0q8ckN6RihhxXg5/2Hwv/uXwLHJ5aZJcUxHwWUDOY7bZv
-         DTovF7MA4qI8XamF5kpHlEksizhlFAHjv6JbvNeFSWMrqD3dAOUKp00FJ0XTxWyujReT
-         mvzXwW/Ql1PLgovVNTGQgScgaBhjB4QZApU4S67GPxjj67QaEQa1Vx+rjOCw8UDdRMRv
-         lu23nO22m5yTZ/BExWoNh5ID/DBoR7NIfOxbbv8HC9bHODMAN13Xwp/rhQz8uI1iNUpT
-         KYcm9u2wpFZupdXqXXQlyO2hetlDBq659S8Wzw2Ik6+yX6gKJCdGB1dSM8Qe3hllXlZO
-         AI5g==
-X-Forwarded-Encrypted: i=1; AKwUvBzYU6dvCT1rBNUQAt70UZbmWUeYmdJzOzYiuWOw3vAgw6feJWVqaGs9Uweh0fFUnKWBfdy9VADpJJqI@vger.kernel.org
-X-Gm-Message-State: APuU4Z8meht0ZhRWMLQQQ+lrNQfVe6Yo53SLRlJC4szpd0WveVFr0uYl
-	FCVJrxBR2BexBGVq143G3RooyD9hc7w7zTIPqgCaVOsPUhLcwSPfosSv9GPynVi1uO7mXYKliKR
-	4kc0D78evcRZe+CXijcNcB8Y/EA3GU0Y9cQI6vMY=
-X-Gm-Gg: AYBFou0HOuGRpadnbXNp5xc38TOayUAQU2oqS2fN3e2TtTnlMY+dsqa4MNnj8XEWL7j
-	8IR3w5tNFNBXk06ryDopzT32GFXTM6qj6tFAtzAz+o49f3zjBRYGtcLuPYn+iqN78gYRF3PJnpz
-	+Aus3OCKP02ioz1rt34Awmm8CMQfWqw7OXPhN3/AmoLg5OZnu3b1G6e8knZE6UAmHS8uKF9wIOS
-	sJmAAr2jniwdaCkwOyjdqGdW4AxHm27+59KId2ySAnry4AEkseirOqBdaOeQN6NZrTBTc4Tck4K
-	uqHghxxyT6U0vqZWoR/oOvNezU+zhIZoW3Zp+WhxrJiOrkyN9zzXayyYvYrlfiT510u+l+B8Xk1
-	1L2moUXE9ukWGUkRP1sLOs7xAK4lcAStcJ4wGkJ8Zipy1RX2yjUBB5ZIJ6OOxvHZg+9T5tFSb80
-	uVeoLF+aB+bZkHivazoBjyMJbqaHDSpLYSzIe9PVsjR/Xtv5cdh9ZPYUwVR9xIdD7p1PKSQYq0R
-	PVmRLLhFrnq0VMX+3IX2ybD2MmSuPStudpv+dz1EMp3uO4/h4OH33by+5J6dQ==
-X-Received: by 2002:a17:907:2d8e:b0:c42:102f:15df with SMTP id
- a640c23a62f3a-c4ca7a0dc8cmr1782618666b.8.1793878072888; Thu, 05 Nov 2026
- 03:27:52 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=kH6kTpAi
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1793878598; x=1825414598;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=J9dOmPMshDIpYmZ/TrqPMjz7mHsp3Z6+Ou1qHQ88q2c=;
+  b=kH6kTpAiQCWPXNnHfol4Ir8+s9VJjZqKUrEiOYYXZ519D9v6B5xP2gry
+   GnxiwbeLFhRczydH6mZJ0OLOiGGGZE6rGnuWsdi7YptLDmfnzWYK9ipH0
+   dFC+58sXrURL/5et1b81u3MYRwTIazl4W9H6PFyG6JrBjGDynR8P86946
+   XGW7UEKjEwT0v0iPok/BKikScign00RZapSIvNNIiIqAoLcjFjvBcwcNF
+   mL/HcsTXXDUec0Erc9ynncQVAqW6Z3TJ/1Z9sXlIVcBTPVZLkkuPAbbCG
+   vltsW6FpoPg9oXfRHm1xluCStSwpy0jt6Dfl66lBwsO3byRFQOjk4dw6n
+   g==;
+X-CSE-ConnectionGUID: cQ8hzN4ESnqlamJQ6T0ujw==
+X-CSE-MsgGUID: KjYgmGU8SNG9TKQz2y0m6w==
+X-IronPort-AV: E=McAfee;i="6800,10657,11956"; a="2547422"
+X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
+   d="scan'208";a="2547422"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 03:36:37 -0800
+X-CSE-ConnectionGUID: NU49M+y7SoqJQQ7rq8Z1Cw==
+X-CSE-MsgGUID: /gbM1bnkQwynnPU6B2caeg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
+   d="scan'208";a="7163862"
+Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
+  by fmviesa003.fm.intel.com with ESMTP; 05 Nov 2026 03:36:29 -0800
+Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xOvlZ-00000000m7v-0S9w;
+	Thu, 05 Nov 2026 11:36:25 +0000
+Date: Thu, 5 Nov 2026 19:35:46 +0800
+From: kernel test robot <lkp@intel.com>
+To: Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev, Jann Horn <jannh@google.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Chris Mason <chris.mason@fusionio.com>,
+	Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>,
+	Christoph Hellwig <hch@lst.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Joel Granados <joel.granados@kernel.org>,
+	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>,
+	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org,
+	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org,
+	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org,
+	ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org,
+	coreteam@netfilter.org, kexec@lists.infradead.org,
+	linux-pci@vger.kernel.org
+Subject: Re: [PATCH RESEND v2 01/51] alloc_tag: don't remove /proc/allocinfo
+ under the codetag module lock
+Message-ID: <202611051923.pLSSWWkA-lkp@intel.com>
+References: <20261104-work-procfs-bugfixes-v2-1-021c84d852e0@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -106,89 +100,54 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <cover.1793876837.git.alx@kernel.org> <9c81f6f62fd0e908e683c4c08b09a1f95bc2ec9c.1793876837.git.alx@kernel.org>
-In-Reply-To: <9c81f6f62fd0e908e683c4c08b09a1f95bc2ec9c.1793876837.git.alx@kernel.org>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Thu, 5 Nov 2026 13:27:15 +0200
-X-Gm-Features: AclHuK9RJR52OSPl8iPokfz3apA8SScdKPa_SxHmGln1p0LZpPbZ_VJGI1ROrO0
-Message-ID: <CAHp75Veb=TsXJcjqQeD3ciNGRvLebGr8t8TnZju6FX5ANeVNTA@mail.gmail.com>
-Subject: Re: [PATCH v1 1/2] string: Add strprefix(), and deprecate str_has_prefix()
-To: Alejandro Colomar <alx@kernel.org>
-Cc: linux-hardening@vger.kernel.org, alx+linux-hardening@kernel.org, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Andreas Schwab <schwab@linux-m68k.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Andy Shevchenko <andy@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, Daniel Scally <djrscally@gmail.com>, 
-	Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Hans Verkuil <hverkuil-cisco@xs4all.nl>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, 
-	Johan Hovold <johan@kernel.org>, Kees Cook <kees@kernel.org>, 
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Len Brown <lenb@kernel.org>, 
-	Linus Torvalds <torvalds@linux-foundation.org>, Linus Walleij <linusw@kernel.org>, 
-	Namhyung Kim <namhyung@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>, 
-	Steven Rostedt <rostedt@goodmis.org>, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261104-work-procfs-bugfixes-v2-1-021c84d852e0@kernel.org>
 
-On Thu, Nov 5, 2026 at 1:13=E2=80=AFPM Alejandro Colomar <alx@kernel.org> w=
-rote:
->
-> As Bartosz reported, str_has_prefix() has a bug: it can't differentiate
-> between an empty prefix matching an empty string from a non-matching
-> prefix.  This is a fundamental design flaw in this API, and not
-> something that can be fixed.
->
-> As always, this is a consequence of choosing sizes instead of pointers.
-> Sizes are often the wrong choice.  In this specific case, pointers are
-> more capable of differentiating these cases, as NULL is a special
-> sentinel value that doesn't need to overload a valid value.
->
-> Let's implement strprefix(), a function that returns a pointer
-> right after the prefix if found, and a null pointer if not found.
->
-> We'll slowly migrate existing code from str_has_prefix() to strprefix().
->
-> Reported-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Hi Christian,
 
-Ouch!
+kernel test robot noticed the following build warnings:
 
-> Cc: Andreas Schwab <schwab@linux-m68k.org>
-> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Cc: Andy Shevchenko <andy@kernel.org>
-> Cc: Bartosz Golaszewski <brgl@kernel.org>
-> Cc: Daniel Scally <djrscally@gmail.com>
-> Cc: Danilo Krummrich <dakr@kernel.org>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-> Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> Cc: Joe Perches <joe@perches.com>
-> Cc: Johan Hovold <johan@kernel.org>
-> Cc: Kees Cook <kees@kernel.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> Cc: Linus Walleij <linusw@kernel.org>
-> Cc: Namhyung Kim <namhyung@kernel.org>
-> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> Cc: Rob Herring <robh@kernel.org>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Saravana Kannan <saravanak@kernel.org>
-> Cc: Steven Rostedt <rostedt@goodmis.org>
-> Cc: Tom Zanussi <zanussi@kernel.org
-> Cc: linux-acpi@vger.kernel.org
-> Cc: driver-core@lists.linux.dev
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-hardening@vger.kernel.org
-> Cc: devicetree@vger.kernel.org
-> Cc: linux-gpio@vger.kernel.org
+[auto build test WARNING on 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4]
 
-This list is twice as long as the commit message! That's why I highly
-recommend moving it under the '---' line below. The email headers will
-get all the listed Cc and git history will be clean from this rather
-noisy list.
+url:    https://github.com/intel-lab-lkp/linux/commits/Christian-Brauner/alloc_tag-don-t-remove-proc-allocinfo-under-the-codetag-module-lock/20261104-200606
+base:   6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+patch link:    https://lore.kernel.org/r/20261104-work-procfs-bugfixes-v2-1-021c84d852e0%40kernel.org
+patch subject: [PATCH RESEND v2 01/51] alloc_tag: don't remove /proc/allocinfo under the codetag module lock
+config: sh-randconfig-1001-20261105 (https://download.01.org/0day-ci/archive/20261105/202611051923.pLSSWWkA-lkp@intel.com/config)
+compiler: sh4-linux-gcc (GCC) 16.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261105/202611051923.pLSSWWkA-lkp@intel.com/reproduce)
 
---=20
-With Best Regards,
-Andy Shevchenko
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202611051923.pLSSWWkA-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+>> mm/alloc_tag.c:620:13: warning: 'shutdown_mem_profiling_async' defined but not used [-Wunused-function]
+     620 | static void shutdown_mem_profiling_async(void)
+         |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+vim +/shutdown_mem_profiling_async +620 mm/alloc_tag.c
+
+   613	
+   614	/*
+   615	 * A module's tags are reserved with the codetag module lock held for
+   616	 * writing, and a reader of /proc/allocinfo takes that lock with the entry
+   617	 * pinned. Removing the entry there would wait for that reader for good, so
+   618	 * let a work item do it.
+   619	 */
+ > 620	static void shutdown_mem_profiling_async(void)
+   621	{
+   622		if (!mem_profiling_support)
+   623			return;
+   624		shutdown_mem_profiling(false);
+   625		schedule_work(&remove_allocinfo_work);
+   626	}
+   627	
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
