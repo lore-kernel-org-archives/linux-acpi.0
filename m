@@ -1,81 +1,74 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793873018;
-	b=UcQTtVvtvhmrPLsjt6D/eK5zS8MDaklMNf4yyFCFieNmUqt8J2U3oFw82DBC1vVDai9F
-	 TuWgUnHZHGIyTYeLNv8JqbAlIOr/rCGEcBQRK+Ky3nJEpIUbNfFIBjM1lYyXF/4HQfMA9
-	 uEIB2G1BHxE2f2YbsbLmStin+e5LEEuYU/PgE5jQ/7WE9BBwYjFnRbcnjq4Sy5d/cUPgN
-	 rMJDPAP2untV5/PdCOU15K2JU+pmyL5+ve5rAivos4wUw1rF2TVITPi8wxhkxDXQSlIDg
-	 y1zLutuHZ6CpR72Zs6xjP0ql3ME18riWAyTl0wnukHwq/eK8Xd9xD7dtzSzA8kRFoMA==
+	t=1793874209;
+	b=mDw7r5uAuoGEreZk3ZFJqHNbTqkMh1bZRqtxDYnemWl1Wm8OA2WlfLX/X24un3Ul61f7
+	 6T6gocpN05/gMEt89PJ6OlVNrSgse3M0Wt5R1FY2Y8/mumg8RxMcXyVEPXERHawYmq6d2
+	 nqtYsnW3iSsRKYhb9kaggNfTT8skrqGisIiJWabPVmiscKrKbltRRq8GLhuo0XnOkftLt
+	 s2Ri5s5+ZmXmt9JZ4gNupwtce/TdOsy2quS+je9IAE81eNkFFZ1nZXMWD6sUOIK/pGhrr
+	 EASuzsLThYIrtkNua0zKRcRsIpaTPokcG4jp9QBkdZUU/my+O1zrE96EbEE34vFh6XQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793873018;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To:Organization;
-	bh=uWAuV8ND4GwIwzuy6vxDMk9DTxSyH1v6Se3XQiTMBCA=;
-	b=HIvevgkZg7QbK/NLFToNsKw7UaSF5v1364y457zxn7E0oj7bofJoQ1Vb6v562/O40ZZ0
-	 HV2LUpAvbyQBCCGBPdnwQDD8pKo5R1zxezAGqYVBt6ET43JefdahLi7AKjaIrBYItsw6G
-	 j28M1FvTfHJ5E1HtjUtpNrDf+qhg+dAQrMncDQF6AOOSPyOXuYUC6ZXSzv3dVZjV4zb/v
-	 kISSKLD52BvqwX9POwTf55oQ3cQVxne0FsQ5qhjKtvPyDB1GpTV8Qr7IUeD02NrzNCe1m
-	 JQmcnw7FIqP7PWw2c08fEUFwABp4hD5e16z/xWBV0SOQt8nBnh79lP5ZZPkCvyk5M9A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793874209;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:
+	 Content-Transfer-Encoding:In-Reply-To;
+	bh=EdnV/i4B0S0fh3g81bf4RkgqVZQyJPUIZHVCvawFMIg=;
+	b=0sd/CoBQYR9g9DfeZpPgUFZYzW/c1ZJji+LqZ/V/acJjfl5mmUpXWf7hVc7+SaovNUmH
+	 9JfCREupTcHlHVfePR+/yNmkxHq/IEEx5aATv2iAg8xCDKUIuUCm8p3FXprhdZhlxfbyA
+	 XYpLkKKN4+CR9HCDHsAL1oT5Vvj0tNs9MNUNvlK9A4Ev9e3JxkCMWc8kqZxn1T2l9jUY8
+	 lutRphg8HzP0UNPX/wpnNvHOVpu1s62QEP5aEwytUq7cbfSZ7qPS7btwgn2UV1jB0oJL6
+	 D5FY+IZyVQTnqIsIrl5KQXJZEoM7W7pzA2TqIsNr00wEBw+FVmRrdceivDCR5cVIRTQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="SKD/y0RT";
-	arc=none smtp.remote-ip=198.175.65.20
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WrMJ9jdV;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C978606D801;
-	Thu,  5 Nov 2026 10:03:38 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4C978606D801
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92A0D606A326;
+	Thu,  5 Nov 2026 10:23:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=SKD/y0RT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793873018; x=1825409018;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=qnzEZMQ6JSlnLja60mD7Z+BbDzcphTOEYalD6cbk15U=;
-  b=SKD/y0RTSvfTjkw4LqqqCeUgJZRbO87el5CsOAheuPA0DAL4C9IgIHwJ
-   u6Wd2dH7jVFcHjyOQWcKYBEk27JAi767tT84RtpIoTNrToQFyGlhv50x7
-   UPvAzu45pWIyiGuzqtPCorQlQKcVE8MrdGbUT3zubTybRsOZ9DT1ehPdi
-   krWz95fZ6TAEdsybnRgfuEfYeks4frvK/9VblmiTthUNvVEo6rgZXxbO7
-   Qy5E+6nu8u4GuyrOEQRA6+psoiyI/fWvnoziJsFMgHQzwhXbvvNLBuBr6
-   QGZ/AAtxLBidoZqTvoyPY2/GTtl8nCEA57G5fNlMyasdSpqIkRAqmFA2+
-   Q==;
-X-CSE-ConnectionGUID: ddvhTOzPScOxTznPMW43QA==
-X-CSE-MsgGUID: u/zDEUQLRYad9r4ABbl7ww==
-X-IronPort-AV: E=McAfee;i="6800,10657,11956"; a="2688290"
-X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
-   d="scan'208";a="2688290"
-Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 02:03:38 -0800
-X-CSE-ConnectionGUID: wvFM23JMSMCxXkRprZjnaw==
-X-CSE-MsgGUID: SbC45wl3SzWoPY2Nbq8/gg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
-   d="scan'208";a="6983198"
-Received: from amilburn-desk.amilburn-desk (HELO localhost) ([10.245.244.144])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 02:03:35 -0800
-Date: Thu, 5 Nov 2026 12:03:32 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
-Cc: Andi Shyti <andi.shyti@kernel.org>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WrMJ9jdV
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 369CA1F00A1B;
+	Thu,  5 Nov 2026 10:23:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793874209;
+	bh=EdnV/i4B0S0fh3g81bf4RkgqVZQyJPUIZHVCvawFMIg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=WrMJ9jdVqMB/+klFKPsxQ8m9Q2qKNJQ3adCE8vFYfbB8tr1I9sCMmjMeKiFsoDP+c
+	 jkyGE/XGllGI0hhhPsCFf6PSiNCRk9M5As0SNQ2S7wBUSGFM00ff+nLkrkOamSzw2z
+	 A0NB72DU/XhVarz+wvVRKfXEwmHB+jcb8ey0j22y7WuAkaqnl20plErLAq1WgDfbII
+	 ph1KfxNXJkWN3ksj9oLixwTKgoMhvXgAoEWk3c6uqqwjm3oP6FHvGCp0/te1/DTr4b
+	 YaiIzx73dGgXfcTyuZamxewcAmxUAubZMNUIgaLp6xenLUpyOVAR8ySV1IJyijRCFT
+	 Y9SUG0gPpE4mQ==
+Date: Thu, 5 Nov 2026 10:23:24 +0000
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	apais@microsoft.com, rlmenge@gmail.com, hargar@linux.microsoft.com,
-	Jarred White <jarredwhite@microsoft.com>,
-	Jeff Kirsher <jeff.kirsher@microsoft.com>
-Subject: Re: [PATCH v1 1/1] i2c: designware: Add ACPI ID MSFT0006 for
- Microsoft Cobalt SoCs
-Message-ID: <auxUdHvRhWWO5ezO@ashevche-desk.local>
-References: <20261104234928.86458-1-sidchintamaneni@gmail.com>
+	Thierry Reding <thierry.reding@kernel.org>, arm <arm@kernel.org>,
+	soc@kernel.org, Jon Hunter <jonathanh@nvidia.com>,
+	linux-tegra@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hans de Goede <hansg@kernel.org>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Mika Westerberg <westeri@kernel.org>,
+	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
+	Sizhe Liu <liusizhe5@huawei.com>
+Subject: Re: [GIT PULL 4/7] firmware/tegra: Changes for v7.4-rc1
+Message-ID: <20261105-quizzical-wine-oryx-e6f91a@sudeepholla>
+References: <20261003095924.1370238-4-thierry.reding@kernel.org>
+ <928b3eaf-32da-43a9-9ca5-d59ef8a3b330@app.fastmail.com>
+ <auslF5pwDHtcNoCy@orome>
+ <bcad1d7e-387d-4251-8974-7f0dcd2f9734@app.fastmail.com>
+ <autADOKsSVVMn6r9@orome>
+ <CAJZ5v0iyaHGj2b7H8g0nqrxvz8GpXiE6hkVp9RM7KF+KDckjrA@mail.gmail.com>
+ <autmcaraWcXIoRfZ@ashevche-desk.local>
+ <20261104161125.00000523@oss.qualcomm.com>
+ <20261105-inventive-partridge-of-maturity-793a2e@sudeepholla>
+ <8f45711b-d415-4694-a47a-12d4b7427e0f@app.fastmail.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -85,40 +78,92 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261104234928.86458-1-sidchintamaneni@gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <8f45711b-d415-4694-a47a-12d4b7427e0f@app.fastmail.com>
 
-On Wed, Nov 04, 2026 at 11:49:28PM +0000, Siddharth Chintamaneni wrote:
-> Add the MSFT0006 ACPI ID for the DesignWare I2C controller integrated
-> on Microsoft Cobalt SoCs, along with its 300 MHz input clock description
-> in acpi_apd.c.
+On Thu, Nov 05, 2026 at 10:54:42AM +0100, Arnd Bergmann wrote:
+> On Thu, Nov 5, 2026, at 10:30, Sudeep Holla wrote:
+> > On Wed, Nov 04, 2026 at 04:11:25PM -0800, Jonathan Cameron wrote:
 > 
-> Without an explicit MSFT0006 entry, ACPI device matching falls back to
-> its _CID (APMC0D0F), which configures a 100 MHz input clock instead of
-> the controller's actual 300 MHz clock.
+> >> 1) Basic stand alone driver stuff.  Mostly that's all pretty standard
+> >>    and follow the specs where possible.  If there are gaps start asking
+> >>    questions. Linux definitely  doesn't support all the stuff that has been
+> >>    added to the spec in recent years.  So this covers things like register
+> >>    addresses, interrupts etc.  All fine, hopefully a subsystem maintainer
+> >>    can take a look and will have enough of any idea.  If not ping the folk
+> >>    on this thread for help.  Things are a bit flexible for consumer type
+> >>    devices where fixed and bodges are common, generally less so if it is
+> >>    server grade hardware.
+> >> 
+> >> 2) Stuff that is an ACPI spec gap or place where we'd expect generalization.
+> >>    There are several examples of this on list this week and a few more in
+> >>    my inbox.  The particular series here might fall into this category.
+> >>    I've not figured out enough of the details yet to say definitively.
+> >> 
+> >
+> > Nicely summarised or categorised Jonathan. Nothing much to add.
+> 
+> +1
+> 
+> >> I'd also expect a driver using AML as the target interface to either
+> >> point at a published spec doc, or to include some snippets
+> >> of the AML - that can be a lot easier to read than the driver code
+> >> (imagine reading DT by only looking at how drivers parse it).
+> >> 
+> >
+> > Ideally, it should be just HID that any vendor needs to publish unless
+> > they make use of any custom methods or something device specific like
+> > DSD/DSM. I would expect most of the devices to use standard methods and
+> > properties that are already well defined in the ACPI spec.
+> 
+> >> Given that has new ABI etc, I'd expect that to have gotten broader review
+> >> as well.  Probably keeping it to linux-tegra and lkml alone wasn't
+> >> going to result in anyone noticing!
+> >> 
+> >> https://lore.kernel.org/all/?q=20260929095915.2215685-1-anrao@nvidia.com
+> >> 
+> >
+> > Agreed, it shouldn't hurt to cc linux-acpi for such driver ACPI enablement
+> > patches.
+> 
+> Is the "BMRQ" in
+> https://lore.kernel.org/all/20260929095915.2215685-3-anrao@nvidia.com/
+> a custom method then? 
+> 
 
-> Cc: Jarred White <jarredwhite@microsoft.com>
-> Cc: Jeff Kirsher <jeff.kirsher@microsoft.com>
+I’ve quickly reviewed the patch; it does implements a custom method BMRQ
+rather than a standard or out-of-the-box solution. More details on this is
+used based on my understanding below.
 
-Move Cc list after the '---' line below. It will reduce the noise in the commit
-message and hence Git history.
+> How does this relate to the EC and PCC interfaces in ACPI systems?
+> 
 
-> Signed-off-by: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
-> ---
+I am still evaluating how the BPMP driver is intended to operate on ACPI
+systems. In the meantime, I share the same questions noted above. The current
+commit message lists several driver features that may not be required for
+ACPI, which has introduced some clarity issues regarding the intended design.
 
-Cc list goes here...
+> In current mainline, I see that the bpmp driver is used on DT systems
+> by the tegra specific cpufreq, memory and pci drivers, but I would
+> expect that on ACPI those all use shared drivers. Are there any other
+> users that are not already covered on ACPI?
+> 
 
->  drivers/i2c/busses/i2c-designware-platdrv.c | 1 +
->  2 files changed, 7 insertions(+)
+For ACPI systems, CPUFreq operates through CPPC via PCC, MEMIO, or
+supported backends.
 
-Code wise LGTM, I assume MS allocated that HID for the specific device and
-we will not see collisions in the future.
+My understanding is that the BMRQ method is called by tegra_bpmp_transfer(),
+which supports Tegra-specific drivers for power domains, clocks, resets,
+I2C, PCIe, and memory. On ACPI, these can be abstracted through PCC
+OpRegions as part of standard methods like _ON/_OFF or other device state
+methods. Although device/memory DVFS is trickier since the ACPI
+specification lacks standard methods for it today, the commit message
+implies these components are largely unused on ACPI systems.
+
+I have raised a query on the thread to clarify this.
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
-
+Regards,
+Sudeep
