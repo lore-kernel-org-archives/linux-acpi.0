@@ -1,54 +1,73 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=114.242.206.163
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793870048;
-	b=dZ184j40SYG+hZG0C1NR0xfkHOsFJ2P7Cob47uvrgDDNaXLtHfROFZghJNjQ1ZiBBxz7
-	 pufIJ3L9KqA0dERp+rZETM8rfhnqHCYV7EVBdFIk6ZKuTCb34yx7MXmhJXFNBZg+B7Byd
-	 nPdQ6ImxvOLtzNAYD012KaEZ0lzSeN1QXwDeg0paU9BFw7ZEUys0Xo6nbqAtoknOpoVh3
-	 SSfWqLmEyk4dVTjJ/iIUM06shejZGVIo+ApAK0C1T4Ump22MxlsrOsOrVaf/y+uP+AAZy
-	 pH/MBPnOqAKo1KRB64BL64H9T+gFgPAR6KcQ11enyL0CJ/mRXTLo682jsdC7Jp5FqMw==
+	t=1793871052;
+	b=ozLGHGG+aJRi8xstMQ9OwR/v87pnsKZh3chEpbGeSYJKWIAFJI08QUJovgyCTdp4unXX
+	 oU2/B4Z26a4fpab5SqxPd5BDAnQ/79Ksv9fEgkvbeeKUZXDnWchZPHYbhjR1B/2fD9LaN
+	 oi97J42WPvTufHCWaLpxrKeQbkCRJE6V5ZoJx5GdAwJU0rgVsg4rLhXmNvGfeObArFeTQ
+	 Wg0kNBklBhZs22mJefgh7nJo18/hcAVW8MGVklFrmCJFeWzUweZ5ADukS81Za24VCZKaL
+	 MF2c+nkZXZ11l7T/pPnHRq7sPooR+7xZ+7DyVThE2fL0BqHCWfQ4ZH+MECFF+TmPVYw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793870048;
-	h=DMARC-Filter:Received:Received:Subject:To:Cc:References:From:
-	 Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:Content-Type:
-	 Content-Language:Content-Transfer-Encoding:X-CM-TRANSID:
-	 X-CM-SenderInfo:X-Coremail-Antispam;
-	bh=n9Rf37eO4THPEC6BfsALgd8nh4beTqOK842MpIGgx80=;
-	b=3DG64UpqSO0zXoQBeEzlajLoZd4ZtCaKzvhAecdtutl38VhQsnZJtrm9NwpE7oBI3M5v
-	 gnOw6YEnhdX/vAgvmQKPR2Vz9ij5kaNKPGipNvCO++oe5Vom9KmIR6GUmtMED+4kBf1GX
-	 F3r3hHDWf7cxcJwQYYl9gpIUpULZK399POOljawc3Sa3YEOmSTQgv6sCJwnIMeicu7ipI
-	 mPlf2GpjOo4XAfhNQE7LjqiqTWtD+jsk1iB73n4eefGXwA3t75o1mOCrrBEHxxq5bRuS7
-	 jWv1/KeCSIC6iF+ILmm9POtrnY3anXcPIlzVGuVn8rYZ8jtif1OwRVm976iXU5ILtjA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793871052;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=I9JLPS56ZZVL6fhls448ofuLD4hZA1GtuHSD/NXbcJE=;
+	b=iQH+tn69+l+CZheo46FVOKVVq9PbMVSE7fAEyfiFv3gvN0AJybicREOgNmd+uxI2CuqZ
+	 xzW0QsilhPfJaQKfAFlOUDR2vf30P3eJp8NsBsrFCxSgBIjIgJrL7Pe6BsT3BHWhKkSFf
+	 gsEDknkSVN3+fWRIZMHdrBPt04pkeDslf1G8tjEZbrKoq25/jJXD+nN7HJ1Z2h5+4Eq7y
+	 p9lDnvhJB7Q9JjBbeHZ1duUrrXAsVUg0AhJrLLFNXbam6rE0O93QnId3PdzgAejIVp2Sa
+	 PnvF9DrGPOXTHUk7mAqBMUBi9crUZiu3lOKTRBdaq/IHWqoj1ve5t3FysZdAaUWjZyg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=loongson.cn;
-	spf=pass smtp.mailfrom=loongson.cn;
-	arc=none smtp.remote-ip=114.242.206.163
-Received: from mail.loongson.cn (mail.loongson.cn [114.242.206.163])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 804F6606A329;
-	Thu,  5 Nov 2026 09:14:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 804F6606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=loongson.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=loongson.cn
-Received: from loongson.cn (unknown [10.20.42.62])
-	by gateway (Coremail) with SMTP id _____8Bxn9HcSOxqnJocAA--.16622S3;
-	Thu, 05 Nov 2026 17:14:04 +0800 (CST)
-Received: from [127.0.0.1] (unknown [127.0.0.1])
-	by front1 (Coremail) with SMTP id qMiowJCx9czZSOxqbYgyAA--.10853S2;
-	Thu, 05 Nov 2026 17:14:03 +0800 (CST)
-Subject: Re: [PATCH v4 1/4] ACPICA: actbl2.h: Add bit constants of the Flags
- field in the IOVT IOMMU structure
-To: Huacai Chen <chenhuacai@kernel.org>
-Cc: rafael@kernel.org, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, lenb@kernel.org, linux-kernel@vger.kernel.org,
- lixianglai@loongson.cn, loongarch@lists.linux.dev,
- maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com
-References: <20260922121058.972734-2-maobibo@loongson.cn>
- <10bd45f8-2d37-42f0-b7d2-a4a84933c9b3@loongson.cn>
- <CAAhV-H7Vq2ayLJNLRSo5RRiWOcmF2BXT_QOhEDg_jWOzYteqWw@mail.gmail.com>
-From: Bibo Mao <maobibo@loongson.cn>
-Message-ID: <6f8a9203-6fb1-268a-8d37-37e69fbf2ee9@loongson.cn>
-Date: Thu, 5 Nov 2026 17:15:17 +0800
-User-Agent: Mozilla/5.0 (X11; Linux loongarch64; rv:68.0) Gecko/20100101
- Thunderbird/68.7.0
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WncmyviE;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A1F3606A329;
+	Thu,  5 Nov 2026 09:30:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WncmyviE
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C09091F00919;
+	Thu,  5 Nov 2026 09:30:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793871052;
+	bh=I9JLPS56ZZVL6fhls448ofuLD4hZA1GtuHSD/NXbcJE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=WncmyviEWHkSPITkRDk3Drb4VW0DO0UyjP87ZDT+EOdSmmUG5x+bs9CEbmPZaGCCn
+	 yXRw2HUtqtJGj7u90yEwwvuri3b0sQkQT1Rw2Mz7ueuBBEiu18EZIKCZODIqFbEdEn
+	 tcYVCt/tFM0O9QXZyxiUaP6nDjhDCV72EJvRoFVXlfe9SvsIn0G+9UsDaP1OUwqLdB
+	 eBxNN53qEqoAFr10ExNTwMGUG2vWruo7rhgJs/sIn8+rnuhZXR//6lt/iXPbaYlEqE
+	 SBGgrI32IPtzkb/rtITzdey4eaG693LKzMZAWoRYmq0AU4+x5+ZBEtrnfsYRQQ66cz
+	 ez5d8UdT6sdxQ==
+Date: Thu, 5 Nov 2026 09:30:46 +0000
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	"Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Thierry Reding <thierry.reding@kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>, arm <arm@kernel.org>, soc@kernel.org,
+	Jon Hunter <jonathanh@nvidia.com>, linux-tegra@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hans de Goede <hansg@kernel.org>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Mika Westerberg <westeri@kernel.org>,
+	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
+	Sizhe Liu <liusizhe5@huawei.com>
+Subject: Re: [GIT PULL 4/7] firmware/tegra: Changes for v7.4-rc1
+Message-ID: <20261105-inventive-partridge-of-maturity-793a2e@sudeepholla>
+References: <20261003095924.1370238-1-thierry.reding@kernel.org>
+ <20261003095924.1370238-4-thierry.reding@kernel.org>
+ <928b3eaf-32da-43a9-9ca5-d59ef8a3b330@app.fastmail.com>
+ <auslF5pwDHtcNoCy@orome>
+ <bcad1d7e-387d-4251-8974-7f0dcd2f9734@app.fastmail.com>
+ <autADOKsSVVMn6r9@orome>
+ <CAJZ5v0iyaHGj2b7H8g0nqrxvz8GpXiE6hkVp9RM7KF+KDckjrA@mail.gmail.com>
+ <autmcaraWcXIoRfZ@ashevche-desk.local>
+ <20261104161125.00000523@oss.qualcomm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -58,93 +77,72 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-In-Reply-To: <CAAhV-H7Vq2ayLJNLRSo5RRiWOcmF2BXT_QOhEDg_jWOzYteqWw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qMiowJCx9czZSOxqbYgyAA--.10853S2
-X-CM-SenderInfo: xpdruxter6z05rqj20fqof0/
-X-Coremail-Antispam: 1Uk129KBj93XoW7CF1ftr48JFWxuw4fAr1xXrc_yoW8ZrWrpr
-	s2vayrKFWDXr47Gr1vgwnxCF1rt398CF1a9r4Sgry7tr9akr1rtF4Uua1Y9a97CrZ5CayI
-	vFy2vrWfWFyjvrgCm3ZEXasCq-sJn29KB7ZKAUJUUUU5529EdanIXcx71UUUUU7KY7ZEXa
-	sCq-sGcSsGvfJ3Ic02F40EFcxC0VAKzVAqx4xG6I80ebIjqfuFe4nvWSU5nxnvy29KBjDU
-	0xBIdaVrnRJUUU9Sb4IE77IF4wAFF20E14v26r1j6r4UM7CY07I20VC2zVCF04k26cxKx2
-	IYs7xG6rWj6s0DM7CIcVAFz4kK6r1Y6r17M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48v
-	e4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Jr0_JF4l84ACjcxK6xIIjxv20xvEc7CjxVAFwI
-	0_Jr0_Gr1l84ACjcxK6I8E87Iv67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVCY1x0267AK
-	xVW8Jr0_Cr1UM2AIxVAIcxkEcVAq07x20xvEncxIr21l57IF6xkI12xvs2x26I8E6xACxx
-	1l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1Y6r17McIj6I8E87Iv
-	67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IY64vIr41lc7I2V7IY0VAS07
-	AlzVAYIcxG8wCY1x0262kKe7AKxVWUAVWUtwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE
-	7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI
-	8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUJVWU
-	CwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r
-	1xMIIF0xvEx4A2jsIE14v26r4j6F4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYxBI
-	daVFxhVjvjDU0xZFpf9x07jnSdgUUUUU=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261104161125.00000523@oss.qualcomm.com>
 
+Hi all,
 
-
-On 2026/10/23 下午3:59, Huacai Chen wrote:
-> Bibo,
+On Wed, Nov 04, 2026 at 04:11:25PM -0800, Jonathan Cameron wrote:
 > 
-> Now I have applied this series but with some modifications, please
-> double check and test the code.
+> It is a bit of a guessing game to figure out who are the right people today
+> when it comes to ACPI and both ARM and x86 platforms. 
 > 
-> https://git.kernel.org/pub/scm/linux/kernel/git/chenhuacai/linux-loongson.git/log/?h=loongarch-next
-In my v4 submit, it is:
-+               case ACPI_IOVT_DEVICE_ENTRY_START:
-+                       is_start = true;
-+                       start_devid = ep->device_id;
-+                       break;
-however in rc1, it is modified as:
-                 case ACPI_IOVT_DEVICE_ENTRY_START:
-                         is_start = true;
-                         entry->start_devid = ep->device_id;
-                         break;
-Here entry is not allocated and NULL pointer, it is allocated in 
-ACPI_IOVT_DEVICE_ENTRY_END switch case.
-
-I really do not know what is aid to modify it and let others to test.
-
+> They fall into a few categories and it depends on what you are trying to
+> do.  Starting point is push back hard on your firmware folk wrt to shipping
+> something random without an upstream discussion first.  You wouldn't expect
+> that to work for dt, it shouldn't work for ACPI either. Features
+> will get rejected if people try to just do something that works for them
+> (same as a weird custom DT binding gets rejected).
 > 
-> Huacai
+> 1) Basic stand alone driver stuff.  Mostly that's all pretty standard
+>    and follow the specs where possible.  If there are gaps start asking
+>    questions. Linux definitely  doesn't support all the stuff that has been
+>    added to the spec in recent years.  So this covers things like register
+>    addresses, interrupts etc.  All fine, hopefully a subsystem maintainer
+>    can take a look and will have enough of any idea.  If not ping the folk
+>    on this thread for help.  Things are a bit flexible for consumer type
+>    devices where fixed and bodges are common, generally less so if it is
+>    server grade hardware.
 > 
-> On Mon, Oct 12, 2026 at 3:16 PM Bibo Mao <maobibo@loongson.cn> wrote:
->>
->> This change is already merged in acpica tree.
->>
->> slightly ping.
->>
->> On Tue, Sep 22, 2026 at 08:10:55PM +0800, Bibo Mao wrote:
->>   > According to the IOVT specification, define macros for each bit of the
->>   > Flags field in the IOVT IOMMU structure.
->>   >
->>   > Link: https://github.com/open-acpica/acpica/commit/352f750e4cc0
->>   > Signed-off-by: Bibo Mao <maobibo@loongson.cn>
->>   > ---
->>   >  include/acpi/actbl2.h | 7 +++++++
->>   >  1 file changed, 7 insertions(+)
->>   >
->>   > diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
->>   > index baef525367b5..76e4a5bc79b4 100644
->>   > --- a/include/acpi/actbl2.h
->>   > +++ b/include/acpi/actbl2.h
->>   > @@ -919,6 +919,13 @@ struct acpi_iovt_iommu {
->>   >       u32 device_entry_offset;
->>   >  };
->>   >
->>   > +/* Masks for Flags field above */
->>   > +#define ACPI_IOVT_IOMMU_PCI_DEVICE           (1<<0)
->>   > +#define ACPI_IOVT_IOMMU_PXM_VALID            (1<<1)
->>   > +#define ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT    (1<<2)
->>   > +#define ACPI_IOVT_IOMMU_HW_CAP_SUPPORT               (1<<3)
->>   > +#define ACPI_IOVT_IOMMU_MSI_INT_BYPASS               (1<<4)
->>   > +
->>   >  struct acpi_iovt_device_entry {
->>   >       u8 type;
->>   >       u8 length;
->>   > --
->>   > 2.39.3
->>   >
->>
+> 2) Stuff that is an ACPI spec gap or place where we'd expect generalization.
+>    There are several examples of this on list this week and a few more in
+>    my inbox.  The particular series here might fall into this category.
+>    I've not figured out enough of the details yet to say definitively.
+> 
 
+Nicely summarised or categorised Jonathan. Nothing much to add.
+
+For most of the IP/devices/firmware associated with Arm, we are involved
+in any specification work if there are any. However that doesn't include
+3rd party IPs/devices used on Arm based platforms though.
+
+> I'd also expect a driver using AML as the target interface to either
+> point at a published spec doc, or to include some snippets
+> of the AML - that can be a lot easier to read than the driver code
+> (imagine reading DT by only looking at how drivers parse it).
+> 
+
+Ideally, it should be just HID that any vendor needs to publish unless
+they make use of any custom methods or something device specific like
+DSD/DSM. I would expect most of the devices to use standard methods and
+properties that are already well defined in the ACPI spec.
+
+> FWIW The driver feature in question looks like it is doing something a bit similar
+> to the PCI trace and tune driver Hisilicon has (though IIRC that has
+> a presence as a PCI driver) https://docs.kernel.org/trace/hisi-ptt.html
+> or if you squint at it differently resctrl / mpam fb.
+> 
+> Given that has new ABI etc, I'd expect that to have gotten broader review
+> as well.  Probably keeping it to linux-tegra and lkml alone wasn't
+> going to result in anyone noticing!
+> 
+> https://lore.kernel.org/all/?q=20260929095915.2215685-1-anrao@nvidia.com
+> 
+
+Agreed, it shouldn't hurt to cc linux-acpi for such driver ACPI enablement
+patches.
+
+-- 
+Regards,
+Sudeep
