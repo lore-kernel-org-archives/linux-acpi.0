@@ -1,103 +1,86 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793902374;
-	b=pvYQqYgHI8bPqPuRwWKW/CtpvBDbJsT2galqV7lkmbnk0NTqQMcTJ7YAKz+fpTMT5Ijj
-	 OnTuhVvWQeQHaRbhHdRW1+4KPMS3ioQs7hWc5JyJbkrLnmg0JaG5vuE/WfKtHf6F7rgsN
-	 ASpUkDvvcFnh95VLAaB5fIl+HT1Z35YEiNY9Ke/VNtCDJHF6Pbs0Qr52maISRdjZki1QO
-	 ewxOC68gJ5qBzJPH4oThd/ttM3/LGqtasE/0kRGuyW2CDMFSdzs0JJzcK9SK8eqljXOtm
-	 gKPfwamMMnRWUlowbh4BBgAwkYZHl4gAPB/3FyoW2j0eGtHqhH2WuwFJp1N0mDOHBdA==
+	t=1793903188;
+	b=cFM0+pzysVFTp+ZQ5cSZTjmmpwFyMz3EpbFRkvFuDpyCin/F5No5Ml/nEDhIeer/MV6J
+	 po2TvQq+RHCW+nZEBYxCUfbbkyEF8xpaWCPnAV0MxID6+fBFZg6d6QnC5qDrPLg0vpLeX
+	 Mli8SmHCE66PPt1WLy/wBeAc+srP2oURiQBTYhS0pUeuqczi/V0IlhguDu2DE390Tl4DA
+	 XMcmHnKdBW8VvT6FJD0GbEEXs2jhBAmHlKpb+dhJ7bT6dv7X1JHpy9ZFgmhDM6+mrBZYO
+	 lQpYA6SifEHIy4IoCYtqCHDxq0mSEVzcadB7DYdPxkIuBKR1z5VkbuWyAuO2ZDOXhww==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793902374;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To:Organization;
-	bh=HF0Vu6VSMOjUFmnKIzWkq+Vw4SFQ9ACYgeHBYhFMgzw=;
-	b=pr6NcfL6s3Y3BK2W3A530GpOIzoURkSHYruAqRHZX2lQpE9Y+k3JENpjDUgxhq9tq8FB
-	 LgngbEIg2AfeM40MELHbdDkITQR++RU4DZ0mNr391yFtLOR7d1dsZPuuGRVTaXM+NrKvp
-	 ohI1+t2SSehN+Zqwm3g2xHckEvtfYd6ZtRr9OOVZrArCVcJwj9MgtaZj1A8MGklf3S9Ej
-	 wJnHPGN5wwnSsvBAr0tmAKiMVwaPX6Ns5iKLDGQyLA7e2HfKwXrGaryd/rH4vUSZweBJk
-	 M8U57JJRJZY1q6tVzDS95HOgAcfsUCxm5QvW8PD4IyhC1zgQQpKlUegQWPTESbZZhyA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793903188;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=/R0hL4pC4E1+M4yPEUjAb9DEswCGIx3z9hc5cmLnrn8=;
+	b=RYbn3/hxRfDGlhYufbFPel9k+IJBb/WkzM6TuPi74pX12Y/kSUV5CDcdqK8c3kzBx71Z
+	 TYIrcpzOQpzdxPcOSpEHVq16URrYuDRVOGWqeSEv3NQEmKnzU9iTCqMmkzWkofnbCB/5+
+	 AJTrFn+5nOXPdEo1aenNb7O/W7T5Gt6MvndMHAZvsFBvVXta3q4sNDnNX2QyqSMCKpFwR
+	 dpPyPm6M7QaH6/RP/veODloWicMlvhHqzrJw9CIBj7UkrzxafIgFw4qoXaI4P6GT1rLbo
+	 aP0irO+QEPK2WP/WDHgYoGn308x6xFAFKODSynwujMSV+1Yr7vIzAXeoQQzL2lreKuQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=OLOeqqep;
-	arc=none smtp.remote-ip=192.198.163.13
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="WSADaA2/";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DB55606A332;
-	Thu,  5 Nov 2026 18:12:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7DB55606A332
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D977D606A31B;
+	Thu,  5 Nov 2026 18:26:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=OLOeqqep
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793902373; x=1825438373;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=JnIGBm5gDZbm79UwkA8MEm2OUw3yr/fKfWYvNqxqn1I=;
-  b=OLOeqqepGvILSMV8sv86PZdPp2w42DAZ2A02b+DFCeElKFM9cSQDrog5
-   NugsMFIJooNghwqPaR7kNftP4Yp5nbTD2IvoVL+OgSmzTsUrSQ4dKtuih
-   sGZHSC5VVvqVWIl2DOS/8gznBSM9e8259hWVbin552NHQMI8Pn9Y6O1lm
-   /qJC4Vq2MieX0cUXQNJeP9I4pXEj6cWvXZiXDw4noMfoiLG5R+Hho5TE/
-   GkNvke2R6Or2B/cPzU3uG8vsgDrofvyqeCq0FAv2a+9mURb8MAlLUN3gN
-   jo+GIZ9yF3i5sxv+Umytx202Qrh80RPx1rfFkcyjAouvm8fpxbb9QrOdJ
-   w==;
-X-CSE-ConnectionGUID: NsFniMpTS/a8si4vwoCOTw==
-X-CSE-MsgGUID: 2/C+29GnQ8qTvP+1kDg3CA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11957"; a="2696944"
-X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
-   d="scan'208";a="2696944"
-Received: from fmviesa011.fm.intel.com ([10.60.135.151])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 10:12:45 -0800
-X-CSE-ConnectionGUID: Q4LZzfRwSh21y2t81bRfmQ==
-X-CSE-MsgGUID: AlzSNgyqRdq3s8uEY9Ce0g==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
-   d="scan'208";a="8842063"
-Received: from amilburn-desk.amilburn-desk (HELO localhost) ([10.245.244.144])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 10:12:39 -0800
-Date: Thu, 5 Nov 2026 20:12:37 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Alejandro Colomar <alx+linux-hardening@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>,
-	Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-	Andreas Schwab <schwab@linux-m68k.org>,
-	Andy Shevchenko <andy@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Daniel Scally <djrscally@gmail.com>,
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WSADaA2/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59AEC1F000C1;
+	Thu,  5 Nov 2026 18:26:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793903187;
+	bh=/R0hL4pC4E1+M4yPEUjAb9DEswCGIx3z9hc5cmLnrn8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=WSADaA2/B0njymg1oF8Zt+aQWjkjZp7YNB/CPyp9J98Lqyl4v6ZjN9fdw7/g/aDHs
+	 chIL9JCou1TsxyZomGHv2ZBjLQZ9Z1DMWTUjRpmHis5a1j1jVyAEUyc+4ePcQsFPhd
+	 OPBs016zO1yFXnt4RNHofu1Kp5EDvzii20mg9cT1xiXd9rLrrVGa/442/RYi2She4m
+	 EYJhTmYBt2Rvig1iLH8Imhje9jvJRWYRfaZbM8Jt178SF2ils406aYXkle+Zdk/FLn
+	 gDUCaggZAfj1BLbk+EODCjDPXj1SZjVg3T1elHfRmQ6s3AYErm9i4G5kIxtD/aXjgb
+	 Fehrul5E5Cuyg==
+Date: Thu, 5 Nov 2026 20:26:22 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, "Rafael J. Wysocki" <rafael@kernel.org>,
 	Danilo Krummrich <dakr@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>,
-	Kees Cook <kees@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Len Brown <lenb@kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linus Walleij <linusw@kernel.org>,
-	Namhyung Kim <namhyung@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Saravana Kannan <saravanak@kernel.org>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v1 1/2] string: Add strprefix(), and deprecate
- str_has_prefix()
-Message-ID: <auzHFRzd86iV4-RA@ashevche-desk.local>
-References: <cover.1793876837.git.alx@kernel.org>
- <9c81f6f62fd0e908e683c4c08b09a1f95bc2ec9c.1793876837.git.alx@kernel.org>
- <20261105111423.360f4ba8@gandalf.local.home>
- <auyuINXEJKc1KoG7@devuan>
- <20261105115019.2fe7c91b@gandalf.local.home>
- <auy0O467UqOzqYub@devuan>
- <auzGMV1YbO9DodBq@ashevche-desk.local>
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Andrew Lunn <andrew@lunn.ch>,
+	Heiner Kallweit <hkallweit1@gmail.com>,
+	Russell King <linux@armlinux.org.uk>,
+	"David S. Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
+	Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Lu Baolu <baolu.lu@linux.intel.com>,
+	Johan Hovold <johan@kernel.org>, Eric Dumazet <edumazet@kernel.org>,
+	Marcel Holtmann <marcel@holtmann.org>,
+	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
+	Nipun Gupta <nipun.gupta@amd.com>,
+	Nikhil Agarwal <nikhil.agarwal@amd.com>,
+	Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
+	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
+	linux-input@vger.kernel.org, netdev@vger.kernel.org,
+	linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-pci@vger.kernel.org,
+	iommu@lists.linux.dev
+Subject: Re: [PATCH 17/17] PCI: Replace untrusted state with device trust
+Message-ID: <20261105182622.GD8298@unreal>
+References: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
+ <20261105-device-trust-core-v1-17-1e536825b4eb@nvidia.com>
+ <2026110526-aerobics-correct-4c06@gregkh>
+ <20261105131856.GA8298@unreal>
+ <20261105140352.GF3889730@ziepe.ca>
+ <2026110558-tartar-juicy-036a@gregkh>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -109,64 +92,68 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <auzGMV1YbO9DodBq@ashevche-desk.local>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+In-Reply-To: <2026110558-tartar-juicy-036a@gregkh>
 
-On Thu, Nov 05, 2026 at 08:08:57PM +0200, Andy Shevchenko wrote:
-> On Thu, Nov 05, 2026 at 06:46:18PM +0100, Alejandro Colomar wrote:
-> > > Date: 2026-11-05 11:50:19-0500
-> > > From: Steven Rostedt <rostedt@goodmis.org>
-
-[...]
-
-> > > Oops, typo, I meant trace_event_filter.c
+On Thu, Nov 05, 2026 at 10:43:00AM -0500, Greg Kroah-Hartman wrote:
+> On Thu, Nov 05, 2026 at 10:03:52AM -0400, Jason Gunthorpe wrote:
+> > On Thu, Nov 05, 2026 at 03:18:56PM +0200, Leon Romanovsky wrote:
+> > > On Thu, Nov 05, 2026 at 08:12:51AM -0500, Greg Kroah-Hartman wrote:
+> > > > On Thu, Nov 05, 2026 at 01:42:30PM +0200, Leon Romanovsky wrote:
+> > > > > From: Leon Romanovsky <leonro@nvidia.com>
+> > > > > 
+> > > > > Convert the PCI specific untrusted to use the common device trust
+> > > > > level. Adversarial means the same thing untrusted does.
+> > > > 
+> > > > What about for USB?  Will that "move" to use this common trust level?
+> > > > If not, I don't think it's very "common" :)
+> > > 
+> > > It supposed to work for all buses out-of-the box, at least this is the
+> > > intention.
 > > 
-> > Still not found.
+> > You mean DISABLED/FULL should work with this patch series on USB
+> > right? Meaning the core code will not bind a USB driver when DISABLED?
 > > 
-> > 	alx@devuan:~/src/linux/linux/master$ find | grep trace_event_filter.c
-> > 	alx@devuan:~/src/linux/linux/master$ find | grep trace.event.filter
-> > 	alx@devuan:~/src/linux/linux/master$ 
-
-Besides that the above is yet another "Useless use of grep".
-
-> Oh, you are an oldschool guy :-)
+> > I was wondering if some of the broader things we are doing on PCIe
+> > also apply to USB, like device authentication. I don't know alot about
+> > USB, but I got AI to help me find some relavent spec information.
+> > 
+> >  https://usb.org/authentication
+> > 
+> > This looks like the parallel to PCIe SPDM device authentication. I
+> > would expect it to work broadly the same way as PCIe if anyone wanted
+> > to implement it:
 > 
-> I can't believe people with Git index available are using `find`
-> and not `git ls-files`. `find` is too slow...
+> No real need to as no one actually made a USB device with that spec :)
+> 
+> There was some patches on the linux-usb list 6 months or so ago to try
+> to implement it, but it stalled due to there not even be any devices to
+> test it for.
+> 
+> > 1) USB discovery discovers authentication support and creates an
+> >    attestation subsystem device for it
+> > 2) The struct device starts up with trust = DISABLED
+> > 3) Userspace runs the crypto flow through attestation subsystem. This
+> >    is extremely similar looking to PCIe SPDM:
+> >     1. GET_DIGESTS -> device returns a hash for each certificate chain
+> >        slot it has.
+> >     2. GET_CERTIFICATE -> device returns its certificate chain, read
+> >        in pieces.
+> >     3. CHALLENGE (nonce) -> device returns CHALLENGE_AUTH: the chain
+> >        hash, a salt, a hash of its descriptors, and a signature over the
+> >        challenge and the response.
+> > 4) Userspace inspects the above and approves the device
+> > 5) trust = FULL, driver is probed.
+> > 
+> > But I supposed Greg is asking about /sys/bus/usb/devices/DEVICE/authorized ..
+> 
+> Yes, that is exactly what I am asking about.
 
-$ time find . -name trace_events_filter.c
-./kernel/trace/trace_events_filter.c
+I used AI assistance to create the conversion, which produced two patches.
+The first exports `device_trust_set_policy()` to support
+`/sys/,,,/authorized` and `/sys/.../interface_authorized_default`.
+The second adds calls to the `device_trust_*()` functions.
 
-real    0m0.081s
-user    0m0.028s
-sys     0m0.053s
+https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/commit/?h=device-trust-core-v2&id=98f5d11580d736a7878323dfb7238cd08c6c76af
+https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/commit/?h=device-trust-core-v2&id=f10f8e448540982699438dce369fef6cbfabcba5
 
-$ time git ls-files \*trace_events_filter.c
-kernel/trace/trace_events_filter.c
-
-real    0m0.014s
-user    0m0.010s
-sys     0m0.005s
-
-$ time git ls-files \*trace_events_filter.c
-kernel/trace/trace_events_filter.c
-
-real    0m0.014s
-user    0m0.004s
-sys     0m0.010s
-
-$ time find . -name trace_events_filter.c
-./kernel/trace/trace_events_filter.c
-
-real    0m0.083s
-user    0m0.021s
-sys     0m0.063s
-
-(with IPC to `grep` it will be even slower)
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Thanks
