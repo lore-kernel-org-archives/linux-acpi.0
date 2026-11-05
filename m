@@ -1,67 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.223
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.70.43.166
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793847898;
-	b=P2ZHbltW5OT4kStliH1ogOQZUUHpA+2ys4k6UVQ5cRhuQyB9hw+KlVPG0nF7BhWrH/Fs
-	 c7+3OZvUSMU+2+BDj3JfEKO5VRJcmP0QB5Wv2ZwGr8uUI6fGdd8E7sv3GXiLOCK4X26Cx
-	 VO9HfvBUyZOd93GNo4pwfFy59wdUbe4U/75LNqCH7h/aqU59/v0c4D0NFlWqW8yGLgJ1Q
-	 qyMeQVGfrCe9yqRKZK+HiihuVfCsxeTJzqFYXBUrE+KnxjtlPSO6+Mp5aPm+8xeSmmufA
-	 Vug/O+x5g/v3S3WZAsCEsxfX6a993Km1e73Ax/qiUBe+H718wGqVCkRxZ2XKBw/KTlA==
+	t=1793849580;
+	b=G5koVCjf15q9MPx9XlV7XcbawEWlx7WXqWzvVnkTnbrTpI7JPFtbj9szTLiCPuxqd6dv
+	 ewaXqGnP84EnlQUSnr14EsQR8RX3UhNm/0KIlHLggSFRBEQql3PHjiJBzI3dwWluoBDaG
+	 l7Hd49GTqCm2VLxH4jamoGKCpTwL0OEVRWPqvfjeMIVzs5KUnd3oFjynrFyEDTdMklCIO
+	 C8WuDghz9Wrgxunm4yYHqQnG74MzSEhKz70MWR3+p0L8P6txgNeCudB+v+M4nEpTblXCU
+	 rVOAynWDkI+/V9hjqU8dqBxcj8t8RzFuIl83e9KVU+/Ve0yfagrDgR7InnzSU7LMmMw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793847898;
-	h=DMARC-Filter:dkim-signature:Received:Received:Received:From:To:CC:
-	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
-	 X-ClientProxiedBy;
-	bh=0TcPf4DJz9oCjCryBdJAxQ8ySyJ27lYq/N7TwYPrzG0=;
-	b=Oesn+KuFWQtRgcwEgJl9Ep4AsFbu+vMapuibehDGWchSrKb1a4AfNWXFzQXMwyDdGOl8
-	 cXu6CxfttIgvpmqYVQbWtBjTV4xzHMU4WwptcSEB8+lMfUDGADkuEshBjFAje1uHmRIL3
-	 GH6x4BMX1sdSRPn5VMXzI/QSSYaPyhhCWIvuHuQcQr5wWRx3InKS87I4wa1SFxreZV//5
-	 395psREFSh2CfObwYQV2TP+6cIpp6ZoQqHM9fHTJeuCOYVkTdvdVwv2kyKWOUpHxsRA/V
-	 Q/AXO3Q+auosDY8lG/hbTf1h1dEtYnMUrsvGQS/zDCqjS2bq5oH6sS0fUDSDYyhtO+w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793849580;
+	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
+	 In-Reply-To:References:Feedback-ID:X-Pm-Message-ID:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=jIzkVeBI9b3PEm/Tr6PfIipXlg8et2MLSXZyIQ53oIE=;
+	b=Bt1mxh0aRyrjQrkxkAfpyFaPNSrMRwBdRjLQnKFJUwmiBuFtW4w5HI4W5mQMsAAgFpsA
+	 ssHy12nv1et3RKSi268BeS4LOA1JGtpvHR68pn7uOrkP/DfIMy7LmJp+jfNj/hDV9mw7S
+	 FAHrgGMvk3leB4k0H4c42OcBZQ93f5zz32+x2chnRqlitU/4cu0NUKd2DkqKnhnqdLdu7
+	 VZzqV89SLgiuQrmCQvBrlbGxhdX9MYWI370G3wJRzxkLYfEgF5seoQZWpSqJE5I25jZl3
+	 tYsNdSfpyCf9A3ehW3YuvLskfosTF8W/jHPS7eP5c8vBhwdUdZPs1WmJGa4ede1S0nw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=huawei.com;
-	spf=pass smtp.mailfrom=huawei.com;
-	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=r6mBL1rd;
-	arc=none smtp.remote-ip=113.46.200.223
-Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
+	dmarc=pass header.from=protonmail.com;
+	spf=pass smtp.mailfrom=protonmail.com;
+	dkim=pass header.d=protonmail.com header.i=@protonmail.com header.a=rsa-sha256 header.s=protonmail3 header.b=lwFiiNKB;
+	arc=none smtp.remote-ip=185.70.43.166
+Received: from mail-43166.protonmail.ch (mail-43166.protonmail.ch [185.70.43.166])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39193606A328;
-	Thu,  5 Nov 2026 03:04:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 39193606A328
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B33C1606A326;
+	Thu,  5 Nov 2026 03:32:59 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B33C1606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=r6mBL1rd
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=0TcPf4DJz9oCjCryBdJAxQ8ySyJ27lYq/N7TwYPrzG0=;
-	b=r6mBL1rdSQv+jEsyjdtrI4VFJPJcWl6VlNZE1OItyv7IKiNXHX8URVkyX19R6QR2yz4NaVRBl
-	8ZMoJAKepCtqULwXR+KW6VpLbzvSFdB2qj56wkzqAZQWIGi33Ku36R5qB8tc31VwcZtZcKV6PQv
-	DMSO6kkTE3YNpnc/oa3kweg=
-Received: from mail.maildlp.com (unknown [172.19.163.163])
-	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4jKnGc67PSzmVBV;
-	Thu,  5 Nov 2026 11:04:40 +0800 (CST)
-Received: from kwepemo100017.china.huawei.com (unknown [7.202.195.215])
-	by mail.maildlp.com (Postfix) with ESMTPS id 10BC64048B;
-	Thu,  5 Nov 2026 11:04:52 +0800 (CST)
-Received: from localhost.localdomain (10.50.163.32) by
- kwepemo100017.china.huawei.com (7.202.195.215) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.46; Thu, 5 Nov 2026 11:04:51 +0800
-From: Bowen Yu <yubowen8@huawei.com>
-To: <linuxarm@huawei.com>, <rafael@kernel.org>, <linux-acpi@vger.kernel.org>
-CC: <lenb@kernel.org>, <linux-kernel@vger.kernel.org>,
-	<zhanjie9@hisilicon.com>, <prime.zeng@hisilicon.com>,
-	<wanghuiqiang@huawei.com>, <xuwei5@huawei.com>, <yubowen8@huawei.com>,
-	<ouyiyong1@huawei.com>, <dengtao44@huawei.com>, <tangbin55@huawei.com>,
-	<mojunjun4@huawei.com>, <wuzhanlong@h-partners.com>
-Subject: [PATCH] ACPI: platform: Assign names to MEM resources from _DSD "reg-names"
-Date: Thu, 5 Nov 2026 11:04:50 +0800
-Message-ID: <20261105030450.1946871-1-yubowen8@huawei.com>
-X-Mailer: git-send-email 2.33.0
+	dkim=pass (2048-bit key, unprotected) header.d=protonmail.com header.i=@protonmail.com header.a=rsa-sha256 header.s=protonmail3 header.b=lwFiiNKB
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1793849576; x=1794108776;
+	bh=jIzkVeBI9b3PEm/Tr6PfIipXlg8et2MLSXZyIQ53oIE=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=lwFiiNKBs+wTOTOekItXMHg+620VO3If6nc9oABez1PyHXOZNYoMFQz9a1D+YilRe
+	 N2tsOooKbaLFpTa3OvMNA0oD/ZuphvcB/qNOM4/+9tUaw/cXZt3M3ycSQ4Dgeusysm
+	 +D6UE9xLk7qaJ8RCusMdArzoNblhhBEnSrMip24WMpTpx7m46AfAnNiLrl2Aaj03ut
+	 2NV7mybIcLBPfJBo0D8s0N8HNC93JoADYXSxfHOABXEoxicv5efOGwjWwR7LroNI2E
+	 uWzgj7pYcvvMEwqs+qFIY38SqQEAzsfdGImScwHSSmXfUGbpQ9FhkJZ7zfofTqzI7H
+	 LeAGk8vJrv6eQ==
+Date: Thu, 05 Nov 2026 03:32:49 +0000
+To: "adrian.hunter@intel.com" <adrian.hunter@intel.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rafael@kernel.org" <rafael@kernel.org>
+From: Kyle Baedke <kylebaedke@protonmail.com>
+Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [BUG] Genesys GL9750 (17a0:9750) does not respond after its PCIe  slot is powered back on from D3cold, on s2idle resume and at runtime  (ASUS Vivobook 14 Flip TP3407SA, kernel 7.3.1)
+Message-ID: <vqOfI4cXijz1Ft480-_mX3XkrTT_-oQ78Xy6CPrXD_r5R06i7H03y3szJFA7JAVs9YsW93_hUQ0hz5bTYItb7RUml3cGwxPmW9gPFIcNY-8=@protonmail.com>
+In-Reply-To: <x4G_0cgWnHWJtmgP4iX3hFfwwbWDyVuO9Ps8Pv_Rnq4VguufBRLzZex1IxGuTtaYfU7tS7U8RbKjB2I54HxfEmPk3gzKWvYDAyuZXrtWbDU=@protonmail.com>
+References: <x4G_0cgWnHWJtmgP4iX3hFfwwbWDyVuO9Ps8Pv_Rnq4VguufBRLzZex1IxGuTtaYfU7tS7U8RbKjB2I54HxfEmPk3gzKWvYDAyuZXrtWbDU=@protonmail.com>
+Feedback-ID: 212527205:user:proton
+X-Pm-Message-ID: e3f05f633c40ddf18529b7d5aa15b834ff41ae80
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -71,92 +64,170 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemo100017.china.huawei.com (7.202.195.215)
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-ACPI _CRS resources carry no names, so platform_get_resource_byname()
-always fails for ACPI-created platform devices -- it skips any resource
-whose name is NULL. This prevents drivers shared between Device Tree
-and ACPI (via PRP0001) from using byname resource lookup.
 
-Add a new helper, acpi_platform_set_resource_names(), that reads the
-"reg-names" string array from _DSD and assigns names to MEM resources
-in the order they appear in _CRS. This mirrors the Device Tree
-"reg-names" property semantics. This property is optional, if absent
-the behavior will be unchanged.
 
-Tested on arm64 by injecting an SSDT through the initrd table upgrade
-mechanism that describes a PRP0001 test device with three MMIO
-resources and a matching "reg-names" package: a test driver using
-platform_get_resource_byname() resolved all three regions, and
-/proc/iomem shows the assigned names:
-
-  f0000000-f0000fff : reg0
-  f0001000-f0001fff : reg1
-  f0002000-f0002fff : reg2
-
-Signed-off-by: Bowen Yu <yubowen8@huawei.com>
----
- drivers/acpi/acpi_platform.c | 37 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
-
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 80ea7121744d..61f04eacc2f0 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -108,6 +108,39 @@ static unsigned int acpi_platform_adjust_resources(struct acpi_device *adev,
- 	return count;
- }
- 
-+static void acpi_platform_set_resource_names(struct acpi_device *adev,
-+					     struct resource *resources,
-+					     int count)
-+{
-+	const char **names;
-+	int mem_count = 0, mem_idx = 0;
-+	int i, num;
-+
-+	/* reg-names is optional; skip entirely if not present in _DSD */
-+	if (!fwnode_property_present(acpi_fwnode_handle(adev), "reg-names"))
-+		return;
-+
-+	for (i = 0; i < count; i++)
-+		if (resource_type(&resources[i]) == IORESOURCE_MEM)
-+			mem_count++;
-+	if (mem_count == 0)
-+		return;
-+
-+	names = kcalloc(mem_count, sizeof(*names), GFP_KERNEL);
-+	if (!names)
-+		return;
-+
-+	num = fwnode_property_read_string_array(acpi_fwnode_handle(adev),
-+						"reg-names", names, mem_count);
-+	if (num == mem_count) {
-+		for (i = 0; i < count; i++) {
-+			if (resource_type(&resources[i]) == IORESOURCE_MEM)
-+				resources[i].name = names[mem_idx++];
-+		}
-+	}
-+	kfree(names);
-+}
-+
- static void acpi_platform_fill_resource(struct device *parent,
- 					const struct resource *src,
- 					struct resource *dest)
-@@ -194,6 +227,10 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
- 				acpi_platform_fill_resource(parent, rentry->res,
- 							    &resources[count++]);
- 			}
-+
-+			acpi_platform_set_resource_names(adev, resources,
-+							 count);
-+
- 			acpi_dev_free_resource_list(&resource_list);
- 		}
- 	}
--- 
-2.33.0
-
+On Wednesday, November 4th, 2026 at 2:52 PM, Kyle Baedke <kylebaedke@proton=
+mail.com> wrote:
+First copy was in html mode this should be in plaintext
+> The GL9750 SD host controller in my laptop is dead after its PCIe slot ha=
+s
+> been powered off and back on through the root port's ACPI power resource.
+> This happens on resume from s2idle, and I can also reproduce it at runtim=
+e
+> with no sleep involved. In both cases the link below the root port never
+> comes up, so the device reads as all-ones. The sdhci errors are a
+> consequence of that. I'm writing to the sdhci maintainers because the
+> device is driven by sdhci-pci-gli, but the failure occurs before the
+> driver can talk to the device.
+>=20
+> =3D=3D System =3D=3D
+>=20
+> =C2=A0 Laptop: =C2=A0 =C2=A0ASUS Vivobook 14 Flip TP3407SA
+> =C2=A0 BIOS: =C2=A0 =C2=A0 =C2=A0TP3407SA.308, 03/05/2026 (the latest ava=
+ilable)
+> =C2=A0 Kernel: =C2=A0 =C2=A07.3.1 (NixOS 26.11), x86_64
+> =C2=A0 Device: =C2=A0 =C2=A00000:2c:00.0 =C2=A0Genesys Logic GL9750 [17a0=
+:9750] rev 1,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0subsystem 1043:202f
+> =C2=A0 Upstream: =C2=A0root port 0000:00:1c.4 (ACPI \_SB.PC00.RP05), link=
+ 2.5GT/s x1
+> =C2=A0 Cmdline: =C2=A0 intel_iommu=3Don iommu=3Dpt pcie_aspm.policy=3Dpow=
+ersave
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(the relevant parameters)
+> =C2=A0 Sleep: =C2=A0 =C2=A0 /sys/power/mem_sleep =3D [s2idle] deep. Selec=
+ting "deep" (S3)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0hangs the machine and nee=
+ds power to be cut to recover, so
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0s2idle is the only usable=
+ sleep mode.
+>=20
+> The root port's ACPI node has power resources (power_resources_D0 and
+> power_resources_D3hot in sysfs). The endpoint's ACPI node has none.
+>=20
+> Other firmware/kernel messages seen at boot:
+>=20
+> =C2=A0 ACPI: \_SB_.PEPD: Duplicate LPS0 _DSM functions (mask: 0x1)
+> =C2=A0 pci 0000:00:1c.4: mask Replay Timer Timeout Correctable Errors due=
+ to
+> =C2=A0 =C2=A0 =C2=A0 0000:2c:00.0 hardware defect
+>=20
+> =3D=3D Symptom =3D=3D
+>=20
+> After the slot is powered back on, config space reads of the device retur=
+n
+> ffff, the port's Link Status stays 0x1011 (Data Link Layer Link Active =
+=3D 0,
+> not training), and sdhci reports:
+>=20
+> =C2=A0 mmc0: sdhci: Version: 0x0000ffff =C2=A0 (register dump is all 0xff=
+)
+> =C2=A0 mmc0: enable PCI MSI failed, error=3D-22
+> =C2=A0 mmc0: Reset 0x1 never completed.
+> =C2=A0 mmc0: 3.3V regulator output did not become stable
+> =C2=A0 mmc0: Controller never released inhibit bit(s).
+>=20
+> On a healthy boot the port's Link Status is 0x3011.
+>=20
+> =3D=3D Resume trace =3D=3D
+>=20
+> Captured with rtcwake -m mem -s 15 (s2idle), pm_debug_messages=3D1 and
+> dynamic debug enabled for drivers/pci/*, drivers/acpi/power.c and
+> drivers/acpi/device_pm.c:
+>=20
+> =C2=A0 [ =C2=A0145.370215] sdhci-pci 0000:2c:00.0: PCI PM: Suspend power =
+state: D3hot
+> =C2=A0 [ =C2=A0145.406917] ACPI: \_SB_.PC00.RP05.PXP_: ACPI: PM: Power re=
+source turned off
+> =C2=A0 [ =C2=A0145.406948] pcieport 0000:00:1c.4: PCI PM: Suspend power s=
+tate: D3cold
+> =C2=A0 ...
+> =C2=A0 [ =C2=A0159.865842] ACPI: \_SB_.PC00.RP05: PM: Power state change:=
+ D3cold -> D0
+> =C2=A0 [ =C2=A0160.263869] ACPI: \_SB_.PC00.RP05.PXP_: ACPI: PM: Power re=
+source turned on
+> =C2=A0 [ =C2=A0160.264234] ACPI: \_SB_.PC00.RP05: PM: Power state changed=
+ to D0
+> =C2=A0 [ =C2=A0160.264241] pcieport 0000:00:1c.4: power state changed by =
+ACPI to D0
+> =C2=A0 [ =C2=A0160.276459] pcieport 0000:00:1c.4: ready 0ms after power u=
+p D3hot->D0uninitialized
+> =C2=A0 [ =C2=A0160.276866] pcieport 0000:00:1c.4: waiting 100 ms for down=
+stream link, after activation
+> =C2=A0 [ =C2=A0161.297053] pcieport 0000:00:1c.4: Data Link Layer Link Ac=
+tive not set in 100 msec
+> =C2=A0 [ =C2=A0161.303943] sdhci-pci 0000:2c:00.0: restore config 0x3c: 0=
+xffffffff -> 0x000001ff
+> =C2=A0 [ =C2=A0161.321478] mmc0: enable PCI MSI failed, error=3D-22
+> =C2=A0 [ =C2=A0161.421611] mmc0: Reset 0x1 never completed.
+> =C2=A0 [ =C2=A0161.741170] mmc0: 3.3V regulator output did not become sta=
+ble
+>=20
+> The slot was off for about 15 s (145.407 to 160.264), so this is not a
+> short-off-time problem.
+>=20
+> =3D=3D Reproduction without suspend =3D=3D
+>=20
+> From a healthy boot (device alive, no SD card inserted):
+>=20
+> =C2=A0 echo 1 =C2=A0 =C2=A0> /sys/bus/pci/devices/0000:2c:00.0/remove
+> =C2=A0 echo 1 =C2=A0 =C2=A0> /sys/bus/pci/devices/0000:00:1c.4/d3cold_all=
+owed
+> =C2=A0 echo auto > /sys/bus/pci/devices/0000:00:1c.4/power/control
+> =C2=A0 # the root port's power_state reached D3cold after about 2 s
+> =C2=A0 sleep 1
+> =C2=A0 echo on =C2=A0 > /sys/bus/pci/devices/0000:00:1c.4/power/control
+> =C2=A0 # port is D0 again, but its Link Status is 0x1011 (DLActive =3D 0)
+> =C2=A0 echo 1 =C2=A0 =C2=A0> /sys/bus/pci/rescan =C2=A0 =C2=A0 # repeated=
+ once per second for 15 s
+>=20
+> The device never reappears, and Link Status stays 0x1011 for the whole
+> 15 s. This uses only a 1 s off time.
+>=20
+> =3D=3D What I tried =3D=3D
+>=20
+> Suspend variants, each run with rtcwake -m mem -s 15 (s2idle), no SD card
+> inserted. All of these failed on the first cycle:
+>=20
+> =C2=A0 - no changes
+> =C2=A0 - endpoint power/control=3Don
+> =C2=A0 - root port power/control=3Don
+> =C2=A0 - endpoint link/l1_2_aspm and link/l1_2_pcipm set to 0
+> =C2=A0 - endpoint link/l1_aspm, l1_1_aspm, l1_2_aspm, l1_1_pcipm, l1_2_pc=
+ipm
+> =C2=A0 =C2=A0 all set to 0
+> =C2=A0 - endpoint removed before suspend, rescanned after resume
+>=20
+> This one passed 10/10 cycles (device alive 2 s and 8 s after resume, port
+> Link Status 0x3011 each time):
+>=20
+> =C2=A0 - d3cold_allowed=3D0 on both the endpoint and the root port, set j=
+ust
+> =C2=A0 =C2=A0 before suspend and restored to 1 right after resume
+>=20
+> Recovery attempted after a failed resume, with the root port held in D0
+> (power/control=3Don) and the rescan polled for 15 s per stage. None broug=
+ht
+> the device back, and Link Status stayed 0x1011 throughout:
+>=20
+> =C2=A0 - remove + rescan
+> =C2=A0 - secondary bus reset on the root port, then rescan
+> =C2=A0 - Link Disable / enable on the root port, then rescan
+>=20
+> =3D=3D Questions =3D=3D
+>=20
+> 1. Is this a known issue with this device or this platform's slot power-o=
+n
+> =C2=A0 =C2=A0method?
+> 2. What additional tracing would help (ACPI AML debugging, GPIO/pinctrl
+> =C2=A0 =C2=A0state before and after the power resource turns on, anything=
+ else)?
+>=20
+> I can build and test patches on this machine.
+>=20
+> Thanks,
+> Kyle
+>=20
+> Sent with Proton Mail secure email.
