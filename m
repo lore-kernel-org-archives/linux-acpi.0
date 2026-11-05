@@ -1,48 +1,102 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793901827;
-	b=W077dKE0gBr7A/LOXlZPqMDIwo1oizrWRKs0d5ewjL5eEtnOV19DIDRvC5k/khCrwKup
-	 onvS6mbOyjFxJBLuvholyx4FSMFJXUOTVosQi39y442CJgcXXA30oR3tAZoV+rEYrX8ff
-	 ABmQFvuQ7a0OQgM0FXCwjznMTdcQtW+6OSdGsma+xAXPu8kp5DPJjgUFbap00Bf5d6Nr5
-	 Y1McK0jBT0MfFGsrMd57lGEDuWnpia1k9NfjL3rWI4nLPtYZeuqkEb58XQGnj+VdAC07S
-	 klTxESMPmbRpTxrzIVKU76gak0bv2JtljPW56ZxlzTYkPRCch4SWth9x5Ss9aRk21ZQ==
+	t=1793902138;
+	b=jXvIHViKpP2paxuL4NsFqNpycjleu069gd9pfm0XG+ZUC22ZRMGCUDk93OeXGeO7a0yO
+	 dhhWTd4ucRZggPqaKpWpEYnVcElvKPLndpNf6a+3H6PFP1H0AkYclj+8Igb1uEgv1hjEJ
+	 5cGprBoYqemsFlm2B6n9E97TiKY6aHrZeO2HpfjI9ZHk8YfR3ZUCjv9k2+Q/qgmeuKDDD
+	 jz53M2aRXAvFZzsncUtbeRykfQROpH3tl3Y/Om/xLjTnu0lKmDYbpoRFMAAqYRrL/iA2d
+	 o939cJg7NbDpzk8MOcNzBRVVzNJNCwkLSdG0FECl5HwG/T7L6Ta5fG1uJfGtuYGJ4eA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793901827;
-	h=Received:DKIM-Signature:From:Date:Subject:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:
-	 X-Mailer;
-	bh=FszNzi5W6BVkUDAXdQk1QKMMfImnvE6FsmKPIP4VJgs=;
-	b=szke6/ZI5JoXKZydy0vVlk0lxib5FBL6C1C9g8YChSdIO3HuXlFhbVrx1vY8xUESYBIR
-	 j3kTB8H3E2+hWl2xN1j8m8lwaxMsTo+1E2ZRfR/AXCPOmoF8DkfMcJiqBk9iysyWlj81W
-	 vOFTdA6jnbnZRr6NL+BLXfF8xlohj0VCyG2WsaYd9E6t1ZZWKpKtK8GbZWBQVW7a9uRLe
-	 8qcgFJkshicP/8blnaZe4jP+F4DUkZUcvBJ+MkJbXBwQAMZ6e7xJbFHknZjAYsoEqerlM
-	 XPaFHFuYs7i1LWz7PEy42ZSN6pyNO2JaSfpRbZDVD7ewq3irZa/si1DDwcbDO7JXADQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793902138;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To:Organization;
+	bh=OmJWt9jy32DuAAccMJWm3nkUUMzFdTd0nlAd4UIVKyo=;
+	b=pSBmODvNcRZzMNosZ4rAeH6p+70R0HCAxWUWmC+NzjD22jOtLwg3C89imfJ+ZGBknS7n
+	 n7B7R8ZhXEi3xIqWdZ+NKbYpn0uJd26px4gaoO3tpnXvdLpjJWcrFw/qq3t8fkmuCiivM
+	 UDrCs4RS6/7RK1ZAzkAu3uwLDXq3F2l57Xww/c5HJDDTzpmxrAj7r10Msl4lfuOZo/wH1
+	 zE/43HABoxjwNarmLSMThJTnuu6gQmwPdy4Q3yH3BOFhoFceWXU+r46GdSU2Gj1rw40PR
+	 9fURl8p22h+GvNy6gvQ/lK0gE+8rQnsfkFSlrkwzT50JLjIYUl2hnExlBqJieU2X9bg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=S40ARWyb;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=EZl+LRNT;
+	arc=none smtp.remote-ip=192.198.163.18
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9008606A31B;
-	Thu,  5 Nov 2026 18:03:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12B16606A31B;
+	Thu,  5 Nov 2026 18:08:57 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 12B16606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=S40ARWyb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFEFA1F000C1;
-	Thu,  5 Nov 2026 18:03:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793901826;
-	bh=FszNzi5W6BVkUDAXdQk1QKMMfImnvE6FsmKPIP4VJgs=;
-	h=From:Date:Subject:To:Cc;
-	b=S40ARWyb0TrRGVbXkaX/OJiCEryidQoK/raNHWPNsXaPEzD6a6IrTqJNlmmUSN/r4
-	 HdxeJzOZdBlSRwWBhjozbLLvuYf8mvPlAcI65fAMoi4Gm2ep0R6tx491jNuW8tcrlR
-	 cG8nVDn4p0fkFx3xjShuJFv0ffwyIrPjGwLJphQVwrmR9z3v3bMNF/meQshsAIFIjk
-	 2Biaz1h5G5WoPzlluuIxDHebYE5LqFLTnfgFPG4DaIoFAHUsAl38YaHX9pz47nq4o4
-	 AodDv3Z+hqcCxXoyKPKtfwtKX1NtYcowXbKJBVJgFQVHImzQIqEx/D8mGOKdMdEdyh
-	 npQ7/Za6LSzOw==
-From: Mario Limonciello <superm1@kernel.org>
-Date: Thu, 05 Nov 2026 12:03:36 -0600
-Subject: [PATCH] pinctrl: amd: Drop CONFIG_ACPI ifdef
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=EZl+LRNT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1793902138; x=1825438138;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=R8mPcNA+R5yTmhfrNdwr9xg6yzKlFMkZyh0EGXU8Rds=;
+  b=EZl+LRNTA0+QWjwbvx+FbC9kfuk9ncqViCSIyy6iO8XTtIjrVxG9jcyZ
+   M2brjjZa34aYpnloxqCPW8mkus0YClOU2cwIoFeXHzytbrCl2ujC8L4Si
+   UefG5/obWNfoopkXxEjAoOoaosEtCi7OEybGqmQnqT5fuPC1CFC7FW2Xo
+   0ShvcrZOG1u5jwr1lANvZAE+CfYbW6+PMWlhsr6oaoTKY7MdnY6NHPMBr
+   xvE77GUDTEdHT1ccUH6XkOnjBy56lOXDn8Mzvjv3NwnjzOE7yMv5d2JyA
+   2Yc2/9NLBawgXPaTk8vjoVgemySj7C5aTjLZiUoev9bniTB9H1hf1Wp0C
+   A==;
+X-CSE-ConnectionGUID: babqnDPkQTG6ltYtilUDDw==
+X-CSE-MsgGUID: M7AjOkxAT5K8ivPuI/pADw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11957"; a="2741623"
+X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
+   d="scan'208";a="2741623"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 10:08:57 -0800
+X-CSE-ConnectionGUID: EgwaX09kSoe48x2Zn1fepA==
+X-CSE-MsgGUID: Gd1RVswyQ9S/hX4a8iTtLQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
+   d="scan'208";a="7401641"
+Received: from amilburn-desk.amilburn-desk (HELO localhost) ([10.245.244.144])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 10:08:51 -0800
+Date: Thu, 5 Nov 2026 20:08:49 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Alejandro Colomar <alx+linux-hardening@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>,
+	Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Andreas Schwab <schwab@linux-m68k.org>,
+	Andy Shevchenko <andy@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Len Brown <lenb@kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linus Walleij <linusw@kernel.org>,
+	Namhyung Kim <namhyung@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Saravana Kannan <saravanak@kernel.org>, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v1 1/2] string: Add strprefix(), and deprecate
+ str_has_prefix()
+Message-ID: <auzGMV1YbO9DodBq@ashevche-desk.local>
+References: <cover.1793876837.git.alx@kernel.org>
+ <9c81f6f62fd0e908e683c4c08b09a1f95bc2ec9c.1793876837.git.alx@kernel.org>
+ <20261105111423.360f4ba8@gandalf.local.home>
+ <auyuINXEJKc1KoG7@devuan>
+ <20261105115019.2fe7c91b@gandalf.local.home>
+ <auy0O467UqOzqYub@devuan>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -52,54 +106,33 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261105-superm1-pinctrl-acpi-v1-1-2367e584912f@kernel.org>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMQQrCQAxG4auUrA1MihbxKuJinP7ViI5D0opQe
- nfHdvkt3pvJYQqnUzOT4aOu71whu4bSPeYbWPtqakPbiQRhnwrsJVw0p9GeHFNRHiLQ7w9HQRe
- opsUw6Hfdni+bfbo+kMb/i5blBzsgZxl4AAAA
-X-Change-ID: 20261101-superm1-pinctrl-acpi-faeed4581e60
-To: Basavaraj Natikar <Basavaraj.Natikar@amd.com>, 
- Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, 
- Linus Walleij <linusw@kernel.org>
-Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-acpi@vger.kernel.org, Mario Limonciello <superm1@kernel.org>
-X-Mailer: b4 0.16.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <auy0O467UqOzqYub@devuan>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-commit e7280ab196ba4 ("ACPI: bus: Use acpi/acpi_bus.h without
-CONFIG_ACPI") added a stub that means that we don't need a #ifdef
-anymore for the _AEI check
+On Thu, Nov 05, 2026 at 06:46:18PM +0100, Alejandro Colomar wrote:
+> > Date: 2026-11-05 11:50:19-0500
+> > From: Steven Rostedt <rostedt@goodmis.org>
 
-Signed-off-by: Mario Limonciello <superm1@kernel.org>
----
- drivers/pinctrl/pinctrl-amd.c | 2 --
- 1 file changed, 2 deletions(-)
+[...]
 
-diff --git a/drivers/pinctrl/pinctrl-amd.c b/drivers/pinctrl/pinctrl-amd.c
-index 9fa752f552d43..efe8859fcd5a9 100644
---- a/drivers/pinctrl/pinctrl-amd.c
-+++ b/drivers/pinctrl/pinctrl-amd.c
-@@ -955,14 +955,12 @@ static void amd_gpio_irq_init(struct amd_gpio *gpio_dev)
- 
- 	mask = BIT(WAKE_CNTRL_OFF_S0I3) | BIT(WAKE_CNTRL_OFF_S3);
- 
--#ifdef CONFIG_ACPI
- 	/*
- 	 * Platforms without _AEI leave GPIO wake sources to firmware, so
- 	 * preserve their S4 wake bits.
- 	 */
- 	if (acpi_has_method(ACPI_HANDLE(&gpio_dev->pdev->dev), "_AEI"))
- 		mask |= BIT(WAKE_CNTRL_OFF_S4);
--#endif
- 
- 	for (i = 0; i < desc->npins; i++) {
- 		int pin = desc->pins[i].number;
+> > Oops, typo, I meant trace_event_filter.c
+> 
+> Still not found.
+> 
+> 	alx@devuan:~/src/linux/linux/master$ find | grep trace_event_filter.c
+> 	alx@devuan:~/src/linux/linux/master$ find | grep trace.event.filter
+> 	alx@devuan:~/src/linux/linux/master$ 
 
----
-base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
-change-id: 20261101-superm1-pinctrl-acpi-faeed4581e60
+Oh, you are an oldschool guy :-)
 
-Best regards,
---  
-Mario Limonciello <superm1@kernel.org>
+I can't believe people with Git index available are using `find`
+and not `git ls-files`. `find` is too slow...
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
 
