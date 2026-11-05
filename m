@@ -1,69 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.231.42
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793883123;
-	b=bYCtQWVDn3ktjbTmMoMNK4sStBThrRtld+Uzusgfiu37PXaZQTGsMUdbWCRxqnDHIg08
-	 n75GC2kLdAL0bpu0QAwbWjPqTsYfnTnssV6ZvTdRnJs048jR2kNW4HAudVEI2j1wlxM9T
-	 maq6oN3U1Bs5IXRNF6DzQOsYagqHUaPm6GskeOi8GQkGWKEdGCcSgljbEC1RDrA8Spdal
-	 u6T5g5lYvkenlfT+4tofUmc0IxRTuK+kUauwCgXsxLRtNF5fvY0HAJub/yMUJePdnnptO
-	 Z+joM8zlAeTwJw77UmiJJi9Wxq4Vz2RVAAxk71EG4QW0kX2418fzeZubhQMDNRc0G7w==
+	t=1793883167;
+	b=Gl5l1gTaM1g1unn/4kveghNQrCNuE/r8ZjapF9WivNSTOqz7h+BtANYlNshUivgyhEY8
+	 eaqLWou6Ral0dJzuS5ZcF5dJr68p2qeyZium195l94DiaSASqktA4ynGDTpdv4WxX22iW
+	 GrUXefTNgN2MYZbCm0VNAoWkMpKkiTn6TqadtkV2ZuwJYPcmzUliH68qXpYlAtFez0qP9
+	 f35ImR6ML4a+PPOHKY3zSaLVJEu5nQEeJdOCOqMrG1sywaiVxFV3Gn7aj+o1spJqsQH64
+	 UxLuxFw2Gnd8OASJis+Urd+7NvCIexPYFa+TKSFjNj1UzOFQXKh32hktL2fyfd5BtWg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793883123;
-	h=Received:From:To:List-Id:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=fLAksqUutuMmZ393ZwmJo+qovjnv36EAtEGhBHrix14=;
-	b=TnKm2oTtGUmrlSIfZ+hRC7Q9mh/VZiFA/CNhtMignA6oCiVHH6uF0fKm8s73yyqZEzr1
-	 hRoCnlCVIBvzsgZyb9g5yMvpiVF3xbBvk0QizBZM8W+xuOxTD8SRVp9BUXPf4Pnf9sNpS
-	 BqutCGQbkyUeRJu+0IDpx6agYeRWNIjdDOsJDr8qf26xrEX9fZAeYT5C/sjO4AoFPxDFf
-	 PJxNt05WbavT7tY/P+kIE+64wuhVQS8iTw28R4cATivCbhyU6eGnT7SVyLBrE4uzOrmFL
-	 xKBaMXRcMquXdkMzDBawmw2zQitc2zw0W9EpmZwK5mTz5bbVwFHhbJJTy00xvUt9pWw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793883167;
+	h=DMARC-Filter:DKIM-Signature:From:Subject:Message-Id:
+	 X-Lms-Return-Path:Content-Language:Received:References:Content-Type:
+	 To:Mime-Version:User-Agent:Cc:In-Reply-To:Date:
+	 Content-Transfer-Encoding:X-Original-From;
+	bh=Fz6oVrX7/NbNBKe7D52bmdwjWluMA6P4LkwzqUDU7u8=;
+	b=mGCZ2VNj6e1QY+7tpF7M6u46yZw6B3IjAMBo63Oq6ioPJd9MAWMYgQx2/WE8RN4hh7m3
+	 tzthgvSBf7EVd11RIz0jMB4Yd5pARINmyWCQc+/KMVUwk71IPUQ19IuDvLFdYkQwl9ZIe
+	 Wk0IfeD371DwliNGSetvj9jt+V8VJprHQTxN6Uiv6vrVlOSkY5pSgFFQI7iQHKHvE2hud
+	 JrqogPA1PNkVVpLGgAyW/FAwLhKVgVjayD7nSHI1DFEGQXf7qt6ha4mlszKkTRLN1yEBi
+	 aKiV76mF7fmKdzCFO5kW+rOXkzZCKlMbw2SU3iZ9jFwP+/jbOX5CQLYCmW0ohakR7Zg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=picoheart.com;
+	spf=pass smtp.mailfrom=picoheart.com;
+	dkim=pass header.d=picoheart.com header.i=@picoheart.com header.a=rsa-sha256 header.s=feishu2604151535 header.b=IYsXm2P5;
+	arc=none smtp.remote-ip=209.127.231.42
+Received: from va-2-42.ptr.blmpb.com (va-2-42.ptr.blmpb.com [209.127.231.42])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89E4B606D810;
-	Thu,  5 Nov 2026 12:52:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 268F41F00919;
-	Thu,  5 Nov 2026 12:51:55 +0000 (UTC)
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: alx@kernel.org
-Cc: alx+linux-hardening@kernel.org,
-	andy@kernel.org,
-	bartosz.golaszewski@oss.qualcomm.com,
-	brgl@kernel.org,
-	dakr@kernel.org,
-	devicetree@vger.kernel.org,
-	djrscally@gmail.com,
-	driver-core@lists.linux.dev,
-	gregkh@linuxfoundation.org,
-	heikki.krogerus@linux.intel.com,
-	hverkuil-cisco@xs4all.nl,
-	joe@perches.com,
-	johan@kernel.org,
-	kees@kernel.org,
-	laurent.pinchart@ideasonboard.com,
-	lenb@kernel.org,
-	linusw@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-gpio@vger.kernel.org,
-	linux-hardening@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	namhyung@kernel.org,
-	rafael@kernel.org,
-	robh@kernel.org,
-	rostedt@goodmis.org,
-	sakari.ailus@linux.intel.com,
-	saravanak@kernel.org,
-	schwab@linux-m68k.org,
-	torvalds@linux-foundation.org,
-	zanussi@kernel.org
-Subject: Re: [PATCH v2 1/2] string: Add strprefix(), and deprecate str_has_prefix()
-Date: Thu,  5 Nov 2026 13:51:54 +0100
-Message-ID: <20261105125154.83478-1-geert@linux-m68k.org>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <d3b325ecefd1d991ca25a4de2a859353f3ad7cfb.1793882260.git.alx@kernel.org>
-References: <d3b325ecefd1d991ca25a4de2a859353f3ad7cfb.1793882260.git.alx@kernel.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F89C606A32E
+	for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2026 12:52:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0F89C606A32E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=picoheart.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=picoheart.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=picoheart.com header.i=@picoheart.com header.a=rsa-sha256 header.s=feishu2604151535 header.b=IYsXm2P5
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+ s=feishu2604151535; d=picoheart.com; t=1793883161; h=from:subject:
+ mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
+ mime-version:in-reply-to:message-id;
+ bh=Fz6oVrX7/NbNBKe7D52bmdwjWluMA6P4LkwzqUDU7u8=;
+ b=IYsXm2P5Q3lFFL99BDPxLFTKSU2lnKSXO+VMiLPDpBq+fqhCbAjtoXAgTc2yIBvoNaMnqS
+ khonTVnSlJuGD1+Xuw2AInBhyo7l5xmHV+gF7Ju2V9yfvbkwkwld0lupL7c14Srq0kXnLc
+ MliKsyaA2scfEz+bqmpc15GNvcpwYFBE24690vZN/ur0kTaytRpbk0qMRW2FrPw3kEp2BR
+ a7oYIXMNqsM9U/wWrSOsyKz7AXD/fe39THCkzaBjIWmpuLU1LALaGC/zQHJlLstWg0pVFY
+ 8woCdnb2uAJBkasp7frTFhbCxn9mJqkfyun17YoeG0sGSp0CGEQoKoGbr6H2qg==
+From: "Yicong Yang" <yang.yicong@picoheart.com>
+Subject: Re: [PATCH v7 1/1] RISC-V: Add common csr_read_num() and csr_write_num() functions
+Message-Id: <51cb0e88-356e-4980-95a2-e4a46695ee9d@picoheart.com>
+X-Lms-Return-Path: <lba+26aec7c17+cfdd0b+vger.kernel.org+yang.yicong@picoheart.com>
+Content-Language: en-US
+Received: from [100.86.223.207] ([58.250.106.114]) by smtp.feishu.cn with ESMTPS; Thu, 05 Nov 2026 20:52:38 +0800
+References: <20261104161512.883885-1-anup.patel@oss.qualcomm.com> <20261104161512.883885-2-anup.patel@oss.qualcomm.com>
+Content-Type: text/plain; charset=UTF-8
+To: "Anup Patel" <anup.patel@oss.qualcomm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -72,91 +61,96 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Cc: "Sunil V L" <sunilvl@oss.qualcomm.com>, 
+	"Rafael J . Wysocki" <rafael@kernel.org>, <yang.yicong@picoheart.com>, 
+	"Palmer Dabbelt" <palmer@dabbelt.com>, 
+	"Paul Walmsley" <paul.walmsley@sifive.com>, 
+	"Alexandre Ghiti" <alex@ghiti.fr>, "Len Brown" <lenb@kernel.org>, 
+	"Atish Patra" <atish.patra@linux.dev>, 
+	"Anup Patel" <anup@brainfault.org>, "Will Deacon" <will@kernel.org>, 
+	"Mark Rutland" <mark.rutland@arm.com>, <linux-acpi@vger.kernel.org>, 
+	<linux-riscv@lists.infradead.org>, <linux-kernel@vger.kernel.org>, 
+	"Anup Patel" <apatel@ventanamicro.com>, 
+	"Sunil V L" <sunilvl@ventanamicro.com>, 
+	"Andrew Jones" <ajones@ventanamicro.com>, 
+	"Atish Patra" <atishp@rivosinc.com>, "Nutty Liu" <nutty.liu@hotmail.com>
+In-Reply-To: <20261104161512.883885-2-anup.patel@oss.qualcomm.com>
+Date: Thu, 5 Nov 2026 20:52:36 +0800
+Content-Transfer-Encoding: 7bit
+X-Original-From: Yicong Yang <yang.yicong@picoheart.com>
 
-	Hi Alejandro,
-
-On Thu, 5 Nov 2026 13:46:29, Alejandro Colomar wrote:
-> As Bartosz reported, str_has_prefix() has a bug: it can't differentiate
-> between an empty prefix matching an empty string from a non-matching
-> prefix.  This is a fundamental design flaw in this API, and not
-> something that can be fixed.
+On 11/5/26 12:15 AM, Anup Patel wrote:
+> From: Anup Patel <apatel@ventanamicro.com>
 > 
-> As always, this is a consequence of choosing sizes instead of pointers.
-> Sizes are often the wrong choice.  In this specific case, pointers are
-> more capable of differentiating these cases, as NULL is a special
-> sentinel value that doesn't need to overload a valid value.
+> In RISC-V, there is no CSR read/write instruction which takes CSR
+> number via register so add common csr_read_num() and csr_write_num()
+> functions which allow accessing certain CSRs by passing CSR number
+> as parameter. These common functions will be first used by the
+> ACPI CPPC driver and RISC-V PMU driver.
 > 
-> Let's implement strprefix(), a function that returns a pointer
-> right after the prefix if found, and a null pointer if not found.
+> Also, the RISC-V ACPI FFH specification allows arbitrary CSR number
+> as CPPC register and the RISC-V SBI specification allows arbitrary
+> CSR number as PMU hardware counter. This means ACPI CPPC driver and
+> RISC-V PMU driver no longer need to do sanity checks on CSR number
+> which are now done by the common csr_read_num() and csr_write_num()
+> functions.
 > 
-> We'll slowly migrate existing code from str_has_prefix() to strprefix().
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Reviewed-by: Sunil V L <sunilvl@ventanamicro.com>
+> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+> Reviewed-by: Atish Patra <atishp@rivosinc.com>
+> Reviewed-by: Nutty Liu <nutty.liu@hotmail.com>
+> ---
+>  arch/riscv/include/asm/csr.h |   3 +
+>  arch/riscv/kernel/Makefile   |   1 +
+>  arch/riscv/kernel/csr.c      | 165 +++++++++++++++++++++++++++++++++++
+>  drivers/acpi/riscv/cppc.c    |  17 ++--
+>  drivers/perf/riscv_pmu.c     |  54 ++----------
+>  5 files changed, 184 insertions(+), 56 deletions(-)
+>  create mode 100644 arch/riscv/kernel/csr.c
 > 
-> Reported-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-> Cc: Andy Shevchenko <andy@kernel.org>
-> Signed-off-by: Alejandro Colomar <alx@kernel.org>
-
-Thanks for your patch!
-
-> --- a/include/linux/string.h
-> +++ b/include/linux/string.h
-> @@ -545,16 +545,33 @@ void memcpy_and_pad(void *dest, size_t dest_len, const void *src, size_t count,
->  	       sizeof(*(obj)) - offsetof(typeof(*(obj)), member));	\
+> diff --git a/arch/riscv/include/asm/csr.h b/arch/riscv/include/asm/csr.h
+> index 621f84d1898f..ebd82043430b 100644
+> --- a/arch/riscv/include/asm/csr.h
+> +++ b/arch/riscv/include/asm/csr.h
+> @@ -672,6 +672,9 @@
+>  			      : "memory");			\
 >  })
 >  
-> +/**
-> + * strprefix - string prefix
-
-Naive me assumes this function must return the prefix of the string,
-so IMO is it named badly.
-
-> + * @s: The string to be tested
-> + * @prefix: The string to see if @s starts with
-> + *
-> + * Returns:
-> + * *  @s+strlen(@prefix) if @s starts with @prefix
-> + * *  NULL if @s does not start with @prefix
-> + */
-> +static __always_inline char *strprefix(const char *s, const char *prefix)
-
-This returns a non-const substring of the original const parameter, thus
-allowing the caller to modify the original even when it is const.
-
-While this is not uncommon behavior for existing standard string
-helpers, I think it would be good to make new functions safer, by not
-allowing to drop constness.  Using _Generic() can be used to support
-both const and non-const strings in a safe way.
-
-> +{
-> +	size_t len = strlen(prefix);
-> +	return strncmp(s, prefix, len) == 0 ? (char *) s + len : NULL;
-> +}
+> +unsigned long csr_read_num(unsigned long csr_num, int *out_err);
+> +void csr_write_num(unsigned long csr_num, unsigned long val, int *out_err);
 > +
->  /**
->   * str_has_prefix - Test if a string has a given prefix
->   * @str: The string to test
->   * @prefix: The string to see if @str starts with
->   *
-> + * DEPRECATED: Use strprefix()
-> + *
->   * A common way to test a prefix of a string is to do:
->   *  strncmp(str, prefix, sizeof(prefix) - 1)
->   *
->   * But this can lead to bugs due to typos, or if prefix is a pointer
-> - * and not a constant. Instead use str_has_prefix().
-> + * and not a constant. Instead use strprefix().
->   *
->   * Returns:
->   * * strlen(@prefix) if @str starts with @prefix
+>  #endif /* __ASSEMBLER__ */
+>  
+>  #endif /* _ASM_RISCV_CSR_H */
+> diff --git a/arch/riscv/kernel/Makefile b/arch/riscv/kernel/Makefile
+> index f54c336bf547..7f52ae724225 100644
+> --- a/arch/riscv/kernel/Makefile
+> +++ b/arch/riscv/kernel/Makefile
+> @@ -51,6 +51,7 @@ obj-y	+= soc.o
+>  obj-y	+= alternative.o
+>  obj-y	+= cpu.o
+>  obj-y	+= cpufeature.o
+> +obj-y	+= csr.o
+>  obj-y	+= entry.o
+>  obj-y	+= irq.o
+>  obj-y	+= process.o
+> diff --git a/arch/riscv/kernel/csr.c b/arch/riscv/kernel/csr.c
+> new file mode 100644
+> index 000000000000..e96b129c1a99
+> --- /dev/null
+> +++ b/arch/riscv/kernel/csr.c
+> @@ -0,0 +1,165 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * Copyright (c) 2025 Ventana Micro Systems Inc.
+> + */
+should update to 2026?
 
-Gr{oetje,eeting}s,
+Now read of CPPC FFH counter succeed on my platform.
 
-						Geert
+Tested-by: Yicong Yang <yang.yicong@picoheart.com>
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-							    -- Linus Torvalds
+Thanks.
