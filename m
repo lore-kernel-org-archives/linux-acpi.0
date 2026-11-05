@@ -1,55 +1,126 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.181
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793908639;
-	b=OPEAE8Dz9JyBadVyKQjTdtKWwTdYLzX7/LN5AoTWMDDX8sVXNnXilo1dJ7S1GngdhVIO
-	 hC6e28IfPiwJk9pXXdVQbBlp9BVMmlvsEtqHTvY7GZefX1y+4yFeyGcF0UevwoeLHPzMD
-	 NUwtmYbjFnUnwF9b1aWDWkUJsKrs0kMIwqxdjUG9+AoZ1wwENf4U+WYLRqmICmUnD60hx
-	 nrv4boApucknyoLOaQ1BFwaJF5KtT68YO6s3I0G0YBO23kyN5+c3cmJsjoaQuzqOc6OcM
-	 LYJimfisxb9XFjz8W52WvASeihJUyz8bGP8OhRlWVT748s4k4wJwD7vBye2AS+PQmPQ==
+	t=1793909064;
+	b=PAYr4WTqStHTkZnCIoTs4eXt2qyxjwJywwgSz1eiV9W6166mkli7O1Anh8WW3K+v5kKW
+	 sStPFjqSXT7q05cVYKJltqhaJr5HuD6LGcrMOl4XbhigyIzt5uJ3KRLSvXifQpF+Y50sY
+	 PqoqKlBaYonVQz7wsqmgKlaPFbki3it+JvsY+BlxoaB16b5jHbXveH5R7nZ2yeF8QcgJ9
+	 d4DRykkgqinOB49/VxjK27NXwB6Gkpw8vG0ZDWaABKCVaJ/CrcWSw9Pt7fWI1jtOMaFOb
+	 pYzsYHrxlEoyA1uB3UHZnJsLrBFzxe5GFR4scbTW+5bBuP5EVmzXSfGtUKAgl3DTVVA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793908639;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=B3PGuBtYsDkPS6q+oBmmpl9f1c4rCqFvxlpSZWi2nUM=;
-	b=XdWsfcelqdLWEh8+33ApOemYrf/EPGW5HNXiXCBVHA6AAtTdLs5B+ASKgU6bmPi3JeIR
-	 xGe3wyLOGmtojBUYXCdkSaLY0YjyxvbLhc+Dr70sxPQwE6Dt4BfNv7BRSYqpzhm/+8DYx
-	 thvgtgJ8v5oyEDHj863ja+qbhzuu1SMtJUe5Kp6m94YeLe6+FLfIG69XWj1x9z8jF2iTt
-	 rR0/PIgvMNQuJfAi/g+MQ9owSUkRwumZ0mvkVnsff/NvhdAsN85YpqRbaAg+CXdlDdsFk
-	 NX8ejyPqOss3XGsufnQRXLU6pPRlVMu7uqdK/HNAC4q+jT4UT+YlpxsfOTdGPAtDXjA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793909064;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To;
+	bh=Aw5degZrQHo3V3rpws5+g22RRHe/seP3Fa1C54u6MN0=;
+	b=GMb9e+hXj4E2frIQYb4KZ970jIOyLSVEnAcm9RGeHAUpaKIj3S9xnLhebjbeKNddM43R
+	 7mgXFIh/PCKKGx9totlEqvtrI8+f3irA8VONuQbUgxT2xiyEgYZX3Pe8J40yZI+npvRZS
+	 Lq/Dzngj15RBtmkbMYfhalv42WQaMM8rga1670k2RG0shnT64N31brD/3f7MocEAbyHJl
+	 dSfkoWM/yVfU8SxL+6uROC3eEn1yrxyOha/X8HYrjTXTtqEr4Vw1+rOLZOTmonN91nLG2
+	 WUDwYrzPHQutEOFxBqr2gSnJUhja/HG8Y3+1xJibpb37Cel18C44r0KmI/8pmtpAvsw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=S3qmXXbI;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=rowland.harvard.edu;
+	spf=fail smtp.mailfrom=g.harvard.edu;
+	dkim=pass header.d=rowland.harvard.edu header.i=@rowland.harvard.edu header.a=rsa-sha256 header.s=google header.b="l7XvB/r0";
+	arc=none smtp.remote-ip=209.85.160.181
+Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0BB8606A6F2
-	for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2026 19:57:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24D5D606A32D
+	for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2026 20:04:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 24D5D606A32D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rowland.harvard.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=g.harvard.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=S3qmXXbI
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A05F81F008A1
-	for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2026 19:57:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793908638;
-	bh=B3PGuBtYsDkPS6q+oBmmpl9f1c4rCqFvxlpSZWi2nUM=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=S3qmXXbIx25aGds7p3bB+v5AtkJyF+kyhfVaF0ROCKX2dI6oLSwKbRQMtvm8S8khf
-	 zzdLXtVWE2OiqZhdwbeVC8kTfjfo4R7yj+1eaQL5QJtVD+jwvO48wyfHIE7JMmBXhN
-	 1WQcDnOt8C3FdMpDCgWDux9Gt7hXcYw978m3rZB9p6SiQihqIt8kRh+hbxol3qljbp
-	 Ji2ksMv28Br0OrulPYIKdXlTO1wlTbW0/gJ57BuQzQmN8VoWYiCs3kvUrjaSbLEKjO
-	 /SKBq5uttgr6WAVYsF0Zlf2RKeDlxbGnPBv+9GJBAfXTFt04VTEJ/nmgrFygZ0yhgB
-	 xZ5opK3LP4Gaw==
-Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5be3d5927ceso2183181e87.3
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Nov 2026 11:57:18 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AKwUvBxQOZ23DFW7BlBsUriOsxn4aWKWE3PKtuPJ6fm1LF8MsHZxOb8l4azaN1XwkKG3uqkRV9VzdrGzoOrP@vger.kernel.org
-X-Gm-Message-State: APuU4Z9wG4/XFlVHygseZ5aHfs0UuWJXIbM0SjCLbnhFwwF9bNw3ymYK
-	70E5bKuA3JfAg+0eIEDK5bOq2oZ+ABjwJujCS/xUMx8wHyiZQL22J2XDJAAgV+L2Iv8DkQP/tvF
-	ZtzJVrB1WBLVmZ0aKBzKMR3IkM6hJe1c=
-X-Received: by 2002:a05:6512:4013:b0:5bf:e4e6:7f78 with SMTP id
- 2adb3069b0e04-5c003ab0e58mr40161e87.39.1793908636836; Thu, 05 Nov 2026
- 11:57:16 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=rowland.harvard.edu header.i=@rowland.harvard.edu header.a=rsa-sha256 header.s=google header.b=l7XvB/r0
+Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-53634b8328eso19644091cf.0
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Nov 2026 12:04:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=rowland.harvard.edu; s=google; t=1793909062; x=1794513862; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=Aw5degZrQHo3V3rpws5+g22RRHe/seP3Fa1C54u6MN0=;
+        b=l7XvB/r0EAsfmkvKwLXi9U+FCv4znlZ1uWBgyBwXXZBCaUNdokUJy53RUHWJ+2kEWT
+         BpwprXNHONWGHOvIsaDTpZHtcB6XsAeWhewDJaNhuiB2euiyoU1AbjQlFtg5R3UAb8Zl
+         j9ild+5nUdzM5UZbj7mYag8Dctagcxk6YhEm1Nh61f0Vznb26vlUpjb7sFwe3CVlNOPl
+         SyOS6Mi1UVvjAAp7m7mMB3CBgWNbht54CQ+BOwi4rfm1nRGeYFie5joT1aagUt7j+5ki
+         VjKs1rKf0ER8mcU7zk1mritepu2DeojMvspSrsP6rAbky9P1uX094nTddzM3XtqlzsCQ
+         csmA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793909062; x=1794513862;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Aw5degZrQHo3V3rpws5+g22RRHe/seP3Fa1C54u6MN0=;
+        b=hexQFYG7QC7KfZ/4vm4IBREiMZD+X4H4JSMHewrwMBglxKY5wkiQwxaI+mXoYrAsrd
+         ApFWFeS8r9E4YPEr6iv44/2W58d8yzDYKF+yC25DHbY/t7mGdOVYJCmnIsGFkIr6z8CN
+         vFTSXHyaiJExD5M4OJdBdKBXDuwEv1i2j5eHo0nTY0i+B22jGagz8lDWIFHIFJql+9J0
+         pZRuX4/wqQPFUKP1Wrwpe9QhFSwmxmYWs7QJpA+Q9q1Dj6+Z7uBqt1z1jyD2PY4EDUjU
+         u5lU4a0lJU59G8JJbgVT9oJEmbu7ru8Mhnu5GE0jo8ac4+xqiEYBOIwOkKcIDso+siCO
+         aU0w==
+X-Forwarded-Encrypted: i=1; AKwUvBz1uiLWGufs1COuk9r1K6XFe33XlTyazdRbMiPVc2cGafGicKSPYVDJXDDwlnmn8+g0+2tF3HIv3Yhj@vger.kernel.org
+X-Gm-Message-State: APuU4Z+eK9ZR30FMu1Mooc+rFP58gN8NNx3hjKU/2cb3BWP9IWeKnWG+
+	XDglbyx48FMkO6UFrey+CARAS0VJXB9HYkx+BtSZYa3diHA06weW+r+z9qpeZzEqUA==
+X-Gm-Gg: AYBFou087Y91hHpBu3NfB7JM7/5E1iP8vR6L6w8BMsZnRx1C9XwWGlJGpYKXA9XdGmx
+	aUfKgSkrVU2xoR/avgXCPMmetZ0yfSj0dvbx57kKaHSCbPNCZhAVld1wKrKnwLKJlYGC2Q3ix5D
+	/9nZl/4y0B26lTe+vs/SIcCPiPbdaAyVThTYoBAxm5meoY2HHWQfj56ix6f30vMhdsg4Ci5BTE3
+	UCqiCu79geGKaFq3UaWeeYptu2FHn6HB99DjaMdgRhVETK8m9izIoQbTb/SwETvzzd3iY6tayGX
+	mFgeLXlRZ9mGNsopYbN23MKymS9jVZpdipd+6egQ4t1OZmPvz03wo6MdC+3SBgxggtqzCCG0AvX
+	RlPaPUgNcJc/YnbTDMO3pn9DE8M+LiC5P4jP4BskN26Md8MLLi6dWitW9gouE06Rojy2cV0BWiM
+	MqsX0D4R2+MLglnjKIDQBl+3TRTnFfjvJc27Bdn4jj/udngE2kmVuFF45ImkKONZgrD42I8Ba0J
+	bfJVCIzSZ65Si6Cza9D4BYOUN7DJB9fHmALo6mEzx3gU01tcdZsjRb/cVZRGj9u74Pk6go3LfEo
+	hjOK9lMEDKMeaXNp7wCyiVHteReF
+X-Received: by 2002:a05:622a:418d:b0:536:60e1:c87d with SMTP id d75a77b69052e-54e14266a2dmr6509601cf.35.1793909061778;
+        Thu, 05 Nov 2026 12:04:21 -0800 (PST)
+Received: from rowland.harvard.edu ([2601:19b:d01:d210::66b0])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-54e270167afsm1403061cf.25.2026.11.05.12.04.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 05 Nov 2026 12:04:21 -0800 (PST)
+Date: Thu, 5 Nov 2026 15:04:18 -0500
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Andrew Lunn <andrew@lunn.ch>,
+	Heiner Kallweit <hkallweit1@gmail.com>,
+	Russell King <linux@armlinux.org.uk>,
+	"David S. Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
+	Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Lu Baolu <baolu.lu@linux.intel.com>,
+	Johan Hovold <johan@kernel.org>, Eric Dumazet <edumazet@kernel.org>,
+	Marcel Holtmann <marcel@holtmann.org>,
+	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
+	Nipun Gupta <nipun.gupta@amd.com>,
+	Nikhil Agarwal <nikhil.agarwal@amd.com>,
+	Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
+	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
+	linux-input@vger.kernel.org, netdev@vger.kernel.org,
+	linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-pci@vger.kernel.org,
+	iommu@lists.linux.dev, Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH 05/17] USB: Lock registered interfaces during manual
+ driver binding
+Message-ID: <bf756e50-c77e-40f2-916d-e88887426806@rowland.harvard.edu>
+References: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
+ <20261105-device-trust-core-v1-5-1e536825b4eb@nvidia.com>
+ <bb83fe3c-cebb-4bc8-bfc9-24df1cf72b0b@rowland.harvard.edu>
+ <20261105184442.GF8298@unreal>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,162 +130,107 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20260924132859.24751-1-fbeltranmillalen@gmail.com> <20261008232912.GA940274@bhelgaas>
-In-Reply-To: <20261008232912.GA940274@bhelgaas>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 5 Nov 2026 20:57:04 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0i38rL7xmQY=_e5ppnn3bjQJcPBKQkvS_pHVJvUqX1ksg@mail.gmail.com>
-X-Gm-Features: AclHuK9RZC5U3cVKmSaUv-6y1OIrV-lQyNCOTrFAabFo6_FZlScfgW00KN5G-54
-Message-ID: <CAJZ5v0i38rL7xmQY=_e5ppnn3bjQJcPBKQkvS_pHVJvUqX1ksg@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: PCI: take native PME control on Apple machines
-To: Bjorn Helgaas <helgaas@kernel.org>, 
-	=?UTF-8?Q?Francisco_Beltr=C3=A1n_Millal=C3=A9n?= <fbeltranmillalen@gmail.com>
-Cc: bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Darrell Gum <d@rrell.co>, 
-	Matthew Garrett <mjg59@srcf.ucam.org>, Andreas Noever <andreas.noever@gmail.com>, 
-	Mika Westerberg <westeri@kernel.org>, Yehezkel Bernat <YehezkelShB@gmail.com>, 
-	Lukas Wunner <lukas@wunner.de>, linux-usb@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261105184442.GF8298@unreal>
 
-On Fri, Oct 9, 2026 at 1:29=E2=80=AFAM Bjorn Helgaas <helgaas@kernel.org> w=
-rote:
->
-> [+cc Matthew (author of 7bc5a2bad0b8), Darrell, Andreas, Mika,
-> Yehezkel, Lukas, linux-usb]
->
-> On Thu, Sep 24, 2026 at 10:28:59AM -0300, Francisco Beltr=C3=A1n Millal=
-=C3=A9n wrote:
-> > Since commit 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
-> > negotiate_os_control() skips the _OSC handshake on Apple machines and
-> > hardcodes the set of features the OS takes over, because those firmware=
-s
-> > return failure once _OSI("Darwin") has been acknowledged.  The hardcode=
-d
-> > set is ~OSC_PCI_EXPRESS_PME_CONTROL, i.e. everything except PME.  No
-> > reason was given for leaving PME out.
->
-> It's clear there *was* a reason, but I don't know either.  Maybe
-> Matthew will remember?
->
-> > The result is that host_bridge->native_pme stays 0, so portdrv never
-> > registers the PME service for any root port.  A PCIe device that
-> > runtime suspends still arms PME# (the PCI core enables it because
-> > pci_dev_run_wake() only looks at capability), asserts it when it needs
-> > attention, and is never resumed: no service handles the root port
-> > interrupt, and the polling fallback in pci_pme_list_scan() skips the
-> > device whenever the bridge above it is runtime suspended, which is
-> > exactly when the device itself is suspended.
-> >
-> > On a MacBookPro14,3 this silently breaks USB-C hotplug.  Both xHCI
-> > controllers sit inside the Thunderbolt (Alpine Ridge) switches and
-> > runtime suspend to D3hot when idle, together with their parent
-> > bridges.  Plugging a SuperSpeed device in is then never noticed:
-> >
-> >   0000:7d:00.0 suspended, PMCSR 0x8103 (D3hot, PME_En=3D1, PME_Status=
-=3D1)
-> >   ... no kernel message at all, for minutes ...
-> >
-> > The device only appears once something else resumes the controller,
-> > which makes it look intermittent.  The firmware on this machine does no=
-t
-> > handle PME on behalf of the OS either: XHC2/XHC3 declare _PRW returning
-> > GPE 0x6D, that GPE is enabled and has never fired, and its _L6D handler
-> > notifies PWRB, XHC1 and HDEF only - never XHC2 or XHC3.
-> >
-> > With PME control taken, the root port PME interrupt is serviced and the
-> > controller is resumed as soon as something is plugged in.
-> >
-> > Use calculate_control() for the assumed set rather than open coding it:
-> > that is by definition the set that would have been requested, it drops =
-a
-> > magic constant, and on a kernel built without some of those features it
-> > no longer claims control of services the OS cannot provide.
-> >
-> > Note this also makes pme_is_native() true for pciehp (drivers/pci/
-> > hotplug/pciehp_core.c), so hotplug ports now disable their interrupt
-> > across suspend and clear spurious events on resume, as they do on every
-> > non-Apple machine.  x86_apple_machine covers Macs back to 2006, so this
-> > reaches models that were never tested with native PME.
-> >
-> > Tested on a MacBookPro14,3, 6.18.49, with a USB 3.1 SATA enclosure:
-> >
-> >   - before: plugged in at 09:20 with 0000:7d:00.0 runtime suspended, st=
-ill
-> >     invisible at 09:21 with PME_Status latched at 1; only appeared when
-> >     0000:7d:00.0 was forced to power/control=3Don.
-> >   - with pcie_ports=3Dnative (which reaches the same code path in
-> >     get_port_device_capability()): pcie_pme bound to 5 root ports, and =
-the
-> >     same enclosure enumerated in the same second it was plugged in, 66 =
-s
-> >     after the controller had suspended, with nothing forced.
-> >   - with this patch, nothing forced: pcie_pme bound to 5 root ports and=
- the
-> >     _OSC line now reads "OS assumes control of [PCIeHotplug SHPCHotplug=
- PME
-> >     AER PCIeCapability LTR DPC]".  The enclosure was unplugged at 20:42=
-:13,
-> >     0000:7d:00.0 runtime suspended to D3hot, and on plugging it back in=
- at
-> >     20:43:06 (53 s later) the root port took a PME interrupt and the de=
-vice
-> >     enumerated in the same second.
-> >   - wifi, internal keyboard, touchbar and audio all came up; 66 warning=
-s
-> >     and 45 errors during boot, against 65/43 on the distribution kernel=
-.
-> >
-> > One rough edge, reproducible on both boots: the port driver logs
-> > "PME: Spurious native interrupt!" right before the device is resumed.
-> > pcie_pme_handle_request() falls back to pcie_pme_walk_bus() when the ro=
-ot
-> > port reports its own requester ID without PCI_PM_CTRL_PME_STATUS set, a=
-nd
-> > that walk skips PCIe devices, so the xHCI is never attributed.  The dev=
-ice
-> > is still resumed and the wakeup works, but attributing PMEs from PCIe
-> > devices behind a switch looks like a separate shortcoming; it is not
-> > addressed here.
-> >
-> > Boot with pcie_ports=3Dnative also showed no new AER/DPC activity and
-> > slightly fewer warnings than a boot without it, so taking the remaining
-> > control bit does not appear to disturb anything else on this machine.
-> >
-> > Fixes: 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
-> > Signed-off-by: Francisco Beltr=C3=A1n Millal=C3=A9n <fbeltranmillalen@g=
-mail.com>
->
-> I don't object from a PCI standpoint, but Rafael generally takes care
-> of acpi/pci_root.c.  I would again suggest putting some of the commit
-> log detail below "---" and relying on the https://patch.msgid.link/
-> tag Rafael adds.
+On Thu, Nov 05, 2026 at 08:44:42PM +0200, Leon Romanovsky wrote:
+> On Thu, Nov 05, 2026 at 12:24:33PM -0500, Alan Stern wrote:
+> > On Thu, Nov 05, 2026 at 01:42:18PM +0200, Leon Romanovsky wrote:
+> > > From: Leon Romanovsky <leonro@nvidia.com>
+> > > 
+> > > Interface claims hold the USB device lock, but device_bind_driver()
+> > > requires the target interface lock. Without it, trust-policy writes can
+> > > race admission.
+> > 
+> > This says nothing about usb_driver_release_refused_claim() and the code 
+> > related to it.  It is an incomplete description of the patch.
+> > 
+> > Note that nothing prevents drivers from using an interface they claim 
+> > before that interface is registered.  For your scheme to work properly, 
+> > you should make sure the claim is authorized when 
+> > usb_driver_claim_interface() is called, not when the interface is 
+> > registered.
+> 
+> This patch is unrelated to authorization;
 
-So I trimmed the changelog a bit and applied the patch as 7.5 material.
+I meant "authorization" in its generic sense.  When you don't trust 
+something, you don't authorize it to do anything.  Pretend I had written 
+"the interface being claimed is trusted" in place of "the claim is 
+authorized" above.
 
-Thanks!
+>  it ensures that the lock is
+> acquired when the driver is bound.
 
->
-> > ---
-> > --- a/drivers/acpi/pci_root.c
-> > +++ b/drivers/acpi/pci_root.c
-> > @@ -568,9 +568,14 @@
-> >        * Apple always return failure on _OSC calls when _OSI("Darwin") =
-has
-> >        * been called successfully. We know the feature set supported by=
- the
-> >        * platform, so avoid calling _OSC at all
-> > +      *
-> > +      * Assume control of the same features that would have been reque=
-sted,
-> > +      * PCIe PME included.  Leaving PME out disables the PME service f=
-or
-> > +      * every root port, and nothing takes over: a device that runtime
-> > +      * suspends asserts PME# and is never resumed.
-> >        */
-> >       if (x86_apple_machine) {
-> > -             root->osc_control_set =3D ~OSC_PCI_EXPRESS_PME_CONTROL;
-> > +             root->osc_control_set =3D calculate_control();
-> >               decode_osc_control(root, "OS assumes control of",
-> >                                  root->osc_control_set);
-> >               return;
+That may have been your intention when the patch was created, but if you 
+read the patch you'll see that it includes a whole bunch of material 
+not related to locking during binding.  Namely, this part:
+
+> > > +/*
+> > > + * The driver core refused to bind an interface that a sibling claimed before
+> > > + * it was registered, and dropped the claim. Let the claimant release the
+> > > + * interface instead of operating it with a bound interface but no driver.
+> > > + */
+> > > +void usb_driver_release_refused_claim(struct usb_interface *iface,
+> > > +				      struct device_driver *claimant)
+> > > +{
+> > > +	struct device *dev = &iface->dev;
+> > > +
+> > > +	device_lock(dev);
+> > > +	if (!dev->driver && iface->condition == USB_INTERFACE_BOUND) {
+> > > +		dev->driver = claimant;
+> > > +		usb_unbind_interface(dev);
+> > > +		dev_set_drvdata(dev, NULL);
+> > > +		dev->driver = NULL;
+> > > +	}
+> > > +	device_unlock(dev);
+> > > +}
+> > > +
+> > >  /* returns 0 if no match, 1 if match */
+> > >  int usb_match_device(struct usb_device *dev, const struct usb_device_id *id)
+> > >  {
+> > > diff --git a/drivers/usb/core/message.c b/drivers/usb/core/message.c
+> > > index a738d03c23eac..d35a7710c8ef4 100644
+> > > --- a/drivers/usb/core/message.c
+> > > +++ b/drivers/usb/core/message.c
+> > > @@ -2264,6 +2264,7 @@ int usb_set_configuration(struct usb_device *dev, int configuration)
+> > >  	 */
+> > >  	for (i = 0; i < nintf; ++i) {
+> > >  		struct usb_interface *intf = cp->interface[i];
+> > > +		struct device_driver *claimant;
+> > >  
+> > >  		if (intf->dev.of_node &&
+> > >  		    !of_device_is_available(intf->dev.of_node)) {
+> > > @@ -2277,7 +2278,14 @@ int usb_set_configuration(struct usb_device *dev, int configuration)
+> > >  			dev_name(&intf->dev), configuration,
+> > >  			intf->cur_altsetting->desc.bInterfaceNumber);
+> > >  		device_enable_async_suspend(&intf->dev);
+> > > +		claimant = intf->dev.driver;
+> > > +		if (claimant && !try_module_get(claimant->owner))
+> > > +			claimant = NULL;
+> > >  		ret = device_add(&intf->dev);
+> > > +		if (!ret && claimant && !intf->dev.driver)
+> > > +			usb_driver_release_refused_claim(intf, claimant);
+> > > +		if (claimant)
+> > > +			module_put(claimant->owner);
+> > >  		if (ret != 0) {
+> > >  			dev_err(&dev->dev, "device_add(%s) --> %d\n",
+> > >  				dev_name(&intf->dev), ret);
+> > > diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
+> > > index a9b37aeb515be..293340a48b6c5 100644
+> > > --- a/drivers/usb/core/usb.h
+> > > +++ b/drivers/usb/core/usb.h
+> > > @@ -49,6 +49,8 @@ extern int usb_set_isoch_delay(struct usb_device *dev);
+> > >  extern int usb_get_bos_descriptor(struct usb_device *dev);
+> > >  extern void usb_release_bos_descriptor(struct usb_device *dev);
+> > >  extern int usb_set_configuration(struct usb_device *dev, int configuration);
+> > > +void usb_driver_release_refused_claim(struct usb_interface *iface,
+> > > +				      struct device_driver *claimant);
+> > >  extern int usb_choose_configuration(struct usb_device *udev);
+> > >  extern int usb_generic_driver_probe(struct usb_device *udev);
+> > >  extern void usb_generic_driver_disconnect(struct usb_device *udev);
+
+Was this meant to be two separate patches that somehow got combined into 
+one?
+
+Alan Stern
