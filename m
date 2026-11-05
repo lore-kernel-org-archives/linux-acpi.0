@@ -1,74 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793874209;
-	b=mDw7r5uAuoGEreZk3ZFJqHNbTqkMh1bZRqtxDYnemWl1Wm8OA2WlfLX/X24un3Ul61f7
-	 6T6gocpN05/gMEt89PJ6OlVNrSgse3M0Wt5R1FY2Y8/mumg8RxMcXyVEPXERHawYmq6d2
-	 nqtYsnW3iSsRKYhb9kaggNfTT8skrqGisIiJWabPVmiscKrKbltRRq8GLhuo0XnOkftLt
-	 s2Ri5s5+ZmXmt9JZ4gNupwtce/TdOsy2quS+je9IAE81eNkFFZ1nZXMWD6sUOIK/pGhrr
-	 EASuzsLThYIrtkNua0zKRcRsIpaTPokcG4jp9QBkdZUU/my+O1zrE96EbEE34vFh6XQ==
+	t=1793874733;
+	b=Klo7wFq0KHir7BK4BYJpiUzmAqfHAkBd0Ztv1vhl215i69qwsxYYT6TLvHco8uu23srm
+	 LyhHqCXZ17xYD89OgkF+KRhU8aZD2eisFP6l62+c1d2xUeW4xTyJckZnzuedidXBo132+
+	 rUdDCxrhm7B+300HNdd1yKy71gFjn3onggH9MdaHmGAxgtOYnktK/WRgD+geC1qK2ImFo
+	 Tl/SLK8SOZM/SKP59Y9F0lkUrvjAMyVNosWugLWiJ0A2XUStgabTjVwaIztp8YJAyz/kL
+	 qGhp+5kKBf/bxEgDE2stw2fOMc+0o6vYlRkiznHgyw6FEldFcOW63vkgCbmBp5wgStQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793874209;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=EdnV/i4B0S0fh3g81bf4RkgqVZQyJPUIZHVCvawFMIg=;
-	b=0sd/CoBQYR9g9DfeZpPgUFZYzW/c1ZJji+LqZ/V/acJjfl5mmUpXWf7hVc7+SaovNUmH
-	 9JfCREupTcHlHVfePR+/yNmkxHq/IEEx5aATv2iAg8xCDKUIuUCm8p3FXprhdZhlxfbyA
-	 XYpLkKKN4+CR9HCDHsAL1oT5Vvj0tNs9MNUNvlK9A4Ev9e3JxkCMWc8kqZxn1T2l9jUY8
-	 lutRphg8HzP0UNPX/wpnNvHOVpu1s62QEP5aEwytUq7cbfSZ7qPS7btwgn2UV1jB0oJL6
-	 D5FY+IZyVQTnqIsIrl5KQXJZEoM7W7pzA2TqIsNr00wEBw+FVmRrdceivDCR5cVIRTQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793874733;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=Lrnsp6197nXbKfz7bzeAhyKJ69gwaEJNrVqWiF67Y5k=;
+	b=T/m4VV0AtAnPh0NHz0vQd7QGfQyBVMVpVGPyS+BjmbtH6IaTT1nzQkZscWI6wlJxTvma
+	 No2qWFAL9vlt6Eku+acjhJ+ajwv6ODoRVKj0mYrVGPKCyH+x6q55WfZl6h+dl/CFyfF75
+	 9iSGYeYQ6do7E/fc3c9bNnxvIvfwllvuz+XcUNO9ZgLvQd68WV+dTWXSxAans7IOLlm/G
+	 REfncE1NTwi1h23Slv1CvzmZirV4hoUwEnsQaqfCgL8VQ9jrPVVEHtO40Vb+VyFtrHfL1
+	 602icFKDA/XiiU70/NsgVZ5eip59GhrZTdGl7vv1bnXwyfe/Q3sfttC/G5UNA31HpFg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WrMJ9jdV;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f9zNBmkH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92A0D606A326;
-	Thu,  5 Nov 2026 10:23:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76904606A32D
+	for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2026 10:32:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WrMJ9jdV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 369CA1F00A1B;
-	Thu,  5 Nov 2026 10:23:26 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f9zNBmkH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16D911F0093A
+	for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2026 10:32:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793874209;
-	bh=EdnV/i4B0S0fh3g81bf4RkgqVZQyJPUIZHVCvawFMIg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=WrMJ9jdVqMB/+klFKPsxQ8m9Q2qKNJQ3adCE8vFYfbB8tr1I9sCMmjMeKiFsoDP+c
-	 jkyGE/XGllGI0hhhPsCFf6PSiNCRk9M5As0SNQ2S7wBUSGFM00ff+nLkrkOamSzw2z
-	 A0NB72DU/XhVarz+wvVRKfXEwmHB+jcb8ey0j22y7WuAkaqnl20plErLAq1WgDfbII
-	 ph1KfxNXJkWN3ksj9oLixwTKgoMhvXgAoEWk3c6uqqwjm3oP6FHvGCp0/te1/DTr4b
-	 YaiIzx73dGgXfcTyuZamxewcAmxUAubZMNUIgaLp6xenLUpyOVAR8ySV1IJyijRCFT
-	 Y9SUG0gPpE4mQ==
-Date: Thu, 5 Nov 2026 10:23:24 +0000
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Thierry Reding <thierry.reding@kernel.org>, arm <arm@kernel.org>,
-	soc@kernel.org, Jon Hunter <jonathanh@nvidia.com>,
-	linux-tegra@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hans de Goede <hansg@kernel.org>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Mika Westerberg <westeri@kernel.org>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
-	Sizhe Liu <liusizhe5@huawei.com>
-Subject: Re: [GIT PULL 4/7] firmware/tegra: Changes for v7.4-rc1
-Message-ID: <20261105-quizzical-wine-oryx-e6f91a@sudeepholla>
-References: <20261003095924.1370238-4-thierry.reding@kernel.org>
- <928b3eaf-32da-43a9-9ca5-d59ef8a3b330@app.fastmail.com>
- <auslF5pwDHtcNoCy@orome>
- <bcad1d7e-387d-4251-8974-7f0dcd2f9734@app.fastmail.com>
- <autADOKsSVVMn6r9@orome>
- <CAJZ5v0iyaHGj2b7H8g0nqrxvz8GpXiE6hkVp9RM7KF+KDckjrA@mail.gmail.com>
- <autmcaraWcXIoRfZ@ashevche-desk.local>
- <20261104161125.00000523@oss.qualcomm.com>
- <20261105-inventive-partridge-of-maturity-793a2e@sudeepholla>
- <8f45711b-d415-4694-a47a-12d4b7427e0f@app.fastmail.com>
+	s=k20260515; t=1793874732;
+	bh=Lrnsp6197nXbKfz7bzeAhyKJ69gwaEJNrVqWiF67Y5k=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=f9zNBmkHXUDiM2i79TBUhngAJT/offW9uUYj7IT+ay84jKVv+24MqoxOIEqQ6AMRR
+	 SWNwxvFW6yWgHhGLXyjZVMGxvy75ZtGcEfKqcisBvOrr3Jhv84zK355MGnsfx7DgzM
+	 GcV3i/+acM8IEYqtLbs3IEY7/GNq/7h8vmDVZvM+xH0cDbgDF55i74kmNVoNhYyfgl
+	 PgBc4oQ1XPHtaEXCozt90UoSz8PU54zFAO4YNbMj+OwxMZX4C0FJhZp8b8AgBoRNpo
+	 +5S/srbbWH3rHda8ianAjjPMiFJxQoJtzdkuVe0U7iS2Chtkkxil7XFVKE3PTqKTMm
+	 FwmwY4nf37uHQ==
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-c468bd799ecso230941066b.1
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Nov 2026 02:32:12 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AKwUvBwe4ct+2yPmmVgqwDESEHgMroM5bRILwTDac0mkqCtOBofhBLDx0a3C9Ng3cDQLBwOkFfAxkQYDsB/j@vger.kernel.org
+X-Gm-Message-State: APuU4Z/UjzPA+H/Y7fUVnKKjVTIpFz8zdJXCwYY74TCon7nrBXr7UMhJ
+	IQwbxVLHKf8ODd1nunMJSXbAbWiAN2fwqIj4lf0dIrPMQ1sKDn9REu8Lq8St1ZqmB2jY/I/5LOA
+	yFaJfM8uQcgej9sb7VGh5ZwJyDzYNrh8=
+X-Received: by 2002:a17:907:9446:b0:c49:a571:c4f9 with SMTP id
+ a640c23a62f3a-c4ca7a4205emr1647597366b.13.1793874730739; Thu, 05 Nov 2026
+ 02:32:10 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -78,92 +59,160 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <8f45711b-d415-4694-a47a-12d4b7427e0f@app.fastmail.com>
+References: <20260922121058.972734-2-maobibo@loongson.cn> <10bd45f8-2d37-42f0-b7d2-a4a84933c9b3@loongson.cn>
+ <CAAhV-H7Vq2ayLJNLRSo5RRiWOcmF2BXT_QOhEDg_jWOzYteqWw@mail.gmail.com>
+ <6f8a9203-6fb1-268a-8d37-37e69fbf2ee9@loongson.cn> <CAAhV-H5k8EJrAuqPH44y_+1gcXGCjCoozzK5ii9cLtiLDj5eog@mail.gmail.com>
+ <66b9d482-d577-748c-729d-0fba70701d3d@loongson.cn>
+In-Reply-To: <66b9d482-d577-748c-729d-0fba70701d3d@loongson.cn>
+From: Huacai Chen <chenhuacai@kernel.org>
+Date: Thu, 5 Nov 2026 18:31:57 +0800
+X-Gmail-Original-Message-ID: <CAAhV-H6PL6RLM3KA4BLQEt804FnsDE4CtKeB0KaW7Gj8rm2PMw@mail.gmail.com>
+X-Gm-Features: AclHuK80sIQTIxtcfwQ99SF2CCbdvpwZDrcVmzv31AZq50iDlL8vqX3SPfF4FJ4
+Message-ID: <CAAhV-H6PL6RLM3KA4BLQEt804FnsDE4CtKeB0KaW7Gj8rm2PMw@mail.gmail.com>
+Subject: Re: [PATCH v4 1/4] ACPICA: actbl2.h: Add bit constants of the Flags
+ field in the IOVT IOMMU structure
+To: Bibo Mao <maobibo@loongson.cn>
+Cc: rafael@kernel.org, linux-acpi@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, lenb@kernel.org, linux-kernel@vger.kernel.org, 
+	lixianglai@loongson.cn, loongarch@lists.linux.dev, 
+	maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 05, 2026 at 10:54:42AM +0100, Arnd Bergmann wrote:
-> On Thu, Nov 5, 2026, at 10:30, Sudeep Holla wrote:
-> > On Wed, Nov 04, 2026 at 04:11:25PM -0800, Jonathan Cameron wrote:
-> 
-> >> 1) Basic stand alone driver stuff.  Mostly that's all pretty standard
-> >>    and follow the specs where possible.  If there are gaps start asking
-> >>    questions. Linux definitely  doesn't support all the stuff that has been
-> >>    added to the spec in recent years.  So this covers things like register
-> >>    addresses, interrupts etc.  All fine, hopefully a subsystem maintainer
-> >>    can take a look and will have enough of any idea.  If not ping the folk
-> >>    on this thread for help.  Things are a bit flexible for consumer type
-> >>    devices where fixed and bodges are common, generally less so if it is
-> >>    server grade hardware.
-> >> 
-> >> 2) Stuff that is an ACPI spec gap or place where we'd expect generalization.
-> >>    There are several examples of this on list this week and a few more in
-> >>    my inbox.  The particular series here might fall into this category.
-> >>    I've not figured out enough of the details yet to say definitively.
-> >> 
+On Thu, Nov 5, 2026 at 5:49=E2=80=AFPM Bibo Mao <maobibo@loongson.cn> wrote=
+:
+>
+>
+>
+> On 2026/11/5 =E4=B8=8B=E5=8D=885:31, Huacai Chen wrote:
+> > On Thu, Nov 5, 2026 at 5:14=E2=80=AFPM Bibo Mao <maobibo@loongson.cn> w=
+rote:
+> >>
+> >>
+> >>
+> >> On 2026/10/23 =E4=B8=8B=E5=8D=883:59, Huacai Chen wrote:
+> >>> Bibo,
+> >>>
+> >>> Now I have applied this series but with some modifications, please
+> >>> double check and test the code.
+> >>>
+> >>> https://git.kernel.org/pub/scm/linux/kernel/git/chenhuacai/linux-loon=
+gson.git/log/?h=3Dloongarch-next
+> >> In my v4 submit, it is:
+> >> +               case ACPI_IOVT_DEVICE_ENTRY_START:
+> >> +                       is_start =3D true;
+> >> +                       start_devid =3D ep->device_id;
+> >> +                       break;
+> >> however in rc1, it is modified as:
+> >>                   case ACPI_IOVT_DEVICE_ENTRY_START:
+> >>                           is_start =3D true;
+> >>                           entry->start_devid =3D ep->device_id;
+> >>                           break;
+> >> Here entry is not allocated and NULL pointer, it is allocated in
+> >> ACPI_IOVT_DEVICE_ENTRY_END switch case.
+> >>
+> >> I really do not know what is aid to modify it and let others to test.
+> > Sorry, it's my fault.
 > >
-> > Nicely summarised or categorised Jonathan. Nothing much to add.
-> 
-> +1
-> 
-> >> I'd also expect a driver using AML as the target interface to either
-> >> point at a published spec doc, or to include some snippets
-> >> of the AML - that can be a lot easier to read than the driver code
-> >> (imagine reading DT by only looking at how drivers parse it).
-> >> 
+> > In theory I should point out the modification (eliminating the local
+> > variable start_devid) and refresh a new version. But we have no time
+> > to do this because when the first patch is merged into the ACPI repo
+> > it is near the merge window.
+> Maybe our work style is different, I do not care much for the coding styl=
+e.
 > >
-> > Ideally, it should be just HID that any vendor needs to publish unless
-> > they make use of any custom methods or something device specific like
-> > DSD/DSM. I would expect most of the devices to use standard methods and
-> > properties that are already well defined in the ACPI spec.
-> 
-> >> Given that has new ABI etc, I'd expect that to have gotten broader review
-> >> as well.  Probably keeping it to linux-tegra and lkml alone wasn't
-> >> going to result in anyone noticing!
-> >> 
-> >> https://lore.kernel.org/all/?q=20260929095915.2215685-1-anrao@nvidia.com
-> >> 
+> > If you agree, I will submit such modifications to fix it.
+> fix is welcome.
 > >
-> > Agreed, it shouldn't hurt to cc linux-acpi for such driver ACPI enablement
-> > patches.
-> 
-> Is the "BMRQ" in
-> https://lore.kernel.org/all/20260929095915.2215685-3-anrao@nvidia.com/
-> a custom method then? 
-> 
+> > diff --git a/drivers/acpi/loongarch/iovt.c b/drivers/acpi/loongarch/iov=
+t.c
+> > index 87cee4f0fc80..4cdac28a1fd0 100644
+> > --- a/drivers/acpi/loongarch/iovt.c
+> > +++ b/drivers/acpi/loongarch/iovt.c
+> > @@ -115,6 +115,10 @@ static int __init iovt_add_iommu(struct
+> > acpi_iovt_iommu *iommu)
+> >          for (i =3D 0; i < iommu->device_entry_num; i++) {
+> >                  switch (ep->type) {
+> >                  case ACPI_IOVT_DEVICE_ENTRY_START:
+> > +                       entry =3D kzalloc_obj(struct iovt_device_entry,
+> > GFP_ATOMIC);
+> There will be memory leak problem if there are START/START/END in the tab=
+le.
+That means a broken table? I think we don't need to consider broken
+tables, because there may be kinds of broken pattern rather than just
+a START/START/END.
 
-I’ve quickly reviewed the patch; it does implements a custom method BMRQ
-rather than a standard or out-of-the-box solution. More details on this is
-used based on my understanding below.
+Huacai
 
-> How does this relate to the EC and PCC interfaces in ACPI systems?
-> 
-
-I am still evaluating how the BPMP driver is intended to operate on ACPI
-systems. In the meantime, I share the same questions noted above. The current
-commit message lists several driver features that may not be required for
-ACPI, which has introduced some clarity issues regarding the intended design.
-
-> In current mainline, I see that the bpmp driver is used on DT systems
-> by the tegra specific cpufreq, memory and pci drivers, but I would
-> expect that on ACPI those all use shared drivers. Are there any other
-> users that are not already covered on ACPI?
-> 
-
-For ACPI systems, CPUFreq operates through CPPC via PCC, MEMIO, or
-supported backends.
-
-My understanding is that the BMRQ method is called by tegra_bpmp_transfer(),
-which supports Tegra-specific drivers for power domains, clocks, resets,
-I2C, PCIe, and memory. On ACPI, these can be abstracted through PCC
-OpRegions as part of standard methods like _ON/_OFF or other device state
-methods. Although device/memory DVFS is trickier since the ACPI
-specification lacks standard methods for it today, the commit message
-implies these components are largely unused on ACPI systems.
-
-I have raised a query on the thread to clarify this.
-
--- 
-Regards,
-Sudeep
+>
+> Regards
+> Bibo Mao
+> > +                       if (!entry)
+> > +                               return -ENOMEM;
+> > +
+> >                          is_start =3D true;
+> >                          entry->start_devid =3D ep->device_id;
+> >                          break;
+> > @@ -122,10 +126,6 @@ static int __init iovt_add_iommu(struct
+> > acpi_iovt_iommu *iommu)
+> >                          if (!is_start)
+> >                                  break;
+> >
+> > -                       entry =3D kzalloc_obj(struct iovt_device_entry,
+> > GFP_ATOMIC);
+> > -                       if (!entry)
+> > -                               return -ENOMEM;
+> > -
+> >                          is_start =3D false;
+> >                          entry->end_devid =3D ep->device_id;
+> >                          list_add_tail(&entry->list, &np->ep_list);
+> >
+> > Huacai
+> >
+> >>
+> >>>
+> >>> Huacai
+> >>>
+> >>> On Mon, Oct 12, 2026 at 3:16=E2=80=AFPM Bibo Mao <maobibo@loongson.cn=
+> wrote:
+> >>>>
+> >>>> This change is already merged in acpica tree.
+> >>>>
+> >>>> slightly ping.
+> >>>>
+> >>>> On Tue, Sep 22, 2026 at 08:10:55PM +0800, Bibo Mao wrote:
+> >>>>    > According to the IOVT specification, define macros for each bit=
+ of the
+> >>>>    > Flags field in the IOVT IOMMU structure.
+> >>>>    >
+> >>>>    > Link: https://github.com/open-acpica/acpica/commit/352f750e4cc0
+> >>>>    > Signed-off-by: Bibo Mao <maobibo@loongson.cn>
+> >>>>    > ---
+> >>>>    >  include/acpi/actbl2.h | 7 +++++++
+> >>>>    >  1 file changed, 7 insertions(+)
+> >>>>    >
+> >>>>    > diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+> >>>>    > index baef525367b5..76e4a5bc79b4 100644
+> >>>>    > --- a/include/acpi/actbl2.h
+> >>>>    > +++ b/include/acpi/actbl2.h
+> >>>>    > @@ -919,6 +919,13 @@ struct acpi_iovt_iommu {
+> >>>>    >       u32 device_entry_offset;
+> >>>>    >  };
+> >>>>    >
+> >>>>    > +/* Masks for Flags field above */
+> >>>>    > +#define ACPI_IOVT_IOMMU_PCI_DEVICE           (1<<0)
+> >>>>    > +#define ACPI_IOVT_IOMMU_PXM_VALID            (1<<1)
+> >>>>    > +#define ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT    (1<<2)
+> >>>>    > +#define ACPI_IOVT_IOMMU_HW_CAP_SUPPORT               (1<<3)
+> >>>>    > +#define ACPI_IOVT_IOMMU_MSI_INT_BYPASS               (1<<4)
+> >>>>    > +
+> >>>>    >  struct acpi_iovt_device_entry {
+> >>>>    >       u8 type;
+> >>>>    >       u8 length;
+> >>>>    > --
+> >>>>    > 2.39.3
+> >>>>    >
+> >>>>
+> >>
+> >>
+>
