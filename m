@@ -1,55 +1,64 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.248.212
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793874733;
-	b=Klo7wFq0KHir7BK4BYJpiUzmAqfHAkBd0Ztv1vhl215i69qwsxYYT6TLvHco8uu23srm
-	 LyhHqCXZ17xYD89OgkF+KRhU8aZD2eisFP6l62+c1d2xUeW4xTyJckZnzuedidXBo132+
-	 rUdDCxrhm7B+300HNdd1yKy71gFjn3onggH9MdaHmGAxgtOYnktK/WRgD+geC1qK2ImFo
-	 Tl/SLK8SOZM/SKP59Y9F0lkUrvjAMyVNosWugLWiJ0A2XUStgabTjVwaIztp8YJAyz/kL
-	 qGhp+5kKBf/bxEgDE2stw2fOMc+0o6vYlRkiznHgyw6FEldFcOW63vkgCbmBp5wgStQ==
+	t=1793875865;
+	b=4FweafQXTG72kYl6Ng107TdY5krhWjlemUAsTRSDOiVdXiJJ5+0DBB3UqH0NDYI26Ugd
+	 OfQpuv93+345sySK56LBcWSm1gEiMEeEwK4JtYpVtDMaNVCaYumIVVVDgf7Ce7rjpR4Xz
+	 I/kKNM2lQ1vNxZpebNV5jAXELShsWTufEed5L60ZlvDOJHVlbV3jpdMhP4geaJnYR5D2R
+	 j2/XFjKiQu7PfT/m0yX8j0M85zXXOpByEpfvXNfMK1ggNKezojjV8+JY24jSSzFHNLWhq
+	 JNOeauGVuN9l+R5uNqHvE/x4hC3wro5RrguKYvrp/BU72SPjV2+LDeXI2Fjn7bCORpg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793874733;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=Lrnsp6197nXbKfz7bzeAhyKJ69gwaEJNrVqWiF67Y5k=;
-	b=T/m4VV0AtAnPh0NHz0vQd7QGfQyBVMVpVGPyS+BjmbtH6IaTT1nzQkZscWI6wlJxTvma
-	 No2qWFAL9vlt6Eku+acjhJ+ajwv6ODoRVKj0mYrVGPKCyH+x6q55WfZl6h+dl/CFyfF75
-	 9iSGYeYQ6do7E/fc3c9bNnxvIvfwllvuz+XcUNO9ZgLvQd68WV+dTWXSxAans7IOLlm/G
-	 REfncE1NTwi1h23Slv1CvzmZirV4hoUwEnsQaqfCgL8VQ9jrPVVEHtO40Vb+VyFtrHfL1
-	 602icFKDA/XiiU70/NsgVZ5eip59GhrZTdGl7vv1bnXwyfe/Q3sfttC/G5UNA31HpFg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793875865;
+	h=DMARC-Filter:Date:X-Lima-ML-UUID:DKIM-Signature:From:To:Cc:Subject:
+	 Message-ID:In-Reply-To:References:Organization:X-Mailer:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=7doXEY6tEGN5XpIzKlfdDifPRAKlhLQY5Fydrjzk0gk=;
+	b=1sHGGhbyPEb9+0UFYsZ2wk59SjHJ7hTN+omncSXY9xYQchFL/T48M2uuXnNyY3SaZD5H
+	 fJfP5tDhwNsgDxe+UDyvabb99d+++oMXRPuqCjjhpAD8TXtItPSYV3H0ukS1Q6OSks4qH
+	 X+G2FHpB/mZxDvcCVRptki+Ak/kmVQYXosYjHf0tM9C1hnNgm6wv0bpVpHmELkpMCuWai
+	 Wxb7om0Ub/EDZ7+IQQRkKG57sc8Su/vXczt5OLpH5K8LjikJIPtoblgIfncGtumJpekbb
+	 Vz0RtqfgLndo3QQRpxG/WGoQbkIU5rjQao0NzWgVVEHiSggnXLV0UFz3gIVk3ewvaPA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f9zNBmkH;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=deq.rocks;
+	spf=none smtp.mailfrom=deq.rocks;
+	dkim=pass header.d=deq.rocks header.i=@deq.rocks header.a=rsa-sha256 header.s=securedbylima-20251205 header.b=ZsDmta6p;
+	arc=none smtp.remote-ip=91.216.248.212
+Received: from bulk0.mail-out.lima-city.de (bulk0.mail-out.lima-city.de [91.216.248.212])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76904606A32D
-	for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2026 10:32:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7FA5606A31B;
+	Thu,  5 Nov 2026 10:51:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B7FA5606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=deq.rocks
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=deq.rocks
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f9zNBmkH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16D911F0093A
-	for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2026 10:32:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793874732;
-	bh=Lrnsp6197nXbKfz7bzeAhyKJ69gwaEJNrVqWiF67Y5k=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=f9zNBmkHXUDiM2i79TBUhngAJT/offW9uUYj7IT+ay84jKVv+24MqoxOIEqQ6AMRR
-	 SWNwxvFW6yWgHhGLXyjZVMGxvy75ZtGcEfKqcisBvOrr3Jhv84zK355MGnsfx7DgzM
-	 GcV3i/+acM8IEYqtLbs3IEY7/GNq/7h8vmDVZvM+xH0cDbgDF55i74kmNVoNhYyfgl
-	 PgBc4oQ1XPHtaEXCozt90UoSz8PU54zFAO4YNbMj+OwxMZX4C0FJhZp8b8AgBoRNpo
-	 +5S/srbbWH3rHda8ianAjjPMiFJxQoJtzdkuVe0U7iS2Chtkkxil7XFVKE3PTqKTMm
-	 FwmwY4nf37uHQ==
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-c468bd799ecso230941066b.1
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Nov 2026 02:32:12 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AKwUvBwe4ct+2yPmmVgqwDESEHgMroM5bRILwTDac0mkqCtOBofhBLDx0a3C9Ng3cDQLBwOkFfAxkQYDsB/j@vger.kernel.org
-X-Gm-Message-State: APuU4Z/UjzPA+H/Y7fUVnKKjVTIpFz8zdJXCwYY74TCon7nrBXr7UMhJ
-	IQwbxVLHKf8ODd1nunMJSXbAbWiAN2fwqIj4lf0dIrPMQ1sKDn9REu8Lq8St1ZqmB2jY/I/5LOA
-	yFaJfM8uQcgej9sb7VGh5ZwJyDzYNrh8=
-X-Received: by 2002:a17:907:9446:b0:c49:a571:c4f9 with SMTP id
- a640c23a62f3a-c4ca7a4205emr1647597366b.13.1793874730739; Thu, 05 Nov 2026
- 02:32:10 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=deq.rocks header.i=@deq.rocks header.a=rsa-sha256 header.s=securedbylima-20251205 header.b=ZsDmta6p
+Date: Thu, 5 Nov 2026 11:50:57 +0100
+X-Lima-ML-UUID: c2133058-0a16-48fd-a715-ac6746bedd72
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=deq.rocks;
+	s=securedbylima-20251205; t=1793875861;
+	bh=7doXEY6tEGN5XpIzKlfdDifPRAKlhLQY5Fydrjzk0gk=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=ZsDmta6pBve8jY+VNr/QVkzxn8A09WLJ74OFTgDN26hqDkDqbSOHckIow2DOHDyKh
+	 8YMj851StYI+d8UvNQwMkkgVrdpRo1YIDUz+GBMBVBxq/f0K9Om2yqOW4HmSU2xP1H
+	 gxoPkW3NObZ0e4/5evRovlFUqmN8w6zwSWMF6UBqqFzadLvvtaab/XDrhY5yJpbZYj
+	 PlokuxOw622TqnQZj5saXfktP4OfNqgDxznJeraSCkTyHI9b50tJqTh3kPbgXYuZMw
+	 q3VenZSSUQJwfewT6Wr03HfVkYFPIoQQUjci/HihwqB4P82iQs7Z1azSFkfc2APvHS
+	 LT2Mt5+CEyhEA==
+From: =?UTF-8?B?QW5kcsOp?= Eikmeyer <dev@deq.rocks>
+To: "Chen, Yu C" <yu.c.chen@intel.com>
+Cc: Lukas Wunner <lukas@wunner.de>, "Rafael J. Wysocki" <rafael@kernel.org>,
+ <linux-acpi@vger.kernel.org>, "Len Brown" <lenb@kernel.org>, Thomas
+ Gleixner <tglx@kernel.org>, Peter Zijlstra <peterz@infradead.org>,
+ <linux-pm@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] ACPI: x86: Apple T2 systems need early CPU offlining
+Message-ID: <20261105115057.573c3725@kait2en-mbp15-1>
+In-Reply-To: <9bc46362-6b3b-48e0-b1a0-0cc7e84fd151@intel.com>
+References: <20260812120326.155226-1-dev@deq.rocks>
+	<aoCJGj8HixmJ9oaZ@wunner.de>
+	<9bc46362-6b3b-48e0-b1a0-0cc7e84fd151@intel.com>
+Organization: KaiT2en
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,160 +68,39 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20260922121058.972734-2-maobibo@loongson.cn> <10bd45f8-2d37-42f0-b7d2-a4a84933c9b3@loongson.cn>
- <CAAhV-H7Vq2ayLJNLRSo5RRiWOcmF2BXT_QOhEDg_jWOzYteqWw@mail.gmail.com>
- <6f8a9203-6fb1-268a-8d37-37e69fbf2ee9@loongson.cn> <CAAhV-H5k8EJrAuqPH44y_+1gcXGCjCoozzK5ii9cLtiLDj5eog@mail.gmail.com>
- <66b9d482-d577-748c-729d-0fba70701d3d@loongson.cn>
-In-Reply-To: <66b9d482-d577-748c-729d-0fba70701d3d@loongson.cn>
-From: Huacai Chen <chenhuacai@kernel.org>
-Date: Thu, 5 Nov 2026 18:31:57 +0800
-X-Gmail-Original-Message-ID: <CAAhV-H6PL6RLM3KA4BLQEt804FnsDE4CtKeB0KaW7Gj8rm2PMw@mail.gmail.com>
-X-Gm-Features: AclHuK80sIQTIxtcfwQ99SF2CCbdvpwZDrcVmzv31AZq50iDlL8vqX3SPfF4FJ4
-Message-ID: <CAAhV-H6PL6RLM3KA4BLQEt804FnsDE4CtKeB0KaW7Gj8rm2PMw@mail.gmail.com>
-Subject: Re: [PATCH v4 1/4] ACPICA: actbl2.h: Add bit constants of the Flags
- field in the IOVT IOMMU structure
-To: Bibo Mao <maobibo@loongson.cn>
-Cc: rafael@kernel.org, linux-acpi@vger.kernel.org, 
-	acpica-devel@lists.linux.dev, lenb@kernel.org, linux-kernel@vger.kernel.org, 
-	lixianglai@loongson.cn, loongarch@lists.linux.dev, 
-	maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 5, 2026 at 5:49=E2=80=AFPM Bibo Mao <maobibo@loongson.cn> wrote=
-:
->
->
->
-> On 2026/11/5 =E4=B8=8B=E5=8D=885:31, Huacai Chen wrote:
-> > On Thu, Nov 5, 2026 at 5:14=E2=80=AFPM Bibo Mao <maobibo@loongson.cn> w=
-rote:
-> >>
-> >>
-> >>
-> >> On 2026/10/23 =E4=B8=8B=E5=8D=883:59, Huacai Chen wrote:
-> >>> Bibo,
-> >>>
-> >>> Now I have applied this series but with some modifications, please
-> >>> double check and test the code.
-> >>>
-> >>> https://git.kernel.org/pub/scm/linux/kernel/git/chenhuacai/linux-loon=
-gson.git/log/?h=3Dloongarch-next
-> >> In my v4 submit, it is:
-> >> +               case ACPI_IOVT_DEVICE_ENTRY_START:
-> >> +                       is_start =3D true;
-> >> +                       start_devid =3D ep->device_id;
-> >> +                       break;
-> >> however in rc1, it is modified as:
-> >>                   case ACPI_IOVT_DEVICE_ENTRY_START:
-> >>                           is_start =3D true;
-> >>                           entry->start_devid =3D ep->device_id;
-> >>                           break;
-> >> Here entry is not allocated and NULL pointer, it is allocated in
-> >> ACPI_IOVT_DEVICE_ENTRY_END switch case.
-> >>
-> >> I really do not know what is aid to modify it and let others to test.
-> > Sorry, it's my fault.
-> >
-> > In theory I should point out the modification (eliminating the local
-> > variable start_devid) and refresh a new version. But we have no time
-> > to do this because when the first patch is merged into the ACPI repo
-> > it is near the merge window.
-> Maybe our work style is different, I do not care much for the coding styl=
-e.
-> >
-> > If you agree, I will submit such modifications to fix it.
-> fix is welcome.
-> >
-> > diff --git a/drivers/acpi/loongarch/iovt.c b/drivers/acpi/loongarch/iov=
-t.c
-> > index 87cee4f0fc80..4cdac28a1fd0 100644
-> > --- a/drivers/acpi/loongarch/iovt.c
-> > +++ b/drivers/acpi/loongarch/iovt.c
-> > @@ -115,6 +115,10 @@ static int __init iovt_add_iommu(struct
-> > acpi_iovt_iommu *iommu)
-> >          for (i =3D 0; i < iommu->device_entry_num; i++) {
-> >                  switch (ep->type) {
-> >                  case ACPI_IOVT_DEVICE_ENTRY_START:
-> > +                       entry =3D kzalloc_obj(struct iovt_device_entry,
-> > GFP_ATOMIC);
-> There will be memory leak problem if there are START/START/END in the tab=
-le.
-That means a broken table? I think we don't need to consider broken
-tables, because there may be kinds of broken pattern rather than just
-a START/START/END.
+On Tue, 18 Aug 2026 00:27:53 +0800
+"Chen, Yu C" <yu.c.chen@intel.com> wrote:
 
-Huacai
+> Glad it helped! At that time, it seemed that the issue might have
+> been related to broken Mac platforms, and we were changing the
+> generic x86 path. Maybe we can wait for Andre's feedback, I
+> can try again / or assist Andre - or just keep it out-of-tree;
+> that's also fine.
 
->
-> Regards
-> Bibo Mao
-> > +                       if (!entry)
-> > +                               return -ENOMEM;
-> > +
-> >                          is_start =3D true;
-> >                          entry->start_devid =3D ep->device_id;
-> >                          break;
-> > @@ -122,10 +126,6 @@ static int __init iovt_add_iommu(struct
-> > acpi_iovt_iommu *iommu)
-> >                          if (!is_start)
-> >                                  break;
-> >
-> > -                       entry =3D kzalloc_obj(struct iovt_device_entry,
-> > GFP_ATOMIC);
-> > -                       if (!entry)
-> > -                               return -ENOMEM;
-> > -
-> >                          is_start =3D false;
-> >                          entry->end_devid =3D ep->device_id;
-> >                          list_add_tail(&entry->list, &np->ep_list);
-> >
-> > Huacai
-> >
-> >>
-> >>>
-> >>> Huacai
-> >>>
-> >>> On Mon, Oct 12, 2026 at 3:16=E2=80=AFPM Bibo Mao <maobibo@loongson.cn=
-> wrote:
-> >>>>
-> >>>> This change is already merged in acpica tree.
-> >>>>
-> >>>> slightly ping.
-> >>>>
-> >>>> On Tue, Sep 22, 2026 at 08:10:55PM +0800, Bibo Mao wrote:
-> >>>>    > According to the IOVT specification, define macros for each bit=
- of the
-> >>>>    > Flags field in the IOVT IOMMU structure.
-> >>>>    >
-> >>>>    > Link: https://github.com/open-acpica/acpica/commit/352f750e4cc0
-> >>>>    > Signed-off-by: Bibo Mao <maobibo@loongson.cn>
-> >>>>    > ---
-> >>>>    >  include/acpi/actbl2.h | 7 +++++++
-> >>>>    >  1 file changed, 7 insertions(+)
-> >>>>    >
-> >>>>    > diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-> >>>>    > index baef525367b5..76e4a5bc79b4 100644
-> >>>>    > --- a/include/acpi/actbl2.h
-> >>>>    > +++ b/include/acpi/actbl2.h
-> >>>>    > @@ -919,6 +919,13 @@ struct acpi_iovt_iommu {
-> >>>>    >       u32 device_entry_offset;
-> >>>>    >  };
-> >>>>    >
-> >>>>    > +/* Masks for Flags field above */
-> >>>>    > +#define ACPI_IOVT_IOMMU_PCI_DEVICE           (1<<0)
-> >>>>    > +#define ACPI_IOVT_IOMMU_PXM_VALID            (1<<1)
-> >>>>    > +#define ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT    (1<<2)
-> >>>>    > +#define ACPI_IOVT_IOMMU_HW_CAP_SUPPORT               (1<<3)
-> >>>>    > +#define ACPI_IOVT_IOMMU_MSI_INT_BYPASS               (1<<4)
-> >>>>    > +
-> >>>>    >  struct acpi_iovt_device_entry {
-> >>>>    >       u8 type;
-> >>>>    >       u8 length;
-> >>>>    > --
-> >>>>    > 2.39.3
-> >>>>    >
-> >>>>
-> >>
-> >>
->
+And you waited for quite a long time! Sorry for that. I had to fix
+other things on our cursed Macs before being able to investigate this
+further. Hybryd graphics offload etc... And in the meanwhile, I forgot
+about.
+
+First of all, I tried Chenyu's patch and I can confirm it works as good
+as mine and as such we can forget about my bloaty early offlining.
+
+But! The actual cause for slow smpboot is simply thunderbolt pm on
+suspend. We don't have that issue when using pcie_ports=3Dcompat or
+acpi_osi=3D!Darwin. It happens when using pcie_ports=3Dnative and also
+without param. The slow EC-unblock is caused by aer. pci=3Dnoaer solves
+that reliably. I could not find aer to be used in macos anywhere, so I
+think Apple doesn't use it.
+
+Well, however - OSDW acpi tables are significantly larger and more
+complicated than !OSDW, so here is a bit of work to do for us in
+thunderbolt.c.
+First attempts are looking promising. Resume is even
+faster than with pci_ports=3Dcompat. A second or so. But we are
+struggling here and there. Especially with rtd3 and such. I would like
+to have this working before submitting.
+
+Andr=C3=A9
