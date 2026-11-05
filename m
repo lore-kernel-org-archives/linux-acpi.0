@@ -1,101 +1,129 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793879995;
-	b=wzMKeNZ7hFLEJEJ69Sq2HUxxQe4e7tZw3xWkcDJ5oql602M2a1qLunjN8HOsmbE8XgZ1
-	 CHpEun4PkaF/BoM0TEfE0A/6TaTyanh3icd68V/8vkcMxRNOt1EsWNRkgZnHWnQhrkhI2
-	 2I+q4DVV6+0n/3xLM9mrRP9+BM1650xFsbKyrhqhIq8k4repQfRJR2cLlqUucdCFpxdPt
-	 szycmWW9+3mX4g10VC1PYqZKraRp1EksQjWoYlz9RRDPWKJZbj4afV1ITfh8/0vISyW29
-	 WvKs7Bg1qh2Lxov/T+/Fbg+0nx8+CYz5ju+E/TSiCvGhImZcv7p2/uKDCVPmRMjT8mA==
+	t=1793880011;
+	b=j9llxJxD1wKOnaflgWNdETyDOvh32Seq5IOotmsZTMDf3aU6gymTyBE31XDSPVYioCQd
+	 g6RAP4a62HD0A6zmZxSGizhWqvEMNLOrjbMlLxSYyTlniLZRHOdy8lwcNXlfJWf0cuKw9
+	 HVvkWAEE8RGvGz5hJsZuOkey65ZOF0rHo0O0OPKqO+yG9e2uauHgFEI0ujDlcCawQoog3
+	 3COoQE3boO1WJOVIvsPxDD0mREQS9jR+9nP3IDt7CwzTZgGliIVlOLbZsYS05icNHyQlw
+	 NOhh62Rfb+oYJflyi9zstxTJFQU8X+nbHpNhP8pu95l3HUUXtDzjMh0to/cwFqrtDYw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793879995;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:Content-Transfer-Encoding:In-Reply-To:
-	 Organization;
-	bh=55ziTKuLaUytKA90JjVsAjKL4og9cquzU6OFv/arPMc=;
-	b=eNvj7DssMf0oHvGzOlMOgusK/th3nAlz/dmzTHV1zZ/z7tYDIklWmSoY1BxEDgAsKfJw
-	 jrj+KfJ17sBX0LSObh6AZtPR1eVbA2C+Qt2aaJM2RTBIVblj2fPmxzSw8JS6WI3EdJbNR
-	 0YZXhdbO5GiDMWLz6oeWi97FrbCr5Pix4Kh4n1HRZUIACe9Qx4NC4KV4TpEZ2gmnz9K23
-	 16gYr9MqqHHjzvBxziuC9C/Te0Hky/LImqPReNYKWHNJPrOKXSiJJasioJ51BxzTffWB2
-	 q35QKefDILOBaBl7L59FesoqcG4AsUZOYd/Egr3JvxG7hPQ46hN49ieGiFtd24E9dVA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793880011;
+	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
+	 DKIM-Signature:Received:Received:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spamd-Result:X-Rspamd-Server:X-Rspamd-Action:
+	 X-Spam-Flag:X-Spam-Score:X-Spam-Level:X-Rspamd-Queue-Id;
+	bh=TLYMptSjatVyJOFwpffoaDfgZgE6X8q+QC3Cbs2KtOY=;
+	b=TaeTlfd13jSOmmTI4NV2/jR4gCSVIW+dCB/vA0Ryqxi4zbro4aDS7eIwPBL/rdpF4JY9
+	 nOILicAyxs5rR6Pmmh0cnDwxYMgckkn69EhY5ons+Y0Qz2M8fCG0XuCuS11lu6A8ug6fv
+	 qK2UDwFIxLiwnGMY6Ug/ys2EQwmK0dp6ZBcNND79XrNN9n0tl+rdOFiV91IhTTRlSCC8F
+	 ln5OUBSKCqYefr6/aQpVRN7ClyCqbCJpE9ctBh1+8y4ROGSLwmKKrtBJne62SPZs/l+oH
+	 OJLjmNng3t06hr6mc6nKXZCo7ivSU98gAJopwi1wKZNm2MIH8/T34CWcBoI3k06ibRg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=YbDiy4rs;
-	arc=none smtp.remote-ip=198.175.65.21
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=none header.from=suse.cz;
+	spf=pass smtp.mailfrom=suse.cz;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b="b/7E7q75";
+	dkim=temperror header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=JDx0i97w;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=mLWeeCDw;
+	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=YxG1QDwo;
+	arc=none smtp.remote-ip=195.135.223.131
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 523C6606A31B;
-	Thu,  5 Nov 2026 11:59:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 523C6606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE1D5606A332;
+	Thu,  5 Nov 2026 12:00:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DE1D5606A332
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=YbDiy4rs
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793879995; x=1825415995;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=8YvxtWgLQBW0AzQWnk0oKqSHDpGrA9Gbt/fWjyjghwg=;
-  b=YbDiy4rsz2k1UcVf9ymx2c4OSv0Vi6DkJEIYUrrs4HuBWpyNoNIOZjKo
-   a6KpXfZdddmUuoJIxE5Qzg1q5jxtX2ShLRI8bat416KKVIc6+4xXLry7y
-   0IP3BztDIokCx+tpb40Z0sPtIIeATqcv4bsuS4eyfVfhPFaFwmQ9nr11k
-   GM3dFsdnTzZ0MvFsCzuM+O5X/s4RDTtC+GCq+gnyrRlVWBVXHGPje+huw
-   3fkIB+2qcQQmCAGjyfRYN8hIfYNAlYeYXxREKoUWkAyjXtiGpo5rqRKTQ
-   0Dtf48DJ/qOyg692wDY0udpMuoTOR9JBRa1trgu9sXFDH5kIRemVVYMgo
-   A==;
-X-CSE-ConnectionGUID: WAKQ7i5BR5WhDhUvEo3Fhw==
-X-CSE-MsgGUID: 5QEXNvO/SbSPW9g3/F7TTA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11956"; a="2756505"
-X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
-   d="scan'208";a="2756505"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 03:59:54 -0800
-X-CSE-ConnectionGUID: 1uRZnbrxRheLw/xzWZLFaQ==
-X-CSE-MsgGUID: xp2+bDVwRnS+waA63Sa6CQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
-   d="scan'208";a="6867168"
-Received: from amilburn-desk.amilburn-desk (HELO localhost) ([10.245.244.144])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 03:59:47 -0800
-Date: Thu, 5 Nov 2026 13:59:44 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Alejandro Colomar <alx+linux-hardening@kernel.org>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>,
-	Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-	Andreas Schwab <schwab@linux-m68k.org>,
-	Andy Shevchenko <andy@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>,
-	Kees Cook <kees@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Len Brown <lenb@kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linus Walleij <linusw@kernel.org>,
-	Namhyung Kim <namhyung@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v1 0/2] Add strprefix() and fix a bug with it
-Message-ID: <auxvsAZ4D-osszY1@ashevche-desk.local>
-References: <cover.1793876837.git.alx@kernel.org>
- <CAHp75VdFH146fNhw1ysUbgCPbpv+K++kWvbyZxU=V7tDh0T88Q@mail.gmail.com>
- <auxn9fKsOKeIFIJa@devuan>
+	dkim=pass (1024-bit key, unprotected) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=b/7E7q75;
+	dkim=temperror header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=JDx0i97w;
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=mLWeeCDw;
+	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=YxG1QDwo
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id CEEAB1F7B2;
+	Thu,  5 Nov 2026 12:00:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1793880003; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=TLYMptSjatVyJOFwpffoaDfgZgE6X8q+QC3Cbs2KtOY=;
+	b=b/7E7q75Fkdxb52orAjoZbXYQBUbdEfyIMUY5KYffgKEl3SftOuIqEV8ngx1yDWZRjk/n6
+	bcW4DaJ+DJesYwhmHDJbQueDDkhKwHtvMyv9aSpA8Lt7ya2pChK0qgY6QYS9CmmsvHkOK4
+	jJMMwvDu0gzY3VPTrkiWBbndK9Cj4r4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1793880003;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=TLYMptSjatVyJOFwpffoaDfgZgE6X8q+QC3Cbs2KtOY=;
+	b=JDx0i97wJKHZd4UujUUGy+r5V+7SwHGCXiipankywlJ5hQsT+6s3w7Jw6t2VazsdfK8AY1
+	WJHbAEOlSA/0TuDg==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=mLWeeCDw;
+	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=YxG1QDwo
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1793880002; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=TLYMptSjatVyJOFwpffoaDfgZgE6X8q+QC3Cbs2KtOY=;
+	b=mLWeeCDwnpy+InK0QiCjbUloTdC5Bagr6GdPyphx3JUr8rlWUYWJkI/cC0MEcY5KnRLE2w
+	ykIsFJgnU9zcIFKkxQCdM6r225n55SXevDgdB0DuPBW9+ukMWc8uZJergg7m/QeOydCzfG
+	viFSPByPoS3DjY/DTtU5THJ0Xft//ZM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1793880002;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=TLYMptSjatVyJOFwpffoaDfgZgE6X8q+QC3Cbs2KtOY=;
+	b=YxG1QDwoZ8i/+DzPhl0+xb1FjsPH7mvqx5iQvvwKiJfg63fv9j9GedLc1cASyxe5ud4weM
+	kBw8lHrcxyMNjRDw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 90808134F4;
+	Thu,  5 Nov 2026 12:00:02 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id HqVvG8Jv7GpGCgAAD6G6ig
+	(envelope-from <jack@suse.cz>); Thu, 05 Nov 2026 12:00:02 +0000
+Received: by quack.suse.cz (Postfix, from userid 1000)
+	id 74E5BB6C3; Thu, 05 Nov 2026 13:00:01 +0100 (CET)
+Date: Thu, 5 Nov 2026 13:00:01 +0100
+From: Jan Kara <jack@suse.cz>
+To: Christian Brauner <brauner@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org, 
+	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, 
+	Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
+	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
+	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	netdev@vger.kernel.org, ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
+	coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
+	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+	ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
+	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
+	sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
+	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, 
+	Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
+Subject: Re: [PATCH RFC 19/38] proc: resume readdir after the last name it
+ returned
+Message-ID: <2pfmlrmhrjuos74lnsdr3ctjndj7vahxedhmsdla75ggblj43g@ttj5yg5f5p7l>
+References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
+ <20261102-work-procfs-bugfixes-v1-19-59422ed3e465@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -105,48 +133,263 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <auxn9fKsOKeIFIJa@devuan>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+In-Reply-To: <20261102-work-procfs-bugfixes-v1-19-59422ed3e465@kernel.org>
+X-Spamd-Result: default: False [-11.51 / 50.00];
+	SUSE_INTERNAL_BYPASS(-9.00)[];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	RCVD_TLS_LAST(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	RCVD_COUNT_THREE(0.00)[3];
+	ARC_NA(0.00)[];
+	URIBL_BLOCKED(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.com:email,suse.cz:email,suse.cz:dkim];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	FROM_HAS_DN(0.00)[];
+	DKIM_TRACE(0.00)[suse.cz:+];
+	R_RATELIMIT(0.00)[to_ip_from(RLpnapcpkwxdkc5mopt1ezhhna)];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	TO_MATCH_ENVRCPT_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RCPT_COUNT_GT_50(0.00)[60];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	MISSING_XM_UA(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.cz:email,suse.cz:dkim,imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.com:email]
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spam-Score: -11.51
+X-Spam-Level: 
+X-Rspamd-Queue-Id: CEEAB1F7B2
 
-On Thu, Nov 05, 2026 at 12:38:47PM +0100, Alejandro Colomar wrote:
-> > Date: 2026-11-05 13:24:18+0200
-> > From: Andy Shevchenko <andy.shevchenko@gmail.com>
-
-...
-
-> > > Testing
-> > > ~~~~~~~
-> > >
-> > > I've built this patch set with 'allmodconfig'.  I've not run the
-> > > resulting kernel, though.
-> > 
-> > No, all lib/ new code should be accompanied with new (Kunit) test
-> > cases. Update the respective lib/tests/* for that or if not yet
-> > converted to Kunit something in lib/*test*.c
+On Mon 02-11-26 15:21:34, Christian Brauner wrote:
+> proc_readdir_de() counts the entries of a directory and resumes a
+> listing at the number getdents64() stopped at. The entries are sorted
+> by name, so one that is added or removed in between shifts everything
+> behind it by one. Listing /proc/net/dev_snmp6 with a buffer that holds
+> ".", ".." and "lo" and adding a device whose name sorts before "lo"
+> makes the next call return "lo" a second time. Removing one that sorted
+> before the position makes the next call skip an entry instead.
 > 
-> Thanks!  Does this sound good to you?
-
-Let's put it this way — it's a good start!
-
-> BTW, I don't see any existing tests of str_has_prefix() --the API I'm
-> replacing-- under lib/.
+> Since commit 895b4c0c79b0 ("fs/proc: fix uaf in proc_readdir_de()") an
+> entry that is removed while it is being emitted also ends the listing
+> right there. pde_subdir_next() finds nothing after an erased entry, so
+> proc_readdir_de() reports the end of the directory and the next call
+> resumes by number, skipping another entry. For /proc itself
+> proc_root_readdir() takes that as the end of the static entries and
+> moves on to the pids, so the rest of the static entries is missing.
+> And if the position is behind the last entry when a call starts
+> proc_readdir_de() returns 0, so /proc then lists no pids at all.
 > 
-> 	$ grep -rn str_has_prefix lib/
+> So remember the name of the last entry a call emitted in the file and
+> resume at the first entry after it, like kernfs resumes after the node
+> it stopped at. An entry that was removed while it was emitted is
+> continued after by its name as well. If the position was moved by a
+> seek in between the listing counts from the start like before.
+> 
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+> Fixes: 895b4c0c79b0 ("fs/proc: fix uaf in proc_readdir_de()")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
-Can we use a common sense? lib/tests/ lists these:
-printf_kunit.c
-string_helpers_kunit.c
-string_kunit.c
+Looks good. Feel free to add:
 
-One of them (supposedly string_kunit.c) is what you are looking for.
-If the test cases are not present, create them! It's as simple as that.
+Reviewed-by: Jan Kara <jack@suse.cz>
 
+								Honza
+
+> ---
+>  fs/proc/generic.c  | 89 ++++++++++++++++++++++++++++++++++++++++++++++--------
+>  fs/proc/internal.h |  1 +
+>  fs/proc/proc_net.c |  1 +
+>  fs/proc/root.c     |  1 +
+>  4 files changed, 80 insertions(+), 12 deletions(-)
+> 
+> diff --git a/fs/proc/generic.c b/fs/proc/generic.c
+> index ef804cd3ec45..47830d6af255 100644
+> --- a/fs/proc/generic.c
+> +++ b/fs/proc/generic.c
+> @@ -87,6 +87,28 @@ static struct proc_dir_entry *pde_subdir_find(struct proc_dir_entry *dir,
+>  	return NULL;
+>  }
+>  
+> +/* The first entry of @dir that sorts after @name. */
+> +static struct proc_dir_entry *pde_subdir_after(struct proc_dir_entry *dir,
+> +					       const char *name,
+> +					       unsigned int len)
+> +{
+> +	struct rb_node *node = dir->subdir.rb_node, *after = NULL;
+> +
+> +	while (node) {
+> +		struct proc_dir_entry *de = rb_entry(node,
+> +						     struct proc_dir_entry,
+> +						     subdir_node);
+> +
+> +		if (proc_match(name, de, len) < 0) {
+> +			after = node;
+> +			node = node->rb_left;
+> +		} else {
+> +			node = node->rb_right;
+> +		}
+> +	}
+> +	return rb_entry_safe(after, struct proc_dir_entry, subdir_node);
+> +}
+> +
+>  static bool pde_subdir_insert(struct proc_dir_entry *dir,
+>  			      struct proc_dir_entry *de)
+>  {
+> @@ -277,6 +299,40 @@ struct dentry *proc_lookup(struct inode *dir, struct dentry *dentry,
+>  	return proc_lookup_de(dir, dentry, PDE(dir));
+>  }
+>  
+> +/*
+> + * Where the next readdir resumes. The entries are counted, so one that is
+> + * added or removed in front of the position would shift what the next call
+> + * returns. The name of the last entry emitted doesn't move.
+> + */
+> +struct proc_dir_cursor {
+> +	loff_t pos;			/* the position behind the entry */
+> +	unsigned int len;
+> +	char name[NAME_MAX + 1];
+> +};
+> +
+> +/* If this can't remember the entry the next call counts from the start. */
+> +static void proc_dir_cursor_set(struct file *file, struct proc_dir_entry *de,
+> +				loff_t pos)
+> +{
+> +	struct proc_dir_cursor *cursor = file->private_data;
+> +
+> +	if (!cursor) {
+> +		cursor = kmalloc(sizeof(*cursor), GFP_KERNEL);
+> +		if (!cursor)
+> +			return;
+> +		file->private_data = cursor;
+> +	}
+> +	cursor->pos = pos;
+> +	cursor->len = de->namelen;
+> +	memcpy(cursor->name, de->name, de->namelen);
+> +}
+> +
+> +int proc_dir_release(struct inode *inode, struct file *file)
+> +{
+> +	kfree(file->private_data);
+> +	return 0;
+> +}
+> +
+>  /*
+>   * This returns non-zero if at EOF, so that the /proc
+>   * root directory can use this and check if it should
+> @@ -289,23 +345,26 @@ struct dentry *proc_lookup(struct inode *dir, struct dentry *dentry,
+>  int proc_readdir_de(struct file *file, struct dir_context *ctx,
+>  		    struct proc_dir_entry *de)
+>  {
+> +	struct proc_dir_cursor *cursor = file->private_data;
+> +	struct proc_dir_entry *dir = de;
+>  	int i;
+>  
+>  	if (!dir_emit_dots(file, ctx))
+>  		return 0;
+>  
+> -	i = ctx->pos - 2;
+>  	read_lock(&proc_subdir_lock);
+> -	de = pde_subdir_first(de);
+> -	for (;;) {
+> -		if (!de) {
+> -			read_unlock(&proc_subdir_lock);
+> -			return 0;
+> -		}
+> -		if (!i)
+> -			break;
+> -		de = pde_subdir_next(de);
+> -		i--;
+> +	if (cursor && cursor->pos == ctx->pos) {
+> +		/* Resume after the last entry emitted, wherever it is now. */
+> +		de = pde_subdir_after(dir, cursor->name, cursor->len);
+> +	} else {
+> +		/* Moved by a seek, count from the start like always. */
+> +		de = pde_subdir_first(dir);
+> +		for (i = ctx->pos - 2; de && i; i--)
+> +			de = pde_subdir_next(de);
+> +	}
+> +	if (!de) {
+> +		read_unlock(&proc_subdir_lock);
+> +		return 1;
+>  	}
+>  
+>  	do {
+> @@ -318,8 +377,13 @@ int proc_readdir_de(struct file *file, struct dir_context *ctx,
+>  			return 0;
+>  		}
+>  		ctx->pos++;
+> +		proc_dir_cursor_set(file, de, ctx->pos);
+>  		read_lock(&proc_subdir_lock);
+> -		next = pde_subdir_next(de);
+> +		/* Removed in the meantime, go on after its name. */
+> +		if (RB_EMPTY_NODE(&de->subdir_node))
+> +			next = pde_subdir_after(dir, de->name, de->namelen);
+> +		else
+> +			next = pde_subdir_next(de);
+>  		pde_put(de);
+>  		de = next;
+>  	} while (de);
+> @@ -347,6 +411,7 @@ static const struct file_operations proc_dir_operations = {
+>  	.llseek			= generic_file_llseek,
+>  	.read			= generic_read_dir,
+>  	.iterate_shared		= proc_readdir,
+> +	.release		= proc_dir_release,
+>  };
+>  
+>  static int proc_net_d_revalidate(struct inode *dir, const struct qstr *name,
+> diff --git a/fs/proc/internal.h b/fs/proc/internal.h
+> index df873df9afc5..04f7ce2b24ed 100644
+> --- a/fs/proc/internal.h
+> +++ b/fs/proc/internal.h
+> @@ -287,6 +287,7 @@ extern struct dentry *proc_lookup(struct inode *, struct dentry *, unsigned int)
+>  struct dentry *proc_lookup_de(struct inode *, struct dentry *, struct proc_dir_entry *);
+>  extern int proc_readdir(struct file *, struct dir_context *);
+>  int proc_readdir_de(struct file *, struct dir_context *, struct proc_dir_entry *);
+> +int proc_dir_release(struct inode *, struct file *);
+>  
+>  static inline void pde_get(struct proc_dir_entry *pde)
+>  {
+> diff --git a/fs/proc/proc_net.c b/fs/proc/proc_net.c
+> index b1f5eafb069a..dbcf87a257e1 100644
+> --- a/fs/proc/proc_net.c
+> +++ b/fs/proc/proc_net.c
+> @@ -351,6 +351,7 @@ const struct file_operations proc_net_operations = {
+>  	.llseek		= generic_file_llseek,
+>  	.read		= generic_read_dir,
+>  	.iterate_shared	= proc_tgid_net_readdir,
+> +	.release	= proc_dir_release,
+>  };
+>  
+>  static __net_init int proc_net_ns_init(struct net *net)
+> diff --git a/fs/proc/root.c b/fs/proc/root.c
+> index 7fbbe92bf73a..dfee1caa26f7 100644
+> --- a/fs/proc/root.c
+> +++ b/fs/proc/root.c
+> @@ -441,6 +441,7 @@ static const struct file_operations proc_root_operations = {
+>  	.read		 = generic_read_dir,
+>  	.iterate_shared	 = proc_root_readdir,
+>  	.llseek		= generic_file_llseek,
+> +	.release	= proc_dir_release,
+>  };
+>  
+>  /*
+> 
+> -- 
+> 2.53.0
+> 
 -- 
-With Best Regards,
-Andy Shevchenko
-
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
