@@ -1,94 +1,76 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.181
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793872843;
-	b=uO1CIpmV5L6utGfBTzDCbbKC2mIkAeVHo3+8IH1tf87UTILYpcrNHhnifSxTdW8w8UQf
-	 Sv+octsD2GyKORGcJoDPIZIzKpiVlKjQWD6C7FdJuVnAne07i6EOYuqgYCjD4CrzhO4QR
-	 J3ySU5LTtZPJ05L3ujSO0ALug7Vog5VJOPpYlhEh9dnG4wB+x3VtYRZxC862d4odTY2Xl
-	 auFgd36Gb0zkWl1kDVlPt7RCDH80ZTxF+BxR0dEyojg+VqXSNvQ6DnFw4mQiyfb/Ob9bX
-	 K9HytTfEUHC39cIIIwEplzl7xowjAzr2lupbgwbGex/Q7IZfdislBR+FLkwGtaw2Nxg==
+	t=1793872851;
+	b=ejud4cKUi+11DHNXHVyAGNc9cZ+MemVoWDtR00KuW6PAtR1AgiBxFfEBW/gt3MxSoiIK
+	 WPGyZPh0QXKniPVJba+hSmDRpxpAA1Fq2EVPAhKN7+bDUDZRNTkbFFbpkYmW6hxCBH1b1
+	 oJCSkZoYFcXXVOBNfH0953iPJaqCZfdZC1OPMnYxvuPBo7BFL1ciCTzFXDnVjgZYYRgzm
+	 avKoyCeLjRtCPallTnwjjhcHHeMhcqOB+W/prUBBgzZGzeTGii3FzaQXC/V9T6pdBUs/Z
+	 b7sMhkpw0BSSJD3LmmMmhFfG794JZx1MOoaOFTvxd5pSWStHWO5eevneYe4cMt2ZN0g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793872843;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:
-	 Organization:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=9gWIZ556XELV/JZHPdAe42L4BaKxg02n4+cgVq+thzI=;
-	b=QF5uB6gapw0vvkAWpHczZWxDJJ49KnIS8T8tYQF4mcQoeeGzCAyPfhgn5c1BNq7x5LSu
-	 XC/M4ExhfzeFMrm2JUbmC64xJBxxWf4QWPuxoD0NptYr4C+3KplAaHJMMtBX13QmeooBs
-	 u3BP0dlS9Dkxtv4TaoGzPtDrYDBSXpM9RH8/JF9iqVm6HmFb54bGD3djlL3QhvN2VXIEs
-	 vq+dPWB7JzuzzgbWUr5R9O4H61ibujGSlwDiP5R/XTguBYoKv0ts/0x/lZApTypgR8/7A
-	 BjS3yq+8gkmmYJD5jy8LY7DdjB4Nyb/q8wHuK29VuN+2BA8CfUbXw93U6I5E+FqgmGg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793872851;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Received:
+	 X-Forwarded-Encrypted:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type;
+	bh=LrgDMUrSYXpYgkAhfsYKg0ebb/uLgOfOMhqzX4yL0j4=;
+	b=KXc6WVOGe+I79E79tMqaSFIeNb780lUPepMTWp+iaWIg7xYGGz2OBVcK8m78TGabqytA
+	 W0So9YnbnCpq68dyuDFCtL2Y+yIIj2AGODo2SznK6ZBTw+txnc0+FTldflAykN5G0tenZ
+	 KvIS3XAHc4QO/Kx/IRKuPUpzeNgd4/RmfeBRnA7qKnNcRDvaQzmnpydyEI0ChH4FOw+BX
+	 xi0C21g972YMLKWpm2BjLjv7bNVIYUdrnbeT4dZJsHFFjboKbvX7eo1iPc1jV3/0D+UX2
+	 AfEkfI7bJqosjk22MLyovAY8rLrayZ3O8kngDlsPISlGgUZONcuxfwjzYGZ62Gx6KPg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=PBJmRi5k;
-	arc=none smtp.remote-ip=198.175.65.18
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=none header.from=linux-m68k.org;
+	spf=pass smtp.mailfrom=gmail.com;
+	arc=none smtp.remote-ip=209.85.160.181
+Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBADE606A339;
-	Thu,  5 Nov 2026 10:00:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CBADE606A339
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=PBJmRi5k
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793872843; x=1825408843;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=Z2H65UprW7zW8X/iim3pTFZF4OSbKQfsuukCJNwgJ8k=;
-  b=PBJmRi5krXwXp/lWwIejtxGkwqeeUujHhzM4QhFGH4/9OVKYOGoy/FJY
-   GUwltGtFuD6ddm9NsUfJJmssn/VDuufi0IpkSIP/cINhOX0drNHriJsE8
-   YmmRSCHusbUXof7dh9MWDGQ3f6Zs0W1wuduDCWeDoTJh/001zjwQvkZ/r
-   ogbGV7QAVkaf7vZqAH8U8gYtHYJA4cuT6YGeahY/vJJ4ybjOJe9fYHohs
-   kRxAhg84cZICsgOtvfWfRjVsAAqQNuXrMnj7WiBlnInc+EkGTo2rfPnQ1
-   69z/oKXB5D1ooFYrR5TZ7lpHNhuPhlTTkBDW6+cJqGjsczZkmSmxdevkS
-   w==;
-X-CSE-ConnectionGUID: el5fV4B6Qt2d23gnI1aq5Q==
-X-CSE-MsgGUID: S1U+r8aLTLiX7xYibPZC8w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11956"; a="2669792"
-X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
-   d="scan'208";a="2669792"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 02:00:42 -0800
-X-CSE-ConnectionGUID: Ryrj45DQTF6F9fytzqA4ug==
-X-CSE-MsgGUID: CDdCSctqTauHKpXvMmTb7A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
-   d="scan'208";a="6862765"
-Received: from abityuts-desk1.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.244.182])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 02:00:37 -0800
-Received: from kekkonen.localdomain (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with SMTP id 3CC51121B97;
-	Thu, 05 Nov 2026 12:00:48 +0200 (EET)
-Date: Thu, 5 Nov 2026 12:00:48 +0200
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
-	Hans Verkuil <hverkuil@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kees Cook <kees@kernel.org>, Andy Shevchenko <andy@kernel.org>,
-	Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Linus Walleij <linusw@kernel.org>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
-	linux-hardening@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-gpio@vger.kernel.org
-Subject: Re: [PATCH 1/9] device property: fix fwnode_name_eq() for empty node
- names
-Message-ID: <auxT0Av4jDvcIGBS@kekkonen.localdomain>
-References: <20261104-fwnode-for-each-prop-v1-0-6e28fe1c72c4@oss.qualcomm.com>
- <20261104-fwnode-for-each-prop-v1-1-6e28fe1c72c4@oss.qualcomm.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59E34606A331
+	for <linux-acpi@vger.kernel.org>; Thu,  5 Nov 2026 10:00:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 59E34606A331
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-5364042eecfso22715991cf.2
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Nov 2026 02:00:51 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793872850; x=1794477650;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=LrgDMUrSYXpYgkAhfsYKg0ebb/uLgOfOMhqzX4yL0j4=;
+        b=YCjP8bsJ2po6RaTF8U8GNVSlzdhEjdLvJQbmK06cwH8Si46LLY25I75PIGxuCxbum2
+         9rlh8ayPHTeL6MPL/QJvfpwfYuiNdgvfNZmH0q0KUDMWHFVeyKtBxpWv33jf8dRg/C/E
+         Lf2yGf25z4OAQ19XARzoUHFrYfekQrGd04RhVzAJKzpBxygzJIPsgL8tNCcMqxlnyYXP
+         TWrXyEkUqYopM0Q/F99gQq4CsbG4B/xOpmLLJXrJUn/JTiZlgkKNb/8YX9qszXBivqev
+         HZ7m41phZ9kH48ThaPMJZ6LTw0T27vxu+sp8Tx/FgZEWGn/u4yuIhnFTaHJ2F45HSjTw
+         dsRw==
+X-Forwarded-Encrypted: i=1; AKwUvBxle/kjmB16kljhC3fnzfpAKwLjFf01n3rJq0hfiNkgt4VjwEOdznydQGGAY0sAyk9UQFmJPDCkTsQw@vger.kernel.org
+X-Gm-Message-State: APuU4Z9uE91A1XMycXY/OpWO+nNRDZlFqMbKpIOE6eOgjN6TAxzyiYTj
+	8cZ53wQjjr6sekkeiu9pvn8DDHHiDtQRhUkYE9R/kJX9jvfNrbb7vxqt2wJFPjbd0Ug=
+X-Gm-Gg: AYBFou3k2f/I4S7Uq3iEnHOFhdHC1LwAJnraSTSuBanuo4y6NORi7TrUSrdW8La9G5u
+	QYcObtV+OWFQg8MlBT32JXfXVCYB9NkHk0eZz/p/FTk4TE7sGKNTAsVZE6RUf7iySkOlfptIOtB
+	pRAWOf6LsYB3ggixnQeKZ3D2iougFQYsynKZZ8N5y5QxGUZv//KEtH9elzSs1nZIPNJFWALSlVd
+	IWyXXExEiX29iwpOafGsho9uIA0O0REmwgF/ols90Jgnci1t4K9pbSiaG6keKPXMyWBtwm+4U8E
+	qSTW9eNZgQM51eMRVV3OnoVArPkXqrSLoLmj+g6GBtXmzhJOf6JosLYe1Vk+6+6LATUdmj3pruN
+	1Hy5lHoMvUCdS3JKa/jTzOkFf3E9NVKEZ4rt/WYqE3wep5Qr0+QJkKwkLKYRl78XaYG+Vik/+0p
+	V4QIxB7cClda9P9m5sjF8C5jI1lk7fcuSAhCQ2JGXp8tLZJKX+2eYnG00qPy8SiH4z01L1Rzuft
+	Skqa1pzH2QE/NzWw3D38Bf7uJksIuZ5Ym84TFMci08R/dc3XCb5V4t/jD4vHiF1UMOk5Mp+IDwn
+	eRyl+OfgAEKhA8OaXhO/aHfKA+eRzFDHN27Zp40B4RyFDC/fBico56umaEUzR0pxRnXnDQ==
+X-Received: by 2002:a05:622a:2510:b0:536:72b4:b835 with SMTP id d75a77b69052e-542b7141e17mr322347751cf.46.1793872850203;
+        Thu, 05 Nov 2026 02:00:50 -0800 (PST)
+Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com. [209.85.160.178])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-54b10a7006asm48089601cf.17.2026.11.05.02.00.49
+        for <linux-acpi@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 05 Nov 2026 02:00:49 -0800 (PST)
+Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-5364042eecfso22715621cf.2
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Nov 2026 02:00:49 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AKwUvBzGPTgUOX15nHEkFhoAa1kyxtfFZT2ohMeEe/EkcbkxMSuqcpCkIfUkwPnDERBj6U560lU16khpL1wu@vger.kernel.org
+X-Received: by 2002:a05:6102:5108:b0:7cc:56a:58e5 with SMTP id
+ ada2fe7eead31-7d072d84a58mr8269567137.37.1793872526219; Thu, 05 Nov 2026
+ 01:55:26 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -98,60 +80,59 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261104-fwnode-for-each-prop-v1-1-6e28fe1c72c4@oss.qualcomm.com>
+References: <20261104-work-procfs-drivers-v2-0-245e54e87116@kernel.org> <20261104-work-procfs-drivers-v2-2-245e54e87116@kernel.org>
+In-Reply-To: <20261104-work-procfs-drivers-v2-2-245e54e87116@kernel.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 5 Nov 2026 10:55:15 +0100
+X-Gmail-Original-Message-ID: <CAMuHMdVHxQvKnJyKHrOZhaOg9Rn2hMeRU1JnMFFEEi31FPZaGg@mail.gmail.com>
+X-Gm-Features: AclHuK_UsJ1nGicdWEWcMLQAICTi1A7pGF3yhNkxXkXRPqohle17eXAHHNBsR6k
+Message-ID: <CAMuHMdVHxQvKnJyKHrOZhaOg9Rn2hMeRU1JnMFFEEi31FPZaGg@mail.gmail.com>
+Subject: Re: [PATCH RESEND v2 02/26] zorro: let procfs copy out reads
+To: Christian Brauner <brauner@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org, 
+	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, 
+	Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, 
+	Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
+	Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
+	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>, 
+	Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, 
+	Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, ntfs3@lists.linux.dev, 
+	platform-driver-x86@vger.kernel.org, coreteam@netfilter.org, 
+	kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
+	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net, 
+	jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
+	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, 
+	samba-technical@lists.samba.org, sparclinux@vger.kernel.org, 
+	linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
+	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
+	linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Bartosz,
+On Wed, 4 Nov 2026 at 20:43, Christian Brauner <brauner@kernel.org> wrote:
+> Implement ->proc_read_buf() so procfs copies what is read from
+> /proc/bus/zorro/<slot> to userspace after it unpinned the entry.
+>
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
-On Wed, Nov 04, 2026 at 03:03:43PM +0100, Bartosz Golaszewski wrote:
-> str_has_prefix() returns the prefix length on match and 0 on mismatch,
-> so the mistmatch case can't be told from "empty prefix matched an empty
-> string". For instance: the OF root node's name as returned by
-> fwnode_get_name() is "" and will return 0 for any name matched against
-> it and since len is 0 too, fwnode_name_eq() will return true.
-> 
-> Do what OF code already does in of_node_name_eq(): check if the length
-> of the expected name matches the length of the actual node name before
-> comparing it.
-> 
-> Fixes: a9c8c738066b ("device property: Add fwnode_name_eq()")
+Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Is there a need to cc this to stable? I'm not sure if anything is affected
-there, probably not, but it's hard to be sure.
+Gr{oetje,eeting}s,
 
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-> ---
->  drivers/base/property.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index 51109794d7275ddaf4571584d0e77d8573ebb475..a97575ff9199004b4f401f432aed6c95e40d0c25 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -700,7 +700,7 @@ bool fwnode_name_eq(const struct fwnode_handle *fwnode, const char *name)
->  
->  	len = strchrnul(node_name, '@') - node_name;
->  
-> -	return str_has_prefix(node_name, name) == len;
-> +	return len == strlen(name) && !strncmp(node_name, name, len);
-
-I'd test strncmp() first as it's more likely to return faster. I'd also put
-the variable on the right side as that's the typically preferred order,
-i.e.
-
-	return !strncmp(node_name, name, len) && strlen(name) == len;
-
-Either way,
-
-Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
->  }
->  EXPORT_SYMBOL_GPL(fwnode_name_eq);
->  
-> 
+                        Geert
 
 -- 
-Regards,
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-Sakari Ailus
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
