@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793878959;
-	b=yyyZ6xFIV+CS+ZgT30i8nSwpwxwHEymrPes84DB6E1Y2qiyGacSUvgHoMV7LQit8mpEz
-	 BXASKNhKSKjKqxL2zO29FH7e8fmG4ctkEiDRUw1trJoSbCZT+ciZC5LO6Vb0o3c9BS2y1
-	 CDRp7yUEyT2n60/EhuDiLe8VvkuclNHuSFmMI0ScpFQsij8mAcJCCsTYj4LuQtyqYNNfs
-	 y+PjHRBIF9/jIfJ/GaVvgj/GbsgqTu4jQ2+Sax6mWsJRZyEIShL69naJCNlfXm6Vx/4jP
-	 /42rrN6Ju89lYK2VH5XqoAzftpAv7O0xzniIkogjKxkh9qCTq8hepxyFwEHlRcW8XOw==
+	t=1793878973;
+	b=0Yh1WHWN41Cm8vdC1ePgGiJm0lpxhKfAYczhX+LJKL2LmdjIL0WKe3Hdc/7tJgpCAqhz
+	 tRoN4VlaNNhcdGlzuTgwHJwC6m5YLwM3JuwugCOC39SdUKdShQioJI4e0Vn2aysS1WaDb
+	 uy6lnVxZyjzWBjt0zDEgDr59dFg1j5bMaO/UJpZin/bwMCy3TIPGhAAblBJilkrvfns8f
+	 b9qcA1L+qhVHIStXk9p86R9XKjjKdqAZiwacWw+lL7gVAXtS1lTJl/fs7FfPynxGFIXwb
+	 c82QMVmpjoE/6+fkAYE2X9/wuAkG9Hj12uUlgtv5RDnOG1OKyBLOI/pdSa0dILVPK4w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793878959;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793878973;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Type:X-Change-ID:X-Mailer:
+	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
 	 Content-Transfer-Encoding;
-	bh=nNRa2+aOfCVTNA1AfTcRiILSfCXzP/TbgaPBxe7cp+M=;
-	b=PGlT0+FG6PQM/eKW5KEwWbtrK3whPGYFBDtoSkwvipTeKElNJh4ExPGCizCqpBPXQXI3
-	 kd3zDnA2LV9ot8c0+dpRV/NhS6AUhihvNEEWl3ZWedM79SyrNgmLR8DjHue5C/1Yg8dzr
-	 2Gu2sdVfq9KUeswox9fpFb3WGWFgOQIuanXVUAJedu9SMktMy3RkWLEVgCHZ0uXQSZwi8
-	 qcaqT3DmUkeQcbkhY+7DLEBxxfCSCiOrBZti7I3ZS75r83o1lVyAc29wQkQANUTk9pa0E
-	 YXBUZ7LOadi010udFp/norwWG6E/jg7YEIREARDnv7HmBzG+u4/TsLoFLacTx2r6SZg==
+	bh=FmgNjcvuogZZsh1B1AZimpAG4mxHQSWn6k+79AdsFKA=;
+	b=K2IqwmfH0spNEr4/5TADm0NJbiGkAV7WzRfNy5TT3WYJ40aVdmLK6UaL5cR5yD2ep9Os
+	 rC2teWUsVxcKzjzni9WD4YU1Ghj/L7PSCow2BcX6YwHwa0HV7eVIwvFmOP0x5e7JhZw27
+	 ++C1NHABYOJB/McBQFI2U2lg/nOIWrGfYNL6EXOzdhRODhEjtZ/38yfhSqFwhbfr6pOxe
+	 4tuYQAo+mBOYgwQmzecjYNT80EPyQNGgZ8GB+3du1DlS5XHBlV3SbJ+zYZtmEG04E/3Ci
+	 gpRYi7ni6nKTvw0bUO3SNC58umDAYDEn1/NixFGJwkKPl34GH+6hwhYq2OMQ3/JMJKw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LHSP6gcj;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=k66JHzak;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3F8A606A31B;
-	Thu,  5 Nov 2026 11:42:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFD97606D814;
+	Thu,  5 Nov 2026 11:42:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LHSP6gcj
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8654B1F000C1;
-	Thu,  5 Nov 2026 11:42:37 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=k66JHzak
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E9521F000C1;
+	Thu,  5 Nov 2026 11:42:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793878958;
-	bh=nNRa2+aOfCVTNA1AfTcRiILSfCXzP/TbgaPBxe7cp+M=;
-	h=From:To:Cc:Subject:Date;
-	b=LHSP6gcjp4mEydZ1ViLj+iZVCehAC2kCPmDZuRfYlJYvaiP1ul7v4Z8h3ReQmyo98
-	 Pef+LF0klHcjE/gNRKFhsjH6/va4tiLGx0cX0LenQBttgBh//azxgkbkawJOOL/XmW
-	 GMaDKIKxgi23E78tGkXW+Rodfmug5gKbMzabVHpatQxpqzrwVUULv2jR6F9jquxqHf
-	 lUuCwhy6URmPE3GIxm/DhywMQpohFyk1oicHLoVlLeIaqy+fFAI0oG/Z7U4oWcNWnJ
-	 6TsfxxirEqAnUWR1+nNIO6clHASzuOt4ufMR8wNuNhC7mZXIxm4v4P+YMaeDdN9Jlb
-	 CVz9dBmNoauMQ==
+	s=k20260515; t=1793878972;
+	bh=FmgNjcvuogZZsh1B1AZimpAG4mxHQSWn6k+79AdsFKA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=k66JHzaka3JEL357Qqofj+lqvbFQpWgUYQb0Y2e77GzOy4dWV+I2tKdy/qH44Io2+
+	 GoIuWLj3t7o1YFiV6/1wWwJgYIsajiBZ1qY9a9BQnMZwpeQecL8Y3tcvIl+VWZvFnf
+	 iXYd6loWezkvSrRF5RKxPkQUPUqvV6s44uc/HM4W0vrvmBIjlFwfs9sEZ8Pmn0Gqp0
+	 KTk1GlM1a/kMDVXVtaE5ARKWxnAVdzP6p2uMfP7D3lyuU6KAHfMEclDhN3lz+QTF+T
+	 7a7H2NFMEMi3V4ObM8WteURCLc0dv/+kV5eLks0BrEDO2L9j5aD9PN48dYVUm4nfXZ
+	 8ZvQutcDpLDIw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
@@ -82,10 +82,12 @@ Cc: linux-kernel@vger.kernel.org,
 	linux-pci@vger.kernel.org,
 	iommu@lists.linux.dev,
 	Jason Gunthorpe <jgg@ziepe.ca>
-Subject: [PATCH 00/17] driver core: Authorize device trust before driver binding
-Date: Thu,  5 Nov 2026 13:42:13 +0200
-Message-ID: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
+Subject: [PATCH 05/17] USB: Lock registered interfaces during manual driver binding
+Date: Thu,  5 Nov 2026 13:42:18 +0200
+Message-ID: <20261105-device-trust-core-v1-5-1e536825b4eb@nvidia.com>
 X-Mailer: git-send-email 2.56.0
+In-Reply-To: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
+References: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -96,135 +98,176 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-X-Change-ID: 20260915-device-trust-core-12934e618489
 X-Mailer: b4 0.15-dev-18f8f
 Content-Transfer-Encoding: 8bit
 
-Device trust was a concept introduced by Dan in his series here:
+From: Leon Romanovsky <leonro@nvidia.com>
 
-  https://lore.kernel.org/all/20260705220819.2472765-1-djbw@kernel.org
-
-This series takes just the Device Trust idea and works to introduce
-it aside from the other components.
-
-Device Trust is a general concept that already exists in PCI via the
-'untrusted' flag. This series generalizes that into a consistent
-cross-bus concept that allow the user to inject their own opinion into
-how the kernel should operate the device. Three levels are defined:
-
- - DISABLED: Device is not operated by the kernel and is kept
-   quarantined. Confidential computing kernels will start all
-   devices in that mode.
-
- - ADVERSARY: Device may be malicious and the kernel should defend
-   itself, eg by forcing use of a strong iommu, not exposing random
-   kernel memory to DMA and maybe even protections in the driver from
-   malicious data in DMAs.
-
- - FULL: The normal kernel operating mode.
-
-Aside from this basic idea of defining the three levels, this series
-also introduces a mechanism for userspace to make a policy decision
-which level the device should operate in.
-
-This is important for Confidential Computing systems that need to
-evaluate a device, do a cryptographic authentication, enable PCIe link
-encryption, and other steps designed to protect the system. These
-operations need to be done in userspace before any DMA access to the
-device is allowed.
-
-Using this series the user can boot the kernel with a default trust
-policy of DISABLED, allowing only a small number of devices like
-interrupt controllers, timers and iommus to start. Then the kernel can
-get into the initrd where a userspace policy agent and implement
-whatever decisions are required.
-
-For Confidential Computing it is important that the policy logic be
-robustly inclusive. If the kernel autoprobes any sort of real HW
-device without going through the policy phase it could become an
-attack vector.
-
-Finally the policy agent can set the trust level and then cause a
-driver to bind in the normal way. User control of driver binding was
-already setup in 2007 via commit b8c5cec23d5c ("Driver core: udev
-triggered device-<>driver binding") which relied on the
-drivers_autoprobe to work.
-
-At least for Confidential Computing a high security policy in
-userspace would leave unexpected devices as DISABLED, authenticated
-PCI devices as FULL and everything else ADVERSARIAL.
-
-A draft starting point for a policy agent has been prepared:
-
- https://github.com/rleon/systemd/commits/accept-d-trust-level
-
-As a proposed systemd service that manages the process.
-
-Thanks
+Interface claims hold the USB device lock, but device_bind_driver()
+requires the target interface lock. Without it, trust-policy writes can
+race admission.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
-Leon Romanovsky (17):
-      Input: gameport - attach manual drivers through the driver core
-      Input: serio - attach manual drivers through the driver core
-      net: phy: Attach generic PHY drivers through the driver core
-      wifi: mac80211_hwsim: lock device for manual driver binding
-      USB: Lock registered interfaces during manual driver binding
-      PNP: Attach card devices through the driver core
-      cdx: Propagate DMA configuration errors
-      driver core: Allow userspace to detect EPROBE_DEFER when using sysfs drivers_probe
-      driver core: Introduce a generic device trust level
-      driver core: Expose device trust authorization through sysfs
-      driver core: Accept device trust policy on the kernel command line
-      driver core: Accept device trust policy by driver name
-      driver core: Preserve trust commitment beyond driver binding
-      driver core: Add a global initial device trust policy
-      driver core: Cover trust authorization and binding with KUnit
-      driver core: Document trust admission and initrd authorization
-      PCI: Replace untrusted state with device trust
+ drivers/bluetooth/btusb_main.c | 42 ++++++++++++++++++++++++++++++------------
+ drivers/usb/core/driver.c      | 25 ++++++++++++++++++++++++-
+ drivers/usb/core/message.c     |  8 ++++++++
+ drivers/usb/core/usb.h         |  2 ++
+ 4 files changed, 64 insertions(+), 13 deletions(-)
 
- Documentation/ABI/testing/sysfs-bus-drivers-probe  |   13 +
- Documentation/ABI/testing/sysfs-devices-trust      |   61 +
- Documentation/admin-guide/kernel-parameters.txt    |   64 +
- .../driver-api/driver-model/device-trust.rst       |  294 ++++
- Documentation/driver-api/driver-model/index.rst    |    1 +
- MAINTAINERS                                        |    2 +
- drivers/base/Makefile                              |    2 +-
- drivers/base/base.h                                |   37 +
- drivers/base/bus.c                                 |    9 +-
- drivers/base/core.c                                |   18 +-
- drivers/base/dd.c                                  |   88 +-
- drivers/base/test/Makefile                         |    1 +
- drivers/base/test/device-trust-test.c              | 1607 ++++++++++++++++++++
- drivers/base/trust.c                               |  455 ++++++
- drivers/bluetooth/btusb_main.c                     |   42 +-
- drivers/cdx/cdx.c                                  |    2 +-
- drivers/input/gameport/gameport.c                  |   21 +-
- drivers/input/serio/serio.c                        |   24 +-
- drivers/iommu/amd/iommu.c                          |    3 +-
- drivers/iommu/dma-iommu.c                          |   14 +-
- drivers/iommu/intel/iommu.c                        |   17 +-
- drivers/iommu/iommu.c                              |   17 +-
- drivers/net/phy/phy_device.c                       |   39 +-
- drivers/net/wireless/virtual/mac80211_hwsim_main.c |    2 +
- drivers/pci/ats.c                                  |    4 +-
- drivers/pci/pci.c                                  |    5 +-
- drivers/pci/probe.c                                |   26 +-
- drivers/pci/quirks.c                               |    7 +-
- drivers/pnp/card.c                                 |   12 +-
- drivers/usb/core/driver.c                          |   30 +-
- drivers/usb/core/message.c                         |   10 +
- drivers/usb/core/usb.h                             |    2 +
- include/linux/device.h                             |   16 +
- include/linux/device/bus.h                         |   10 +
- include/linux/device/trust.h                       |   48 +
- include/linux/pci.h                                |   30 +-
- 36 files changed, 2886 insertions(+), 147 deletions(-)
----
-base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
-change-id: 20260915-device-trust-core-12934e618489
+diff --git a/drivers/bluetooth/btusb_main.c b/drivers/bluetooth/btusb_main.c
+index 92a78a7e60396..8fe6bd1bff906 100644
+--- a/drivers/bluetooth/btusb_main.c
++++ b/drivers/bluetooth/btusb_main.c
+@@ -2993,10 +2993,13 @@ static int btusb_recv_event_realtek(struct hci_dev *hdev, struct sk_buff *skb)
+ 	return hci_recv_frame(hdev, skb);
+ }
+ 
++/* usb_lock_device_for_reset() gives up after one second of contention */
++#define BTUSB_MTK_ISO_LOCK_TRIES	5
++
+ static void btusb_mtk_claim_iso_intf(struct btusb_data *data)
+ {
+ 	struct btmtk_data *btmtk_data;
+-	int err;
++	int err, i;
+ 
+ 	if (!data->hdev)
+ 		return;
+@@ -3011,22 +3014,37 @@ static void btusb_mtk_claim_iso_intf(struct btusb_data *data)
+ 	}
+ 
+ 	/*
+-	 * The function usb_driver_claim_interface() is documented to need
+-	 * locks held if it's not called from a probe routine. The code here
+-	 * is called from the hci_power_on workqueue, so grab the lock.
++	 * Disconnect holds the device lock while draining this setup work, so
++	 * the lock must be taken with disconnect-aware acquisition. Hold a PM
++	 * reference so the device cannot suspend first. A slow interface
++	 * registration can keep the lock past the one-second limit of a single
++	 * attempt, so retry a few times, but not without bound: a teardown
++	 * that holds the lock may be waiting for this work.
+ 	 */
+-	device_lock(&btmtk_data->isopkt_intf->dev);
+-	err = usb_driver_claim_interface(&btusb_driver,
+-					 btmtk_data->isopkt_intf, data);
+-	device_unlock(&btmtk_data->isopkt_intf->dev);
++	err = usb_autopm_get_interface(data->intf);
++	if (!err) {
++		for (i = 0; i < BTUSB_MTK_ISO_LOCK_TRIES; i++) {
++			err = usb_lock_device_for_reset(data->udev, data->intf);
++			if (err != -EBUSY)
++				break;
++		}
++		if (!err) {
++			err = usb_driver_claim_interface(&btusb_driver,
++							 btmtk_data->isopkt_intf,
++							 data);
++			if (!err) {
++				init_usb_anchor(&btmtk_data->isopkt_anchor);
++				set_bit(BTMTK_ISOPKT_OVER_INTR,
++					&btmtk_data->flags);
++			}
++			usb_unlock_device(data->udev);
++		}
++		usb_autopm_put_interface(data->intf);
++	}
+ 	if (err < 0) {
+ 		btmtk_data->isopkt_intf = NULL;
+ 		bt_dev_err(data->hdev, "Failed to claim iso interface: %d", err);
+-		return;
+ 	}
+-
+-	set_bit(BTMTK_ISOPKT_OVER_INTR, &btmtk_data->flags);
+-	init_usb_anchor(&btmtk_data->isopkt_anchor);
+ }
+ 
+ static void btusb_mtk_release_iso_intf(struct hci_dev *hdev)
+diff --git a/drivers/usb/core/driver.c b/drivers/usb/core/driver.c
+index d3a61ebc6afb0..262502642ca98 100644
+--- a/drivers/usb/core/driver.c
++++ b/drivers/usb/core/driver.c
+@@ -584,8 +584,11 @@ int usb_driver_claim_interface(struct usb_driver *driver,
+ 	/* if interface was already added, bind now; else let
+ 	 * the future device_add() bind it, bypassing probe()
+ 	 */
+-	if (device_is_registered(dev))
++	if (device_is_registered(dev)) {
++		device_lock(dev);
+ 		retval = device_bind_driver(dev);
++		device_unlock(dev);
++	}
+ 
+ 	if (retval) {
+ 		dev->driver = NULL;
+@@ -649,6 +652,26 @@ void usb_driver_release_interface(struct usb_driver *driver,
+ }
+ EXPORT_SYMBOL_GPL(usb_driver_release_interface);
+ 
++/*
++ * The driver core refused to bind an interface that a sibling claimed before
++ * it was registered, and dropped the claim. Let the claimant release the
++ * interface instead of operating it with a bound interface but no driver.
++ */
++void usb_driver_release_refused_claim(struct usb_interface *iface,
++				      struct device_driver *claimant)
++{
++	struct device *dev = &iface->dev;
++
++	device_lock(dev);
++	if (!dev->driver && iface->condition == USB_INTERFACE_BOUND) {
++		dev->driver = claimant;
++		usb_unbind_interface(dev);
++		dev_set_drvdata(dev, NULL);
++		dev->driver = NULL;
++	}
++	device_unlock(dev);
++}
++
+ /* returns 0 if no match, 1 if match */
+ int usb_match_device(struct usb_device *dev, const struct usb_device_id *id)
+ {
+diff --git a/drivers/usb/core/message.c b/drivers/usb/core/message.c
+index a738d03c23eac..d35a7710c8ef4 100644
+--- a/drivers/usb/core/message.c
++++ b/drivers/usb/core/message.c
+@@ -2264,6 +2264,7 @@ int usb_set_configuration(struct usb_device *dev, int configuration)
+ 	 */
+ 	for (i = 0; i < nintf; ++i) {
+ 		struct usb_interface *intf = cp->interface[i];
++		struct device_driver *claimant;
+ 
+ 		if (intf->dev.of_node &&
+ 		    !of_device_is_available(intf->dev.of_node)) {
+@@ -2277,7 +2278,14 @@ int usb_set_configuration(struct usb_device *dev, int configuration)
+ 			dev_name(&intf->dev), configuration,
+ 			intf->cur_altsetting->desc.bInterfaceNumber);
+ 		device_enable_async_suspend(&intf->dev);
++		claimant = intf->dev.driver;
++		if (claimant && !try_module_get(claimant->owner))
++			claimant = NULL;
+ 		ret = device_add(&intf->dev);
++		if (!ret && claimant && !intf->dev.driver)
++			usb_driver_release_refused_claim(intf, claimant);
++		if (claimant)
++			module_put(claimant->owner);
+ 		if (ret != 0) {
+ 			dev_err(&dev->dev, "device_add(%s) --> %d\n",
+ 				dev_name(&intf->dev), ret);
+diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
+index a9b37aeb515be..293340a48b6c5 100644
+--- a/drivers/usb/core/usb.h
++++ b/drivers/usb/core/usb.h
+@@ -49,6 +49,8 @@ extern int usb_set_isoch_delay(struct usb_device *dev);
+ extern int usb_get_bos_descriptor(struct usb_device *dev);
+ extern void usb_release_bos_descriptor(struct usb_device *dev);
+ extern int usb_set_configuration(struct usb_device *dev, int configuration);
++void usb_driver_release_refused_claim(struct usb_interface *iface,
++				      struct device_driver *claimant);
+ extern int usb_choose_configuration(struct usb_device *udev);
+ extern int usb_generic_driver_probe(struct usb_device *udev);
+ extern void usb_generic_driver_disconnect(struct usb_device *udev);
 
-Best regards,
---  
-Leon Romanovsky <leonro@nvidia.com>
+-- 
+2.56.0
 
