@@ -1,84 +1,68 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793885254;
-	b=XtOptqmvAPKbfSDERbXweLGnAYI6Y0l/giP0JNGM3pGbPRmuI0bI+0EwIXuxpn+y06tq
-	 83OxUYTzZ8Z1LYttnSjLdUNwv1GPwj0pPjRJ/wegTQI3iPl3LRmjbziFzxQqcAyeLyTUl
-	 /l6GjpInOgHNlnQZ9nGRVpi3HHNJCj5CBZQJ+mbO/npSOTywhcfbfKRTMQSGdJBvdMoD5
-	 68D5znBQBrKMpvaljmK7VD8XRICua8J84/fDf1DpwCWaBsW/9UgjCNDAM2yl4eHbVBTfq
-	 X7s0VnjEglBurqzOTuBUWOu8OgrIbz4yuPKX0u1IXZbEhI/KA5w3NM+yPMdr8age6LQ==
+	t=1793885494;
+	b=2P2U7YSPpTqHIZrbB3MdfyLq5fBD7kOwo6ZWUXmLfiFPYd1a3xPTHoWL5Vkw7+L1ekdI
+	 4CMWXJsj4mtxGchc2U9W0sTEzIp/2YDz0j/kZ/Sm+LtIMu9iuj0elMQY7L7aU3RmHQSo5
+	 0Btp7k2oHE55eMn0HtZdd95FTIN4gCy2nfVOb8rl6+NcF65ejAxuGkH0hHqaurvJzRtRv
+	 qxQKmMPxHbKfT1/uJRZeACfdrEQ9GIqXtow0WvGqJr8wFoGvmR7tDgFUTkRHTa1YkkT6c
+	 kEzTjloMm0tQj1qlgicPhMKuHVXY3mXAyzy0tIi3dJSTX/7W5aS36tL58CvS9PLTQCw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793885254;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793885494;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=XrBQYJBKmN4p93auIZi3LsTAkyZ/pnTV+pc9s6RclDY=;
-	b=JliHrWjXpNiORv2vpVcgmX5Zm4u+cQw+Q+6Rp/kemFSm+2zdoek/iY0CmtXyzAtXWWiu
-	 YWkIm+A3RCukWHUKl43X7bGf3EeDQwsK6+kU1496fbD5/aMEbe87VyTcBrQbuE/G2i2Be
-	 fVLtjp2IVHTKXsoiC5TmnfsNAj8Um0N0vh14jbQei/X8+RA5ZEiya74txkMglbWMI3D/m
-	 Gz2JcSIUA9H/cltJvipwvbXEcUsIQTyYxWyY6GTKtnulDALj+c2+PYDSLco8PuHJpdsAP
-	 sp9X0GHiUREV49h8CmGQT1zVCvLk3SL0SA6fJ9hsptEFiumbaThqf15wHFhQe6WtV0w==
+	bh=/QvKnUG4iFq+pg6e/pJ49FqAE2AbwcrtIOiNlhBH95A=;
+	b=JJDJneMRcizz/GuuZdD0K2wcTDZPWp4eVG72ofqPUJ/GH9vM4k0lZWiM4FiPJXullIas
+	 pNn/px8bVoFbx8M7p98xyhbAgPolfyTSo4SOGqSbWzt6/4UieYpVL3U9/YeR5vJzzkPsI
+	 YXywrSXi+/HFsu3+Wqtv6u+JyiZDEYJWTBURnnwy8C88+izvzdJgQU43mdZb0/I7rnzEj
+	 CuvUsXMTBj5HWwvLp8lc/TR83SPF2j40W2/Cz4zMrMbG4wAywn4sYRFCV5Q3XySroyVf1
+	 3xx7BkzVTmdNalz6gprXSllgtHRvSZdYsgyg123IL/MyBQwsQEkShP4U8OwgzjxEshg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JK2Ti1jA;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ws1hHqpC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3E7F606A326;
-	Thu,  5 Nov 2026 13:27:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DF3C606A328;
+	Thu,  5 Nov 2026 13:31:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JK2Ti1jA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 817331F00919;
-	Thu,  5 Nov 2026 13:27:32 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ws1hHqpC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A4171F000C1;
+	Thu,  5 Nov 2026 13:31:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793885253;
-	bh=XrBQYJBKmN4p93auIZi3LsTAkyZ/pnTV+pc9s6RclDY=;
+	s=k20260515; t=1793885494;
+	bh=/QvKnUG4iFq+pg6e/pJ49FqAE2AbwcrtIOiNlhBH95A=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=JK2Ti1jA3utWAgrt6V4JUS7tslRWfNukRCd+/Vzfz7h/q0E1p8+7S8luP+VD4LAYD
-	 7SihzxrgOYXG8U0cQ7JZFx8YFxMoxO/yFemOAtRTazaDhuvYkS0K35sZZ0c3s+KU2o
-	 lM6rj29uyaswnmyP6F68EXwCsjKUiAKcRePanEbxomxutU+3yS3tkA3/QIf9brzDLh
-	 aiNB6ftZI1eeCWp3rSN9ZCx71+gQ3tsIMQUMJPinxAtG4Td8DrMeMVL0JEQVRFNoEM
-	 Rzz4qv5TtVwT799y7DIPLtMhY+Cx4FCS0D2NLbvyTBY2Aw7zKpeILiQrBovRfpIO9t
-	 OsoSWUhj/O7qA==
-Date: Thu, 5 Nov 2026 15:27:29 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Heiner Kallweit <hkallweit1@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
-	Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Lu Baolu <baolu.lu@linux.intel.com>,
-	Johan Hovold <johan@kernel.org>, Eric Dumazet <edumazet@kernel.org>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-	Nipun Gupta <nipun.gupta@amd.com>,
-	Nikhil Agarwal <nikhil.agarwal@amd.com>,
-	Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
-	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-input@vger.kernel.org, netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-pci@vger.kernel.org,
-	iommu@lists.linux.dev, Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 10/17] driver core: Expose device trust authorization
- through sysfs
-Message-ID: <20261105132729.GB8298@unreal>
-References: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
- <20261105-device-trust-core-v1-10-1e536825b4eb@nvidia.com>
- <2026110514-bunkhouse-handset-6a3a@gregkh>
+	b=Ws1hHqpCrTO3vv5+xWSpKi1W3FzvYwAnjHo7ZBri+xFew3S/iI+cg+vaLDpwRX4Bq
+	 7CH55eaByLgICZl7qi4fjM2FWC0dAz7vDsAicN5XTdy7H9aMIAAut0u2LoqDOF0kcC
+	 qCcUi4Q2GjAQWl+Zxb6je9rfvn6D4UylfxObtecabLBvOk5dz+OzpM2go58G+puAzL
+	 2jPeQsLvvjE/3CRV8jGtCR8s4rMoyzf0+UCKnZHc6okGrT2VzObWstYJpBUnNr19x1
+	 DhUau/mWTXC4er4D5cHYEemg2gy+4t9OgFaQVk8yQ7Y6RO4oWngYTJlems/uva3Y3a
+	 ep/1AInJyJiEw==
+Date: Thu, 5 Nov 2026 14:31:31 +0100
+From: Thierry Reding <thierry.reding@kernel.org>
+To: Sudeep Holla <sudeep.holla@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, 
+	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	"Rafael J . Wysocki" <rafael@kernel.org>, arm <arm@kernel.org>, soc@kernel.org, 
+	Jon Hunter <jonathanh@nvidia.com>, linux-tegra@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	Lorenzo Pieralisi <lpieralisi@kernel.org>, Hans de Goede <hansg@kernel.org>, 
+	Jonathan Cameron <jic23@kernel.org>, Mika Westerberg <westeri@kernel.org>, 
+	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, James Morse <james.morse@arm.com>, 
+	Ben Horgan <ben.horgan@arm.com>, Sizhe Liu <liusizhe5@huawei.com>
+Subject: Re: [GIT PULL 4/7] firmware/tegra: Changes for v7.4-rc1
+Message-ID: <aux_4NxiWvD9uVev@orome>
+References: <928b3eaf-32da-43a9-9ca5-d59ef8a3b330@app.fastmail.com>
+ <auslF5pwDHtcNoCy@orome>
+ <bcad1d7e-387d-4251-8974-7f0dcd2f9734@app.fastmail.com>
+ <autADOKsSVVMn6r9@orome>
+ <CAJZ5v0iyaHGj2b7H8g0nqrxvz8GpXiE6hkVp9RM7KF+KDckjrA@mail.gmail.com>
+ <autmcaraWcXIoRfZ@ashevche-desk.local>
+ <20261104161125.00000523@oss.qualcomm.com>
+ <20261105-inventive-partridge-of-maturity-793a2e@sudeepholla>
+ <8f45711b-d415-4694-a47a-12d4b7427e0f@app.fastmail.com>
+ <20261105-quizzical-wine-oryx-e6f91a@sudeepholla>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -88,102 +72,157 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="z7tak3mo2ipp6x3b"
 Content-Disposition: inline
-In-Reply-To: <2026110514-bunkhouse-handset-6a3a@gregkh>
+In-Reply-To: <20261105-quizzical-wine-oryx-e6f91a@sudeepholla>
 
-On Thu, Nov 05, 2026 at 08:10:14AM -0500, Greg Kroah-Hartman wrote:
-> On Thu, Nov 05, 2026 at 01:42:23PM +0200, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@nvidia.com>
-> > 
-> > An initrd must authorize a disabled device after attestation even if a
-> > built-in driver already attempted to probe it.
-> > 
-> > Expose requested trust_policy and read-only active trust. Allow explicit
-> > disabled policy to advance once to adversary or full, fixing that decision
-> > immediately. Reject later policy changes, including for a device claimed
-> > before registration, while allowing same-value writes on live devices.
-> > Keep initial unrestricted selection separate from explicit authorization
-> > and bind-time commitment. Serialize writes with probing under the device
-> > lock. Include the attributes in device ownership changes.
-> > 
-> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> > ---
-> >  Documentation/ABI/testing/sysfs-devices-trust |  51 +++++++++++++
-> >  MAINTAINERS                                   |   1 +
-> >  drivers/base/base.h                           |   6 ++
-> >  drivers/base/core.c                           |  15 +++-
-> >  drivers/base/trust.c                          | 102 ++++++++++++++++++++++++++
-> >  5 files changed, 174 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/Documentation/ABI/testing/sysfs-devices-trust b/Documentation/ABI/testing/sysfs-devices-trust
-> > new file mode 100644
-> > index 0000000000000..97e07a174769c
-> > --- /dev/null
-> > +++ b/Documentation/ABI/testing/sysfs-devices-trust
-> > @@ -0,0 +1,51 @@
-> > +What:		/sys/devices/.../trust
-> > +Date:		September 2026
-> > +Contact:	driver-core@lists.linux.dev
-> > +Description:
-> > +		(RO) The active trust level for the device. The values are
-> > +		"disabled", "adversary", and "full". Driver core resolves
-> > +		the level before DMA configuration and probe, and retains it
-> > +		through removal and DMA cleanup. Outside a bind transaction
-> > +		the level is "disabled". This does not imply that policy is
-> > +		writable or that the device has never operated.
-> > +
-> > +What:		/sys/devices/.../trust_policy
-> > +Date:		September 2026
-> > +Contact:	driver-core@lists.linux.dev
-> > +Description:
-> > +		(RW) The requested trust policy for the device. The initial
-> > +		value may be selected by the bus before the device is
-> > +		registered; otherwise it is "default". The policy is resolved
-> > +		to an active trust level before the device is probed.
-> > +
-> > +		The values are "default", "disabled", "adversary", and
-> > +		"full". "default" lets the bus select the active trust level.
-> > +		"disabled" prevents a functional driver from binding.
-> > +		"adversary" requests operation with the restrictions that the
-> > +		bus and DMA layers can enforce for a potentially malicious
-> > +		device; it does not isolate DMA by itself. "full" requests
-> > +		normal operation.
-> > +
-> > +		Before an operating level is committed, policy may change
-> > +		freely until "disabled" is selected. Explicit "disabled"
-> > +		blocks binding while allowing a later write of "adversary" or
-> > +		"full". Repeated rejected probes preserve this opportunity.
-> > +		Authorization immediately fixes the requested policy.
-> > +		Returning to "default" or "disabled", or selecting another
-> > +		mode, fails.
-> > +
-> > +		Successful resolution to an allowed level commits policy
-> > +		and operating level before driver or DMA setup. Both remain
-> > +		fixed for the device object's lifetime, including through
-> > +		failed or deferred probes, unbind, reset, and driver reload.
-> > +		Later binds must resolve to the same level, including when
-> > +		the policy is "default". A resolver error or disabled result
-> > +		before commitment leaves the policy's writability unchanged.
-> 
-> I understand you are aproaching this from a PCI point-of-view, but many
-> busses do not care or have DMA at all, and need to actually talk to the
-> device before being able to even "add" it to the kernel.  So you are
-> making a driver core-specific policy based on mentioning DMA here, when
-> really that should only be a bus-specific thing, right?  Some busses
-> might require DMA to happen (i.e. USB needs their host controllers to
-> use DMA to even talk to the device at all).
-> 
-> So can this be written to be more vague and generic and then put the
-> specifics in the bus-specific portion?
 
-Yes, of course. The main point is that drivers must not communicate with
-or configure hardware before attestation is approved. DMA is the PCI
-way to communicate with hardware.
+--z7tak3mo2ipp6x3b
+Content-Type: text/plain; protected-headers=v1; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [GIT PULL 4/7] firmware/tegra: Changes for v7.4-rc1
+MIME-Version: 1.0
 
-Thanks
+On Thu, Nov 05, 2026 at 10:23:24AM +0000, Sudeep Holla wrote:
+> On Thu, Nov 05, 2026 at 10:54:42AM +0100, Arnd Bergmann wrote:
+> > On Thu, Nov 5, 2026, at 10:30, Sudeep Holla wrote:
+> > > On Wed, Nov 04, 2026 at 04:11:25PM -0800, Jonathan Cameron wrote:
+> >=20
+> > >> 1) Basic stand alone driver stuff.  Mostly that's all pretty standard
+> > >>    and follow the specs where possible.  If there are gaps start ask=
+ing
+> > >>    questions. Linux definitely  doesn't support all the stuff that h=
+as been
+> > >>    added to the spec in recent years.  So this covers things like re=
+gister
+> > >>    addresses, interrupts etc.  All fine, hopefully a subsystem maint=
+ainer
+> > >>    can take a look and will have enough of any idea.  If not ping th=
+e folk
+> > >>    on this thread for help.  Things are a bit flexible for consumer =
+type
+> > >>    devices where fixed and bodges are common, generally less so if i=
+t is
+> > >>    server grade hardware.
+> > >>=20
+> > >> 2) Stuff that is an ACPI spec gap or place where we'd expect general=
+ization.
+> > >>    There are several examples of this on list this week and a few mo=
+re in
+> > >>    my inbox.  The particular series here might fall into this catego=
+ry.
+> > >>    I've not figured out enough of the details yet to say definitivel=
+y.
+> > >>=20
+> > >
+> > > Nicely summarised or categorised Jonathan. Nothing much to add.
+> >=20
+> > +1
+> >=20
+> > >> I'd also expect a driver using AML as the target interface to either
+> > >> point at a published spec doc, or to include some snippets
+> > >> of the AML - that can be a lot easier to read than the driver code
+> > >> (imagine reading DT by only looking at how drivers parse it).
+> > >>=20
+> > >
+> > > Ideally, it should be just HID that any vendor needs to publish unless
+> > > they make use of any custom methods or something device specific like
+> > > DSD/DSM. I would expect most of the devices to use standard methods a=
+nd
+> > > properties that are already well defined in the ACPI spec.
+> >=20
+> > >> Given that has new ABI etc, I'd expect that to have gotten broader r=
+eview
+> > >> as well.  Probably keeping it to linux-tegra and lkml alone wasn't
+> > >> going to result in anyone noticing!
+> > >>=20
+> > >> https://lore.kernel.org/all/?q=3D20260929095915.2215685-1-anrao@nvid=
+ia.com
+> > >>=20
+> > >
+> > > Agreed, it shouldn't hurt to cc linux-acpi for such driver ACPI enabl=
+ement
+> > > patches.
+> >=20
+> > Is the "BMRQ" in
+> > https://lore.kernel.org/all/20260929095915.2215685-3-anrao@nvidia.com/
+> > a custom method then?=20
+> >=20
+>=20
+> I=E2=80=99ve quickly reviewed the patch; it does implements a custom meth=
+od BMRQ
+> rather than a standard or out-of-the-box solution. More details on this is
+> used based on my understanding below.
 
-> 
-> thanks,
-> 
-> greg k-h
+To get everyone on the same page: in a nutshell, BPMP is a separate
+processor that handles various aspects of power management (Boot and
+Power Management Processor). The CPU communicates with it over a shared
+memory region and a mailbox/doorbell for signalling.
+
+> > How does this relate to the EC and PCC interfaces in ACPI systems?
+> >=20
+>=20
+> I am still evaluating how the BPMP driver is intended to operate on ACPI
+> systems. In the meantime, I share the same questions noted above. The cur=
+rent
+> commit message lists several driver features that may not be required for
+> ACPI, which has introduced some clarity issues regarding the intended des=
+ign.
+
+My understanding is that an ACPI systems, as opposed to DT where we do
+this all through kernel drivers, the inter-processor communication is
+done via AML. This is because standard power management operations use
+this same mechanism to enable clocks, deassert resets, etc.
+
+> > In current mainline, I see that the bpmp driver is used on DT systems
+> > by the tegra specific cpufreq, memory and pci drivers, but I would
+> > expect that on ACPI those all use shared drivers. Are there any other
+> > users that are not already covered on ACPI?
+> >=20
+>=20
+> For ACPI systems, CPUFreq operates through CPPC via PCC, MEMIO, or
+> supported backends.
+>=20
+> My understanding is that the BMRQ method is called by tegra_bpmp_transfer=
+(),
+> which supports Tegra-specific drivers for power domains, clocks, resets,
+> I2C, PCIe, and memory. On ACPI, these can be abstracted through PCC
+> OpRegions as part of standard methods like _ON/_OFF or other device state
+> methods. Although device/memory DVFS is trickier since the ACPI
+> specification lacks standard methods for it today, the commit message
+> implies these components are largely unused on ACPI systems.
+
+I think this goes back to the disconnect from the patch thread and
+earlier in this discussion: the intent was very much to encapsulate all
+the power management within standard ACPI methods, and that's working
+fine, hence why clocks, resets and power domains are not getting exposed
+on ACPI systems.
+
+However, there's no equivalent in ACPI to expose these MBWT knobs, hence
+the need to expose this through BPMP directly.
+
+Thierry
+
+--z7tak3mo2ipp6x3b
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAmrshTAACgkQ3SOs138+
+s6F/FA/+ObQrZtsqOmcyTIJjG1fJSEbJOLpkQwiKNY62NJ38g6XFAQhHDquZK7fU
+Q8zZA0rub/mrtVypRyvKH4aVCdFSRd1g6aCSbTa7P46GPlk+aqwqWiZTLFVQOMXN
++/aHuJvK7hh98Bz0FJl6uElcDjGG9+DkSThb7wMiqnqXCT/+Nn6FlqDpAMmobiby
+MrY+FwU4LI4LApngp1EhEmA79HuuoRfPZwPgOXvcuT4W8Mp/fX2ObKHcbrjUWh/F
+KQRcI+/6yemzKGUUn77IDoSm3BcYoFpMSoT17pToEjGnLMw8OIIJgetGCwY1Vo0O
+luXnMzylpJ5Dv9b5PtOhayc3RMjXXNGVpjeiZYTmkCXpd6gpNbYJL3h1hoRoEWad
+t0ETWzP7TAdkVocXmZwo65U7vI6E+1DgXgE6FDTJUaCPQpvNcAlwWlUFF3X2Mh0L
+dMLkX8ywPdGb0z3/J70LVwwn2F0lbKfbYTRkHTi829x3iJXbQ1MK2llCCm58gBwz
+7MjwrYHFZmiCGWFqjYAADDmAaYR11PMRlSkJjWdaURIgtyugFSuE4MzFY7RoIdNd
+jtbxlWsiaM8FKd79mBUA6uCSWLb2VTbpJc6mkA7notTGmApThOfPi8r9sn4W2Drj
+X5ZBqtAzUt/qlKjMrQ08k3zYg+4QMddSGiwTk47KF6qoZNJ/YLk=
+=QkJC
+-----END PGP SIGNATURE-----
+
+--z7tak3mo2ipp6x3b--
