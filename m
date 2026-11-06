@@ -1,55 +1,59 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793977131;
-	b=rWyBsZegD2gxEjR1z0HY/CivTs78mlCEEpu9oeIbd0tXA81p9sg3kcsQKVhJ3e2SPcVj
-	 kOZedYHgndr3RgGj8vLfH+EJNhdwFsHE0LmTSBY8pRD74rqFooz6ZH2x+e66HRxIem/43
-	 wJoX6YViaXElQNftpbu4FAmul2r0gPgIZ10gGzzLnDN9rWtYr9hCvXOO7df9VEsgkrIB2
-	 vDetEl3mYvwWmdRfo7XSTsqp97CCp2wKCADutjp0te/pI/4kFKMzJ+OzgF4YeRg8n+TqW
-	 dDOV4M/fVqPocimya7dFkn1lp4MMecvP4GoHn+UCD45z2OjRMWIF2GJXzOzpKg3NHow==
+	t=1793977526;
+	b=vIMSd+x00t8k4jFURaQHw0i4u/boNDB25O+PDkZSLdv4hIBGMk+OWK5JotDunB5ifOpm
+	 LX9P/wcCROEprWebb382PiR2fh67WyXe69RmX5gO9r8ay9jyLNO7YuDmj3RVwuK875l5I
+	 CIH9B/1b+oS0Z62t6DeMWU79Be5GObONkr/DvGZnKzUKgJ5u6QdoqoOVO/8uJIfTFZW7B
+	 U+7po6wjUQ0f+cd6nIZgSFjE7w/nR68qIssKRNwMxcqN057jS6Ef0bfuCWDJtHs3RyJK7
+	 hG84Agb7OXkU0Zx85OHfjlnHKPURvP7qgl3V2vHg5as7bKJnIzjyTpB0OBlBgT9DlnA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793977131;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=XEalOsXN3Dev0rHb+5Zu8ZzbpTD7rK6WayG4C7CI4C4=;
-	b=a/AkgF54hct/ES1KJNN/8JSYjjsJuzl2SN1baicIK1ZtXo2NNr5tI+fCwAIV3E4UUZ5E
-	 ekasr+GNbWaJ59Xui+a32WGHnJe7NngcgJ9cowjw9dCHlNDKjw+/cythT1CiU2Lyg7Zl1
-	 dPj3LuluH5rgSqxwElh2lStsOu9NCuG3xM9T01cg6jdpXN3PiVzRNjnfdANksPKC0yF+o
-	 SNpR4GPcbhECW4Nc0pWz6N80D7rVriAAVD7qDIZz5fyRk5SGjM+cxAJf4OOJK5/kKU7Gv
-	 zfFO0RUFNlbmOcZIi9wj5o6eHfHh6jx3UFwsHuBBg72MhObljKwyYDISrBpCIxRkTtw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793977526;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 Organization:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:Content-Type;
+	bh=kgWH+ZaY7YxlLwuecxh9TBeKb0KjZCnaIXv+R7Uat6k=;
+	b=gxv1h0eA9ZHtNC+570FCt+cfjDY9MYwGb0enYSQmvcesHmKybxVplmsNPYkEkrHjlnRl
+	 dI1woeh97ZfBhApYTITvQSuVbJWliPeAozuX4GjktaqdDodntHLY875EVpfCGhZlxZ9bl
+	 iIOV7rRxWltaU9xUDjmwY2qyL1FlVu4xCVNJ1mL6b0Xih3nllAWKrEXR9Z3n/IpCbpg7T
+	 IvQepq0mK4z6roymihmP+GrDV+KBRAjSPuEr4FaCwpntR0qtIo369VxEaVW+ZhOSmDnFu
+	 i6N3drrmS44myWSELbkm003zqJRtGncX6oAwFtKjl/BYehMJFrxJXGkk08FmXgOTo0A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UN1zk4Up;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KqeiG6q5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8122606A32E
-	for <linux-acpi@vger.kernel.org>; Fri,  6 Nov 2026 14:58:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C7AE606D822;
+	Fri,  6 Nov 2026 15:05:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UN1zk4Up
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5813A1F008A7
-	for <linux-acpi@vger.kernel.org>; Fri,  6 Nov 2026 14:58:50 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KqeiG6q5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90C8C1F008A2;
+	Fri,  6 Nov 2026 15:05:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793977130;
-	bh=XEalOsXN3Dev0rHb+5Zu8ZzbpTD7rK6WayG4C7CI4C4=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=UN1zk4Uphe5CdaTHvBnATH/qAbECMB+wDcg5c7jQfY83OidxuC6MXhLoNJ/DwDtWS
-	 oLZXPFZx2caD+67L5pPpp5DATkI5kTxdVgAKIgKQ3GD7PLkfIGhQw5Tc8uDjl/JgIY
-	 W4i2iI2rCfl8zo7EHzy/sq2Ii5loj74rKah/JNf8nIF4vH0UtnVuf47eQ0bFFDgMDv
-	 WVGIxhCAXIkmlMTcJnMIyOLGqxmuy/qsIeQElbHwp2V8r/4lGwB9qzrR0U2QmYPsuA
-	 knyAEytypGzLhPULxb5+wPBpWMYrEmeCCwdkieEaKm/rR8j8bIDKXGASOQRJm4ThRo
-	 m5qgqdTDsuftQ==
-Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-6b4bd3d98bfso789353a12.1
-        for <linux-acpi@vger.kernel.org>; Fri, 06 Nov 2026 06:58:50 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErEkrOm8w5edLWI//dVz1S6aUkL3oeBRUHBKD5aJvIN67kMW5dcmvBD/sjriYKAH4eBJyPl+XEtZgKiK@vger.kernel.org
-X-Gm-Message-State: APuU4Z+KD3xof0iGpoVaFR+lN/G6zNAVSdArSjmOiqLxytc1RelWSVIK
-	bmtnbK9G+FXAJPkE+543FYSZPmsVHF0TI4bO/+QSFxlDmy182wbK8/q0t9LdLDocVyo/eH/N/QC
-	eJvYlrbg9LBY3Vfw1463aQVI2okmb1Gg=
-X-Received: by 2002:aa7:d34e:0:b0:6b5:8cf6:18aa with SMTP id
- 4fb4d7f45d1cf-6b597816c51mr1300269a12.45.1793977128939; Fri, 06 Nov 2026
- 06:58:48 -0800 (PST)
+	s=k20260515; t=1793977526;
+	bh=kgWH+ZaY7YxlLwuecxh9TBeKb0KjZCnaIXv+R7Uat6k=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=KqeiG6q54+X2K0PAKzSxquCv03mcgDUWo8m+5GvmhY/+l/M8miW6/I17G+gpZgXoX
+	 aza4iFS6/D98m0dTbtoidRWsj0SAeu1UWJHKJ0pShP1t6WGZUfWRSSkaaUw3dvSKjI
+	 KxDFm/O9s7fBDT72pF2FvvaPOZ75smM9LAnOmog/Dy4eLvvKmgP5uDFfA7ybBW2TLv
+	 c55KwiV4IbFh3o6rSDaB8hNyujJbPWwB54MckSfiaDikyKcuHd0eQ2pkJHyFCRO0hj
+	 XYk2huni3KaemjI0lLYB8JyJlmhbc/ZL2hO0a3pHpDeMiFfY6+pAIxxJDiOUNphEOt
+	 CD2rc87NoungA==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux PM <linux-pm@vger.kernel.org>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>,
+ Christian Loehle <christian.loehle@arm.com>,
+ Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>,
+ Linux ACPI <linux-acpi@vger.kernel.org>,
+ Vincent Donnefort <vincent.donnefort@arm.com>
+Subject:
+ [PATCH v1 2/2] cpufreq: Fix updates of cached resolved frequency and index
+Date: Fri, 06 Nov 2026 16:05:06 +0100
+Message-ID: <3472677.aeNJFYEL58@rafael.j.wysocki>
+Organization: Linux Kernel Development - Intel
+In-Reply-To: <5176274.31r3eYUQgx@rafael.j.wysocki>
+References: <5176274.31r3eYUQgx@rafael.j.wysocki>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,229 +63,148 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20260922121058.972734-2-maobibo@loongson.cn> <10bd45f8-2d37-42f0-b7d2-a4a84933c9b3@loongson.cn>
- <CAAhV-H7Vq2ayLJNLRSo5RRiWOcmF2BXT_QOhEDg_jWOzYteqWw@mail.gmail.com>
- <6f8a9203-6fb1-268a-8d37-37e69fbf2ee9@loongson.cn> <CAAhV-H5k8EJrAuqPH44y_+1gcXGCjCoozzK5ii9cLtiLDj5eog@mail.gmail.com>
- <66b9d482-d577-748c-729d-0fba70701d3d@loongson.cn> <CAAhV-H6PL6RLM3KA4BLQEt804FnsDE4CtKeB0KaW7Gj8rm2PMw@mail.gmail.com>
- <843a9418-2017-c2c6-45c5-38628e7e0bdb@loongson.cn>
-In-Reply-To: <843a9418-2017-c2c6-45c5-38628e7e0bdb@loongson.cn>
-From: Huacai Chen <chenhuacai@kernel.org>
-Date: Fri, 6 Nov 2026 22:58:38 +0800
-X-Gmail-Original-Message-ID: <CAAhV-H4O07hKyPJ8rTMo=vD=t+qFM7UAJOPDGZDVJ0Ti-gOdEQ@mail.gmail.com>
-X-Gm-Features: AclHuK_AEHK_XvIpwEC7N5JxRM5P9YdQztWX0TP-7vlsuAjfx-iuC3kJWfywbDw
-Message-ID: <CAAhV-H4O07hKyPJ8rTMo=vD=t+qFM7UAJOPDGZDVJ0Ti-gOdEQ@mail.gmail.com>
-Subject: Re: [PATCH v4 1/4] ACPICA: actbl2.h: Add bit constants of the Flags
- field in the IOVT IOMMU structure
-To: Bibo Mao <maobibo@loongson.cn>
-Cc: rafael@kernel.org, linux-acpi@vger.kernel.org, 
-	acpica-devel@lists.linux.dev, lenb@kernel.org, linux-kernel@vger.kernel.org, 
-	lixianglai@loongson.cn, loongarch@lists.linux.dev, 
-	maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 
-On Thu, Nov 5, 2026 at 7:22=E2=80=AFPM Bibo Mao <maobibo@loongson.cn> wrote=
-:
->
->
->
-> On 2026/11/5 =E4=B8=8B=E5=8D=886:31, Huacai Chen wrote:
-> > On Thu, Nov 5, 2026 at 5:49=E2=80=AFPM Bibo Mao <maobibo@loongson.cn> w=
-rote:
-> >>
-> >>
-> >>
-> >> On 2026/11/5 =E4=B8=8B=E5=8D=885:31, Huacai Chen wrote:
-> >>> On Thu, Nov 5, 2026 at 5:14=E2=80=AFPM Bibo Mao <maobibo@loongson.cn>=
- wrote:
-> >>>>
-> >>>>
-> >>>>
-> >>>> On 2026/10/23 =E4=B8=8B=E5=8D=883:59, Huacai Chen wrote:
-> >>>>> Bibo,
-> >>>>>
-> >>>>> Now I have applied this series but with some modifications, please
-> >>>>> double check and test the code.
-> >>>>>
-> >>>>> https://git.kernel.org/pub/scm/linux/kernel/git/chenhuacai/linux-lo=
-ongson.git/log/?h=3Dloongarch-next
-> >>>> In my v4 submit, it is:
-> >>>> +               case ACPI_IOVT_DEVICE_ENTRY_START:
-> >>>> +                       is_start =3D true;
-> >>>> +                       start_devid =3D ep->device_id;
-> >>>> +                       break;
-> >>>> however in rc1, it is modified as:
-> >>>>                    case ACPI_IOVT_DEVICE_ENTRY_START:
-> >>>>                            is_start =3D true;
-> >>>>                            entry->start_devid =3D ep->device_id;
-> >>>>                            break;
-> >>>> Here entry is not allocated and NULL pointer, it is allocated in
-> >>>> ACPI_IOVT_DEVICE_ENTRY_END switch case.
-> >>>>
-> >>>> I really do not know what is aid to modify it and let others to test=
-.
-> >>> Sorry, it's my fault.
-> >>>
-> >>> In theory I should point out the modification (eliminating the local
-> >>> variable start_devid) and refresh a new version. But we have no time
-> >>> to do this because when the first patch is merged into the ACPI repo
-> >>> it is near the merge window.
-> >> Maybe our work style is different, I do not care much for the coding s=
-tyle.
-> >>>
-> >>> If you agree, I will submit such modifications to fix it.
-> >> fix is welcome.
-> >>>
-> >>> diff --git a/drivers/acpi/loongarch/iovt.c b/drivers/acpi/loongarch/i=
-ovt.c
-> >>> index 87cee4f0fc80..4cdac28a1fd0 100644
-> >>> --- a/drivers/acpi/loongarch/iovt.c
-> >>> +++ b/drivers/acpi/loongarch/iovt.c
-> >>> @@ -115,6 +115,10 @@ static int __init iovt_add_iommu(struct
-> >>> acpi_iovt_iommu *iommu)
-> >>>           for (i =3D 0; i < iommu->device_entry_num; i++) {
-> >>>                   switch (ep->type) {
-> >>>                   case ACPI_IOVT_DEVICE_ENTRY_START:
-> >>> +                       entry =3D kzalloc_obj(struct iovt_device_entr=
-y,
-> >>> GFP_ATOMIC);
-> >> There will be memory leak problem if there are START/START/END in the =
-table.
-> > That means a broken table? I think we don't need to consider broken
-> > tables, because there may be kinds of broken pattern rather than just
-> > a START/START/END.
-> yes, START/END/START, START/START/END, START/SINGLE/END. what is the
-> relationship between "don't need to consider" and kinds of broken pattern=
-?
->
-> what is the policy from your side with such BIOS table? let memory leak
-> and continue?
-The driver can only work with a good table or no table, but not with a
-broken table.
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Take START1/START2/END as an example of broken table: in your original
-code, the END entry will be pairing with START2. But for a broken
-table who can ensure they are the correct pair? If the real correct
-pair is START1 and END, then (entry->start_devid, entry->end_devid)
-will be a wrong device range. Such mistakes are much worse than a
-memery leak.
+The cached resolved frequency and index, cached_target_freq and
+cached_resolved_idx, respectively, may be updated concurrently if
+cpufreq_driver_resolve_freq() is called by the schedutil governor
+while cpufreq_set_policy() is running for the same policy.  Those
+concurrent updates are not synchronized in any way and the values
+written by cpufreq_set_policy(), if it wins the race, may confuse
+drivers using those policy fields [1].
 
-If you want to say "I don't care about correct pairing, memory leak is
-bad in any case.", OK, we can do it like this:
+To address this, use the observation that the only place where
+cached_target_freq and cached_resolved_idx need to be updated is
+cpufreq_driver_resolve_freq() because the only legitimate users of
+them are .fast_switch() driver callbacks.  Although cached_resolved_idx
+is also used in __cpufreq_driver_target(), that is in fact unnecessary
+and it is better to use a local variable for storing the frequency
+table index in that function.
 
-diff --git a/drivers/acpi/loongarch/iovt.c b/drivers/acpi/loongarch/iovt.c
-index 87cee4f0fc80..ebd11e22c9be 100644
---- a/drivers/acpi/loongarch/iovt.c
-+++ b/drivers/acpi/loongarch/iovt.c
-@@ -115,6 +115,13 @@ static int __init iovt_add_iommu(struct
-acpi_iovt_iommu *iommu)
-        for (i =3D 0; i < iommu->device_entry_num; i++) {
-                switch (ep->type) {
-                case ACPI_IOVT_DEVICE_ENTRY_START:
-+                       if (is_start)
-+                               break;
+Accordingly, rearrange __resolve_freq() and its callers so that
+cached_target_freq and cached_resolved_idx are only updated in
+cpufreq_driver_resolve_freq().
+
+The cached_target_freq initialization in cpufreq_set_policy() is still
+needed, but move it after stopping the old governor and before starting
+the new one to avoid racing with cpufreq_driver_resolve_freq().
+
+Fixes: f9ccdec24d91 ("cpufreq: Reuse cpufreq_driver_resolve_freq() in __cpufreq_driver_target()")
+Fixes: 151717690694 ("cpufreq: Make policy min/max hard requirements")
+Reported-by: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
+Closes: https://lore.kernel.org/linux-pm/20261105140357.1331894-1-zhongqiu.han@oss.qualcomm.com/ [1]
+Co-developed-by: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
+Signed-off-by: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
+Cc: All applicable <stable@vger.kernel.org>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/cpufreq/cpufreq.c |   31 ++++++++++++++++++++-----------
+ 1 file changed, 20 insertions(+), 11 deletions(-)
+
+--- a/drivers/cpufreq/cpufreq.c
++++ b/drivers/cpufreq/cpufreq.c
+@@ -477,7 +477,7 @@ EXPORT_SYMBOL_GPL(cpufreq_disable_fast_s
+ static unsigned int __resolve_freq(struct cpufreq_policy *policy,
+ 				   unsigned int target_freq,
+ 				   unsigned int min, unsigned int max,
+-				   unsigned int relation)
++				   unsigned int relation, unsigned int *idx_p)
+ {
+ 	unsigned int idx;
+ 
+@@ -487,9 +487,10 @@ static unsigned int __resolve_freq(struc
+ 		return target_freq;
+ 
+ 	idx = cpufreq_frequency_table_target(policy, target_freq, min, max, relation);
+-	policy->cached_resolved_idx = idx;
+-	policy->cached_target_freq = policy->freq_table[idx].frequency;
+-	return policy->cached_target_freq;
++	if (idx_p)
++		*idx_p = idx;
 +
-+                       entry =3D kzalloc_obj(struct iovt_device_entry,
-GFP_ATOMIC);
-+                       if (!entry)
-+                               return -ENOMEM;
-+
-                        is_start =3D true;
-                        entry->start_devid =3D ep->device_id;
-                        break;
-@@ -122,10 +129,6 @@ static int __init iovt_add_iommu(struct
-acpi_iovt_iommu *iommu)
-                        if (!is_start)
-                                break;
-
--                       entry =3D kzalloc_obj(struct iovt_device_entry,
-GFP_ATOMIC);
--                       if (!entry)
--                               return -ENOMEM;
++	return policy->freq_table[idx].frequency;
+ }
+ 
+ /**
+@@ -520,7 +521,10 @@ unsigned int cpufreq_driver_resolve_freq
+ 	if (unlikely(min > max))
+ 		min = max;
+ 
+-	return __resolve_freq(policy, target_freq, min, max, CPUFREQ_RELATION_LE);
++	policy->cached_target_freq = __resolve_freq(policy, target_freq, min, max,
++						    CPUFREQ_RELATION_LE,
++						    &policy->cached_resolved_idx);
++	return policy->cached_target_freq;
+ }
+ EXPORT_SYMBOL_GPL(cpufreq_driver_resolve_freq);
+ 
+@@ -2398,12 +2402,13 @@ int __cpufreq_driver_target(struct cpufr
+ 			    unsigned int relation)
+ {
+ 	unsigned int old_target_freq = target_freq;
++	unsigned int idx = 0;
+ 
+ 	if (cpufreq_disabled())
+ 		return -ENODEV;
+ 
+ 	target_freq = __resolve_freq(policy, target_freq, policy->min,
+-				     policy->max, relation);
++				     policy->max, relation, &idx);
+ 
+ 	pr_debug("CPU %u: cur %u kHz -> target %u kHz (req %u kHz, rel %u)\n",
+ 		policy->cpu, policy->cur, target_freq, old_target_freq, relation);
+@@ -2433,7 +2438,7 @@ int __cpufreq_driver_target(struct cpufr
+ 	if (!cpufreq_driver->target_index)
+ 		return -EINVAL;
+ 
+-	return __target_index(policy, policy->cached_resolved_idx);
++	return __target_index(policy, idx);
+ }
+ EXPORT_SYMBOL_GPL(__cpufreq_driver_target);
+ 
+@@ -2712,7 +2717,7 @@ static int cpufreq_set_policy(struct cpu
+ 	 * concurrently by cpufreq_driver_resolve_freq() during the update.
+ 	 */
+ 	freq = __resolve_freq(policy, new_data.max, new_data.min, new_data.max,
+-			      CPUFREQ_RELATION_H);
++			      CPUFREQ_RELATION_H, NULL);
+ 	if (freq != policy->max) {
+ 		WRITE_ONCE(policy->max, freq);
+ 		if (need_update_limits)
+@@ -2720,7 +2725,7 @@ static int cpufreq_set_policy(struct cpu
+ 	}
+ 
+ 	freq = __resolve_freq(policy, new_data.min, new_data.min, new_data.max,
+-			      CPUFREQ_RELATION_L);
++			      CPUFREQ_RELATION_L, NULL);
+ 	freq = min(freq, policy->max);
+ 	if (freq != policy->min) {
+ 		WRITE_ONCE(policy->min, freq);
+@@ -2732,8 +2737,6 @@ static int cpufreq_set_policy(struct cpu
+ 
+ 	cpufreq_update_pressure(policy);
+ 
+-	policy->cached_target_freq = UINT_MAX;
 -
-                        is_start =3D false;
-                        entry->end_devid =3D ep->device_id;
-                        list_add_tail(&entry->list, &np->ep_list);
+ 	pr_debug("new min and max freqs are %u - %u kHz\n",
+ 		 policy->min, policy->max);
+ 
+@@ -2759,6 +2762,12 @@ static int cpufreq_set_policy(struct cpu
+ 		cpufreq_exit_governor(policy);
+ 	}
+ 
++	/*
++	 * Initialize cached_target_freq while no governor is running to avoid
++	 * racing with cpufreq_driver_resolve_freq(), which updates it.
++	 */
++	policy->cached_target_freq = UINT_MAX;
++
+ 	/* start new governor */
+ 	policy->governor = new_gov;
+ 	ret = cpufreq_init_governor(policy);
 
-Huacai
 
->
-> >
-> > Huacai
-> >
-> >>
-> >> Regards
-> >> Bibo Mao
-> >>> +                       if (!entry)
-> >>> +                               return -ENOMEM;
-> >>> +
-> >>>                           is_start =3D true;
-> >>>                           entry->start_devid =3D ep->device_id;
-> >>>                           break;
-> >>> @@ -122,10 +126,6 @@ static int __init iovt_add_iommu(struct
-> >>> acpi_iovt_iommu *iommu)
-> >>>                           if (!is_start)
-> >>>                                   break;
-> >>>
-> >>> -                       entry =3D kzalloc_obj(struct iovt_device_entr=
-y,
-> >>> GFP_ATOMIC);
-> >>> -                       if (!entry)
-> >>> -                               return -ENOMEM;
-> >>> -
-> >>>                           is_start =3D false;
-> >>>                           entry->end_devid =3D ep->device_id;
-> >>>                           list_add_tail(&entry->list, &np->ep_list);
-> >>>
-> >>> Huacai
-> >>>
-> >>>>
-> >>>>>
-> >>>>> Huacai
-> >>>>>
-> >>>>> On Mon, Oct 12, 2026 at 3:16=E2=80=AFPM Bibo Mao <maobibo@loongson.=
-cn> wrote:
-> >>>>>>
-> >>>>>> This change is already merged in acpica tree.
-> >>>>>>
-> >>>>>> slightly ping.
-> >>>>>>
-> >>>>>> On Tue, Sep 22, 2026 at 08:10:55PM +0800, Bibo Mao wrote:
-> >>>>>>     > According to the IOVT specification, define macros for each =
-bit of the
-> >>>>>>     > Flags field in the IOVT IOMMU structure.
-> >>>>>>     >
-> >>>>>>     > Link: https://github.com/open-acpica/acpica/commit/352f750e4=
-cc0
-> >>>>>>     > Signed-off-by: Bibo Mao <maobibo@loongson.cn>
-> >>>>>>     > ---
-> >>>>>>     >  include/acpi/actbl2.h | 7 +++++++
-> >>>>>>     >  1 file changed, 7 insertions(+)
-> >>>>>>     >
-> >>>>>>     > diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-> >>>>>>     > index baef525367b5..76e4a5bc79b4 100644
-> >>>>>>     > --- a/include/acpi/actbl2.h
-> >>>>>>     > +++ b/include/acpi/actbl2.h
-> >>>>>>     > @@ -919,6 +919,13 @@ struct acpi_iovt_iommu {
-> >>>>>>     >       u32 device_entry_offset;
-> >>>>>>     >  };
-> >>>>>>     >
-> >>>>>>     > +/* Masks for Flags field above */
-> >>>>>>     > +#define ACPI_IOVT_IOMMU_PCI_DEVICE           (1<<0)
-> >>>>>>     > +#define ACPI_IOVT_IOMMU_PXM_VALID            (1<<1)
-> >>>>>>     > +#define ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT    (1<<2)
-> >>>>>>     > +#define ACPI_IOVT_IOMMU_HW_CAP_SUPPORT               (1<<3)
-> >>>>>>     > +#define ACPI_IOVT_IOMMU_MSI_INT_BYPASS               (1<<4)
-> >>>>>>     > +
-> >>>>>>     >  struct acpi_iovt_device_entry {
-> >>>>>>     >       u8 type;
-> >>>>>>     >       u8 length;
-> >>>>>>     > --
-> >>>>>>     > 2.39.3
-> >>>>>>     >
-> >>>>>>
-> >>>>
-> >>>>
-> >>
->
->
+
