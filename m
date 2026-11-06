@@ -1,57 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=80.241.56.161
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793971160;
-	b=d6c5kX32Ap+4YkLzhEWDWPv2nrZS6e4uo56b5O4ZTw6v+eYNPw3ATTfW5JcWPkPuOm9i
-	 AV7j6mYPEjB28+NB9CkXXIeVhGDoGV9zKVV75NgA9PaUlubmtMN+C/fBpLxZoQaepTf4L
-	 unIrpjJh5zj78TTFviD4byZCc9qWWELvVBY+4zDYZ+YVxyrM0TfcN4TLyw+6LHgNO8y+3
-	 Q4/fvbJCb1SSe/TyKBvQQE9ve53vPB8Wyu+gmPxCZwBjvjMQ1e1P5rBnCyrZvFyE3/WUp
-	 /p/TyYjKWZDBl1jORtWjqxBY8jTNfFeyNq5n9gubWaeQH49yrTy2v60AX6ooWDB5l0w==
+	t=1793971971;
+	b=vUWn3QEhOT8/lytcQ8T+zwhnmcaui8dzsU/Z9NGFKVHuPAOdYHeLbRk3OepQSkFg1XGh
+	 cKtjRemBZ343tddSkHuzOrjiHxOfSm+xhCUq8sBnrwaLFNuShN9sMXx/SNEgwEHdUI0ml
+	 ndlNEXaLE9IHnOJvrBwdtAqPlkq1ragKguOXaA9gcGHQdFOl9qwioNPnkSLaqKFo9uUcE
+	 Zh55ZTCvlhu6LZwuPaMUBetNDZF8RnDE3pQOKmE3AZ1pPq5K52Vk+2ghjjz3dQx9aZb+v
+	 6NPNa7LPaYbFSFDudt6YpAReRLvlTgGfbCVV6duPZ9b8oLG0HI30XYrxBNTYVWGNDFg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793971160;
-	h=DMARC-Filter:Received:DKIM-Signature:Message-ID:Date:MIME-Version:
-	 User-Agent:Content-Language:To:From:Subject:Content-Type:
-	 Content-Transfer-Encoding:X-MBO-RS-META:X-MBO-RS-ID;
-	bh=IhMAffZkLLvq9YdgBEn27sR4C5FUy5F/wfuofvZO1As=;
-	b=w20TBT2eCwsSvmlWyZtAG7TH0JN6lBTDEpRr+BjC1eFIbLyJvJTf4L8YJoGRunIkVAMq
-	 7U6o6oixS2sQi0exAaCWLxru2RZQ4WO/foGAQfhmXE7hjo6QdHeRJN3lh/Emm/VEHvq6n
-	 RfMl7/wCeqBIzNQEwMEWj96A/SXKGnNXx5NH9NnXmH8XtXNFUT7LMFyqH/toMfh5tYA/h
-	 RcJdSGIq7CIYdJCQKbsPlg0z2HlTTWD0Icm6qL8FLRARujq9r2od3FJjuMpS49judDGwn
-	 wcc+T7s7OSQAhv6f0G8SfCOUVhrVmoVxa3HNFXM75xcfM/xxEVQNDHe8h4tPDs3lpew==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793971971;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=rku6VQ65uTS6RI9RCpBqPT6w5cxyM8TaHvzEHY5mMwI=;
+	b=zCkCaQJgGd7jWThmrO/7sgdjBwAe7HjK3znCj1UfFX6w3RuNCpVa6gD8GMc7insU5OOL
+	 2FVL6UZA8E54+/YjXYCx8ZB03K/zwETRtiLrPls/MkNSR7jvZBgMDEZty/AqlmIVdoYjQ
+	 MUZwf538MpFG+Xj5tsGwP6rinnZVcgVlPSLK0gPASkzOeSGMZu7O4lNOTsSp3nkg0VhDD
+	 8NX4BJjxzuxVFYRo6+jn+yR7lweD+RjcwvKlMkzP9/KLetSjPgsgLV3xaPzy3PmLhJvm0
+	 gPPi+kiAFQj/UCxuD89kZLqf8G0950CeAOZpcaYR822Qy+gAVsmRSZz24iIeieruN/A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=mailbox.org;
-	spf=pass smtp.mailfrom=mailbox.org;
-	dkim=pass header.d=mailbox.org header.i=@mailbox.org header.a=rsa-sha256 header.s=mail20150812 header.b=T28Kjju5;
-	arc=none smtp.remote-ip=80.241.56.161
-Received: from mout-p-103.mailbox.org (mout-p-103.mailbox.org [80.241.56.161])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=n9eBh9oQ;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2CF9606A32E;
-	Fri,  6 Nov 2026 13:19:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E2CF9606A32E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailbox.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mailbox.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C866606A326
+	for <linux-acpi@vger.kernel.org>; Fri,  6 Nov 2026 13:32:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=mailbox.org header.i=@mailbox.org header.a=rsa-sha256 header.s=mail20150812 header.b=T28Kjju5
-Received: from smtp2.mailbox.org (smtp2.mailbox.org [IPv6:2001:67c:2050:b231:465::2])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519MLKEM768 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mout-p-103.mailbox.org (Postfix) with ESMTPS id 4jLfrx09CxzKmHS;
-	Fri, 06 Nov 2026 14:18:57 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mailbox.org; s=mail20150812;
-	t=1793971137;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=IhMAffZkLLvq9YdgBEn27sR4C5FUy5F/wfuofvZO1As=;
-	b=T28Kjju5Ajsi8mLUmoylRl8GrHunbANU/NcLldCyjK2Srf9r9KyOgaqbgeMGqoHZubEf1h
-	7o/TT2+0O3w5liaHcHgdfIT2Lzl5jQf9kqPmWiJ14i+kQUd1dPzblGZ6wXk9pxOk7U99kr
-	aDmkLY5NFLgW83m+dsETy5g4zMnIwaVZS1aqwAdGh8AjbV615NhHKLW94zUPvq7c1kam2b
-	qF1trTH3ff9QAtjtjiYtvnA9XuBczu3VEfTNUwPSzhEdyoUIEbHqNAq8rLr6JjaQEWhyRa
-	+0w0NrJjVFPhtNzFGc6SpR6DLW+3j4C3qGR8vD7V+N/ShFpbX00wD5rwH8tRXA==
-Message-ID: <52b51e8a-384b-47a8-856e-5e1e4c98e82e@mailbox.org>
-Date: Fri, 6 Nov 2026 21:18:35 +0800
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=n9eBh9oQ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 777321F008A2
+	for <linux-acpi@vger.kernel.org>; Fri,  6 Nov 2026 13:32:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793971971;
+	bh=rku6VQ65uTS6RI9RCpBqPT6w5cxyM8TaHvzEHY5mMwI=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=n9eBh9oQfW9QCKPsygCwWyF/4qounZ/O6A5URte3/mGT4wDo5hBPi/dIdCTZd53JY
+	 5qIyXnE7j9tFjiOUEBofK0DNfUNUIFPsUh7j6uQduWjMZBpnMXtrKBwFK+Q1qNHAXk
+	 B9Z3GRa51Ef4Vi7aeTRjbuNaIoidw50ZG30mQdXIz6sveTRcQ1BPagOtDaxeOnShtG
+	 ny9HnDN51yvQe8NDClYkX3AdFmjWzVp5cq0sboZIVU6Tmr1j5Af99pyrweLr2aWYw+
+	 4SmIsRuXVQkrqioZvYwXV81owk1tCesy5hT5VdGmwmVOEbdjb8FH6LowXN0n4PNSLb
+	 cwDTVoHx32aPw==
+Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5be416e603cso468426e87.2
+        for <linux-acpi@vger.kernel.org>; Fri, 06 Nov 2026 05:32:51 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AKwUvBzm1J8vxj174nFn89PIgbBx0HRNbjXNNsz0ADdGNdwPtl/KCYrcH5CC7oDbQLAupqYYMQfBVU+O5jYf@vger.kernel.org
+X-Gm-Message-State: APuU4Z+nvR/cdLT1v6CYpQcwn09TH8Eskx5NieGra7bXZHigJddm8Ky3
+	UkkZXf98kpxCUyA9Gw+AwldBYxu49oWzuATS0AbzIs5tVC5bcQ1a2nnm91RvSMEpsUdQ1TEMHLK
+	FB7QFj+iOHcTWTuzvzTPKs/Fh164Zfpw=
+X-Received: by 2002:a05:6512:2287:b0:5c0:4c9:a4ed with SMTP id
+ 2adb3069b0e04-5c004c9a616mr663332e87.4.1793971970285; Fri, 06 Nov 2026
+ 05:32:50 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -61,37 +59,31 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Betterbird (Linux)
-Content-Language: en-US
-To: platform-driver-x86@vger.kernel.org, W_Armin@gmx.de,
- ilpo.jarvinen@linux.intel.com, hdegoede@redhat.com,
- linux-acpi@vger.kernel.org
-From: Nguyen Tri Nghia <nghiant@mailbox.org>
-Subject: [BUG] platform/x86: acer-wmi: Nitro ANV15-52 platform_profile WMI
- failure on newer BIOS
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-MBO-RS-META: 1nbjm11ggsarqowcb7hrksugobbty8xb
-X-MBO-RS-ID: 410a2308b127fb22f2c
+References: <20261105-superm1-pinctrl-acpi-v1-1-2367e584912f@kernel.org>
+In-Reply-To: <20261105-superm1-pinctrl-acpi-v1-1-2367e584912f@kernel.org>
+From: Linus Walleij <linusw@kernel.org>
+Date: Fri, 6 Nov 2026 14:32:35 +0100
+X-Gmail-Original-Message-ID: <CAD++jLmA7cpMfYiFrpJJ89=QW+XS85wg_VzqyU5C=pDWuxnHmw@mail.gmail.com>
+X-Gm-Features: AclHuK9U3egiiUujijb5vInGeTIpSRkU7PBiBdg1W14kj--CHWhvbS-XNc59sTg
+Message-ID: <CAD++jLmA7cpMfYiFrpJJ89=QW+XS85wg_VzqyU5C=pDWuxnHmw@mail.gmail.com>
+Subject: Re: [PATCH] pinctrl: amd: Drop CONFIG_ACPI ifdef
+To: Mario Limonciello <superm1@kernel.org>
+Cc: Basavaraj Natikar <Basavaraj.Natikar@amd.com>, Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, 
+	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi all,
+On Thu, Nov 5, 2026 at 7:03=E2=80=AFPM Mario Limonciello <superm1@kernel.or=
+g> wrote:
 
-I have opened a Kernel Bugzilla report with acpi_dump and DMI logs for 
-Acer Nitro ANV15-52 (BIOS 
-v1.53):Link: https://bugzilla.kernel.org/show_bug.cgi?id=222240
+> commit e7280ab196ba4 ("ACPI: bus: Use acpi/acpi_bus.h without
+> CONFIG_ACPI") added a stub that means that we don't need a #ifdef
+> anymore for the _AEI check
+>
+> Signed-off-by: Mario Limonciello <superm1@kernel.org>
 
-Unlike the ANV15-51,loading `acer_wmi` with `predator_v4=1` on the 
-ANV15-52 fails to expose working thermal profiles with `Input/output error`.
+Patch applied!
 
-Inspecting the DSDT shows that thermal profile transitions on this BIOS 
-are handled via an EC shared-memory window at `0xFE708000` (offset 
-`0x607`) and `\_SB.PC00.LPCB.EC0._Q30`.I have an AI-assissted 
-proof-of-concept using that path in a unofficial kernel module 
-`Linuwu-Sense` (Link: https://github.com/0x7375646F/Linuwu-Sense),and 
-would appreciate any guidance on how this should be handled cleanly in 
-mainline `acer_wmi` module.
-
-Thanks,
-Nguyen Tri Nghia
-
-
+Yours,
+Linus Walleij
