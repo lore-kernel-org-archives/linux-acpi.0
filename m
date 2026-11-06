@@ -1,51 +1,66 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=159.226.251.81
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793957464;
-	b=OTA7yGr8T/ZL+0MuGzpFEC8ppMda85DF/Cn4Yl0896AqmwCZ1ORbl83DoL4/IXbE3vGc
-	 GndS0yJaRATDFIulxX4Da4keUIG9E9i+X1t+2m4ttcNPBKuEYAYq69GS1ZmjRz5JaMzt8
-	 747gyq0oY3/DTWV/aNbfPg6P9mRZJyNFQoHXndsxrjCb+NnP0O0lLlCuxan+RwtoBuiUO
-	 3PMuR9lwYU59rtk5LpqytIbfFrAC0ru7HWZZRmay551zcOWwahzEr2V+D76c/ViLE3Hru
-	 +uDuJNe7kqUrmOtlSYPmnGJ0ZVuS6vnpQn2EBmFHrfTX8/eeD8EQu1de7Q5vlP5l52A==
+	t=1793962950;
+	b=xMTwQV0B8G2BAZ88jlVYSYvnwWZxQy2H+mMYv480s1eefsTRVIDyv0h3pzHVz5bLwYKV
+	 M3uCT5A8p2ZPs2NVcf5G+fU2QCb8/Tc8EvWanmd5TZImdqslC6DhV4ZeRz5HYiFcvxu2D
+	 LgHaPdk5zbQGxqawzjLEJqZZ5FrxUtoaT5vlfx31YQmB9HnMJGtsVDtWaJpVkfLQvByBe
+	 kYg0MJ8I6NxoOftzum0QAVol9UXYUKO19MTNrwnbn5/TNmkq9LXyTZFZgNfFuFWS4NEO3
+	 NrXXZf2L+MPlcdhLJ1DnHEu5QjTP3AVsisedGNqZsMPMG/lvNar68bk354n7fC4WYow==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793957464;
-	h=DMARC-Filter:Received:From:To:Cc:Subject:In-Reply-To:References:Date:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:Message-ID:
-	 X-CM-TRANSID:X-Coremail-Antispam:X-Originating-IP:X-CM-SenderInfo;
-	bh=pkMm2Zmil5ok/PO3ra8ZG4X/dksxyZ+uKs/AtX6aAaY=;
-	b=Gpe/eqB74EA9U3E6gP0L0yOdXLHrx3KXbQVCtKOTqdf3ENLhKKzganD8s18yKJDXQsP5
-	 zDUSpKwJx4LE72/hcKksStnnrtbzG6WDZ3xAMvgI2QbTSLorn+HNSu6c+6IjFAP04DwSB
-	 dX8FvDzqchvH6B21FdJ+svs2u/per5ZVBQAGVfH3uYRfdmsyAdGHOraXVknv52kVnrse2
-	 VuqyJ42PObHo7UCGTmco1z1rIMiHdvLDwNzPhnfyRWJNXUakNCW1bVyRbdNVL03z9F7lr
-	 UcxWyg6vWvbygpa+isacNrrBbRbgjuuoj/yameSrZ9yIflpAeqq7OCm9Zxf7fqnSxNg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793962950;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:Content-Transfer-Encoding:In-Reply-To;
+	bh=1EX2YTA7N1m8201rWClNkOLoSBkj+pXHUt+FjNqM5s4=;
+	b=FkP+1+Njoaaazawc3l0W4VjeugHaXg6I6CCARGMiPSaR9OoM8IHX2KcCKW0RVShKbyoc
+	 QdqJYkoJP0n2/Ld3qn51kc0D5V/kEsp9cGox583OKO+V7XowbDZKgcMqYodWl1YUNlcQV
+	 68djoUM+uLfNGT1+wN59BkhqIHK/GuMdeFi4Ok9IuMojvcii3dNhtae4SHilHer/kgvF8
+	 cuhQqrNehDq/ok6p3UytD5w8Mwa0EHccLqw6J8PJ6fIpn0giTxL+JYWmfiIw6zBZv0UJm
+	 rk8hf/ktEBuQuLjPRA+acNKhcc2t6f6z3jqd+CWzREqBAb9ClvGWuKuqvp83WPhhUhg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=iscas.ac.cn;
-	spf=pass smtp.mailfrom=iscas.ac.cn;
-	arc=none smtp.remote-ip=159.226.251.81
-Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83686606A33D;
-	Fri,  6 Nov 2026 09:31:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 83686606A33D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from [172.100.0.8] (unknown [36.110.52.2])
-	by APP-03 (Coremail) with SMTP id rQCowABXZJVQnu1qt21rAA--.5978S2;
-	Fri, 06 Nov 2026 17:30:56 +0800 (CST)
-From: Wentao Liang <vulab@iscas.ac.cn>
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>,
- linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org,
- linux-kernel@vger.kernel.org, Mika Westerberg <westeri@kernel.org>,
- Wolfram Sang <wsa+renesas@sang-engineering.com>,
- stable@vger.kernel.org
-Subject: Re: [PATCH] i2c: acpi: Fix adapter reference leak in
- i2c_acpi_new_device_by_fwnode()
-In-Reply-To: <20260917065743.GZ106095@black.igk.intel.com>
-References: <20260916155507.2074970-1-vulab@iscas.ac.cn>
- <20260917065743.GZ106095@black.igk.intel.com>
-Date: Fri, 06 Nov 2026 09:31:06 -0000
+	dmarc=pass header.from=arm.com;
+	spf=pass smtp.mailfrom=arm.com;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=IXdLbkhB;
+	arc=none smtp.remote-ip=217.140.110.172
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 770D7606A329;
+	Fri,  6 Nov 2026 11:02:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 770D7606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=IXdLbkhB
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 858CB1650;
+	Fri,  6 Nov 2026 03:02:25 -0800 (PST)
+Received: from e142392.arm.com (e142392.arm.com [10.2.213.23])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C208D3F673;
+	Fri,  6 Nov 2026 03:02:25 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1793962948; bh=vViXHVIoIW/K//DPywNrgxXC6rqNmWDghWNtpvorf90=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=IXdLbkhBeUk/3GjTjz8gzknsqr/4kj0JpHND7lmwR/llHNS/s8WDy/vGxCwPqCAUv
+	 qNSnIjh162159EV7AtA2tqB2EiVb3NrdpSDa2Z4HJaWSxTxCMynmutIanTjxBGP7/h
+	 t3OQ1zlrwiTXg3/kQLIYdW3r0WTMGfjLEdp9E2i4=
+Date: Fri, 6 Nov 2026 11:02:17 +0000
+From: Kristina =?utf-8?Q?Mart=C5=A1enko?= <kristina.martsenko@arm.com>
+To: Linu Cherian <linu.cherian@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, 
+	kvmarm@lists.linux.dev, linux-efi@vger.kernel.org, 
+	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
+	Mark Rutland <mark.rutland@arm.com>, Ryan Roberts <ryan.roberts@arm.com>, 
+	David Hildenbrand <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>, 
+	Anshuman Khandual <anshuman.khandual@arm.com>, Lorenzo Pieralisi <lpieralisi@kernel.org>, 
+	Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>, 
+	Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, 
+	Fuad Tabba <fuad.tabba@linux.dev>, Joey Gouly <joey.gouly@arm.com>, 
+	Steffen Eiden <seiden@linux.ibm.com>, Suzuki K Poulose <suzuki.poulose@arm.com>, 
+	Zenghui Yu <yuzenghui@huawei.com>, Ard Biesheuvel <ardb@kernel.org>, 
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Subject: Re: [RFC 00/12] arm64: Add support for TLBI domains
+Message-ID: <r7vnudhgumcjrhoo7iiv2nckxhhoax6k2d2xlquehfzv3f3dyk@idottvqbcjtr>
+References: <20261001110655.461473-1-kristina.martsenko@arm.com>
+ <upkds2ymzuztqvxxuysm62lxcdv5oa3ji6xrxbnz3yt3vntbp6@rw54ndtnpz3y>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -56,61 +71,76 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Message-ID: <179395746647.2284678.8559513137457956554@iscas.ac.cn>
-X-CM-TRANSID:rQCowABXZJVQnu1qt21rAA--.5978S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7WrWUuFy5tryxCF1rCF47CFg_yoW8Wr45p3
-	95KrnFk3srur1Iv3409a1UXryru3y5Cw45ArZxX3429ws0g340yrySqa1qgryay393tFWU
-	tay8X3Z5Cas0vaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUvYb7Iv0xC_KF4lb4IE77IF4wAFc2x0x2IEx4CE42xK8VAvwI8I
-	cIk0rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2
-	AK021l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v2
-	6F4j6r4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxV
-	W0oVCq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv
-	7VC0I7IYx2IY67AKxVWUtVWrXwAv7VC2z280aVAFwI0_Cr1j6rxdMcvjeVCFs4IE7xkEbV
-	WUJVW8JwACjcxG0xvEwIxGrwCY1x0262kKe7AKxVWUAVWUtwCF04k20xvY0x0EwIxGrwCF
-	04k20xvE74AGY7Cv6cx26r48ZrWUJr1UMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I
-	8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUtVW8
-	ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x
-	0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_
-	Gr0_Cr1lIxAIcVC2z280aVCY1x0267AKxVW8Jr0_Cr1UYxBIdaVFxhVjvjDU0xZFpf9x07
-	UMq2NUUUUU=
-X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiCRIDA2rtky8q+gAAsw
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <upkds2ymzuztqvxxuysm62lxcdv5oa3ji6xrxbnz3yt3vntbp6@rw54ndtnpz3y>
 
-Hi Mika,
+On Thu, Oct 29, 2026 at 05:36:47PM +0530, Linu Cherian wrote:
+> Hi Kristina,
+> 
+> On Thu, Oct 01, 2026 at 12:06:43PM +0100, Kristina Martšenko wrote:
+> > Hi,
+> > 
+> > This series allows the kernel to use TLBI domains. TLBI domains (FEAT_TLBID) is
+> > an Arm architecture feature that enables a TLB invalidation to target a subset
+> > of CPUs instead of the whole system. It can improve performance on systems with
+> > many CPUs. TLBID is not yet part of the Arm Architecture Reference Manual but
+> > some of it is described in the latest XML [1].
+> > 
+> > The goal of this series is to send TLBI commands only to the CPUs where a
+> > process has run (i.e. where its page tables have been installed). The last
+> 
+> Lets say if we have a TLB domain of 8 cpus and a process has ran on only
+> one cpu, dont we end up broadcasting to all cpus in the domain as the 
+> granularity is at the domain level ?
+> If thats true, would be good to make that clear.
 
-I am very sorry for replying so late, seven weeks after your review.
-You took the time to look at the patch and to ack it the same day, and I
-left the thread hanging without a word. There is no good excuse for
-that, and I apologize for the delay and for the extra work it caused.
+Yes that’s true. Linux can’t change the domains and the smallest domain
+can contain 8 (or more) CPUs. I’ll add a note about it in the cover
+letter to make it clear.
 
-> I don't think this is right. The issue existed already before the move.
+> > patch explains a bit about how it works. This is an RFC since I'm not familiar
+> > with the kernel's TLB/mm code and I'd like feedback on whether the general
+> > approach is correct.
+> > 
+> > A few notes and open questions:
+> > 
+> >   * Domains are described in a new "TLBI" ACPI table. This is not yet part of
+> >     the ACPI specification. There was an initial proposal [2] but this series
+> >     uses a newer WIP version of the table that aims to be published by the end
+> >     of the year.
+> > 
+> >   * There is currently no device tree binding since the feature is mainly meant
+> >     for server-class systems.
+> > 
+> >   * It's also possible to use TLBI domains to limit a KVM guest's TLB
+> >     invalidations to CPUs where the guest has run. I'll try to include that in
+> >     the next version. This series only disables domains for guests.
+> > 
+> >   * With this series a long-running process may eventually run on all CPUs and
+> >     just issue broadcast TLBIs. It may be worth periodically reducing the set
+> >     of CPUs but it's not clear when.
+> 
+> Do you have some thoughts on how we could reduce the set of cpus, to avoid
+> cross domain scheduling ? 
+> IIUC, this should me more of a scheduling decision with domain awareness. 
 
-You are right. 53f8f7c5cf14 only moved the existing ACPI support code
-into a separate file, and I should have traced the history back instead
-of stopping at the move. The leak was introduced by 605f8fc22442
-("i2c: core: Add new i2c_acpi_new_device helper function"), which added
-i2c_acpi_new_device() with the same pattern: the adapter is returned by
-i2c_acpi_find_adapter_by_handle() with a reference taken by
-bus_find_device(), and the function then returns
-i2c_new_device(adapter, info) without dropping that reference. So the
-correct tags are:
+Sorry, the wording is unclear here. This is not about reducing the set
+of CPUs that a process runs on, it’s about optimizing the domain bitmap
+of a process such that it only contains CPUs that the process is active
+on. Currently we only remove domains from the bitmap but never put them
+back, even if the process is no longer running on a given CPU and its
+TLB has been flushed. So we may end up removing all domains except the
+broadcast-all domain.
 
-	Fixes: 605f8fc22442 ("i2c: core: Add new i2c_acpi_new_device helper function")
-	Cc: <stable@vger.kernel.org> # v4.12+
+This isn’t trying to avoid cross-domain scheduling or to change
+scheduling at all.
 
-While reading up on the thread I also saw that the same fix has since
-been submitted by Ma Ke and is now in mainline as a65917d0a22f with the
-corrected tag, so there is nothing left for me to resend and I will not
-add a duplicate v2 to the list.
+Also, having thought about it some more, I’m not sure if this series
+should try to optimize the domain bitmap at all, since it will require
+synchronizing with the domain update in switch_mm(), which will add
+overhead and needs to be benchmarked on TLBID hardware first (which we
+don’t have yet).
 
-This has been an important lesson for me. From now on I will go through
-all remaining review comments one by one myself and reply in time, and I
-will not send patches in batches that exceed what I can properly follow
-up on.
-
-Thank you for your review, for the ack and for your patience.
-
-Best regards,
-Wentao Liang
-
+Thanks,
+Kristina
