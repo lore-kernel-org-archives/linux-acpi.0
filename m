@@ -1,119 +1,104 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.53.10
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.46.23
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793993710;
-	b=tXaP3mZJY6/TUWZGLZfxzNIhnVzZogacdGhyhXHUhSQEHZyc0kmB+f+X5D4eaTUpkyKj
-	 DG+rmVRm1Mk/f0tRXxq8QxvdlLQCAFZPN7HXC9s9TmtBwbW0jzzOFx8YYZE7BZAPsoWAB
-	 UNx4zzRmojUzXw9HKBrhLMpqnTzLEdLyd0AVAtuheNkXs+JnS8CeCzR15TXVHyIyIALZU
-	 z/ZnLQltEKBSYadq0Rby2EA+qFj1768WSOI6i+kTsG0IsCW7/t2Eua3uyyNSGmUXiClZV
-	 RyknI1Z4CV9Sf2Fme+jKe6KsEC6jqf5nhqT2VjthWgM5JNlYMcA0/m1kGXcB6dVqSuQ==
+	t=1793994219;
+	b=Ctb4eZDFZPAAxZUdflmHBYtQ/cT7rxxjkqSNREPqigxuAdjKuCmvmHtvCjcQEY2wDmpa
+	 Ek4bk4mqKI4oRU2iexICYXFm67KFV4lXX8ZSUYtTin6mLNNDKjdnlfUh8GNpcNmQ/ghVn
+	 3VQ3f9qvHtEUltswwDfDzapH2PzR2Nmh8BhhphbuziOMqMtcHCFrvH8CW+/Zo1I18fK8q
+	 D1N7NocEuHIlb2piQH7KhHvqSD0EaBi3b1vIyzH9wa7TmwgQe+f7xWAhg5GCBRFkQ4jPP
+	 FZx+OIEAYayEC8Kdj9VtrcHUzk2Go6xjjN18SnbqijsQoMouX960n2leoDYcpsVY3gQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793993710;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:
-	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
-	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-	 Content-Transfer-Encoding:Content-Type:X-NV-OnPremToCloud:
-	 X-EOPAttributedMessage:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
+	a=rsa-sha256; c=relaxed/relaxed; t=1793994219;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
 	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
 	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
 	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=fosjWAx4LwF0Gcs+y1FCI6GVyFDGOkEGG3hMKDHokPg=;
-	b=v6k43OFUYmI/wml0aRxQ0KMVMyVkQunE284zV2SYbHX5sd9D+NFa8wmnheZSCiNaBWzD
-	 oKmHKxph3HlpnI7ROztFKFHMMh0OMMYrH7A9+1Xc0KULe6g43F54bDS6/cnrevkx0se3G
-	 DJcc35B8zKl2lWsXNe4Mqn2WJN+N2/mG6wrxS0yZ7yjbjywFsi0Ef2yB7cH0QbI0es+Vv
-	 C08zR3ZTi0GbwRapeqHXMW5gWpudSiosw8130pv5YLwARH8ELggGDr7MnIaPm9hsLLofu
-	 y4kB6RV7yJ6JUtVkgAFiwRIsD4x/PjSFgu58OyYloremOyqomMcN2WHBBVpN/ryvE7g==
+	bh=IE1z3MlEjwI1Mm2+MpVbAGhCteCybEr2CWnMgQ0pGWY=;
+	b=BpzqCzf/Q1BeT3nFES8+kvgGS7i5EPO10NP99DRjCrsVCnFfQSm4yMKJhR/PDQ2bS0fh
+	 nETgvSl2anaXL+UDMapXvZy7CNPTTCG7a3SL5daYL+RRpKY8QgBkR6kefR+HNKE+26ved
+	 jqX5TFLybKsHvfwkYglPtafwPPCg8TBWYId8F4NID/xEXObMxLIJGnVWmjbPMdlXJYihC
+	 FdPaWMVFPKo/pEW+dqGBYlb/MXVbOcNBp3kg1gkSJgCPSaWax4A3DMPLOyObip7WY7+7A
+	 iQsNiEeYNEongukFl0UKTHz5fY7mq5beDwwRVnFIWv+vSlB387LddZF33KsRbaOcs5A==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=g9kHSQhf;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.53.10
-Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012010.outbound.protection.outlook.com [52.101.53.10])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=e0QuTIts;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.46.23
+Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010023.outbound.protection.outlook.com [52.101.46.23])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E220C606D802;
-	Fri,  6 Nov 2026 19:35:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E220C606D802
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 212AB606A326;
+	Fri,  6 Nov 2026 19:43:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 212AB606A326
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=g9kHSQhf
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=e0QuTIts
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=lWNjw82D4ElPsWj4ag6zGg8mE5/C+OHUSE7xFycUSrVpCIon3RN7BwYEf3J8pyD5Ex3MHRWTGYpoZFbscvFS1GshEq9voCLF/JB2YntjNV8bm6nb1/vjkXziPCqusPGSn8ycAb0VNE6gTJloKrWIPrTFr6L3CV5iLWoUNKxwS1dqXpyx+4INnFivZp8+Q7mH58wIr72zMMT5WDdvTn6vQff1MUFFadWWY5nDUZZSkauUW6ddI/AqcNDvi4upDw1fGmmj2R0qTBafogSHW7iSuJkvGS2QquWJd713fdXTRSebZyIE00CRGaL9QF+ArZNnr9Y+CZsop+Zl6BNSY2UBow==
+ b=EFmdLiGWLxf2/aTq7aRZ5AKu/az04vmE4M/vlx3dJr4+yLd7Vqxd1ap/hD25fC1Gw0QiFMrO+haWVOiRgd2Xo4mHhExGQcCCdR7suhCx1iuFWHh5hkda0wGckV7ThLcVCJNffu8mOxrAJ92sh7SHlUa6szUqXhXBAkwXs5ucEcnNugnmd4J5ULoSSPAOPamfcAMc+sSEzBAp1U0VngBzfd4pF3xPFkltw/aHALORG71HVQR1jmYpgHs9VZ0lBU2soJ3Uy/gop6zcIoBvK8/fnD/cw0g+hyvRnW5QK5QbSQ0KRvmL/klW5/nkmZM+a3wdYNt1ouFdsVRzFutrY9X3mQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=fosjWAx4LwF0Gcs+y1FCI6GVyFDGOkEGG3hMKDHokPg=;
- b=uXMU6OJDLzBJNxVloqJBr4q+hCu9yWNV4aQ0ZxAtIKK7gTS0Qbc478wAw4/LOad5DG3hh2u0Py4Rb+L2B94c6pjrybMrROplkO4sZb7D3seNCu+ckwbHaAqdcMY8Yn4/JZI+qIW2WFAXdRtt30egjEf/Er+W7g9xiHGeQ/Qt5jL2Vwyy7EpWNRyXXnGfHrylLrtmdgOOVY9EMHrS8k5JZPl3CFzKy13he8GKMznhopAxGguxLclFBp1moKd6VzKQ4y1j3Lk0qh5IM2mVXgRdaoYGOl5x1utRMWyF4W373spV3hPJYOEpilNXinsrdVr6qWUxesq1sLGdXmWtm8FFoA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
+ bh=IE1z3MlEjwI1Mm2+MpVbAGhCteCybEr2CWnMgQ0pGWY=;
+ b=JGeMB1GdY0M+cb2oadTXyBdgoh6ZvZIS4R/Zelr29qdDoYDGaYtEMqyT1y+LLd0y47PgKndctNFGRtb+xV6G2UoGkoWKetHmqunpScRUMael9fxs9NpD0beY7hit9ZkA+Y+oB++O/KFINRQ/36XA2Fuv2CdhOGHm6j5Vx0k0gALAbf+f79jptBljm+PzZY4Kt29rv+JgFYt01EB2uaP7X2kYAglM7AKTM9O+49GH7WBv46+1bxFstPRCUIx4oTViS/aoMmCwbmKRarZ8Y676VpQLRK0Y/eakiOEDYMbMQfujGBJXDctsA0VO0qzH8V1aLSwcXqsbmeq9oqo0x2oXUw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=fosjWAx4LwF0Gcs+y1FCI6GVyFDGOkEGG3hMKDHokPg=;
- b=g9kHSQhfFgLLet5ALELy8B2ZZ5gDwRJ9Av06iX7ZE3mE3UXsyukEkcJWTtUJd0rlW3HoO5bHZus3vsBhcth12shGAzQOxNr8Mxzwva3biryfdRPIZXgVszYwrJHaivyhqThhepbFKXHj1VXE9JqjP68CNkWZW2a0RFlBAwaPFzB2h8YBR2D9wRhiCWX7ThpgmTTuS3x5NDhsqwlU/utZv9vr5pcCQ5HqJaV6Ar5KIY1A6AoPwUMOn9OMnpQh7J1lUXmnWSSk/bV4WnKtaVoC1uLt4h+rJNAc3g0KlnqL/ZGmHYEGHdHZKgN6bqAem42qpZ4w396GPLx3U+Gyog+eSw==
-Received: from CH0P220CA0024.NAMP220.PROD.OUTLOOK.COM (2603:10b6:610:ef::16)
- by CY5PR12MB6430.namprd12.prod.outlook.com (2603:10b6:930:3a::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.11; Fri, 6 Nov
- 2026 19:35:05 +0000
-Received: from BN5PEPF0004698C.namprd02.prod.outlook.com
- (2603:10b6:610:ef:cafe::71) by CH0P220CA0024.outlook.office365.com
- (2603:10b6:610:ef::16) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.592.10 via Frontend Transport; Fri, 6
- Nov 2026 19:35:04 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.118.233) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- BN5PEPF0004698C.mail.protection.outlook.com (10.167.245.41) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Fri, 6 Nov 2026 19:35:04 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Fri, 6 Nov
- 2026 11:34:49 -0800
-Received: from drhqmail202.nvidia.com (10.126.190.181) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56; Fri, 6 Nov 2026 11:34:48 -0800
-Received: from sumitg-l4t.nvidia.com (10.127.8.14) by mail.nvidia.com
- (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.56 via Frontend
- Transport; Fri, 6 Nov 2026 11:34:42 -0800
+ bh=IE1z3MlEjwI1Mm2+MpVbAGhCteCybEr2CWnMgQ0pGWY=;
+ b=e0QuTItsnJuumfeO0ERhSVRjM5hjATRkUjouUFAShMQwv1IZdBm9MTAgrUc/afbJZhDoqGbTsURJoAGtLCLK/cmN/nqZNJpXwdhBH9ypL+dzUmh/+my1mvCO9GFCwJ4U3fTozfYYCo+Zv8CETK3l6ZFLU2bW0CnKO4bdl8yGPZSYOenrBwN3mKsAXG1CvkogzlO+ogRDcQk0LU3Ek8cpjBK4lq6XRKvAy1vSuIlvgoz7amWHUrm++ylFWO72zSuQu7FiTGCiAuXPmSRcM6QBH4JYIDVi9DXg1kpyVjqRHIa3zN+1hL7wmxjbHLVvbUHqOm0RyWMjwcrOtZCuuFEuOQ==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CH4PR12MB720178.namprd12.prod.outlook.com
+ (2603:10b6:610:50e::10) by PH8PR12MB8430.namprd12.prod.outlook.com
+ (2603:10b6:510:259::11) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.10; Fri, 6 Nov
+ 2026 19:43:35 +0000
+Received: from CH4PR12MB720178.namprd12.prod.outlook.com
+ ([fe80::2a60:de1e:e60d:7052]) by CH4PR12MB720178.namprd12.prod.outlook.com
+ ([fe80::2a60:de1e:e60d:7052%4]) with mapi id 15.21.0592.010; Fri, 6 Nov 2026
+ 19:43:34 +0000
+Message-ID: <d7b6126d-9c82-451c-a139-59e2a0a064d8@nvidia.com>
+Date: Sat, 7 Nov 2026 01:13:23 +0530
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v8 0/3] ACPI / cpufreq: CPPC: Add ospm_nominal_perf
+ support
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
+ Christian Loehle <christian.loehle@arm.com>
+Cc: viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
+ zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
+ mario.limonciello@amd.com, maciej.wieczor-retman@intel.com,
+ pawel.chmielewski@intel.com, linux-pm@vger.kernel.org,
+ linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
+ linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org,
+ treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
+ ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
+References: <20261030172745.2045743-1-sumitg@nvidia.com>
+ <CAJZ5v0hDm=FMftFfxnzthRQXWzUqcm8SkAaxzVWZcsyQtNLj6g@mail.gmail.com>
+ <5089e131-c904-471e-a078-5df7cc664372@arm.com>
+ <CAJZ5v0jP-z=zu=S_aBc3JpocRWJXcjzB8WnXu2UHd3WBf9cE3g@mail.gmail.com>
+Content-Language: en-US
 From: Sumit Gupta <sumitg@nvidia.com>
-To: <rafael@kernel.org>, <viresh.kumar@linaro.org>, <pierre.gondois@arm.com>,
-	<christian.loehle@arm.com>, <ionela.voinescu@arm.com>,
-	<zhenglifeng1@huawei.com>, <zhanjie9@hisilicon.com>, <lenb@kernel.org>,
-	<ray.huang@amd.com>, <mario.limonciello@amd.com>, <perry.yuan@amd.com>,
-	<kprateek.nayak@amd.com>, <maciej.wieczor-retman@intel.com>,
-	<pawel.chmielewski@intel.com>, <linux-pm@vger.kernel.org>,
-	<linux-acpi@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, <linux-tegra@vger.kernel.org>
-CC: <treding@nvidia.com>, <jonathanh@nvidia.com>, <vsethi@nvidia.com>,
-	<ksitaraman@nvidia.com>, <sanjayc@nvidia.com>, <mochs@nvidia.com>,
-	<bbasu@nvidia.com>, <sumitg@nvidia.com>
-Subject: [PATCH v9 8/8] cpufreq: CPPC: Reflect the OSPM nominal in boost and limits
-Date: Sat, 7 Nov 2026 01:03:04 +0530
-Message-ID: <20261106193304.3347374-9-sumitg@nvidia.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20261106193304.3347374-1-sumitg@nvidia.com>
-References: <20261106193304.3347374-1-sumitg@nvidia.com>
+In-Reply-To: <CAJZ5v0jP-z=zu=S_aBc3JpocRWJXcjzB8WnXu2UHd3WBf9cE3g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: PN1PEPF000067F0.INDPRD01.PROD.OUTLOOK.COM
+ (2603:1096:c04::2c) To CH4PR12MB720178.namprd12.prod.outlook.com
+ (2603:10b6:610:50e::10)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -123,203 +108,161 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-NVConfidentiality: public
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN5PEPF0004698C:EE_|CY5PR12MB6430:EE_
-X-MS-Office365-Filtering-Correlation-Id: c5b7c197-6936-4ef2-b93b-08df3c3d0e7a
+X-MS-TrafficTypeDiagnostic: CH4PR12MB720178:EE_|PH8PR12MB8430:EE_
+X-MS-Office365-Filtering-Correlation-Id: b2ea5292-8a10-4e41-1021-08df3c3e3e4e
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|7416014|376014|1800799024|36860700016|82310400026|921020|11063799006|56012099006|261021123027099003|261021121427099003|261022075727099003|261022113327099003|261009223027099003|261022105027099003|261102123227099003|261026140227099003|261028144727099003|261026121527099003|10067099003|22082099003|18002099003|6133799003;
+	BCL:0;ARA:13230040|376014|23010399003|1800799024|7416014|366016|261022075727099003|261021121427099003|261026140227099003|4143699003|261009223027099003|56012099006|261021123027099003|261102123227099003|261022105027099003|261026121527099003|261028144727099003|11063799006|10067099003|18002099003|22082099003|6133799003;
 X-Microsoft-Antispam-Message-Info:
-	RwgjN6u5w6f//dUrqfaRck80D5B58/EUxQzt/967ELFQ2OUvhZvGLLn7rJPxNVoV66mzoa1uLvcYSOyJQwN9LywoTa8viDyKi+skCG7NxiTkcm3Za07GL82TfL8P1wJuirFnML46wh/pwncLS1NEtusVFKONJ81gzbPEAOFoGxnlai9algtkhD+K2/l+yw+sR4O4VAiV9ru1B36uM6VFQtIl3KgGZ9NY4Df2fok2mbUWbN22/uWF2CG8Hs0Q2KEaT4h1wetMqMAtD6KIYYMnnBM+rofejh3JxeL/PGmM7uGCRGOh3ysh+QlNu6kszFX9PEGZ4TlkT/qvttj20Eu8FO67CUpFaG3TCZ4jGoRwMjUFcb7p4ilRDFAYv7cLy4gUzDkg2tP5Nvu9xl3Ee8phcYiQP64fKgqhFrVFEP2k9ktGZVHIXhxEkOeqN53dBYWtlh7HwG08Z7FmllVpy54xlzbi+v0JQmOibxGe9mEirqXIhEOYThZQueAarp1ALl2dsVMhhU+RwmkSBytJyLrO7zxt6WDgROrQfR7Bke8SHRVqYGTAcVjGCvpBxEKiC0Msy0CX3+5ABhvx8tkzefzPYZqZMSG3P7hkCghSjHl6ZFRMTPsFR6PQIi1ECu0DFNY2SvnfQUAGq44kHp/VlUTZJ/gEW0hfgJqdvPzV39dP7OfZVgsF1pQzk9gLLTv/y6np+MRBY60pNFFntSBXGQc63zWDIiTaVNID++pieUik/Ck2WeB2Ezl1/w1FSN0xeO+0
+	79kKsjscYwaz5lqELpfj3wdOKEaMHLtHJ5jgDAiyunOtE/6qKCOXAu6QE4yf4Ak6kzcVCh9yjN8k14QQk3+gj3BFaQqFLqjBI/adPqCbb3Eewb7BfT5SSxNqfQeJPJdvCczXlPCuYZdE8/KvnY7oX/IA4JR5nWWbvIkBSiAfyZ6M8OmNYCUYJgyVEmiSGjpylOAsCD0/t6MkpfCJOTidrynJOkuxU/utLIaqj64Belz5WZHtfG4pYvAUu1N+1dxNve+oK3R9zY19nLImJ/2U819sjk4m+3p44y7usVCqza78u48vkEZYgHhb0ZGd9iN2+cgIbzqoexjYk6j/hX7X095z9ZyLdYFhu59eUrmJ6AIugGKHSV3E4J/1IEP/q3qOyulOw9TpdtV7KCjeyZn02mIujoIMy3VUNgHJoWrO/gYPQMLqQeqcOJYNjhbaPmyLZKSL1n7ZcHGwvolKsUwv1FMH9WLjwl1d6grCJPjQKz9gbpCsfzvPSfL4Yl+D7cZqS4UUO+hLtOh/0O7WlEpbxXS4EwsEfzSpAI3QyitmwKJe8TGJXSc1Su5OZ2NzsKXSnOrLWTEy4qlQNV8KPRE3yafDilPr70UXzYFzyjl6SsyD23058vmI6uuZjmYoN4kExzSg2P8CNRaJ11PoW3OsYWnpba2Cuwen7Sved5zTVWw=
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(7416014)(376014)(1800799024)(36860700016)(82310400026)(921020)(11063799006)(56012099006)(261021123027099003)(261021121427099003)(261022075727099003)(261022113327099003)(261009223027099003)(261022105027099003)(261102123227099003)(261026140227099003)(261028144727099003)(261026121527099003)(10067099003)(22082099003)(18002099003)(6133799003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH4PR12MB720178.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(1800799024)(7416014)(366016)(261022075727099003)(261021121427099003)(261026140227099003)(4143699003)(261009223027099003)(56012099006)(261021123027099003)(261102123227099003)(261022105027099003)(261026121527099003)(261028144727099003)(11063799006)(10067099003)(18002099003)(22082099003)(6133799003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	GN8BC+EjrMQFyuPeX5xONjqodSxveZBTP7skXxk3oVPtoftr/iIVWlcF7BzhyF1QFwIUK0kK89gJLiAU2IQallVS+xemQzDo6OLU7zocszhTMymNr+BltADqMMa9M67jmUduRqv6jSMevCIwscE9vQgvf5wHvAvyZr6pSSKypkFqUBvZL17XDrV5SSvHn8rYPfvz8Dy4B68fBMkuBTYQM2OxKOhF7LjQETPEQIcwMFlcDr4+uxmWUGXSnkEa7/D8slFKK/WXPbJ4gleJKKPs+0p7sJeJ/Pmh+S3xINnSRqdj7Ze76vLBac6l0Oyjb21vRam130pFnzZSbl8ONqNHZY2YS8MM84sV/uiV8iZAHzzpaASUT65wioAS4QYfkq9UGoVZZExuOzJX2V+036zO8WltIURIpczjjwcaxxFQznjATYDvLBkeA6Eib0V2Rrju
+	=?utf-8?B?elp2cWYvbkJBNmJQWW5ZeDBCRW92Vmx1a1hpS0dUQlJRMTZ6TjB5Qm56ZGtl?=
+ =?utf-8?B?ZXRvbWRIb01nQ0hrdFIydXVsQnpnMnYyZG1NeU8rdmY0aSsyR212WXlua1My?=
+ =?utf-8?B?M3g3WFpCcGdnUHVuUmdHUXEzZUhIZGlZdmVrejkvQ0tnTlN2YnVuekpwYi9w?=
+ =?utf-8?B?NXAxRVhMTXoxYUQxeURoNlJ0ZnJjSXZucHZ2d2VkZ01wRkFsOWVYR3FFTVR5?=
+ =?utf-8?B?MWRHVUFUbHJZRVgzYWFvcStWSXVtVGg4U0ZLL2tZZ2owUHBsZVphSDZTUmI2?=
+ =?utf-8?B?cWNVT09LaHZwRE9tZ0lnTUZFNjE5b1RUdnZ2Yy9adHRtQlZ5K0tEbzdrV3Zk?=
+ =?utf-8?B?empKek5RVW5XOFNPUHREcDlNakZBVzhaa0ZxRzNnMzZQODNEcXNGTmZkZ1JB?=
+ =?utf-8?B?U2hKK1Q5andtZ3JQcTMyQkZHSGtWeHV1ZTE5ZVBNTGRYUUorVmJCdnJDcmpa?=
+ =?utf-8?B?R3RkWVFJNDczK0VQOStnZGREeXU4ZnpDWlpKejY1bnE2ZlhabWF4Z2NraVAr?=
+ =?utf-8?B?YU5YTHRyak1qeDBvN2xpOWM2djgrd05HV2YydXZERjQrZkNDSUhFbjl5UHZh?=
+ =?utf-8?B?V2FhL0dHd3U1UHZ6UVJ3eDNDdEg5R1djWVRndVJ4QVU1TlNBdGNuOG1qYjRr?=
+ =?utf-8?B?UlV6RlZ6REpMMHFZdlpWTXQ2VmZra25lNWJTRlpTOXN1MTU2QlF0Y1h5bWRZ?=
+ =?utf-8?B?SGl3bjk3eXp2ejR0SGthY3BHTmVINmk2eXVOYnIyMHVpRm1ZRWZ6MmUrTE1a?=
+ =?utf-8?B?N3F2Q2RITTVROGpCZlZYS0tRaDFyNkgwUFFQSlVBQThGVXhmY0IxODA0T2h2?=
+ =?utf-8?B?NHFxTHZlVlpsRGJyQ053TS9oSXJaWnNLZ2lmeFhwOUNIc3RORGcrZmx3dVM0?=
+ =?utf-8?B?em1QdTNHY3pWQUExTDJuaGk2ZFE3V0hvN1MvaEhoUE41RVlreTRvVi95RUxk?=
+ =?utf-8?B?QUlTRUx0RExDb3d2ZWZzci9IWnBsS2xhcTVyRThyRHRYVUdIUG93SldaR29G?=
+ =?utf-8?B?WnJWamZDbFRGVE95bTU3TDlDOHkrenZPMWdpQzdqQUN5dXRIb1ErYVFNQ3Ay?=
+ =?utf-8?B?QkNBZXRoQStUOGRKaGo3eDdYdlVKQlJvbGNHdjFPLzZkQmZSVVBoWk0yc0Z2?=
+ =?utf-8?B?Y2hEZDQ4TUdpbnhua3B2ZlhyanBuNHRocmkwQXZqd3FhWmhrMU9SZWhCTWJP?=
+ =?utf-8?B?MDNrVmFLdFBFNWRTTW15WWdDZDhkU3NzckcrSWp4cGlYNnRWV3RTeDQ0TzJD?=
+ =?utf-8?B?NHRHVktaa05rR1dRYVhPaUcrMFVUS3VjRUI0QXdha2RkL1YweHlqaFprenFS?=
+ =?utf-8?B?WnFNVjcrOWlQSStZb0NaWnhibXR4OHdYS20vUTFPc1duUWdtbG9UV3JhR2g0?=
+ =?utf-8?B?aE4yWkFXRElYbjFuazhKeGJsT0hjNWN5RDJpMm9sZDVMWlZmOCtFcWVDbVIv?=
+ =?utf-8?B?VW5SVmt6SVdMejJ5Vkphb0l0cm1pZ3dRL1hLR1NYWXBqKzA1Z1czbDNZVitG?=
+ =?utf-8?B?alVLWnQ5bTZzRVZxaUc5blRvc3BWSlplbXpSenMvTHJrcUY4RHRkOGJmV0R0?=
+ =?utf-8?B?UG9JNUZPb2FYeXFIb1lIT2xGaVlHLzdIeGNRQ0l3eTk2Z1Z2N21SSCtrWEU0?=
+ =?utf-8?B?ZVYzejYwYkZlRDFVNU05a0FDWlZ2MHRDUUZWeTl4MmtCUU1LaTlxanlZOGFR?=
+ =?utf-8?B?Q092Q2FoV09DajJvQlpQU0pKTGlqbElydERHQzlRSmxzUHdmTEtRejhPemRp?=
+ =?utf-8?B?dUNQVkhtRWRoeUZBTmN6bFpqa3hFY2VPQXJDVUpBdFJBcmMzTUhSQTlSbW1j?=
+ =?utf-8?B?Ym1rTzc2ZGIzcGsxVGFJMkl6Q0hmVUJBUkFaZFJKWFNIQW9mVW9XOTNnRHNC?=
+ =?utf-8?B?aXZjN3VjUG9BNlpLM2dTNlZRV051QVQ5dTJ4amI3WEh4NjhBb3BNbElxRndh?=
+ =?utf-8?B?bDMvUjFKaWV5R2tLejBRRnlrdnpPVVBraUl2WmtoWG1qTUw4R2NGY09kekFp?=
+ =?utf-8?B?Qko3QjRkOUE1cG0vK1A3SCtDbDd5MDRYa3dlUE5ZaldBUEVaU0R0alBSZmJh?=
+ =?utf-8?B?cWNob3lvSS9NNzZZa1QvWGVWNlIybk93UmN6aGVicDI5ZkRVRmxVZHoyN2Z3?=
+ =?utf-8?B?L0d2cnFiNEI0YU5nZ0JWVWFaRDhvWTNGdDFuV0I3RE9SbC93MnBLb1VLd2Vl?=
+ =?utf-8?B?dUZUZzZTWXVvQ0ZHVEZSWGNmZlVIV0FXY2E5eUYreFFGMzhtN0pDa0ZTdVdm?=
+ =?utf-8?B?QkY1MG5tU3VtSGx4Ti9LNmJXMElROWZsVUFDM3RRNUlVcHM4UUpIVk1abk5D?=
+ =?utf-8?Q?DKuTeI65jxLtqFMShS?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Nov 2026 19:35:04.1655
+X-MS-Exchange-CrossTenant-Network-Message-Id: b2ea5292-8a10-4e41-1021-08df3c3e3e4e
+X-MS-Exchange-CrossTenant-AuthSource: CH4PR12MB720178.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Nov 2026 19:43:34.3797
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: c5b7c197-6936-4ef2-b93b-08df3c3d0e7a
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN5PEPF0004698C.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR12MB6430
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 1+J8Ctt0SJ6mvFI9werDjLr0OjGxXmGtmVMK2y+frRtUqMOc4ocuKDBHnHpTW0WEDqKP65ygxi3yau2J5eW3Rw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR12MB8430
 
-Boost is the performance range above nominal, so lowering the OSPM
-Nominal Performance enlarges the boost range and drops the non-boost
-ceiling. Keep the policy limits consistent with the register.
+Hi Rafael,
 
-Add cppc_cpufreq_effective_nominal(), which returns the OSPM Nominal
-Performance when set and the platform nominal otherwise. Use it for the
-non-boost ceiling in set_boost(), and to update the policy limits when
-ospm_nominal_freq is written.
 
-The cpufreq core caps scaling_max_freq with a per-policy QoS request,
-boost_freq_req, that it sets to cpuinfo.max_freq and refreshes only when
-boost is toggled. A write to ospm_nominal_freq changes cpuinfo.max_freq
-without toggling boost, so cppc_cpufreq_update_nominal_limits() updates
-the request itself, rather than leaving scaling_max_freq at the old
-nominal.
+On 06/11/26 22:31, Rafael J. Wysocki (Intel) wrote:
+> External email: Use caution opening links or attachments
+> 
+> 
+> On Fri, Nov 6, 2026 at 5:59 PM Christian Loehle
+> <christian.loehle@arm.com> wrote:
+>>
+>> On 11/6/26 16:08, Rafael J. Wysocki (Intel) wrote:
+>>> Hi Sumit,
+>>>
+>>> On Fri, Oct 30, 2026 at 6:28 PM Sumit Gupta <sumitg@nvidia.com> wrote:
+>>>>
+>>>> This series adds support for the OSPM Nominal Performance register
+>>>> (ACPI 6.6, Section 8.4.6.1.2.6) to the CPPC ACPI and cpufreq drivers.
+>>>>
+>>>> Unlike the read-only Nominal Performance register, OSPM Nominal
+>>>> Performance is writable and lets OSPM request a nominal level below
+>>>> the platform-reported nominal. The platform treats performance above
+>>>> this level as boost and below as throttle.
+>>>>
+>>>>   - Patch 1: adds ACPI helpers to write the register and to check that
+>>>>     the platform supports it.
+>>>>
+>>>>   - Patch 2: adds the per-policy ospm_nominal_freq attribute in kHz. The
+>>>>     value is kept across CPU hotplug and suspend/resume. The register
+>>>>     cannot be read back, so a read returns the last value written.
+>>>>
+>>>>   - Patch 3: uses the OSPM nominal as the maximum frequency while boost
+>>>>     is off. Lowering the nominal creates a boost range on a platform
+>>>>     that has none, and boost can then be enabled.
+>>>>
+>>>> This series applies on top of v7 of:
+>>>>    cpufreq: CPPC: Preserve OSPM-set registers across hotplug and unload
+>>>>    https://lore.kernel.org/lkml/20261030092416.1993889-1-sumitg@nvidia.com/
+>>>>
+>>>> v7 -> v8:
+>>>>   - Rebase on Christian's CPPC fixes series.
+>>>>   - Patch 1:
+>>>>     - use cpc_is_writable() from that series and drop cpc_reg_writable().
+>>>>     - add the register to the list of controls the driver writes.
+>>>>     - take cpc_desc_lock in cppc_ospm_nominal_perf_supported(), so the
+>>>>       descriptor cannot be removed during the check.
+>>>>   - Patch 2:
+>>>>     - make ospm_nominal_freq read-write. A read returns the last value
+>>>>       written, or "<unset>" before the first write. (Christian, Mario)
+>>>>     - keep saving the values in the store handler, not at init(), so
+>>>>       the driver writes the register only after the OS sets it. (Pierre)
+>>>>   - Patch 3:
+>>>>     - document in the ABI file how the OSPM nominal sets cpuinfo_max_freq
+>>>>       and caps scaling_max_freq.
+>>>>
+>>>> Sumit Gupta (3):
+>>>>    ACPI: CPPC: Add ospm_nominal_perf support
+>>>>    cpufreq: CPPC: Add ospm_nominal_freq attribute
+>>>>    cpufreq: CPPC: Reflect the OSPM nominal in boost and limits
+>>>>
+>>>>   .../ABI/testing/sysfs-devices-system-cpu      |  31 ++++
+>>>>   drivers/acpi/cppc_acpi.c                      |  44 +++++
+>>>>   drivers/cpufreq/cppc_cpufreq.c                | 173 +++++++++++++++++-
+>>>>   include/acpi/cppc_acpi.h                      |  10 +
+>>>>   4 files changed, 248 insertions(+), 10 deletions(-)
+>>>>
+>>>> v7: https://lore.kernel.org/lkml/20260807214837.863209-1-sumitg@nvidia.com/
+>>>> v6: https://lore.kernel.org/lkml/20260717215330.2215058-1-sumitg@nvidia.com/
+>>>> v5: https://lore.kernel.org/lkml/20260615185934.2383514-1-sumitg@nvidia.com/
+>>>> v4: https://lore.kernel.org/lkml/20260527194626.185286-1-sumitg@nvidia.com/
+>>>> v3: https://lore.kernel.org/lkml/20260514194822.1841748-1-sumitg@nvidia.com/
+>>>> v2: https://lore.kernel.org/lkml/20260430142430.755437-1-sumitg@nvidia.com/
+>>>> v1: https://lore.kernel.org/lkml/20260427051823.280419-1-sumitg@nvidia.com/
+>>>>
+>>>> --
+>>>
+>>> This would be good to go except that it doesn't apply for me on top of 7.4-rc1.
+>>>
+>>> Can you please rebase it and resend, with Christian's tags included?
+>>>
+>>> Thanks!
+>>
+>> It's based on the hotplug/resume series, I guess Sumit could post them as a combined patchset
+> 
+> That would help.
 
-When boost is enabled the ceiling is highest_perf, not the nominal, so
-the update is skipped. set_boost() applies the new nominal when boost is
-turned off.
+Sure, posted a combined series on top of 7.4-rc1, with Christian's
+tags [1].
 
-A platform with highest_perf == nominal_perf has no boost range at boot.
-Lowering the OSPM nominal from sysfs can create one. The core, however,
-adds its boost FREQ_QOS_MAX request only at policy setup, and only if
-boost_supported is already set. Set boost_supported in init() when the
-OSPM register is supported and highest_perf > lowest_perf. Boost can
-then be enabled after the nominal is lowered.
+[1] https://lore.kernel.org/lkml/20261106193304.3347374-1-sumitg@nvidia.com/
 
-Suggested-by: Pierre Gondois <pierre.gondois@arm.com>
-Reviewed-by: Christian Loehle <christian.loehle@arm.com>
-Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
----
- .../ABI/testing/sysfs-devices-system-cpu      |  4 ++
- drivers/cpufreq/cppc_cpufreq.c                | 72 ++++++++++++++++++-
- 2 files changed, 73 insertions(+), 3 deletions(-)
+Thanks,
+Sumit
 
-diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu b/Documentation/ABI/testing/sysfs-devices-system-cpu
-index 6af7fa86e44c..d219fc27a0c9 100644
---- a/Documentation/ABI/testing/sysfs-devices-system-cpu
-+++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
-@@ -362,6 +362,10 @@ Description:	OSPM Nominal Performance (kHz)
- 		Write a value in kHz, between the frequencies corresponding to
- 		Lowest Performance and Nominal Performance.
- 
-+		While boost is disabled, cpuinfo_max_freq is set to this value
-+		and scaling_max_freq cannot go above it. While boost is
-+		enabled, cpuinfo_max_freq is the Highest Performance frequency.
-+
- 		The register cannot be read back, so a read returns the last
- 		value written, rounded to a performance level. It returns
- 		"<unset>" before the first write. Reads and writes fail with
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-index 662397526433..7cac31de7325 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -915,6 +915,29 @@ static void cppc_cpufreq_put_cpu_data(struct cpufreq_policy *policy)
- 	policy->driver_data = NULL;
- }
- 
-+/*
-+ * Return the non-boost performance ceiling. This is the OSPM Nominal
-+ * Performance the driver last requested, or the platform-reported Nominal
-+ * Performance if none was requested.
-+ *
-+ * The register is write-only, so the requested value comes from the
-+ * software-tracked state rather than from hardware.
-+ */
-+static u32 cppc_cpufreq_effective_nominal(struct cpufreq_policy *policy)
-+{
-+	const struct cppc_policy_state *st = cppc_cpufreq_policy_state(policy);
-+	struct cppc_cpudata *cpu_data = policy->driver_data;
-+	u64 ospm_nominal;
-+
-+	ospm_nominal = st->regs[CPPC_SAVED_OSPM_NOMINAL_PERF][CPPC_SAVED_REQUESTED];
-+
-+	/* U64_MAX means OSPM has not selected a nominal level. */
-+	if (ospm_nominal == U64_MAX)
-+		return cpu_data->perf_caps.nominal_perf;
-+
-+	return (u32)ospm_nominal;
-+}
-+
- static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
- {
- 	unsigned int cpu = policy->cpu;
-@@ -974,9 +997,14 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
- 
- 	/*
- 	 * If 'highest_perf' is greater than 'nominal_perf', we assume CPU Boost
--	 * is supported.
-+	 * is supported. A writable OSPM Nominal Performance register can also
-+	 * open a boost range at runtime by lowering the nominal, so assume
-+	 * boost is supported in that case too, letting the core register its
-+	 * QoS request up front.
- 	 */
--	if (caps->highest_perf > caps->nominal_perf)
-+	if (caps->highest_perf > caps->nominal_perf ||
-+	    (caps->highest_perf > caps->lowest_perf &&
-+	     cppc_ospm_nominal_perf_supported(cpu)))
- 		policy->boost_supported = true;
- 
- 	/*
-@@ -1280,11 +1308,12 @@ static int cppc_cpufreq_set_boost(struct cpufreq_policy *policy, int state)
- {
- 	struct cppc_cpudata *cpu_data = policy->driver_data;
- 	struct cppc_perf_caps *caps = &cpu_data->perf_caps;
-+	u32 nominal = cppc_cpufreq_effective_nominal(policy);
- 
- 	if (state)
- 		policy->cpuinfo.max_freq = cppc_perf_to_khz(caps, caps->highest_perf);
- 	else
--		policy->cpuinfo.max_freq = cppc_perf_to_khz(caps, caps->nominal_perf);
-+		policy->cpuinfo.max_freq = cppc_perf_to_khz(caps, nominal);
- 
- 	return 0;
- }
-@@ -1494,6 +1523,41 @@ static int cppc_get_perf_limited_filtered(int cpu, u64 *perf_limited)
- CPPC_CPUFREQ_ATTR_RW_U64(perf_limited, cppc_get_perf_limited_filtered,
- 			 cppc_set_perf_limited)
- 
-+/*
-+ * While boost is disabled, the nominal is the ceiling. Set cpuinfo.max_freq to
-+ * it and update the core's boost_freq_req to match. The core only syncs
-+ * boost_freq_req when boost is enabled or disabled, so a plain nominal change
-+ * must update it here. Without that, raising the nominal again would leave the
-+ * stale request capping the policy.
-+ *
-+ * Refresh the limits directly rather than leave it to the QoS notifier, which
-+ * only schedules the update, so the new ceiling is in place once the write
-+ * returns. The sysfs store path holds policy->rwsem, which the refresh needs.
-+ */
-+static void cppc_cpufreq_update_nominal_limits(struct cpufreq_policy *policy)
-+{
-+	struct cppc_cpudata *cpu_data = policy->driver_data;
-+	u32 nominal;
-+	int ret;
-+
-+	if (policy->boost_enabled)
-+		return;
-+
-+	nominal = cppc_cpufreq_effective_nominal(policy);
-+	policy->cpuinfo.max_freq = cppc_perf_to_khz(&cpu_data->perf_caps,
-+						    nominal);
-+
-+	if (freq_qos_request_active(&policy->boost_freq_req)) {
-+		ret = freq_qos_update_request(&policy->boost_freq_req,
-+					      policy->cpuinfo.max_freq);
-+		if (ret < 0)
-+			pr_debug("Failed to update boost limit on CPU%u (%d)\n",
-+				 policy->cpu, ret);
-+	}
-+
-+	refresh_frequency_limits(policy);
-+}
-+
- static ssize_t show_ospm_nominal_freq(struct cpufreq_policy *policy, char *buf)
- {
- 	const struct cppc_policy_state *st = cppc_cpufreq_policy_state(policy);
-@@ -1552,6 +1616,8 @@ static ssize_t store_ospm_nominal_freq(struct cpufreq_policy *policy,
- 	st->regs[CPPC_SAVED_OSPM_NOMINAL_PERF][CPPC_SAVED_FIRMWARE] =
- 		cpu_data->perf_caps.nominal_perf;
- 
-+	cppc_cpufreq_update_nominal_limits(policy);
-+
- 	return count;
- }
- 
--- 
-2.34.1
 
