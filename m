@@ -1,65 +1,165 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794036805;
-	b=jDPqb3Y2LuB4XOnCtpoG5ahaJy33YbE0iimu1bdW+69Iy593PzGrzMiqWdb2xvY8NmDE
-	 PT1IlSGFFQUF1I9D5siuw+NxBPOkMiFAIvT452xsy4+lgU9Jty8Yoxo7VzuYo50FbLEHu
-	 Mw8V52S1jfYKaxfn7WqMSkeemtBXKMBXNiAW0nbax83+6S+25lgVa7bMoCigZbFB33GDt
-	 U5NYo0NJTnLgWYmPmhB9bJTXzWuDdK0s+v/MRtelNZeDztrvs+fn/jIMPL3jfpYbjYDtm
-	 ksAxQLf7WQhmssndl7ScO8fsJjVzYINlzRHIpsTFuVRFKd0lcwtxH06gaGZuodNPt5Q==
+	t=1794042019;
+	b=e2fPw7Y2rRfKFAQfgwC5LjDb0RhR4W31LDr7IxSWb6hORKRWERUu+1WEtFOl92kMR+Zo
+	 KghAG8ZirLzfM7O1gCouNZzUt68wkwJV6tgZ3db2UgMcM0W2QqUOf+0rU7XvntFCPDPTH
+	 6DoYyeBDsdz0YtWcS2VHIGxLgZ5S5ulHoTuNVuDTsgWQczKtNgnwyeuE7JnG7oBfgc8bB
+	 MRbq+6xUakG07XZz2ZBE9I5J17UE1f/LP2TegmIelH/wNPkqoa6dkh2qRke1qcsAe+adS
+	 QjuLnrXh/kdciTOZEvHuYPlZFVJTgL6hxN2rk8dC6vB84lMaEuI+53+LWws/WsqcQwQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794036805;
-	h=Received:DKIM-Signature:Date:From:To:List-Id:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=RqcMsUowjiasOdRKT6/n1tz64a/KAgMWOjxLOv2ccbk=;
-	b=vR0K1tJ1sn+egcFsudbNalcMzqWt/R5q9o6RCg+X3QisWCFf7s/LqfYL2CIY1HSFWg+N
-	 SrkvIcHoTFm/MS1iYfxV4d4sZ9e79W4Grj7VLuXLdlsPTQ1Ara+1CDzCHeiIOxG/lcAmt
-	 S8DTK6fdmlc0t8n81pfLmiKj9ShBTsZY6vDqxqxIyC/T8GfYEcHkhNl09pFXQsEeSIk/c
-	 DC5EOw72ye3aMKLjRDkaUx/Aia+bqm9QLgEw50IPQH+W6Y1taHuJ6mRXNUEjC2cqx8DRU
-	 PP6PEREplYCMFOoUI/80DsZDnT68kuQukAkPgmDyPRUbKTDCLcGmQVvj1YvyYCDAf7A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794042019;
+	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
+	 DKIM-Signature:Received:Received:Date:Message-ID:From:To:Cc:Subject:
+	 In-Reply-To:References:User-Agent:MIME-Version:Content-Type:
+	 X-Spamd-Result:X-Rspamd-Server:X-Rspamd-Action:X-Spam-Flag:
+	 X-Spam-Score:X-Spam-Level:X-Rspamd-Queue-Id;
+	bh=2pUKIrJSjwOPfwhHfcJFzwrup6gCdhbZ3XgMEjE3Sk8=;
+	b=5D5/GGSofHUZCuwGhKeC7U+sxjjoltIbDqU/QjDFsQ2ceMBoFrfaSYU7jb/1Ur+pAwN2
+	 4akgWSfdDrLoE000HVYCnn60RmiK0eCIHPypjyVxYdt8JNhTKiEIfkBfRVwH+MAFkhPND
+	 ERS+RS4lfKADF/CttTLIpX8/Ad3MYi+RL+VPHI9LVJVgIz192TU4HV7DRen8mHy+lfBja
+	 yqu//OkUoKd5MDeSIJZ0cSXHezE/3klqx2NGRqL9RhqqraIv/TIetiP7yEbkhA/FjOkMW
+	 /MaRIhfGsrx4+1WO4ZDaqTZ+lEa3tvkeGgxoDgaZ1KojurV2QCO/cdhlAoO0t1CbQLw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M7BMVbPW;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=suse.de;
+	spf=pass smtp.mailfrom=suse.de;
+	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=AwkH5jyM;
+	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=JTEoL3TZ;
+	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=nvoaJ0mE;
+	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=DZerp02L;
+	arc=none smtp.remote-ip=195.135.223.131
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A862606A326;
-	Sat,  7 Nov 2026 07:33:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B62B6606A32D;
+	Sat,  7 Nov 2026 09:00:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B62B6606A32D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M7BMVbPW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C3E61F0089F;
-	Sat,  7 Nov 2026 07:33:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794036804;
-	bh=RqcMsUowjiasOdRKT6/n1tz64a/KAgMWOjxLOv2ccbk=;
-	h=Date:From:To:List-Id:Cc:Subject:References:In-Reply-To;
-	b=M7BMVbPW6X5rsGfsZmA9wkvAxPkJ5ypVXRYiBkJWHdWmkli06NP3bw2Zt+tSzIKSl
-	 /m357etyPyHcmOOTB8rak7PiWr+yzbxx+nJH+eJ2zckRSl92wDXxSiNVuSsTTr9/6d
-	 9i5pyNR/97/pebPXbVIVmDeFacFlroNjc0B2ipUelgGEBYJ1xu14hFo8CswvcRXaDf
-	 TFtcE2cfRziRWhlNDXqctpvRV4b1NcOlOFlrkZJLQAxS9BzWx50R5ExIrUvdq1rAfv
-	 bU7lICdRpvm5BAvVeOppiXjSLwNxqFxlpzVdTfuA3SwiNMhH25cmCLywdcT9CjxHgu
-	 MPGP+4aKDsOFQ==
-Date: Sat, 7 Nov 2026 08:33:02 +0100
-From: Alejandro Colomar <alx@kernel.org>
-To: "Maciej W. Rozycki" <macro@orcam.me.uk>
-Cc: Alejandro Colomar <alx+linux-hardening@kernel.org>, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, andy@kernel.org, bartosz.golaszewski@oss.qualcomm.com, 
-	brgl@kernel.org, dakr@kernel.org, devicetree@vger.kernel.org, djrscally@gmail.com, 
-	driver-core@lists.linux.dev, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	heikki.krogerus@linux.intel.com, hverkuil-cisco@xs4all.nl, joe@perches.com, johan@kernel.org, 
-	kees@kernel.org, laurent.pinchart@ideasonboard.com, lenb@kernel.org, 
-	linusw@kernel.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, 
-	linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org, namhyung@kernel.org, 
-	rafael@kernel.org, robh@kernel.org, rostedt@goodmis.org, 
-	sakari.ailus@linux.intel.com, saravanak@kernel.org, schwab@linux-m68k.org, 
-	Linus Torvalds <torvalds@linux-foundation.org>, zanussi@kernel.org
-Subject: Re: [PATCH v2 1/2] string: Add strprefix(), and deprecate
- str_has_prefix()
-Message-ID: <au7TvMP0YhW2e_oM@debian>
-References: <d3b325ecefd1d991ca25a4de2a859353f3ad7cfb.1793882260.git.alx@kernel.org>
- <20261105125154.83478-1-geert@linux-m68k.org>
- <aux8LYQkGSNjCGHv@devuan>
- <alpine.DEB.2.21.2611070223510.17804@angie.orcam.me.uk>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=AwkH5jyM;
+	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=JTEoL3TZ;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=nvoaJ0mE;
+	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=DZerp02L
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 630761F74D;
+	Sat,  7 Nov 2026 09:00:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1794042016; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=2pUKIrJSjwOPfwhHfcJFzwrup6gCdhbZ3XgMEjE3Sk8=;
+	b=AwkH5jyM7t60XRGf7G1aRSt+1A3cbarzW4z/QkvISjLGNPrA/fY2MleEP5q/AQIm+UOa85
+	wJkleCWTNZsU7rGkzPqgTOEFser1A2ESxcK9o91TyOKwj1NxwYRnab9MqOSmomM2duqzSM
+	4ziRifDlEsg/eNGZ4IfRyZBtKF7+5L4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1794042016;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=2pUKIrJSjwOPfwhHfcJFzwrup6gCdhbZ3XgMEjE3Sk8=;
+	b=JTEoL3TZlb1DCclunsyxaCbXUYbLeMKEOnsS7PWO9bNheMA+zCRiSp1byJB7A+sAicRsv4
+	5OXD2QVrenEMHmAQ==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=nvoaJ0mE;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=DZerp02L
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1794042015; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=2pUKIrJSjwOPfwhHfcJFzwrup6gCdhbZ3XgMEjE3Sk8=;
+	b=nvoaJ0mEP/zd/0bKFGcoiLmtApr9OQGHZOiEECFWhUq1H30dGD7ZkdmACOX8M4XQGS4NuW
+	oB4Mc0g4OfzK2wWf0UF/9cqPMqA/oflypYavZBONS2BSNW+J/B7gdSUDzy/0qA9b4r1pv4
+	UXAedxogQW7c2CJkDX8oa4Afmn/sre4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1794042015;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=2pUKIrJSjwOPfwhHfcJFzwrup6gCdhbZ3XgMEjE3Sk8=;
+	b=DZerp02LRPNT9d5/AecFdQdh+IJlOFhOxwpkpzQNy3DQvQ4hOwgMkZ3mhYuZ46BFCA5rf0
+	CaTL33x7XZsPDhBQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id E0528132C9;
+	Sat,  7 Nov 2026 09:00:13 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id 19k0LZ3o7mq9VwAAD6G6ig
+	(envelope-from <tiwai@suse.de>); Sat, 07 Nov 2026 09:00:13 +0000
+Date: Sat, 07 Nov 2026 10:00:13 +0100
+Message-ID: <87jympyq1u.wl-tiwai@suse.de>
+From: Takashi Iwai <tiwai@suse.de>
+To: Christian Brauner <brauner@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Jann Horn <jannh@google.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Chris Mason <mason@kernel.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	NeilBrown <neil@brown.name>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Christoph Hellwig <hch@lst.de>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Joel Granados <joel.granados@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Jan Kara <jack@suse.com>,
+	linux-kernel@vger.kernel.org,
+	linux-nfs@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	linux-wireless@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	netdev@vger.kernel.org,
+	ntfs3@lists.linux.dev,
+	platform-driver-x86@vger.kernel.org,
+	coreteam@netfilter.org,
+	kexec@lists.infradead.org,
+	linux-pci@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	ibm-acpi-devel@lists.sourceforge.net,
+	jfs-discussion@lists.sourceforge.net,
+	linux-alpha@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-cifs@vger.kernel.org,
+	linux-fbdev@vger.kernel.org,
+	linux-hwmon@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-sh@vger.kernel.org,
+	linux-usb@vger.kernel.org,
+	samba-technical@lists.samba.org,
+	sparclinux@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org,
+	linux-doc@vger.kernel.org,
+	linux-serial@vger.kernel.org,
+	linux-atm-general@lists.sourceforge.net,
+	Takashi Iwai <tiwai@suse.de>,
+	linux-input@vger.kernel.org,
+	linux-raid@vger.kernel.org,
+	linux-ext4@vger.kernel.org,
+	linux-modules@vger.kernel.org,
+	linux-debuggers@vger.kernel.org,
+	Chuck Lever <cel@kernel.org>,
+	stable@vger.kernel.org
+Subject: Re: [PATCH RESEND v2 03/51] ALSA: cs46xx: hand the region to the region proc files
+In-Reply-To: <20261104-work-procfs-bugfixes-v2-3-021c84d852e0@kernel.org>
+References: <20261104-work-procfs-bugfixes-v2-0-021c84d852e0@kernel.org>
+	<20261104-work-procfs-bugfixes-v2-3-021c84d852e0@kernel.org>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) Emacs/30.2 Mule/6.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -68,104 +168,57 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="dul5zpskzyut57vy"
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.21.2611070223510.17804@angie.orcam.me.uk>
+MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
+Content-Type: text/plain; charset=US-ASCII
+X-Spamd-Result: default: False [-11.01 / 50.00];
+	SUSE_INTERNAL_BYPASS(-9.00)[];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	ARC_NA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:email,suse.de:dkim];
+	R_RATELIMIT(0.00)[to_ip_from(RLij3mi59gqb8x3hiq1dpi8wgt)];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	TO_MATCH_ENVRCPT_SOME(0.00)[];
+	RCPT_COUNT_GT_50(0.00)[60];
+	RCVD_COUNT_TWO(0.00)[2];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spam-Score: -11.01
+X-Spam-Level: 
+X-Rspamd-Queue-Id: 630761F74D
+
+On Wed, 04 Nov 2026 20:16:45 +0100,
+Christian Brauner wrote:
+> 
+> snd_cs46xx_proc_init() stores the chip in the private data of the five
+> region entries, but snd_cs46xx_io_read() reads that back as the region,
+> so a read of /proc/asound/cardN/CS46xx_BA0 and friends copies from
+> whatever sits at the region's offset in struct snd_cs46xx instead of
+> the mapped registers. Store the region.
+> 
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+
+Reviewed-by: Takashi Iwai <tiwai@suse.de>
 
 
---dul5zpskzyut57vy
-Content-Type: text/plain; protected-headers=v1; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-From: Alejandro Colomar <alx@kernel.org>
-To: "Maciej W. Rozycki" <macro@orcam.me.uk>
-List-Id: <linux-hardening.lore.kernel.org>
-Cc: Alejandro Colomar <alx+linux-hardening@kernel.org>, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, andy@kernel.org, bartosz.golaszewski@oss.qualcomm.com, 
-	brgl@kernel.org, dakr@kernel.org, devicetree@vger.kernel.org, djrscally@gmail.com, 
-	driver-core@lists.linux.dev, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	heikki.krogerus@linux.intel.com, hverkuil-cisco@xs4all.nl, joe@perches.com, johan@kernel.org, 
-	kees@kernel.org, laurent.pinchart@ideasonboard.com, lenb@kernel.org, 
-	linusw@kernel.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, 
-	linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org, namhyung@kernel.org, 
-	rafael@kernel.org, robh@kernel.org, rostedt@goodmis.org, 
-	sakari.ailus@linux.intel.com, saravanak@kernel.org, schwab@linux-m68k.org, 
-	Linus Torvalds <torvalds@linux-foundation.org>, zanussi@kernel.org
-Subject: Re: [PATCH v2 1/2] string: Add strprefix(), and deprecate
- str_has_prefix()
-Message-ID: <au7TvMP0YhW2e_oM@debian>
-References: <d3b325ecefd1d991ca25a4de2a859353f3ad7cfb.1793882260.git.alx@kernel.org>
- <20261105125154.83478-1-geert@linux-m68k.org>
- <aux8LYQkGSNjCGHv@devuan>
- <alpine.DEB.2.21.2611070223510.17804@angie.orcam.me.uk>
-MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.21.2611070223510.17804@angie.orcam.me.uk>
+thanks,
 
-Hi Maciej,
-
-> Date: 2026-11-07 02:44:23+0000
-> From: "Maciej W. Rozycki" <macro@orcam.me.uk>
->
-> On Thu, 5 Nov 2026, Alejandro Colomar wrote:
->=20
-> > Do you think strafterprefix() would be better?  Do you have any other
-> > suggestions?
->=20
->  FWIW strsuffix() seems an obvious choice to me.  After all what the API=
-=20
-> does is request the string's suffix beyond the specified leading part.
-
-Actually, strsuffix() is something else:
-
-	char *
-	strsuffix_(const char *str, const char *suffix)
-	{
-		ptrdiff_t  off;
-
-		off =3D strlen(str) - strlen(suffix);
-		if (off < 0)
-			return NULL;
-
-		if (!streq(str + off, suffix))
-			return NULL;
-
-		return str + off;
-	}
-
-It finds the start of a suffix in a string.  That is:
-
-	strcmp(strsuffix("foobar", "bar"), "bar") =3D=3D 0;
-
-
-Have a lovely day!
-Alex
-
->=20
->   Maciej
-
---=20
-<https://www.alejandro-colomar.es>
-
---dul5zpskzyut57vy
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmru1C4ACgkQ64mZXMKQ
-wqm7rA//SurddKJhcpcYSVF08Ab2FAhfNpH0ioW7Yb/l+oX0VEpkWj3qqra1tx55
-Z1UFA8Zc2S23a2zgGIVgckruLAScw3TgH56+01s0K2rHCab1CAG6jhPnj2SrdRDd
-3r1e/bTSwdBBaL3YjGLE8QJ6Ovr4k4QIfx4hrJDEoc1Bd8d/kX4hP5ck/UvUQRps
-uxgukH/uuh069/6RuDrbqyZNTYaII3QF5In16FORibSjdYhJ3zk6jSHglRU2c2RK
-rdB3UhGgvmRwioMK6O8uvjAvh+8Uh25hUkodhUwK5zrL/R7KD6hcJ4Qzgs5f3UC/
-eFCzJpR+vV4VgOfmxBzJ5B6iZiXbMgXPuYmIw6MtXddrQMKZYV6pmSy8EEUODC/G
-PGynmMkcNOcSxnAy4LX7my5c1ilQ6eVlnQ5mdPR6QUIzKIhC7QL0V9B8UUFGgJ+C
-CX19+pefdS4MdHB5A0NTMPdp/kzdw8LbHsPz5EcumrjxvhFl+m6xfo9wYmkRD+2m
-VJF6uwqVpJ9rP8zJNT2qonLoTk6sbT5Kc8SRSOCsfOOXVkci1C7Y6ZC8ynE4Xyrf
-/G3gpTejPyd+cYuZkOBrRv9NGBaDx/Ioh6ZExvc2hoVh+LaIctAwYoLhxLaU7neV
-ElYN26nlmyCnrZ82m7JphVIFX5IQerK6gzXdIOg4PEXNRNs8l5o=
-=gJHo
------END PGP SIGNATURE-----
-
---dul5zpskzyut57vy--
+Takashi
