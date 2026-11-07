@@ -1,101 +1,101 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.61.38
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.128.176
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794001127;
-	b=DvcP+mZctssEtK/2GDPFpXa/0DRbErH+KAQ+SNrwv6pN2rMIdl3Wbo5r88909zUJwlao
-	 0fqXGpvSwOQ+B2ddpDz5DvEAAN+ryyki9onXH81Z9u5pCVukS/uRcPFLu9ppWEWBefU2T
-	 uQ5TH66yUft9ziEdVtNCkO4j/qpmfNbmlBKhbY4dstgGYL76A1GfFHO74RVTI4eMEDdV4
-	 Co+B1HHbOEFwQ4FIyXu/VP2gWbkEC90n5qRLGQ+/afpy+6Ldo0rUN48lzIfQ7WwP8yXoX
-	 VMqMyXYY+hHc1XdVLHUgHT4H5L3moKeDGlRQDJqMWYaHi9AK+A0RdHNug86osQc0tPA==
+	t=1794012268;
+	b=b9NcGvgJKW6BCihD1ahg9HR3Yt3/y6MqRcbkefYqTeSG1/oLQqNyT2Gs+FJ7ef251oXY
+	 LHc6lQwcQmec7xIyLwwE97pKOPdhL9F5zLdsgrlFWDPJJi2q90X+gUwh+rt8YMs9HCTnh
+	 oPpgb6tExOSyu74NN9OHkfQntpWM48gFjvwZLcdJ1upzP5GBk+hv6oyjkjQXkvsiL72kK
+	 QbnYehkqqRuu1dQI1FTiezJSghSOXl+NUzsTFj/w2kX3eO9g5yYVPw9hMTfGhZxFukdwE
+	 c3hsjUf3uUz6yMWqkS5JKdwqJjQudZBy21Gt0F5GD8v6No7a0hc0LGGMYBBxoNGybrg==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794001127;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=KA6hOiuUXui6fW0xBuJ5uYerAsVt8ridnqfSMzKqMds=;
-	b=5p70rCcQUsa9wu/YKBY5gT96Y4eIZ1/OGKG44Y1kkq9DtlbnuLzivdXosjgY5D7nmENb
-	 NY6AKFDtE8CvhW1AifwHKiUBu/WZMZdugJgSZ2RYEdTXgfq+kAjOUZfiTV5yB/kEK6paK
-	 D9v4XVEgKUS7oNW768pLopSelZJfe18e0uht7jJdcDtl90TsfO4gYnBz8eae5REHn73os
-	 3hXumnR5Sk0Z/uu36h/JqDI4FdeK8TJj7wc7lrg4lPr9zfD4PGLSVZgqy3RGaJhrKQqVK
-	 XIjTJgBQQB5R/Yov1QgAQIxPpLKFBki7KyYGj72svcbFzzM2SBm/gS96jxh2ZXCUYOA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794012268;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type;
+	bh=9eiigW6hOkRbk1j+4tKF/Fi6rPLvkQU7Pgh902ZJH6g=;
+	b=PtioFRAMkxMtRxzayV0eSw484TQ852U3A6iPFfVSV9nLy4IBfI9IrRdWkqFTvOt5ZITW
+	 qJDDZUVhrt6pJfPKO5KzkCPD4ACvyTCV2uAaHxqbsN/b4NRbg0fIvEF6qOuTTPK3moqnp
+	 WBJpZgFU1DeMNCpJmC0ET8OD75wuOjOV6PUQBsA7ThYG70pYRx7ANWN1CwaczGMboSxvN
+	 IGSZkxLH026iGfIDaheVyMkZ289lbTrM7NRrYak42+mIYlASeJdCejwjgJni94XXBUZeo
+	 1bYnjWcaXZ77DtgG9GmGph189DVXBRrPSru6Zq3lmrbqGdZP3G6VVK8ygtT4PUUXq6Q==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=JnaVd4PY;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.61.38
-Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010038.outbound.protection.outlook.com [52.101.61.38])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=nOiLZodl;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.128.176
+Received: from mail-yw1-f176.google.com (mail-yw1-f176.google.com [209.85.128.176])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47DBD606A33F;
-	Fri,  6 Nov 2026 21:38:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 47DBD606A33F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAD9D606A32C
+	for <linux-acpi@vger.kernel.org>; Sat,  7 Nov 2026 00:44:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DAD9D606A32C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=JnaVd4PY
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Ud/wgrNZTGxVmaE64dks7t/cx7zP6LsibJgQi9sq2aFsYE48tnZXYIX/SS3YhvnS89nI804mvnPm5x3KV3dE9O4KQdMOszXP/N34j0znr1yrAXZusucEzxSlc4xAdmCWaOEZ/PjUeYqzHhb1/NmeS3qJGUqNcmNToRRX13KhiBbDEbXCN4DksNtbKdkVgao9CCAYpspB/d2UQWnGIWYCHM04v1thJoHXgGHFL4YGyak9w/R9BWCjNjA+srp3U4dhSgWRdtnQNkxXPWDJMnvq3+HAn93BZwY5UcErqBJJxpt8P+O5aZf+Yftp9i0PJO+oYJvsP+/JRXxZe6zwqeYcxQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=KA6hOiuUXui6fW0xBuJ5uYerAsVt8ridnqfSMzKqMds=;
- b=T0PePSeqebnV2800yJuEVml0ZsrSYjYvNkANHKGCAqg+OSXaNIfvGU74B9TK6hOa4wccJXmgfoOVWpOPwP3lMeqPbEHeJXyhTnP0vSQ6leclTz79ajWEpXAAKlDbWhlbzCMH6+9yLLKNIuI1ZZ3bvCmjTvItge3Sh2CE82crrycFiKN1+Me2xGNF02dGWZqPTwxl85reDiRMHz6X14tIUB7fpTodZgVexELZgaS4iCPvHWRgHGngaFFKBexFs+r589o9NBw3UdiHw902sc/3SPYsUPUTmEGPjPb+AP8glzt9gdo5i+6Nj8Jor8lQVU1QZNgXG9wmtjGuOv3jOc5/hA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=KA6hOiuUXui6fW0xBuJ5uYerAsVt8ridnqfSMzKqMds=;
- b=JnaVd4PYclxn8/amebCMFnNfCCv4aEIIpY8oirAiKHX3tfH9fTJ13BWpC4C+bNrAWlrIeTty80bAlUXDmkHShwkMpRj6Yf9abWGjiYcTV8sZZXoppCFcGaTZCWjMPHdOOy3s03b4M7PwT5H268GLUgY9nlBXnwsbiabC1idNrbq5qX3JyeoR5uDPWjjkbuHcR2jLEJiebomUXxUQfvfyTCjFrzt6yj3MBkmsd02A2LYAm59uCZ/KWypgN3Z9FCcJ8uSz1Ffv3y6EDlzE16blqgo0YG9u8D3Wn8gCdxrujcVircBiIJ8WENIn5ZdiMyhsoPm8+q9Cjx0Yl2HZlJOm7g==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from CH4PR12MB720178.namprd12.prod.outlook.com
- (2603:10b6:610:50e::10) by SN7PR12MB8059.namprd12.prod.outlook.com
- (2603:10b6:806:32b::7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.10; Fri, 6 Nov
- 2026 21:38:18 +0000
-Received: from CH4PR12MB720178.namprd12.prod.outlook.com
- ([fe80::2a60:de1e:e60d:7052]) by CH4PR12MB720178.namprd12.prod.outlook.com
- ([fe80::2a60:de1e:e60d:7052%4]) with mapi id 15.21.0592.010; Fri, 6 Nov 2026
- 21:38:17 +0000
-Message-ID: <125b1872-ce72-4842-88e3-abe7f8b1e772@nvidia.com>
-Date: Sat, 7 Nov 2026 03:08:06 +0530
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v9 1/8] ACPI: CPPC: Order performance-control updates
-To: rafael@kernel.org, viresh.kumar@linaro.org, pierre.gondois@arm.com,
- christian.loehle@arm.com, ionela.voinescu@arm.com, zhenglifeng1@huawei.com,
- zhanjie9@hisilicon.com, lenb@kernel.org, ray.huang@amd.com,
- mario.limonciello@amd.com, perry.yuan@amd.com, kprateek.nayak@amd.com,
- maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com,
- linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, linux-kernel@vger.kernel.org,
- linux-tegra@vger.kernel.org
-Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
- ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
-References: <20261106193304.3347374-1-sumitg@nvidia.com>
- <20261106193304.3347374-2-sumitg@nvidia.com>
-Content-Language: en-US
-From: Sumit Gupta <sumitg@nvidia.com>
-In-Reply-To: <20261106193304.3347374-2-sumitg@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: PN5PR01CA0007.INDPRD01.PROD.OUTLOOK.COM
- (2603:1096:c01:261::6) To CH4PR12MB720178.namprd12.prod.outlook.com
- (2603:10b6:610:50e::10)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=nOiLZodl
+Received: by mail-yw1-f176.google.com with SMTP id 00721157ae682-8b32daac9d7so1825877b3.0
+        for <linux-acpi@vger.kernel.org>; Fri, 06 Nov 2026 16:44:27 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794012267; cv=none;
+        d=google.com; s=arc-20260327;
+        b=FoCk+LOqSQa9t5S3N4OdZpJDuuaQtu7idhVRMxLTCWB2wvDY3R2iEjWHPRZg0RC+Qe
+         FgCTf22AwBM8fx1XjEAj3ELQq1bF0i+rdOROef2mat6990P94sws/9fvgqjcIvfOEFEr
+         wUpNX3oegIVGJ+Z9c6A+bfKATNTOj/TSqCCKT5Laai1Hg0pN1N9ppEQgkYzJA2NDK1gC
+         6+s2jlPVCk5MkZMM/66Yqe8qZSiDqczbjio9aOJWPYXUzVjMZjO+szSnnmQKnTomwFMt
+         vvYeKpHufEzilooXILgnNNkSNCXVsvdcvAk9IephsZnV+j6xYLydNgkfUp+xx3LARO+i
+         5QFQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=9eiigW6hOkRbk1j+4tKF/Fi6rPLvkQU7Pgh902ZJH6g=;
+        fh=rsidluMiD02w7xm45F9JPGNSKez8I1Pye0fD3Fe16zI=;
+        b=lsdmm35zB7T3+Sg/8M1D+DKWSK5IMdJQcnVju4nE/KSwUNKjrSUNv9OCq2FWW1wQ/7
+         HdX2b7PHgPOedSFK8NF5vm8gqFFHSkUC2xBqPToOlsLlHxpPpwJKeonTyWS4sj3+q6zj
+         vjueqJPxCka1Y1pZTjLKntpGfHKfRJEZiH95iIR1KJrPlzUeOypm3Bn9ouNewP6ZP5O2
+         XD5LUmsk5I38u5xBCOkm7ZImhoNYtiPt/F1caaW+pjhvydSGH9ydqLVoLMlX9JfLzV0k
+         piySqwqV732ANdkVyVf005uzqhU2HAAx723URlQMFtbVlM22T87a2ddVeKk72PloBhf2
+         tOog==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794012267; x=1794617067; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=9eiigW6hOkRbk1j+4tKF/Fi6rPLvkQU7Pgh902ZJH6g=;
+        b=nOiLZodl15ocN+6iPF96n7YgQF16GvHtJCdXQpeUJ+at04+nc5dH5YSLMve7zunCNR
+         ySvKXv/yTNJ/9IhuisdrAm5RXeLq9yGCKc7NLECfVd2bq1U+YFjONLwTsHJMM/Vx76AM
+         /9J/fEnHkLMoBF54qQGcaub3pxzcWGNQm+hDwtl0syhIO1zDwDXoX4QI63NtWabBixMb
+         gwn1yD+iwB/4y9RUkLUBI+YFkzrdo/CVm/VMdXwicheAWG88N4ZPVXzLrZlPr/tM9Bw/
+         IVTu5LFLgYh1uEbsdyrFi5FA7gJkpmfWL9/TWxlX06RjuVl8a19PwWiLWkGo4cXBbr+b
+         89dg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794012267; x=1794617067;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=9eiigW6hOkRbk1j+4tKF/Fi6rPLvkQU7Pgh902ZJH6g=;
+        b=ducu3fZ97+5zUwLQq9QQD3qtNCGJVjj2Ra4dD/v5BRh5nWlnTg9sF0lhwpEK0Pta/I
+         1MlK6DUNWYGS8OTT30z/9LUHIQJztFSIbQU0EEXXtFs2wZg7fXdPUxHodrKwaxQ1eHxx
+         7x/GImgaNFgmTFkQaogct2/23QxSJImqAwDYU5/z2akyB1y96FFKXCoAguUJlgfUDhkl
+         r2vfnOsVqv3e8JACrFp1G70QQKTtzMrowJmzx9CFoq5rt8E83RTF8+Wk/GLdF5G5UvAU
+         0fT4HL5rrrRQAEXOVKraVUqel7fhiQwsQ6ARdji7zyu2D00w4HDv3Uyb1PehUiNkmp68
+         BsyQ==
+X-Forwarded-Encrypted: i=1; AL+hErEqKpHnLrQhlMrjhOCGaW0J97itF5qBN9DtJZGuzUHObcDaB4h0nB+CucTHmMw+GkaCYqaE0mDsA8ae@vger.kernel.org
+X-Gm-Message-State: APuU4Z8c0aDZIAmG2pzh8KBHbK+ydvKji8g5PZDj0R2Tjy26iaXj4ZH6
+	j9QonYMwb3N3qtC8En1jUA6S0vI9n84TLlND3Xe35TVx3RIYYb7Kdih1g8AB+PB0niXlzwOgPSW
+	s0SqBzawcgrz6JRiKdjsiqjKhXg/qHRU=
+X-Gm-Gg: AYBFou2WDJtV9UcC35Vauud2jyFYJGu7SUuEZEbE1Os0arZ8C9STPBAen2PZzNEJhTI
+	dc2fcxpqx6ic+kXOzfebi+48Dcc7AIuRRcVtwswxLVbvGgSVEXq2Ttr80tj/D+gVVXqaxhG25TD
+	JbWwRSFdAlxa0PR6HcJ/9uE5cbpCLApwAtGvb35VIv8QYRhao4Ir44rbFL93Lga4v/l1GuyGnVS
+	bpKoOCBAfMOBW6Z9fr8YfK3rE+PkLCDHKGeFq679hNgphczqaUR4zLmi1mBXI8W+fLTeWrgjcq+
+	/ReOKyrh64gzALtvbBoMOudy28RsT2/GUJIkYWloHbRIVeE1dzS5yBFrzWSwsbBA3T0dCowkDwP
+	p8rxHjFUieSEQaxk9X6Bm2KKZ1YdixjgoCjdGAhUSv+ZDGo+CHtuQuRthXoQ255dzc7k6gRJMUg
+	fKsZcicPzwyGqXtx1PDV25RlasF1sMnpfOO7pgeB0uZj3IJK83SudKJTubPnN1/I4tDDIxJoqru
+	EVH++UZqw==
+X-Received: by 2002:a05:690c:e184:20b0:8b3:310:244a with SMTP id
+ 00721157ae682-8b3566382bemr2930967b3.9.1794012266766; Fri, 06 Nov 2026
+ 16:44:26 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -105,146 +105,112 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH4PR12MB720178:EE_|SN7PR12MB8059:EE_
-X-MS-Office365-Filtering-Correlation-Id: 6309f48d-f778-47ad-f06d-08df3c4e4516
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|23010399003|7416014|1800799024|366016|18002099003|6133799003|10067099003|22082099003|921020|56012099006|4143699003|11063799006|5023799004|261022105027099003|261026121527099003|261028144727099003|261022075727099003|261009223027099003|261102123227099003|261026140227099003|261021121427099003;
-X-Microsoft-Antispam-Message-Info:
-	vOeJZBFrPWmo6qLwQT3adKIdJZTarinSg0xWG1mImcYuoEnA7FR4Q6MyrYUSEVu82c8xZ/GFjagPANAvDav+XzJK6jkUHojr62CoSBvRQDhYWC61DmQn8W7Kh3r2OsePH0TI7FtPoFb547KrzG7e1v/ZKe9FLy0oSAiYSXj/jBJLGT8a5Re3EBD8x67Nz8xQxkbW4GkolZRGLnfsVGvmWtRK0ieOqonC0w54f1gl1uZjAVLfsdeX18YIklrpz/LHJTtxGUR51woa5BodWEutZatyKDnGzzQJKz7AXcpn3iCy2VYLv51OvMItZZRJpjdkNTs6gvadbHp25IFW5SQ17yqYE0YtojNjC0OJNn9Jv9EckmhJzvBY+Y60ofBuGJRc+nFJQZgGe83E7+mTY3GzKyguKPi/2UAnRI5Zc4KMRmtLnb/94yFrPef7SciFgiuDqrnU4EBXAACVWitcyfdl/sC5SO9WPZSMprKpHJAqS8nmRMRzvzaf3UzgPV0Cx3OW5FSLR/Kk5921ilnaBQX73g4olUNIbnjsT3gVw4RE+KRpFeFm4SNjxSSQq9WTbetAglwpClIWbzbRj0jdtahUlk+591/uJssQXulnIse5sOOalP+VV7IlwCIwmqDwRgvjk03vnSC5+tVdEbJMb/fKuH+C3oxJat3Dz8EJSdaDZuVM+8ZkP2GWwis7qO8ltdvbTQYsJF1S57vlOGg23559aw==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH4PR12MB720178.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(7416014)(1800799024)(366016)(18002099003)(6133799003)(10067099003)(22082099003)(921020)(56012099006)(4143699003)(11063799006)(5023799004)(261022105027099003)(261026121527099003)(261028144727099003)(261022075727099003)(261009223027099003)(261102123227099003)(261026140227099003)(261021121427099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?MHRnOXk1ZUdla01xUjNubk1kQXA5T2syTklueEo2blJnQ09rM3dmZ1JkMTht?=
- =?utf-8?B?S2U1OUMyOFFiZlZYb0FIV1R0QTlPNytlS1lqWjB2UVVsaW9FNDdaZllZdmQy?=
- =?utf-8?B?UzhSQ0FXcmtkTVVVU2Nrek9nVyttdXR4N0FKdnRvOG9wMkNJY00wRlArNjBM?=
- =?utf-8?B?UVBzUjBsQmdRZ3NkQXFoZjVKM0prV1hMNk11V2NSS1c5dExGZFhFbGcwazI2?=
- =?utf-8?B?NG9sMW01ZnVyaGllSjBTV2IrejNiOHp0ZENiZVppdFpEYm9qeFBXV0VQUlc3?=
- =?utf-8?B?bTgvRlYrTTRuSXQyajNWUHMwMTNKeFcvT0h3V1paUU1KeEZxTU1wVkFuUkU0?=
- =?utf-8?B?QUROamtaNWJlTC8rV3M2RTNab2lFaFdHTEY4SmpJQTZQMjRFRUVTZHkxVk45?=
- =?utf-8?B?Q3NzZ2tLZENra0ZqMjZPVW4xOENJS0tIbGw3TzloVUFLdkFSbU8yNTNDQS9W?=
- =?utf-8?B?WmQxV3NFZ3VGZVUxY1U1OEVDUmNua2l1aHNMNkZaa1NNV2grdXIzY005OHM3?=
- =?utf-8?B?eERsVHZ1TVlDbUdYejdGRWowVGVJR25Qb2V5bjNmUGlwZXY5MHo3VXVha2Zv?=
- =?utf-8?B?T1JkWlZRMDZ0RkVRc0dybmJsbERqQW1DckQ2NGRSMnc2Y09wZG5MazRoTzF1?=
- =?utf-8?B?OGJIOVNkZ0dMR0ZCVzVDOGdwdnRPbCtMOEt1QlFzVm9meEtVcUZtbk5UYWx0?=
- =?utf-8?B?NCtLUXZFTGVoTnVRTDVEb3RUODYyNUZXc2p3SDE0V1FLOCs3dVg1VC9CdDZP?=
- =?utf-8?B?NS8vcWRCOGFaTGxycW14dmNFcjlBVk1oMDl2Qktib09RSmh4RnphOVNabTFu?=
- =?utf-8?B?dzMybHcralZMRTNlZW1UN002ZG5WbTQrOVdra0hiQ0Z0bk5qN1Zzd3dRRzUz?=
- =?utf-8?B?eklFcHhUMTZKdk9xSzEwZVpib3d5bm40WjZlUm96dC9QVnhENzk3SFJNNlV3?=
- =?utf-8?B?dXMvVWVla1JaVjVlL3RwamtIS3JEQVJBUkZWS1JNanlsWGhVbU9BTnVjMHBQ?=
- =?utf-8?B?OE9GeG85ZHJTTWRuQlVSUzBKWUNiOUswYXAyUDlvZVlBS1MrYmhtOHgwUjZX?=
- =?utf-8?B?WkEvRHpES1hQczNQZG9vbTdwcG13R2VnTDVDK2ZOd1JLdGMrcVpkbUZ5eTkr?=
- =?utf-8?B?eHh0dGlMTzA1czRMMkR0ZUErZU1STmJ2Q05LYTNURXdwSldIamFoMVVrQnk3?=
- =?utf-8?B?cGVJRVljd0lHVkF5cUVsUUhIemVhSnJMTVZQM3JicXViVzkwWmduMFN5UTho?=
- =?utf-8?B?OHgxV2VsYjBSREhSNXkrYk52MjNCbkhpQ2FGQklUZ2VWeEZnZldWTFRtRHJF?=
- =?utf-8?B?V1EwckF1SDloaWVjeVdTdzE2UzFMaW9mcFVoak5jQy8vVkFxTGNhWVB1NmQr?=
- =?utf-8?B?LzFyMW83S0lORVAyVCtJQS9KNTVhL3Jqell1eTlBUkR6WW1HTG5sVi9TSVV6?=
- =?utf-8?B?RzR4RUNrUzlEZDRQQXpsb0hDclE4ZkZRR3dwY0VWY09RT1hCcnphSDJDYjR3?=
- =?utf-8?B?OUMxTUJ3dkFoR29TaHhpQjdJaUNSTlNYVWRmbkhCc2ZhYkZ0VHNVbld3cTBI?=
- =?utf-8?B?RGkva0pLbHFDMUEyS2tFRE9FdHhESi9rM2plVUMzV3JqOTI3SHpTVmVlbWUv?=
- =?utf-8?B?YnYveGtTeXV6RHIxTUJtSHVTWXplRmlXVHhZRGhCSE9XN3NyYUhKa3RtbXRN?=
- =?utf-8?B?d0RCYzh3ZVFrK0oraExJRmZRVU9nczlUWjJvVHRFVzhzYklndFBGOFJ4MDdZ?=
- =?utf-8?B?elNHeWpGT1RFbERZUHhzTzJlTzVhUlZCT2I2bExab1NxNWRCWWFXQ0xuQ21C?=
- =?utf-8?B?NUdvN2ZtRURhMHVNOUF1S0FxK2Y1L3ZuM1BFUm5qSGhnbWZBaEgvYUJ0V1F2?=
- =?utf-8?B?bVZFWTk3NmplZ0pXZllsUlJiSXRIZFFlTjBuU1JkUDFtcHQ2dG9ZVUl6WXFa?=
- =?utf-8?B?TGQyN2JXVUpYdkNCZ0pRM0hwcTgvRkFYM3Jhb1AyMHRzWUNqMHh2YmRvN0Zn?=
- =?utf-8?B?SGhKTXV2cHc1UmhSMHpBZlNmdlN0TUUwd2VPOG1FWTkyUmFuWmpkT1N4bGpa?=
- =?utf-8?B?UEdsTTcwOERsOGpCQlBUV0VlVVNHMHF0dzQvN1kySGhxYTk1ZEcvVGlIQ1FM?=
- =?utf-8?B?VmlwZmRjTEZjUGRGam5mYVNtUGxvV1c0NE1wd0wyWG5DWk8wNCtsRWtFZHdr?=
- =?utf-8?B?eTIvVzMzRFpMMys3a3E2YjEyNnBVRDFOY3piZ2hZY0tkbU01ajJ3UWRSZE9E?=
- =?utf-8?B?YmwrWTVNRzVUdEgyYXVTYXdFSyt2TmpFR0JENERERWhvWElSTEFPOFRSYnBT?=
- =?utf-8?B?ZC9acDBMTnBjUGhPb3NBSnRjdGdjMkRzVFlSWHBuWkVtWWdKYk93UT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6309f48d-f778-47ad-f06d-08df3c4e4516
-X-MS-Exchange-CrossTenant-AuthSource: CH4PR12MB720178.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Nov 2026 21:38:17.7086
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 4iCUvsjaEPCZEHfng9+FmyqIHbi8Rd+PsvdE7sGKnEVNwJfi0u+G8sP7RrwJ7dEfTGXdpT5b6ZT4wZ2yHv/hUQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB8059
+References: <20261104234928.86458-1-sidchintamaneni@gmail.com>
+ <DS1PR21MB4279C556CFB876C5562C7F1182772@DS1PR21MB4279.namprd21.prod.outlook.com>
+ <b660d79f-887e-4594-ba76-c45dc5f75435@linux.microsoft.com> <CAE5sdEhozq5SVj-SJLndiaANx1N_sTiAMBD0zeA_aafUYAGOKw@mail.gmail.com>
+In-Reply-To: <CAE5sdEhozq5SVj-SJLndiaANx1N_sTiAMBD0zeA_aafUYAGOKw@mail.gmail.com>
+From: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
+Date: Fri, 6 Nov 2026 16:44:16 -0800
+X-Gm-Features: AclHuK9IwxmZ3zJg_UWR4NgkA_z56Ff8mEcKQ6deQjlglJnLrk3UFQi4VN7saZA
+Message-ID: <CAE5sdEi9iOwEmuhzWZ=O5u30UVCbCerckhggBqEY9qU5jBce4A@mail.gmail.com>
+Subject: Re: [EXTERNAL] [PATCH v1 1/1] i2c: designware: Add ACPI ID MSFT0006
+ for Microsoft Cobalt SoCs
+To: Jarred White <jarredwhite@linux.microsoft.com>
+Cc: Andi Shyti <andi.shyti@kernel.org>, 
+	Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rafael@kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Len Brown <lenb@kernel.org>, 
+	"linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, 
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Allen Pais <apais@microsoft.com>, 
+	"rlmenge@gmail.com" <rlmenge@gmail.com>, 
+	"hargar@linux.microsoft.com" <hargar@linux.microsoft.com>, Jeff Kirsher <jeff.kirsher@microsoft.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Rafael,
+On Fri, 6 Nov 2026 at 08:30, Siddharth Chintamaneni
+<sidchintamaneni@gmail.com> wrote:
+>
+> On Thu, 5 Nov 2026 at 13:27, Jarred White
+> <jarredwhite@linux.microsoft.com> wrote:
+> >
+> > > [You don't often get email from sidchintamaneni@gmail.com. Learn why
+> > > this is important at https://aka.ms/LearnAboutSenderIdentification
+> > > <https://aka.ms/LearnAboutSenderIdentification> ]
+> > >
+> > > Add the MSFT0006 ACPI ID for the DesignWare I2C controller integrated
+> > > on Microsoft Cobalt SoCs, along with its 300 MHz input clock description
+> > > in acpi_apd.c.
+> > >
+> > > Without an explicit MSFT0006 entry, ACPI device matching falls back to
+> > > its _CID (APMC0D0F), which configures a 100 MHz input clock instead of
+> > > the controller's actual 300 MHz clock.
+> > >
+> > > Signed-off-by: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
+> >
+> > Acked-by: Jarred White <jarredwhite@linux.microsoft.com>
+> >
+>
+> Thanks!
+> Do I have to respin the patch?
+>
+> > > ---
+> >  > Cc: Jarred White <jarredwhite@linux.microsoft.com>
+> >  > Cc: Jeff Kirsher <jeff.kirsher@microsoft.com>
+> >  >
+> > >   drivers/acpi/acpi_apd.c                     | 6 ++++++
+> > >   drivers/i2c/busses/i2c-designware-platdrv.c | 1 +
+> > >   2 files changed, 7 insertions(+)
+> > >
+> > > diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+> > > index 9fc667d6776c8..a1baa056931c4 100644
+> > > --- a/drivers/acpi/acpi_apd.c
+> > > +++ b/drivers/acpi/acpi_apd.c
+> > > @@ -198,6 +198,11 @@ static const struct apd_device_desc hjmc_i2c_desc = {
+> > >          .fixed_clk_rate = 200 * HZ_PER_MHZ,
+> > >   };
+> > >
+> > > +static const struct apd_device_desc msft_i2c_desc = {
+> > > +       .setup = acpi_apd_setup,
+> > > +       .fixed_clk_rate = 300 * HZ_PER_MHZ,
+> > > +};
+> > > +
+> > >   #endif /* CONFIG_ARM64 */
+> > >
+> > >   #endif
+> > > @@ -272,6 +277,7 @@ static const struct acpi_device_id
+> > > acpi_apd_device_ids[] = {
+> > >          { "HJMC3001", APD_ADDR(hjmc_i2c_desc) },
+> > >          { "LECA0002", APD_ADDR(leca_spi_desc) },
+> > >          { "LECA0003", APD_ADDR(leca_i2c_desc) },
+> > > +       { "MSFT0006", APD_ADDR(msft_i2c_desc) },
+> > >          { "NXP0001", APD_ADDR(nxp_i2c_desc) },
+> > >   #endif
+> > >          { }
+> > > diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/
+> > > busses/i2c-designware-platdrv.c
+> > > index 1da6b0314b6a0..f359d38cc63c7 100644
+> > > --- a/drivers/i2c/busses/i2c-designware-platdrv.c
+> > > +++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+> > > @@ -280,6 +280,7 @@ static const struct acpi_device_id
+> > > dw_i2c_acpi_match[] = {
+> > >          { .id = "INT3433" },
+> > >          { .id = "INTC10EF" },
+> > >          { .id = "LECA0003" },
+> > > +       { .id = "MSFT0006" },
+> > >          { }
+> > >   };
+> > >   MODULE_DEVICE_TABLE(acpi, dw_i2c_acpi_match);
+> > > --
+> > > 2.45.4
+> > >
+> >
 
+Andy,
 
-On 07/11/26 01:02, Sumit Gupta wrote:
-> From: Christian Loehle <christian.loehle@arm.com>
-> 
-> The ACPI specification requires Minimum Performance to remain below
-> Maximum Performance. When autonomous selection is disabled, Desired
-> Performance must also remain within those limits.
-> 
-> cppc_set_perf() writes the three controls in a fixed order. This can expose
-> an invalid tuple after firmware resets the controls or while policy bounds
-> move across the current desired value.
-> 
-> Read the live limits. Apply non-atomic updates in three phases: widen the
-> interval, update Desired Performance, then narrow it. Submit PCC controls
-> in each phase together. Keep the existing single-command path when the
-> complete tuple is in PCC, reject invalid requests, and stop after the first
-> failed access.
-> 
-> Make cppc_cpufreq fast switches include the limits only when they differ
-> from the last successful request. Invalidate the cache across resume and
-> after a failed request, since firmware may have reset the controls or an
-> earlier phase of a failed update may have reached the platform. Publish
-> slow-path limits only after the complete request succeeds.
-> 
-> At policy teardown, lower Minimum Performance together with Desired
-> Performance so the final request remains valid. On initialization, clamp
-> Desired Performance to the live interval left by firmware or an earlier
-> driver instance.
-> 
-> [sumitg:
->   - In cppc_read_perf_limits(), skip an unimplemented MIN or MAX, and
->     do not fail on a live MIN above MAX.
->   - Clamp Desired into the new MIN and MAX instead of rejecting it, as
->     amd-pstate resume can round it above MAX.
->   - In init(), request the full range if the live MAX is zero or below MIN.
->   - Clamp Desired in set_target(), fast_switch() and store_auto_select(),
->     to keep the cached value in range.
->   - In store_auto_select(), publish the request only after success.]
-> 
-> Fixes: 76531df5e13b ("ACPI: CPPC: Add min and max perf register writing support")
-> Signed-off-by: Christian Loehle <christian.loehle@arm.com>
-> Link: https://lore.kernel.org/all/01d7f07e-839c-428b-833d-713ed2128f4d@nvidia.com/
-> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
-> ---
-
-
-Sashiko flagged three issues on this patch [1].
-I think none of them needs a change in this patch:
-
-1) SHARED_TYPE_ANY, when policy->cpu changes: the driver uses one set
-    of controls for all CPUs in the policy, and always writes them
-    through policy->cpu. So the MIN and MAX written earlier still apply.
-
-2) MIN and MAX not written when the requested frequency is the current
-    one: not new with this patch. Since commit 9801be8bef65 ("cpufreq:
-    Avoid redundant target() calls for unchanged limits"), the core
-    skips ->target() in that case unless the limits changed, also for
-    the first request after the governor starts. I will send a core fix
-    for this separately.
-
-3) store_auto_select() racing with the governor: this is not new
-    either. Before this patch, both edited the shared
-    cpu_data->perf_ctrls. Now each builds its own request.
-    store_auto_select() holds policy->rwsem, so the policy limits cannot
-    change while it runs. store_auto_select() and the governor both take
-    MIN and MAX from these limits, and keep Desired between them. So
-    MIN <= Desired <= MAX holds, whichever write lands first. At worst,
-    Desired keeps the older value until the next governor update.
-
-[1] 
-https://sashiko.dev/#/patchset/20261106193304.3347374-1-sumitg@nvidia.com
-
-Thanks,
-Sumit
-
-....
-
+For Cobalt, the firmware exposes the designware input clock frequency
+through the ACPI HCLK object.
+Is there an existing way to retrieve or configure this clock frequency
+through the ACPI tables, rather than hardcoding it in the driver?
+Although the frequency is currently constant, it could change in
+future hardware revisions that use the same ACPI HID. Would it make
+sense to retrieve the frequency from firmware instead of relying on a
+fixed value?
