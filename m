@@ -1,57 +1,125 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=89.58.8.210
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.52
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794145011;
-	b=JFUcI2pbuzhW8fS1gEWbZC1h1TTA3aMqJi1gdBT14uyHMeG3lLdopE1OH8DRuA7Lhu8/
-	 mbNRgT2DADmWF0UsbdHcxBPb6pIgnbkIuKMZt05yiY8iWrX3IPJXvan9EauCkzi6Lybl5
-	 siy+G6oG3fXGdzV2CyHCK53JU6c+p5zUJFXx7o1glKn17UpD9whCRq/C1yUDIt6bsrT6p
-	 QjQrkBHg77pqYHsDM9PjRhX0AN7QwwEIwfVPakl6Ue8UpzNoOawJ5PaKHxcXtHwjbdOsG
-	 dJR6wF1+d7SSVex3yanjiU2UOnk86rFLg0n+PR6R23IKqU/VclR3vUgwXhI/j+dYIjQ==
+	t=1794157159;
+	b=A7DCysJABSs89k+N97cNf2UKZTAvHe8UFzfOJOITc4a+Rt5rJozD9Ui/IFSY5yu8+JFw
+	 Df13ddHue2II+3kFuhOxcE5SvcCMTqp44Dnx26DzRTR26xXk6egHByWuYv54CGTP4yIi6
+	 ei8S7zcu3FYjvdtHhaK4GehPvaErRLFTc1PTgwEJrEhFeFU1mEHt41UAkVvEc47ahItzQ
+	 0X+nJDBBJvn7PWqReld0TKKaMwRQGp7xS/TLJ8yuxBoTb0fFe3uQdkgBHYKBokXMmfzkj
+	 LkMI3KceUWqNBcm+gzKOZLmYjT4BrUf2xmXytRJXx2mZ7Tm/K1dNZwlX5nHCdpMWt1A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794145011;
-	h=DMARC-Filter:Received:DKIM-Signature:Date:From:To:Cc:Subject:
-	 Message-ID:X-Mailer:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=ksfeohUu2MOYYJCfG6rnR7jwX7L3AOvI7nh2YtUJ5tw=;
-	b=LRAcyjw7hJ22Rr5QVbrpqYXcKnkZf7yuP1VZTZNyWT4bIU/pe24/3Zz4BfNLJ4D2kFhd
-	 skqOyskovwA+bLVy/IH49VpjfhvuhDaXqoQMGUhbtMBxc1QXGdDk9882zeY8T5nBly80V
-	 YLlaP+kwkPKsUyjMy+ZwiYgi/BWhz4DWl3AAaQZ6D3ej2zySwbFiiPjaspHEOGAET1GWx
-	 VTB71C69t+dnxUVaNzMsA6R2v6QeY5qX5GEqfsUKS3rAFU6CJ5m1xggAXvrewURQhFDS+
-	 spmUzLZjn5s7YnrpaBTnu3PTsXaJ11cisCr+3ngtpfOfBIdaUzKYfc4VAUqLk1NWLYg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794157159;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To;
+	bh=lmwJQdwiPgvUanu0gwsKytij+Ict3+h8IPwu4vyFkUU=;
+	b=LoXMYvktyAStwFjKGTMDQqT9L6sib/iYtk3XoIYv3UJ53UZhydQ1YdXB7HCmgMXoreSD
+	 VY4uqAbTGxiGM2ftYccwPHU2T8xM0M1Z6xbxs1SZfReqpavrlaXj+MP3rBxt3e8ym12SX
+	 0JzjT598aOHmxDMI7fWRkkvo+qw4H3LOXNHCt4zsU35iMdWCBjYRW9wak6b0RjVd9+buD
+	 nUkeoCNTVLWFRM6yn1Dih6MaxKaKuZsrkufshT9+mePQEf9jEIyYrBeX4I159V73oCXaD
+	 xJLxf36+J73lMdMQGlko6e5GAVZA9Fsenb671X3WxBXEJRRiX+lDrg/tzqnLtGdnBOw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=wagner-flo.de;
-	spf=pass smtp.mailfrom=wagner-flo.de;
-	dkim=pass header.d=wagner-flo.de header.i=@wagner-flo.de header.a=rsa-sha256 header.s=fuldigor header.b=jLbol+X8;
-	arc=none smtp.remote-ip=89.58.8.210
-Received: from fuldigor.wagner-flo.de (fuldigor.wagner-flo.de [89.58.8.210])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=fail header.from=rowland.harvard.edu;
+	spf=fail smtp.mailfrom=g.harvard.edu;
+	arc=none smtp.remote-ip=209.85.219.52
+Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E810B606A320;
-	Sun,  8 Nov 2026 13:36:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E810B606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wagner-flo.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wagner-flo.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=wagner-flo.de header.i=@wagner-flo.de header.a=rsa-sha256 header.s=fuldigor header.b=jLbol+X8
-Received: from teclador (p4fe8fa45.dip0.t-ipconnect.de [79.232.250.69])
-	by fuldigor.wagner-flo.de (Postfix) with ESMTPSA id 18E401EC71;
-	Sun, 08 Nov 2026 14:36:42 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=wagner-flo.de;
-	s=fuldigor; t=1794145002;
-	bh=cj56BryqCAaDQKgw9207kfTg1TbElKjmb1l6QWsloKc=;
-	h=Date:From:To:Cc:Subject;
-	b=jLbol+X8vCXSJ2EJ+GmuF2GI6LhU+cZEnobAw0gz2/sBvI56oQ/Y/EAJQtvKtAS7Q
-	 xJ+o014/q2dYMWace55zO8CN1tocQb7hqhXc+v+lFozb+u25b895p5d+EBLGyXNxX4
-	 B2FBbfOQDNTw5nmSwV2t2lQm/Qiwj/6vPsmBDsGE=
-Date: Sun, 8 Nov 2026 14:36:40 +0100
-From: Florian Wagner <florian@wagner-flo.de>
-To: stable@vger.kernel.org
-Cc: regressions@lists.linux.dev, linux-acpi@vger.kernel.org,
- rafael@kernel.org, sashal@kernel.org
-Subject: [REGRESSION 6.18.y] ACPI: button: lid events lost since 6.18.57,
- please backport a004b8f0d3bc
-Message-ID: <20261108143640.6252e6a8@teclador>
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-unknown-linux-gnu)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2772606A322
+	for <linux-acpi@vger.kernel.org>; Sun,  8 Nov 2026 16:59:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F2772606A322
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=rowland.harvard.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=g.harvard.edu
+Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-91ec2d42231so2161926d6.2
+        for <linux-acpi@vger.kernel.org>; Sun, 08 Nov 2026 08:59:18 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=rowland.harvard.edu; s=google; t=1794157158; x=1794761958; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=lmwJQdwiPgvUanu0gwsKytij+Ict3+h8IPwu4vyFkUU=;
+        b=vVWQLNs+Rnn6NOsMpjKSpUM9H3gRT4E/HZTt53PMAZ2SXIz+Low080hQm0r2oKAsG+
+         HZ5TLknOMUGXKR3KUCz20FyQXU1Y7n4k67s/O97MTY2HciAv7W5/XWWVJI3wnxiYTpJN
+         gDPuohXn6LbvsrECp0/Ji6cvN5My5wm8EgfEsTmjv66hd/4pZ3HhjPBADrWO+gshRLZX
+         1w4cJtE0RQlZSB1u8qCDumnVcL5w0oR/W9xf8l09re306PAWvYklsReVbujjFSq7ckfb
+         ysHxLPgUuyjzLYLRPYb0BIszOUV4j3JsJcseKz7sg4xVYz+KH4V8tOVQekOfo5kBRIRc
+         SzLQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794157158; x=1794761958;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=lmwJQdwiPgvUanu0gwsKytij+Ict3+h8IPwu4vyFkUU=;
+        b=KMz91WeVCNpjyDQDMtqDF6XAxpyYI0j1h8LDDsBr7l2gJBq2hoKQRU5cR4PSDrUgN8
+         /ebs+9vXegt7ezxqIG9lG38W6KTRJFr+iIlmU4t3faokTQpzSiaVZbg3AMJaeG41CmK5
+         3uaTpeYhmpZ/GHrrVzweQqbgGA+ScvL8Kfl3g1muXkFAcMoa952Cncu0Gdg1NtvUa/0b
+         NpNlHEc3qVTw8eZy9TQoNU5k0TZ5JzJ4ASmGj60JjVyH+6lYTv48VuCBkfEfblT1CWqS
+         RWB3ryczVAVrum+TAGzJxZrKaJGzL3wq7Okiv+v1MFtwNRFQZZOVzAthm0WgcLqroZKZ
+         vycg==
+X-Forwarded-Encrypted: i=1; AL+hErH+DkSWJII9wo9FltKUpm1wI2k09AT2NgbGhB6cHjKsgumMbs4XH1bYmc4dnYGZHuqLO51ltLnL+g5F@vger.kernel.org
+X-Gm-Message-State: APuU4Z8w/ij6CTppuHmv7pK0xsroFaSanTrM+4q1kVCfDHTXy5CRB/ND
+	WixdoEXgsSJqBdMRTiJNqdbjK6lwKuaFqxbNHycpmjAwRzIt69jJTcfyvzHX/Oe79A==
+X-Gm-Gg: AYBFou1uh03E7M429vG8kbNsrJgzWqpcYOD8nmzdnOBo6/6sjAM32wY6EpwByw50Mq8
+	EONk+Z/Jr2bHUCQ3I4DPZrb6D5U4Am9jBdWLUMbJOYerf6gPufacGIFmNrSw+93WFz47f9oh2Tr
+	sX8u9FsGryDIG4KF292mQCtGkyurAcsBi86F2ml09qWiVtedXA6W0Q6w5nys/s/KOfzTGQqCBdF
+	C1MW+fbNB8Zbr/om3Rmgbj5DBSXlg7mcnsusPZVefePwFKqRm0vdWfp3HlujT3tmRw/Wdke6bIn
+	y3RIKhPg0KGZCQo0BYhXeyaJybKpYF3vEx8sHqwq/2vH43m3T5z9IrDFWpgylzEjNKToXgZygax
+	5iznBBc2GepHpp/vhd7cP0n/j+t1SC71J4mJ+47Nfl8vP0qnD9vUeJ5Snx+4vXbCc1SO2DFiad4
+	lX53GaHlZUVMtClwJT1J1ZNR2V1LiOkC4vzCYCPtSBlt3fyEdnXymJ6kAwwdwqM3InIMsl4JuCp
+	W1HjJ3I8YPWs7ZW704r4mFv2aHHBrD3xi/zMkdGbhCunlyl8uZvxkeSlmdtWKujOFq6Pg9ETZQc
+	LNbVGXv5EyyV7qftR39TDY0hqYYF
+X-Received: by 2002:ad4:5d62:0:b0:91e:9d64:3294 with SMTP id 6a1803df08f44-91ed240d34dmr24616736d6.30.1794157157397;
+        Sun, 08 Nov 2026 08:59:17 -0800 (PST)
+Received: from rowland.harvard.edu ([2601:19b:d01:d210::66b0])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91ecedbefb2sm22431036d6.17.2026.11.08.08.59.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 08 Nov 2026 08:59:16 -0800 (PST)
+Date: Sun, 8 Nov 2026 11:59:11 -0500
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Andrew Lunn <andrew@lunn.ch>,
+	Heiner Kallweit <hkallweit1@gmail.com>,
+	Russell King <linux@armlinux.org.uk>,
+	"David S. Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
+	Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Lu Baolu <baolu.lu@linux.intel.com>,
+	Johan Hovold <johan@kernel.org>, Eric Dumazet <edumazet@kernel.org>,
+	Marcel Holtmann <marcel@holtmann.org>,
+	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
+	Nipun Gupta <nipun.gupta@amd.com>,
+	Nikhil Agarwal <nikhil.agarwal@amd.com>,
+	Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
+	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
+	linux-input@vger.kernel.org, netdev@vger.kernel.org,
+	linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-pci@vger.kernel.org,
+	iommu@lists.linux.dev, Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH 05/17] USB: Lock registered interfaces during manual
+ driver binding
+Message-ID: <647f3199-909d-425f-b485-b598a18844d1@rowland.harvard.edu>
+References: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
+ <20261105-device-trust-core-v1-5-1e536825b4eb@nvidia.com>
+ <bb83fe3c-cebb-4bc8-bfc9-24df1cf72b0b@rowland.harvard.edu>
+ <20261105184442.GF8298@unreal>
+ <bf756e50-c77e-40f2-916d-e88887426806@rowland.harvard.edu>
+ <20261108110909.GA8635@unreal>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -61,56 +129,48 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261108110909.GA8635@unreal>
 
-Hey there,
+On Sun, Nov 08, 2026 at 01:09:09PM +0200, Leon Romanovsky wrote:
+> On Thu, Nov 05, 2026 at 03:04:18PM -0500, Alan Stern wrote:
+> > >  it ensures that the lock is
+> > > acquired when the driver is bound.
+> > 
+> > That may have been your intention when the patch was created, but if you 
+> > read the patch you'll see that it includes a whole bunch of material 
+> > not related to locking during binding.  Namely, this part:
+> 
+> Once I added `device_lock()` to `bind`, I had to add it to `unbind` as well.
 
-Claude did most of the work on this one, but it looks valid from the
-point of view of my (very little) kernel dev experience.
+Obviously I'm not making my points clear.  Let me try again.
 
-Please backport the following upstream commit to 6.18.y:
+The entire patch description, as you wrote it, is this:
 
-  a004b8f0d3bc ("ACPI: button: Enable wakeup GPEs for ACPI buttons at
-  probe time")
+> Interface claims hold the USB device lock, but device_bind_driver()
+> requires the target interface lock. Without it, trust-policy writes  can
+> race admission.
 
-It fixes a regression that 6.18.y picked up in 6.18.57 and that is
-still present in 6.18.62.
+This says nothing about holding the interface lock during unbinding.  In 
+other words, it isn't a complete description of the patch.  It implies 
+that the patch changes nothing outside the device_bind_driver() 
+function, which isn't true.
 
-Background: 6.18.57 received 52d864019636 ("ACPI: button: Convert the
-driver to a platform one") as a dependency of fe80251152fe ("ACPI:
-button: Fix ACPI GPE handler leak during removal"), together with
-57c31e6d620f ("ACPI: scan: Use acpi_setup_gpe_for_wake() for
-buttons"), which fixes the former. Since 57c31e6d620f, button wakeup
-GPEs that have handler methods are no longer enabled at runtime.
-Upstream fixed this in v7.1 with a004b8f0d3bc, but that commit is
-tagged "Cc: stable # 7.0+", so it was never picked up for 6.18.y,
-even though 6.18.y now carries the commit it fixes.
+Furthermore, the patch does not change any of the code in 
+usb_driver_release_interface(), which is where unbinding takes place, 
+because that routine already takes the interface lock.  So to say that 
+you had to add device_lock() to `unbind` is not accurate.
 
-Symptoms on my laptop (FUJITSU LIFEBOOK U9311, BIOS 2.54) with the Void
-Linux kernel packages:
+Instead the patch adds a new usb_driver_release_refused_claim() routine, 
+plus code in usb_set_configuration() to call the new routine.  The patch 
+description says nothing about either of these things.  Not to mention 
+the fact that your other changes make it now possible for the driver 
+core to delete an interface claim when the interface is registered, 
+something which was not possible before.  This is another inadequacy in 
+the patch description.
 
-- 6.18.52: lid works, acpid receives "button/lid LID close/open".
-- 6.18.62: the "Lid Switch" input device (PNP0C0D:00) emits no SW_LID
-  events at all (evtest shows nothing), so closing the lid does not
-  suspend the machine. /proc/acpi/button/lid/LID/state still toggles
-  correctly, and closing the lid wakes the machine from a manually
-  triggered suspend, which suggests the GPE is only armed for wakeup.
-- On 6.18.62, GPE 0x24 shows "disabled" in
-  /sys/firmware/acpi/interrupts/ while it is "enabled" on 6.18.52.
-  Writing "enable" to it restores lid events.
+I'm not saying that any of the code is wrong.  But the description does 
+a very bad job of explaining the new code.
 
-Backport note: a004b8f0d3bc applies to 6.18.60 and 6.18.62 with
-offsets, but does not build as is, because struct acpi_button has no
-"dev" member in 6.18.y. Using &button->pdev->dev in the two dev_dbg()
-calls is sufficient. With that change, drivers/acpi/button.o and
-drivers/acpi/acpica/evxfgpe.o build cleanly with W=1 on 6.18.62. The
-adjusted patch is attached for reference.
-
-I sadly haven't had the time to build a patched kernel to actually test
-this.
-
-Thanks,
-Florian Wagner
-
-#regzbot introduced: v6.18.52..v6.18.60
+Alan Stern
