@@ -1,101 +1,72 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.167.44
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794164978;
-	b=iK4anJ9nCHCL8b9rez8W+Y1AxWoWHGntBd9AExvpUwBgnI/b+z4yrEkioSUtwe/xfPh4
-	 R/RvcDwYuqHiMfZLgjturaVzp5P14+iyvulrpudPpn2wAZiy1iUVd/ZFCYkpcD8JyZwff
-	 tA33tS2/MnuLlF6/samwpVm8yZMaOrCsOZEx4IskBLJ6z2siqnqjDMfUbV6mpQwnk9ZLJ
-	 tpiYrAiFOVXk8UKfzCp7FdE8u2jx8FMCHXZ/JROLqUsVo3fQsTLoEpXnDmMIDUlZNoV3W
-	 XG60m2fmXvh7rSZw6PegEXsnYS1WSbISVFrpjzcsCCKpuZWbGkSYs4PFTF6rqZfk8hw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794164978;
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.199
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794177582;
+	b=r3NKystETvvuCdi5Z3Q/GcUEEmJNM4hBj+oA7awNcdUSLsKzyaoyguKXNJOV7LZM2PKL
+	 ZwqxCUAl3EisMpEm5v3o6Mog0BRCG8vvyzV1fKtk6uPs0WE6nQ/3wJ7XNCf7rhPYEZV9l
+	 vbBc3qYDHm7gtdSyXlIRnuhy7AJkxazoPPOcw2MYtPIIF853oHL1DUlcD32f6tBvCsL4r
+	 BAaia8JF9kx+ZglqjgMt2az5e/W+PfadPO9LX0qJtQ0o7f0ejQolta6D6WjgrfXsdHjTZ
+	 NH/X4u4w2qJAzaW7hTQNWG5w5QYI6x6HGTTzEw3aOPAThVfNNVwHlBw+F+beduvDCuQ==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794177582;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=nVPhrKJfbSmpnE1ryW+os71+IdLIXTokbMOzIHpkGpM=;
-	b=J/JcooLr5Polh1LyCqJ3fOlq8G4I3kTD7xfKpGz1IJ6RLS93XGsWch3Rae6h+UxkUrFB
-	 jbzz8PLy8eGNwNItQWoS0KUUfxVAbhuoFrZ6FwG9RcTV0Z8TJG0Wb9yIZt3tcfB1Nvs3R
-	 NXG4RISU2h+hAnvdf+CCwPeudJk0KrV6SIyQu7NqCUI5SWemzXsLhOVSkZKcOZSSB2MNG
-	 DUu9X6sM2iwxEWCjbSeWtxYoblr8ysHGu8WiEsBF3NjRcOxdW4g0daGJFt8hLu4Roxs/s
-	 OodQdbJ9zZIxuIoF5oRjNZLBzeDFgAGM24GqFwB27eYI389Yp/xFqm15ZEiZgX4c+Ew==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=nyqhPkoJ;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.167.44
-Received: from mail-lf1-f44.google.com (mail-lf1-f44.google.com [209.85.167.44])
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Received:Date:Mime-Version:
+	 X-Mailer:Message-ID:Subject:From:To:Cc:Content-Type;
+	bh=dh1tm53EjhTHyh6SV5ixAXTcy4PG9n9Z3Dkm6AKA6MM=;
+	b=QtTYqBJtiegQwwXKJ/N1/jlfhKLHupyKJ3pdHNg160xAs3GHLFy5w0M1jgGCqQSATl+0
+	 RqW/F1cpZDle6zRybqm4ZNtiXg2I2GoozlSUVt5bdPWlq1MYvlIGt1HAaMe+4tyD+jRjT
+	 WURKKRXKkaZUr1qe2PV9yvdfIARsWNBBbGtrQ/NFF6KWRSWcbXiTccPuLmsvT0P/7DQO3
+	 c/f5duLyLirInFguZO29MSXHr/76HtiPQA+uFVxzOM3EAN4cEb0iGGIaHNduVnMEVPpAr
+	 k3Tl9SBAhO18DZOA/Pe2bmGdac5PPXaB/dAaNFbofrAynZgz4wS5qlH3IqNwNwhJOdA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=google.com;
+	spf=pass smtp.mailfrom=flex--irogers.bounces.google.com;
+	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=ldVjID6l;
+	arc=none smtp.remote-ip=74.125.82.199
+Received: from mail-dy1-f199.google.com (mail-dy1-f199.google.com [74.125.82.199])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF652606A320
-	for <linux-acpi@vger.kernel.org>; Sun,  8 Nov 2026 19:09:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BF652606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46B36606A326
+	for <linux-acpi@vger.kernel.org>; Sun,  8 Nov 2026 22:39:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 46B36606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--irogers.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=nyqhPkoJ
-Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5c14c0503dfso17457e87.3
-        for <linux-acpi@vger.kernel.org>; Sun, 08 Nov 2026 11:09:37 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794164976; cv=none;
-        d=google.com; s=arc-20260327;
-        b=M2WZ3MpCowRd5uw+IbkuOVVJ/E+azhilRwK5iOz39G2fD3LU0rDRvouh2ECJb3/+/F
-         VhhF0Mn1VxtJR2oc1MlMQLdoacAiX3MyFNEEXS6J0YZtZlNZ2la08tdTsJ71dnORgo2X
-         FKIiiXlOTjBoWJK1f53PbKkL02Z/JGJnlX0wZV5YCb1Bi5lFpFZvktXUUzdNWthd8vsq
-         YfTFq4KsjESZE5hiT9872JVAuBhWkUs4S17LN24oAZ+hUTPHRJzlnQDG2ekvlEA1YdEa
-         hBhbB7vVyZoW/p3QpKLWlXuEwBKvPNwPnyn6/rEi4PVnR9hgLGbcErXubqdaTocBGb/G
-         wYVA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=nVPhrKJfbSmpnE1ryW+os71+IdLIXTokbMOzIHpkGpM=;
-        fh=bVV1wmDTd7trLs3LyQC0XRIPsoqcKiKvnqtviJ2Jwdw=;
-        b=JtZQo49ul+yCjJJHv3IfPhDIOD+m2SpV6U81rWhV8e9d0TdHv066NSsybhy6NCf9jL
-         2TOQxdKw3LY7jfKICnN6qsD+EZTrl7v6H/8cwza8kRp4fCR0j4rgDASWKXpBgBeMLHVn
-         zVE3h1SuFkZD1XbtHUcTqN/3Gm2DKCkfE0x+hbVnpmC3FfQYc2WusMYE8tH14FIHg6bB
-         nPO1c1fGgtEMS39POO2krtj+wt+XLiJ6vJCPkGkgmOFiPCQUca/hHtPvZl2e1cqW1TQC
-         SDrxc+vPTDf26IMHpM6ysAFLU00vEsporuOnOjwOjirvpN3yinwS8k1zx8fzdgIPFHSr
-         75Rg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=ldVjID6l
+Received: by mail-dy1-f199.google.com with SMTP id 5a478bee46e88-36de26cb4b3so346888eec.1
+        for <linux-acpi@vger.kernel.org>; Sun, 08 Nov 2026 14:39:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794164976; x=1794769776; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=nVPhrKJfbSmpnE1ryW+os71+IdLIXTokbMOzIHpkGpM=;
-        b=nyqhPkoJf4ud3o1TNoUahdgrSk8UAzNFro6L20LwdXi6pzsG1JFYz7/hq+yiq56Sos
-         hIdYfIn7fBJakdI4m+bmVlv2y9vUaw91XeEMXFwCN8sKIUaSHTq9ec2wFyGVfwnFT0r/
-         jRS0GMBjeJWcVqAl4vWKAMXmmzuHhp3dGlsb3RyGYTUlN1GB39Wqp+pH/S7ri2ksB40S
-         mOul80aft9gc0KlaHVkXRUMipjiiw3PzmpaLddu4ZdbKPo+vFwtprGd+EM4UB48OkEK0
-         tJEN+w2HClt45BB1n+TDYkVMWWZuZu74L/iNF9FE01IrMjVd6fGC/0U2X2oatkpDZsoj
-         oCcA==
+        d=google.com; s=20260707; t=1794177580; x=1794782380; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=dh1tm53EjhTHyh6SV5ixAXTcy4PG9n9Z3Dkm6AKA6MM=;
+        b=ldVjID6loqmnPNFD/OaQ1ryvyuLqFJ8E4Rmks8oFWxH8wb56ZGhOTinJd6AgOSJN6X
+         eyQWYvinnqT6zEG01/RQdCnGd6x2V0Jftj7n4U/vmVkJUAhXm9rpFjoL01D6FYnKlWMB
+         Se/KJEsvGUwegaaKRjgstvqc+0E4NQMuqMIJdhVIGH4bcKeGAMpeJ2uStDl2Agul0sFQ
+         YSe6vinpwXu6tG+d9D+72/I67lvbThO1xg3qGRJUtBZaFA/7UJHqfOcZnShjW51+jr0M
+         Zgd8zjOIOlB2rBdIFJRuAFHSOb8t2TN7R5dw1AvU8DbOcav9gt8mQ58ntKfCqbONMFCX
+         d4zg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794164976; x=1794769776;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
+        d=1e100.net; s=20260707; t=1794177580; x=1794782380;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=nVPhrKJfbSmpnE1ryW+os71+IdLIXTokbMOzIHpkGpM=;
-        b=lFMGpuyxfhuOTJP5bFMgHqqMIcr3Cn6a8FY481PDBxb2UmK2J1iaDn7YlZ/10KNuf8
-         ILzoLxiqZjiDJnd8HC/DD6UPWuH/hAIpatA2oNAvElvwMTz1wYpytimweZIkMkTvmoIg
-         L44ie+axgNkmTlJT9GYY4p+vFHvKdjcbIfOduGJ/EuIvZwzZhKTi5J7JoVsIIrORCdR3
-         niRp33uONcKr2hUfXvAW4DFodXKAB0100fWrzHYp9Vt0g0TztckuZgvPQzwmnEN6Fsoy
-         puQUQNjVIkjYVVS+AuNKLRXgy1VF4MTm4eFsCuD/nz2cdhSEEmYNOmPRf69utRK8hjTl
-         mZ1Q==
-X-Forwarded-Encrypted: i=1; AL+hErEEaPffWnOkbxoKxNiewT52u3sncYKa0sIoL5Slg+2sgfz0WXYoBF9n8dTuI4+i0eD50KjNZv1ILVf7@vger.kernel.org
-X-Gm-Message-State: APuU4Z8UVcmU70EjtpNL6BiIDQ1/9Jh7by+caX0BWwFFZpai625kCyPs
-	AhknUhIXqZMevSR95DXBtOeZHmp/aAcQscVO4HdIXBRXRuu805Yv23yKwim+GDgNThAJ2rzK/xG
-	xASI8+rUGjGtpHc/VDw6C+EjE8HEvNRA=
-X-Gm-Gg: AYBFou2ZYlqaegXfAowrAQ+QeJSiwmkk8rWLFnvCZHJNNaroFrtXyt+6s5Hv5dAf7Xf
-	Qd23JRPaV2kuN+3Q3y3/elrlx3IgIBvOu5M2neEjDmCiHoIVeTqAOiReqpScucPKt7lhFxfiQU2
-	dyMd44OOnUzb2UBduZV3Si5V+wDRX6MkgGzxcuUYX8+SEpLbaq5Zwl2YdnWpNvaoEzpmYsUtK+c
-	vgsQEidCw1OFRmkcrgh9QDFcW4TjkOl8uBsbPiJ0UeTke+SOYjoLIxV+8Iub43gnYTl/e/9tkH0
-	YUFUbtuNVFCp51MBLgIYHi/3I04jrRPh9S0EcB5xhvLrEwmbVvPs7afwNyHESW4gcHW4kvH2uc/
-	WXzfHTREgG103MfLP3GHTY11d71f70OwHhLD14JIOmMakI0C1BbzvawQrnE9OVR/G99h/2wFyVf
-	V5JhrY9WJPFYEBtkQ=
-X-Received: by 2002:a05:6512:6516:b0:5bf:a66f:e5e with SMTP id
- 2adb3069b0e04-5c14bf215b5mr451239e87.0.1794164975540; Sun, 08 Nov 2026
- 11:09:35 -0800 (PST)
+        bh=dh1tm53EjhTHyh6SV5ixAXTcy4PG9n9Z3Dkm6AKA6MM=;
+        b=cLKsaERxrFW6C3u0OTvatRIFg3VTCU8s6zodT9h+W0Vl5rHfsAdFVFN5RpNAzfN2Pe
+         1mpRwDmoQEkhgLB7s+kKS7bCbJZeqGuWhtCALt2zEk66hrZvxjMB8FAlZOFFZ50UrtuC
+         JipbxdK9xB305hHzQhbebXe46OSaHn2JmTkIus+m95sUJNy+slLVuPeY56Z1GOfE0igc
+         JJqq/aIG68KgjsDBRRCIrs7Ps6auVUU8jkTtF9lytB20CPJcpFZkLGFrsITpK0TIZD3U
+         GxHUF73hGUVgqAI7CS5X8VUA9R6seoDkzIahhgdMTMwLGHlbQgDsbbOdHtobCEn8zd9b
+         Pzxg==
+X-Forwarded-Encrypted: i=1; AL+hErFEibTrd0CZqaQHUzLvVFfXFLGZsdI5olDFGsIWcL67faP7Yb7Vrxl0Q5bxclQwdtfvftYAKFTYwB+m@vger.kernel.org
+X-Gm-Message-State: APuU4Z8jFqvgDa5ihkhr3I2jClnx0+OsP3/1V28CtMzFOuuG9+LyErwv
+	/h1CGYbH5x+5PmGXB7YPgCSKhAXWGJV/vrKA/zI6RTapenbpUufVO5gUrbT87omdKnwFl/K81AW
+	QbFJyn4iVag==
+X-Received: from dyba7.prod.google.com ([2002:a05:693c:63c7:b0:372:278c:c777])
+ (user=irogers job=prod-delivery.src-stubby-dispatcher) by 2002:a05:7300:e5cb:b0:370:d6e4:e8aa
+ with SMTP id 5a478bee46e88-3725826f58cmr4715450eec.41.1794177579956; Sun, 08
+ Nov 2026 14:39:39 -0800 (PST)
+Date: Sun,  8 Nov 2026 14:39:04 -0800
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -104,157 +75,188 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-References: <CAPvUaSo1D+1Tvk3-4TMiXw-ScBtY8Mu0FzO7R_EG6zrjYfjYqg@mail.gmail.com>
- <asxTYBiGy6lf6-Ki@archlinux> <CAPvUaSo-ubCOCYYPadY1C23y1Fd_AAhQLuVKWRa6F1XVh6mk_Q@mail.gmail.com>
- <asz7WqGzukhkYHGD@archlinux> <CAPvUaSrbWrBuvAi3R02xC8w8M5Yh97pVd3-+FBXLp3mPgG5cUQ@mail.gmail.com>
- <as0bOFOoaaw-smyB@archlinux> <CAPvUaSoBgAG=MX93vMhfEiEk5bYXGydFsGn8CpoCu_QVQRPTCQ@mail.gmail.com>
- <CAPvUaSpPVYc-5M72G0Hf9JPsbdAp2-4f-p5OetYbMKdLqm0PXQ@mail.gmail.com>
- <atEh9Gon95EFIq76@archlinux> <CAPvUaSpq2d5hkxTaqAL6rBoeHct68Y37C4nSpV+goGZ-QwrCsw@mail.gmail.com>
- <atJc2J2hYrdI_Eun@archlinux> <CAPvUaSqAnLYVuzcq6Zq=hRp6JBoo8upjrsy=LSxnLdXuTyHDaw@mail.gmail.com>
-In-Reply-To: <CAPvUaSqAnLYVuzcq6Zq=hRp6JBoo8upjrsy=LSxnLdXuTyHDaw@mail.gmail.com>
-From: Lorenzo Collevecchio <lorenzocollevecchio17@gmail.com>
-Date: Sun, 8 Nov 2026 20:09:23 +0100
-X-Gm-Features: AclHuK_FNAfGTAsVxz4a8U8h_DJnTbqCdNj-mRMbyDEevkGVnR6kp2dma-lgvo0
-Message-ID: <CAPvUaSpk3wKyedtwcJpKFeQ_DGRJNa2-wXwVGSzX_bCadWozsQ@mail.gmail.com>
-Subject: Re: hp-wmi: WHCM AE_AML_OPERAND_TYPE and fan init -22 on HP OmniBook
- 5 16-ag1xxx (board 8DF4)
-To: Krishna Chomal <krishna.chomal108@gmail.com>
-Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-hwmon@vger.kernel.org, W_Armin@gmx.de
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.56.0.455.g6c5a503b38-goog
+Message-ID: <20261108223913.3624571-1-irogers@google.com>
+Subject: [PATCH v3 0/9] Add __must_init and require explicit kobj_type::release
+From: Ian Rogers <irogers@google.com>
+To: Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Kees Cook <kees@kernel.org>, Miguel Ojeda <ojeda@kernel.org>, 
+	"Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
+	Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <chleroy@kernel.org>, Nayna Jain <nayna@linux.ibm.com>, 
+	Srish Srinivasan <ssrish@linux.ibm.com>, Mimi Zohar <zohar@linux.ibm.com>, 
+	Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Juergen Gross <jgross@suse.com>, 
+	Stefano Stabellini <sstabellini@kernel.org>, 
+	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, Nathan Chancellor <nathan@kernel.org>, 
+	Nick Desaulniers <ndesaulniers@google.com>, Viresh Kumar <viresh.kumar@linaro.org>, 
+	Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>, Alexander Aring <aahringo@redhat.com>, 
+	Felix Kuehling <felix.kuehling@amd.com>, 
+	"=?UTF-8?q?Christian=20K=C3=B6nig?=" <christian.koenig@amd.com>, Zhihao Cheng <chengzhihao1@huawei.com>, 
+	Sumanth Korikkar <sumanthk@linux.ibm.com>, Bill Wendling <morbo@google.com>, 
+	Justin Stitt <justinstitt@google.com>, driver-core@lists.linux.dev, llvm@lists.linux.dev, 
+	linux-hardening@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-pm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-sh@vger.kernel.org, linux-s390@vger.kernel.org, gfs2@lists.linux.dev, 
+	xen-devel@lists.xenproject.org, linux-mtd@lists.infradead.org, 
+	amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
+	linux-kernel@vger.kernel.org, Ian Rogers <irogers@google.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-Subject: Re: HP OmniBook 5 16-ag1xxx: fan stays off, thermal tables
-invalid, results after BIOS reinstall
+Clang supports the 'require_explicit_initialization' attribute on struct
+fields to enforce that the field is explicitly initialized when an
+aggregate object is constructed, emitting -Wuninitialized-explicit-init
+(enabled by default) if the field is omitted.
 
-Hi Krishna,
+Following discussion at the Linux Plumbers Conference [1], patch 1 adds
+the attribute to include/linux/compiler_attributes.h as __must_init. In
+v1 it was called __require_explicit_initialization. Kees picked up that
+patch with a first seq_file user [2], and in that thread Greg suggested
+the shorter __must_init spelling, which Kees and Miguel agreed to. As
+the attribute did not land in the v7.4 merge window, Kees asked that
+this series carry the renamed attribute.
 
-A follow-up on the OmniBook 5 16-ag1xxx (board 8DF4), with some new
-data after reinstalling the BIOS.
+As Documentation/core-api/kobject.rst notes:
+  "One important point cannot be overstated: every kobject must have a
+  release() method, and the kobject must persist (in a consistent state)
+  until that method is called. If these constraints are not met, the
+  code is flawed."
 
-1. Reflash result: I reinstalled the same BIOS with HP's official
-installer (DMI reports Insyde F.12, bios_date 04/10/2026, i.e. 10
-April 2026), then did a hard EC reset. With Fan Always On disabled, a
-stress-ng run on CachyOS reached 85 =C2=B0C with the fan completely stopped
-(acpi_fan: 0 RPM), and I stopped it there. So the firmware reinstall
-did not change the behaviour.
+Annotating struct kobj_type::release caught struct kobj_type definitions
+across the tree that omitted .release:
+- Patches 2-8 fix struct kobj_type definitions where dynamically
+  allocated kobjects, ksets, or enclosing structures were either leaked
+  on kobject_put(), freed prematurely before kobject release, or missing
+  proper static initializers.
+- Patch 9 annotates struct kobj_type::release with __must_init and
+  explicitly sets .release = NULL (with explanatory comments prefixed
+  with "Pre-existing:") on the remaining legacy struct kobj_type
+  definitions whose kobjects are static, per-CPU, permanent firmware
+  structures, or embedded in devm- or parent-managed allocations.
 
-2. Thermal data from the firmware: on every boot dmesg shows
-   ACPI: thermal: [Firmware Bug]: Invalid critical threshold (-274000)
-   ACPI: thermal: [Firmware Bug]: No valid trip points!
-The only trip point Linux exposes is thermal_zone0 trip_point_0 (type
-hot, 103000). There are no active trip points. Both lines are present
-in every boot I have stored (4 to 8 Nov), before and after the
-reflash.
+Danilo Krummrich offered to route the series as a whole through the
+driver-core tree [3]. Subsystem maintainer Acked-by tags are still
+needed (and would be much appreciated!) for the following three patches:
+- Patch 2: powerpc/secvar: Add missing kobject release callback to secvar_ktype
+- Patch 3: sh: sq: Add missing kobject release callback to ktype_percpu_entry
+- Patch 6: xen/sys-hypervisor: Add release callback to hyp_sysfs_kobj_type
 
-3. A new intermittent error: ACPI BIOS Error (bug): Could not resolve
-symbol [^^^^NPCF.DTGP], AE_NOT_FOUND, followed by Aborting method
-\_SB.PCI0.LPC0.EC0._Q37 (AE_NOT_FOUND). It appears in only 2 of my 14
-stored boots, one before the reflash and one after, so it is not
-caused by the reflash and not present on every boot. It seems to
-depend on an EC event.
+Note on tool use: An LLM coding assistant was used to help audit the
+compiler diagnostics across the tree, draft the fixes and changelog
+descriptions, and verify builds and review feedback.
 
-4. Fan state: with the fan stopped at idle (0 RPM),
-/sys/class/thermal/cooling_device0 (type Fan) reads cur_state=3D1,
-max_state=3D1. dmesg also says "acpi-fan PNP0C0B:00: Using Microsoft fan
-extensions". I don't know whether cur_state is meaningful on this
-firmware.
+Changes in v3:
+- Rebased on v7.4-rc1.
+- Note in cover letter that patches 2 (powerpc/secvar), 3 (sh: sq), and
+  6 (xen/sys-hypervisor) are still awaiting subsystem Acked-by tags for
+  merging through the driver-core tree, and CC those maintainers on the
+  cover letter.
+- Patch 1: Add Reviewed-by from Kees Cook; clarify that LLVM issue
+  #232483 affects Clang versions prior to its upstream fix (pointed out
+  by Nathan Chancellor).
+- Patch 4 (cpufreq): Drop obsolete reference to cpufreq_governor_dbs in
+  the commit message per Zhongqiu Han; add Reviewed-by from Zhongqiu Han
+  and Acked-by from Rafael J. Wysocki and Viresh Kumar.
+- Patch 5 (dlm): Add Acked-by from Alexander Aring.
+- Patch 8 (drm/amdkfd): Add Reviewed-by from Felix Kuehling.
+- Patch 9 (kobject): Fix omapfb manager-sysfs.c and overlay-sysfs.c
+  comments to describe managers[] and overlays[] as dynamically
+  allocated rather than static and note the CONFIG_DEBUG_KOBJECT_RELEASE
+  hazard, fix a struct-vs-member wording nit in usnic_ib_sysfs.c, and
+  generalize the commit message note on CONFIG_DEBUG_KOBJECT_RELEASE
+  (reported by Sashiko).
 
-5. Still the same as before: the WHCM/WMAA AE_AML_OPERAND_TYPE errors,
-hp-wmi "Failed to apply initial fan settings: -22", and WQBC/WQBE
-"CreateField of length zero". hp_bioscfg exposes only Sure_Start
-(error 0x3, feature not supported).
+Changes in v2:
+- Rebased on v7.3-16928-g83f32c773255 (v7.4 merge window).
+- Patch 1: Rename __require_explicit_initialization to __must_init per
+  Greg Kroah-Hartman; document the Clang >= 20 requirement per Miguel
+  Ojeda; note the Clang gap for file-scope objects without an
+  initializer reported by Kees Cook; add tags from v1 and from Kees's
+  posting.
+- Move LLM assistance attribution from Assisted-by tags to this cover
+  letter per commit 1e035297ffda ("docs: remove Assisted-by
+  references").
+- Patch 4 (cpufreq): Use "cpufreq: governor:" prefix, drop Fixes tag,
+  fix typo, and remove the redundant runtime assignment in
+  cpufreq_dbs_governor_init() per Zhongqiu Han.
+- Dropped v1 patch 5 (ACPI: CPPC), already fixed upstream by
+  commit 27954e29d7de ("ACPI: CPPC: Release CPC descriptors through
+  kobject").
+- Patch 5 (dlm): Call kobject_del() before dlm_recoverd_stop() in
+  release_lockspace() and the new_lockspace() error path, and wait on a
+  new ls_kobj_done completion before freeing the lockspace or dropping
+  the module reference, avoiding races with delayed kobject release.
+- Dropped v1 patch 8 (s390/sclp_mem) per Sumanth Korikkar: the
+  /sys/firmware/memory/memoryX kobjects are permanent, so sclp_mem.c is
+  folded into patch 9 with .release = NULL.
+- Patch 7 (ubifs): Add Tested-by and Reviewed-by from Zhihao Cheng.
+- Patch 8 (drm/amdkfd): Check q->kobj.state_in_sysfs before
+  kobject_del() in kfd_procfs_del_queue().
+- Patch 9 (kobject): Cover sclp_mem.c and the new amdgpu_ualink.c
+  ualink_xcp_info_ktype, fix the overlay-sysfs.c comment, and prefix
+  legacy .release = NULL comments with "Pre-existing:".
+- Patch 9 (kobject): The ioat, kunpeng_hccs and omapfb display comments
+  now say that the existing teardown can use-after-free under
+  CONFIG_DEBUG_KOBJECT_RELEASE (reported by Sashiko). Fixing those
+  drivers is left to follow-up patches.
 
-I'm not claiming the thermal-table or _Q37 errors cause the fan
-problem; they are just firmware bugs that are present alongside it.
-The fan stays off under load on Windows 11 as well, and HP's UEFI fan
-speed and thermal tests still pass, so I have asked HP for a warranty
-repair.
+v2: https://lore.kernel.org/all/20261027223847.652884-1-irogers@google.com/
+v1: https://lore.kernel.org/all/20261013223946.1836757-1-irogers@google.com/
+[1] https://lpc.events/event/20/contributions/2392/
+[2] https://lore.kernel.org/lkml/20261014225811.i.852-kees@kernel.org/
+[3] https://lore.kernel.org/all/DMLWX8NY1N1N.2OMQMQCIVRR18@kernel.org/
 
-I'm glad to run any commands, collect more logs or test patches if
-that would help. I can send the full dmesg and the journal output.
+Ian Rogers (9):
+  Compiler Attributes: Add __must_init macro
+  powerpc/secvar: Add missing kobject release callback to secvar_ktype
+  sh: sq: Add missing kobject release callback to ktype_percpu_entry
+  cpufreq: governor: Initialize kobj_type release callback statically
+  dlm: Free dlm_ls in kobject release callback
+  xen/sys-hypervisor: Add release callback to hyp_sysfs_kobj_type
+  ubifs: sysfs: Use kset_create_and_add() for ubifs_kset
+  drm/amdkfd: Free queue in procfs_queue_type kobject release callback
+  kobject: Require explicit initialization of struct kobj_type::release
 
-Thanks again,
-Lorenzo
+ Documentation/conf.py                         |  1 +
+ arch/arm64/kernel/cpuinfo.c                   |  5 ++++
+ arch/powerpc/kernel/secvar-sysfs.c            |  6 +++++
+ arch/sh/kernel/cpu/sh4/sq.c                   |  6 +++++
+ drivers/acpi/sysfs.c                          |  2 ++
+ drivers/cpufreq/cpufreq_conservative.c        |  5 +++-
+ drivers/cpufreq/cpufreq_governor.c            |  4 +--
+ drivers/cpufreq/cpufreq_governor.h            |  1 +
+ drivers/cpufreq/cpufreq_ondemand.c            |  5 +++-
+ drivers/dma/ioat/sysfs.c                      |  7 +++++
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ualink.c    |  5 ++++
+ drivers/gpu/drm/amd/amdgpu/amdgpu_xcp.c       | 10 +++++++
+ drivers/gpu/drm/amd/amdkfd/kfd_process.c      | 12 ++++++---
+ drivers/gpu/drm/amd/amdkfd/kfd_queue.c        |  5 +++-
+ drivers/infiniband/hw/hfi1/sysfs.c            |  5 ++++
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.c  |  5 ++++
+ drivers/parisc/pdc_stable.c                   |  5 ++++
+ drivers/power/supply/ab8500_fg.c              |  5 ++++
+ drivers/s390/char/sclp_mem.c                  |  2 ++
+ drivers/soc/hisilicon/kunpeng_hccs.c          | 21 +++++++++++++++
+ .../fbdev/omap2/omapfb/dss/display-sysfs.c    |  7 +++++
+ .../fbdev/omap2/omapfb/dss/manager-sysfs.c    |  8 ++++++
+ .../fbdev/omap2/omapfb/dss/overlay-sysfs.c    |  8 ++++++
+ drivers/xen/sys-hypervisor.c                  |  6 +++++
+ fs/dlm/dlm_internal.h                         |  1 +
+ fs/dlm/lockspace.c                            | 26 ++++++++++++++-----
+ fs/erofs/sysfs.c                              | 10 +++++++
+ fs/f2fs/sysfs.c                               | 15 +++++++++++
+ fs/ocfs2/cluster/masklog.c                    |  5 ++++
+ fs/ubifs/sysfs.c                              | 24 +++++------------
+ include/linux/compiler_attributes.h           | 12 +++++++++
+ include/linux/kobject.h                       |  2 +-
+ scripts/checkpatch.pl                         |  1 +
+ tools/lib/python/kdoc/xforms_lists.py         |  1 +
+ 34 files changed, 211 insertions(+), 32 deletions(-)
 
-Il giorno dom 8 nov 2026 alle ore 11:33 Lorenzo Collevecchio
-<lorenzocollevecchio17@gmail.com> ha scritto:
->
-> Subject: Re: HP OmniBook 5 16-ag1xxx: hp_bioscfg output and fan
-> results on all OSes
->
-> Hi Krishna,
->
-> A quick update on the OmniBook 5 16-ag1xxx (board 8DF4, BIOS F.12), in
-> case it helps with the HP side.
->
-> 1. hp_bioscfg: the driver loads and registers hp-bioscfg, but the
-> attributes directory contains only Sure_Start and pending_reboot.
-> dmesg shows: hp_bioscfg: Returned error 0x3, "Invalid command
-> value/Feature not supported". There is no fan or thermal attribute, so
-> I can't read or change "Fan Always On" from Linux.
->
-> 2. Fan behaviour: it isn't specific to the kernel or the OS. With Fan
-> Always On disabled, the fan stays off under load on Windows 11, Linux
-> Mint, Arch, CachyOS LTS and CachyOS 7.3.1-1. A full-load stress-ng run
-> (all 12 threads, platform_profile=3Dperformance) reached 92 =C2=B0C in ab=
-out
-> 35 seconds with no fan. A 2-thread run reached 83 =C2=B0C with no fan.
->
-> 3. Timeline: BIOS F.12 has been installed since the end of July, and
-> the fan behaved normally until October. HP PC Hardware Diagnostics
-> UEFI still passes both the fan speed and thermal tests. A hard EC
-> reset and BIOS defaults changed nothing.
->
-> I've also reported this to HP and asked for a warranty repair. I'm
-> happy to test any further patches or run any commands on this machine.
->
-> Thanks for your work on the hp-wmi fix.
->
-> Lorenzo
->
-> Il giorno ven 16 ott 2026 alle ore 19:26 Krishna Chomal
-> <krishna.chomal108@gmail.com> ha scritto:
-> >
-> > On Fri, Oct 16, 2026 at 09:06:03AM +0200, Lorenzo Collevecchio wrote:
-> > >Subject: Re: hp-wmi: WHCM AE_AML_OPERAND_TYPE and fan init -22 on HP
-> > >OmniBook 5 16-ag1xxx (board 8DF4)
-> > >
-> > >Hi Krishna,
-> > >
-> > >Thanks a lot for digging into the ACPI code, the explanation makes
-> > >everything fit: the missing GMCF call for HPWMI_GM, Local2 being left
-> > >as an Integer, and the -22 coming from that.
-> > >
-> > >I also tried your suggestion about the platform profile. With
-> > >HPWMI_READ/WRITE the errors should not appear:
-> > >
-> > >  Before: dmesg | grep -c WHCM  ->  3 (the three boot-time errors)
-> > >  cat /sys/firmware/acpi/platform_profile  ->  quiet
-> > >  After:  dmesg | grep -c WHCM  ->  3 (no new errors)
-> > >
-> > >On the fan: thanks for confirming that acpi_fan reads the EC value
-> > >correctly. Together with hearing the fan on Mint and on CachyOS at
-> > >idle, that makes me fairly comfortable that the 0 RPM readings are the
-> > >fan really being off.
-> > >
-> > >Your plan to query the fan count and hide pwm1_enable and
-> > >fan{1,2}_input when it fails sounds good to me. I am happy to test it
-> > >on 8DF4 whenever you have a patch, and I can rebase it onto a stable
-> > >kernel tree on my side if that is easier for you.
-> > >
-> > >I also tried 7.2.10-1-cachyos: dmesg and the hp-wmi hwmon folder are
-> > >identical to 7.2.9 (three WHCM errors, then the -22 message, and
-> > >pwm1_enable still present).
-> > >
-> > >Thanks again for the time you spent on this.
-> >
-> > Thanks, I will share the final proposed patch on your Bugzilla report
-> > (222138), and leave this thread for others to pick up the WQBC/WQBE
-> > errors.
-> >
-> > >Best regards,
-> > >Lorenzo
-> > >
-> > [...]
+
+base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+-- 
+2.56.0.455.g6c5a503b38-goog
+
