@@ -1,22 +1,22 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.194.46
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.85.4
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794247817;
-	b=Y7R3Iuaj07JomhtIHEfbOPd9HBYsgIGRtNbOQf/x+4hkNiWj6HQkSPHXKaflemux9ItI
-	 thJFZ8ZYgOEf4N4bemLpCXOmwA6qzBoGfglekbRF1Sv7t2qNaAHiHxOQuFYiTaEMM8ywO
-	 u31PNtk2KwLd4GzP0aL1RGn3e7UvuUVgkh1odbTYx1ynnNAbY/xf8uIIVlNRiadouqDzo
-	 mqKJ4hpQe8jnGMg0s25+/Dq4li+ZHsgSl6PBzVfPn3LUomBYKXXbvdk+uY/RRRLIo+Bc9
-	 eaUGih1ibnvHtkDaub8Wt19lu5mGCDev4t++POvCxzsnIDFgQrKswgM3PvX/5hBqJZQ==
+	t=1794247818;
+	b=ouzs7UmvzWbDYo1EIk9iNyz03CT5pEm1frF60Mhgvv02ntqMUNDZsdhkc5v1W9DEIvsG
+	 ZYB6wcbm+V3+qsr4J3+Gn1TstxJfT7gZpENY2u8OKph+9Dtv6Y3R2phvwgj7OFw0ntPeC
+	 i9eKE1Phv1MGitw+Uc7yuf3rXlubihflnSWRgRpS0xHoNfgw1CRZUKekeu+UFVfN40tnt
+	 3h3UiLs7ML93QeInfTNw+J+R5sBLemSdSdt2WCimSS1iYNY+ps8WEdc3TJodXkdE5Vmo3
+	 F16ddtHgL8J7GMVRC5p6pcFgymI1ul+MUUZ5fhzKW5fm6woMwPKZ8wj6gpdR51R3Lsg==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794247817;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794247818;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
 	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
 	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
-	 Content-Type:X-NV-OnPremToCloud:X-EOPAttributedMessage:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+	 MIME-Version:Content-Transfer-Encoding:Content-Type:
+	 X-NV-OnPremToCloud:X-EOPAttributedMessage:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
 	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
 	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
 	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
@@ -26,35 +26,35 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=UKOh2Uznc1iGsjFkITMDagQ0QqpMlCbkil0csi72BLg=;
-	b=GuZYu6MpJ4PZrv3BAph/R7pyLh/lVsg8go5U3/EM3D4sgUemsn6qePpsmS2r4jZEJ3MJ
-	 OCj1PVF1bRwduSZVoi3GtxVCJOMxUmRmmNlbjNkyWliITVKtgZjjCSfeJLSTNDJ0BYyqf
-	 WwYbnjRhwHx5zLmNvEZn/Jx8PCNJC3T1xxUx2+wKJKY1NuNPzNyI+FNywrd6N0jTF7OTe
-	 K4UOQdV8cCo85qqQFSPJSq31udKyszWUL78ncxIHroYoD+Y58MX1Vd0OyVKc2DD3PZRKU
-	 lY2jykiIx/PHW7vLamZr8tmUHw0Ywqq1dYvdIjbQsa9b+07Qsws4uy4+UCzS2AdZO4A==
+	bh=qmUQVJ1/H4AFL5P+0d+cBU6nIOY0WzZuSEBR6lgSQ4w=;
+	b=MSbn54GnP+JGr5ytWlwxl6e01Fv46Jxd/4hx8OffhMurEcCW0W+7iaoI1n7bcC1q9/RU
+	 XGpz4ynMw2cGQrbceG3yXOagoz4ihigMpz/dHaKy8by/0WO7BH5ua6BRkr1f0QqIq9rWX
+	 1fYtaapNya4s9oDs11QV9GNTaeAk8vWhdIlDa4SUJFNp0nWq2j/F1ItDcTzXN6aiQGMYW
+	 3cdmcYdeUL1G+frlg2khCICgEM7ZOBCHCaZDSqXIpfvgbdFHbVTDVaqpoLNCFyMbhylva
+	 rEWQcMfBIU+O9WtB1M+56ubuyBv5epx7x3KRVx4Ux7mepRDCGX66b2STPdMFJp7xLlw==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=eHd4zohF;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.194.46
-Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011046.outbound.protection.outlook.com [40.93.194.46])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=Tw4BfbtF;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.85.4
+Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010004.outbound.protection.outlook.com [52.101.85.4])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 010B0606A31C;
-	Mon,  9 Nov 2026 18:10:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 010B0606A31C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79F72606A321;
+	Mon,  9 Nov 2026 18:10:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 79F72606A321
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=eHd4zohF
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=Tw4BfbtF
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=h+JjmekrsLe8PlKt4YRW9nieM5xxzAmz5jvKp5bDLsexKGsiCGhwhwmOhTjLYtL9LrIlmysn6lGDe+RsSm2sfoqXhqr7SCpM4d48kvWmNIQu/woM0ofWCq9Gj1P7jWfQIMPDIr0WrnN5lxy+axTnjFuqmzlEy2/Oa4D+X2K98rU3b+WgkHbi6zKK25LlT4jZ+WQ3dCbn/qKMFmLs1o+tMyeiWJLXVM3h2T5WRqtlAUhc36bnf20eu0fvuD66Yv6VvnmCC6tJF6J+jqvl/kp/4ZX95M0WpUwMaDB8JZ73WCZ4cNhRO/J9cSBDIaLqD4x4soGbt3idlYpV7KHY4HEFwg==
+ b=CZp1Xdoni+bdckqej+ZV0pOug/6AmoQkPMoB2xbd1yf5sLUTiCPmgTlKHEw/7BGalRngSFF8pkFAp4StcOpQp2aq+q8kvH7iRHVvreaBbpGZC0h4QmelxdMrd5Obgv24IrkRMI1V0mtXuj1dBNtD1okmVevyE6mwhH+KVlpTMFmlsAyJXnPA9iOQZpmaSbAaJLC1ta7RG5lZlkhJIa4IQMh/7KT1jXnQ/BZ62k9wPr99e7nAGY/TbaKg4rmZvZ/gf20AbTBW8kxk6rhCkMs5Y5WYJFg/rtOWfSejSxCdXNP4SwaXL1mTO8nYwYM1ytnOQQcBGiTnZ2Hvvq3ObcsncA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=UKOh2Uznc1iGsjFkITMDagQ0QqpMlCbkil0csi72BLg=;
- b=MkMCfzsGIX7CtBaoYzGOQAtwUziCLDptPGFGrLR/uj0e6FY966w2vUFVnpGAdwfS6FjUHokK2Y05pH8nSVNNyn+DcoElR7DAoo856kV9yOL2YJUHe8QnsIQx1hUR44cUPzK67gSDG4V5WOmwzhWyb5s5C0b76PihL6sGsvW0K2OfVnVe+gUl81yYULmMJk7tqV8GuzKMEgfx8J/jLbOvwmKgEqhXMWh71STlSsC7JswnAKVc/9lYgpAEr493pLk1wDeeasylIIo4x0nmzKA3S6AC20MQdz9B/pkbZaqCNhXEb39rS3/hISr0Z3BYrFg+NeMHckiRSyc5IrN/n8Qb8w==
+ bh=qmUQVJ1/H4AFL5P+0d+cBU6nIOY0WzZuSEBR6lgSQ4w=;
+ b=p1YTHO96rdRRuaRn0n1jWDsCDXxiJfXLvutyA0iS5clDI4WwTIOM2JtIz4UqOcOihN+dwZ6aFRyKg3gO+sFcgLqk6O/Vgm1DFw2dNbD7JrArGueQbczLfQ+b622uQY0E36xpPy2bGX61tkLHvYfsvbYnxejYRUMIBRpTcmMrDN6QyVvZ2ZorQF9uXBb0m0ymLCfFMsD9rdxswuH4tEUhGx80lxAwJ9cjlsuDa3yPsu+WZKu4ArcGjkhHotjY4kUia7H1/EwnfGtP43/IPL6Mm1yJ/ms1VRW+dn5wiAKJcnfowbE06Ai9MjYiz+n3ewl1Bcc+yAAvxxVifeHRT/VLOg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.160) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -62,18 +62,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=UKOh2Uznc1iGsjFkITMDagQ0QqpMlCbkil0csi72BLg=;
- b=eHd4zohFHUaCkx8VRfay+A8BkwWXOm3wqh0vJ8AWQheIzFYbfb580lUQis/Mqnckp9Ekru9AskoRLZE2ymhN4wyWKtUP2jv4PpbhAZawEyuACD39rQ0XnoZR3CogHdppTdyxyckU6+FpeDz2dZZa1HEyv/TFPNrjOX1x4TnEPNMOjT/+ay/keMlOANvIm1SvnAHV78UCtfh8gMr4J+xcwwt+1E/n5sKbq9nQK1eJ0g52pauYYkVwh6pQU7fDUGTNt0vxnw2c/uk/tDGGi1D4IDxvOPbWVluHrmUp49vj6iIsxInXDCqytsBx51IyYGuCjAj+vO1iUsQj8jvKEg3L/g==
-Received: from MW4PR04CA0296.namprd04.prod.outlook.com (2603:10b6:303:89::31)
- by SJ2PR12MB8720.namprd12.prod.outlook.com (2603:10b6:a03:539::17) with
+ bh=qmUQVJ1/H4AFL5P+0d+cBU6nIOY0WzZuSEBR6lgSQ4w=;
+ b=Tw4BfbtFUbVlzMO1F+ZhXuP2kM13IvUr4zngWIPWLR269ucRy6srWle0dHfE0ANxk8OQax3zU8a0wyF3XynF6n3ZUtDm3dCicAYn3BY0fNmI0bEHJ6a/3USkb7kH+FK/o1Homvnl+jcASnIGtH8ieLHUkiqTblCY5jB13iE7P6xE6rC+Tx2+Eiy0okmBzf1TMQdOpA9vuEDyqZGUTXx1+uw0ybhyZCr00zX6dFUZ8nfQCJn2w7ohIFw7gsKfBtlK20/pmpn6Mhd8pFLCPeVVyUZg849TbUCoNY2zUSTjLUlFOR5qakyBmNzKTWJ52YqGNUNOqG4E8EiCJG8IK9QZlA==
+Received: from PH8P221CA0038.NAMP221.PROD.OUTLOOK.COM (2603:10b6:510:346::9)
+ by SN7PR12MB7810.namprd12.prod.outlook.com (2603:10b6:806:34c::17) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.12; Mon, 9 Nov
- 2026 18:10:09 +0000
-Received: from SJ1PEPF000037A5.namprd04.prod.outlook.com
- (2603:10b6:303:89:cafe::8b) by MW4PR04CA0296.outlook.office365.com
- (2603:10b6:303:89::31) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.12; Mon, 9 Nov
+ 2026 18:10:08 +0000
+Received: from SJ1PEPF000037A1.namprd04.prod.outlook.com
+ (2603:10b6:510:346:cafe::8f) by PH8P221CA0038.outlook.office365.com
+ (2603:10b6:510:346::9) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.592.13 via Frontend Transport; Mon, 9
- Nov 2026 18:10:09 +0000
+ Nov 2026 18:10:07 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
  is 216.228.117.160) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -81,13 +81,13 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.160 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.160) by
- SJ1PEPF000037A5.mail.protection.outlook.com (10.167.244.137) with Microsoft
+ SJ1PEPF000037A1.mail.protection.outlook.com (10.167.244.133) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Mon, 9 Nov 2026 18:10:09 +0000
+ 15.21.615.4 via Frontend Transport; Mon, 9 Nov 2026 18:10:07 +0000
 Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
  (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Mon, 9 Nov
- 2026 10:09:47 -0800
+ 2026 10:09:46 -0800
 Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail201.nvidia.com
  (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Mon, 9 Nov
@@ -101,12 +101,10 @@ To: "Rafael J. Wysocki" <rafael@kernel.org>
 CC: Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, "Punit
  Agrawal" <punitagrawal@gmail.com>, <linux-acpi@vger.kernel.org>,
 	<linux-kernel@vger.kernel.org>
-Subject: [PATCH v3 1/2] ACPI: sysfs: Fix data_attr leak when creating a data file fails
-Date: Mon, 9 Nov 2026 10:09:44 -0800
-Message-ID: <20261109180945.2438349-2-jamien@nvidia.com>
+Subject: [PATCH v3 0/2] ACPI: sysfs: Expose BDAT data region
+Date: Mon, 9 Nov 2026 10:09:43 -0800
+Message-ID: <20261109180945.2438349-1-jamien@nvidia.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261109180945.2438349-1-jamien@nvidia.com>
-References: <20261109180945.2438349-1-jamien@nvidia.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -121,111 +119,80 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ1PEPF000037A5:EE_|SJ2PR12MB8720:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9e42691f-358a-448b-caeb-08df3e8cb0b8
+X-MS-TrafficTypeDiagnostic: SJ1PEPF000037A1:EE_|SN7PR12MB7810:EE_
+X-MS-Office365-Filtering-Correlation-Id: 7818b11c-f3f3-4073-6ff3-08df3e8caff0
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|36860700016|82310400026|23010399003|1800799024|22082099003|10067099003|18002099003|261021121427099003|56012099006|11063799006|261022105027099003|261102123227099003|261021123027099003|261028144727099003|261026140227099003|261009223027099003;
+	BCL:0;ARA:13230040|23010399003|376014|1800799024|82310400026|36860700016|261009223027099003|5023799004|11063799006|56012099006|261021121427099003|261021123027099003|261022105027099003|261022075727099003|261026140227099003|261026121527099003|261028144727099003|261102123227099003|10067099003|18002099003|6133799003|13003099007;
 X-Microsoft-Antispam-Message-Info:
-	U7wrucYujlO/h8+sOVCKTYAmhkoZQh2K0ivrZTAcywtFiVac1CSRXWAx3lxuuQuhqe25SWXYDkw5fjaHlw5lAP4mWvBb/bP6mCk8iHSVPe1ajdpInaD6FUGbuN2IZmeAT9bwbM0KMfHvJedbGJzq0//vEjsXM1EgiIMMwhr8xTEBNbccpJh0Z+5w8RIUam4fe3AXJxoLiPmJUy/jFq8PO3tm4VclENRjaZOWn3Hv7lJQe+cOSfBVrVKSIs7oGSBb72+WMNtGXr+hSIBfk2PSy8X0gQPZWnjQPIvfv5UTYw/RGKsKaDFaVjWS3liv5oy+RQFma/1P4nLqt7Uyd6NaFVbjuc/4Bu8s8VZMVHIdGZDvpMs0K8UaoIzisWvYcZt48e6yvv6lof6QdrM5UaUs1T/dT6/MAj3ixi6iLrHYKHmNcBOIw3fKCCd2LDtL0Ef7r4vrh7h9ZnbgnSGkLFklTyBqUkZc0JeJhXfkqTsx/hFVIo3QdXegk9A9aJSG/Y9U1sLYFimhaJgiA4QFGUj/WzkjO9LXLjlOpFwidtB04pMD1TGw9cWiw+/ArpI9szhQI1KS7QWiLfZBW4xPkLn1NZwA/n7O3/OOXZm/Va++3a4lBROVfEwLwZsERtZjiVs9VbyduWZX2nUCRBa1mLCEXQz+KpbSGt5KqFn+3j+YtYpIRB8fDGRyb0wNfyXr51UTLPFkl0T+zW4NzQA/qQmkzQ==
+	Dl7jB9MkehcvWLFYZ2BW6HvNLaHd4rEmtpfbi6tPrlNtTFclvxf1uHA5z8NBqC7dThXtHLWVm5J8NYtLEs+7LQE22Qdx8Q6L4rEu1H0O+cUG7DZGKthyu/1L18F1KaEK/9CpTtfvxtHGe/21sszVLgx1edYau50V2pLJxA5m03Akofq1ZgRWzkXbtcV6G3pAZPpp3qECq9g3EJVduVIuX9Y2Ujwc04iRIRCIA7xbFj6mRR1gspC76TTgIj+nLXI4eefsAcUxmvrEeOdt+k/0cqFGPy85PskEufL/vmiMNMhP3kczYUxiySwKBBLaIl9dHYkxbvv8pEyTmtd4t4cHF5Z8E6ojNH34oa55llFwmyhFrVAxs4YvZ5ibszsORphkRVgW9Zdt0ZL36Nn0fZwyZfj1mjKoNpYcSSN5h8aXtnuhxVyNUsRdb9zpRpbOcfNUpgO9SoYJcu1tNAaJUbwNxSIwwqJvemYB4FTaR8psWaqRe5JNXGst08Zw/rMOcy5ORZRFJ/djpOEuC2H7zxoT2UfEwuRivgAuuBrSXtBVbxin1Zkq9WB23hNMvU2F3WnOEZzx+ga06ey5xZuesOiO0KR+VukCwoNNX85c5n0odH0m/G85jNZ8nVniwjARNRm9OdKpk4+a+L9p3aD35TGhLNDGF8pxh2Ui9G/JYRJpEpbS1QhHRlEV1O0lvyldY+f7SnCpx0ZYbQiIYeAWmuSjcA==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(36860700016)(82310400026)(23010399003)(1800799024)(22082099003)(10067099003)(18002099003)(261021121427099003)(56012099006)(11063799006)(261022105027099003)(261102123227099003)(261021123027099003)(261028144727099003)(261026140227099003)(261009223027099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(376014)(1800799024)(82310400026)(36860700016)(261009223027099003)(5023799004)(11063799006)(56012099006)(261021121427099003)(261021123027099003)(261022105027099003)(261022075727099003)(261026140227099003)(261026121527099003)(261028144727099003)(261102123227099003)(10067099003)(18002099003)(6133799003)(13003099007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	n61TfcOa0Yji+gZ6QOy1jHaTl3cohLHGI6RZhbkETdX+s3ROf4h6AQpxevQzfDZzamQapTVGAbduXwEHnGGmP4PJO+VYcJxfmQQSaK973Gbg4kEsEpxoVqRNeyqFx+ki0P7xX5yklq4tQUbrLCgtQoMwGPTv13yrhbSPLGXS24Z6jBhCCTzD/TixhNikS5He+ljQ3z6xDtGPr/WXgauLXvmdy8Crs9KIUE4GlU7HJxdNSZn5BNbLJlY3UopQqLNn2Nv3p2H6xv8tOBYriPVF56AkpmE/q1wOkXFnjrMosdpX29K2HtX7uBT6vjYu+9nSm+U5CEJ4QrDymR9zD3YFx4ZQE+Cme+E+qby0NzBUwPyRmRlLX3BUqhPtZfmjN6NRXLTWw59Gx7mdzg/e3ZHiVuqCgbpTQ4SvEZmlsds9MmHmGreOotEAMzWrGJNFxnBB
+	oDjiaQHeapXyHZhAxtKpEIcOXqcBF6IIlaov+1z7VU1Uz9SnOCs6l0E5MC9CeRUP3iqdwQnINpBmKEiMmEaPcPCo4UGbXVz7sOIQkNPfcApMW2x5Nf9z37q5sSziDJkBg2nREvvzZwrigSXlhqRrSCgJK7petR/89QR123royynKcYrwHOzDjhK3LHoPk+6l/HHskqnlfc1R1VM6TfHHg/10rk5H0g/vF4RwO3ExmhxEfiERVYrrHw63vi0yxh02Dq7mAW6s66Sc9G3bzvbaK0oi9KjwZXJzG0O7B8Uii76cMhZVRibPXU+eDg4uqMucLIetH6De0u8z1Sn3zS3W1/XtJMrp83mg0w3wAvqf/NdFTIzoSTqNmQwenAej8l6YubiIaTulRCYwTnmzvxrA6KoJgYzZSzEipsiJBxDmxVyseFUrjgE7z4WIkTLQTLdC
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Nov 2026 18:10:09.0790
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Nov 2026 18:10:07.7448
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9e42691f-358a-448b-caeb-08df3e8cb0b8
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7818b11c-f3f3-4073-6ff3-08df3e8caff0
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	SJ1PEPF000037A5.namprd04.prod.outlook.com
+	SJ1PEPF000037A1.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB8720
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB7810
 
-acpi_table_data_init() allocates the data_attr for a table's data file
-and passes it to the table's init callback. The BERT and CCEL callbacks
-free data_attr when the table is invalid, but return the result of
-sysfs_create_bin_file() directly, so data_attr is leaked if creating the
-file fails.
+The BIOS Data ACPI Table (BDAT) points to a firmware data structure that
+carries memory training results and other boot-time data. Patch 2 exposes
+that data as /sys/firmware/acpi/tables/data/BDAT, like the existing BERT
+and CCEL data files.
 
-Create the file and free data_attr on failure in acpi_table_data_init()
-instead, so that the callbacks only check the table and set the address
-and size of the data.
+Patch 1 fixes a leak in the existing data file code, where data_attr is
+not freed if sysfs_create_bin_file() fails. It moves the file creation and
+the cleanup into acpi_table_data_init(), and patch 2 builds on that.
 
-Fixes: 7dae6326ed76 ("ACPI / sysfs: Extend ACPI sysfs to provide access to boot error region")
-Signed-off-by: Jamie Nguyen <jamien@nvidia.com>
----
- drivers/acpi/sysfs.c | 24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+Changes in v3:
+- Rebased onto v7.4-rc1, which includes the two fixes posted during the
+  v2 review [1][2]. No code changes.
+- Dropped the "Assisted-by:" tag as per latest guidelines, though an
+  LLM was used to write, review, and test this series.
 
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index a4534b3e3cfbb5b..4182627eeafd2f8 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -454,14 +454,13 @@ static int acpi_bert_data_init(void *th, struct acpi_data_attr *data_attr)
- 	struct acpi_table_bert *bert = th;
- 
- 	if (bert->header.length < sizeof(struct acpi_table_bert) ||
--	    bert->region_length < sizeof(struct acpi_bert_region)) {
--		kfree(data_attr);
-+	    bert->region_length < sizeof(struct acpi_bert_region))
- 		return -EINVAL;
--	}
-+
- 	data_attr->addr = bert->address;
- 	data_attr->attr.size = bert->region_length;
- 
--	return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
-+	return 0;
- }
- 
- static int acpi_ccel_data_init(void *th, struct acpi_data_attr *data_attr)
-@@ -469,14 +468,13 @@ static int acpi_ccel_data_init(void *th, struct acpi_data_attr *data_attr)
- 	struct acpi_table_ccel *ccel = th;
- 
- 	if (ccel->header.length < sizeof(struct acpi_table_ccel) ||
--	    !ccel->log_area_start_address || !ccel->log_area_minimum_length) {
--		kfree(data_attr);
-+	    !ccel->log_area_start_address || !ccel->log_area_minimum_length)
- 		return -EINVAL;
--	}
-+
- 	data_attr->addr = ccel->log_area_start_address;
- 	data_attr->attr.size = ccel->log_area_minimum_length;
- 
--	return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
-+	return 0;
- }
- 
- static struct acpi_data_obj {
-@@ -492,7 +490,7 @@ static struct acpi_data_obj {
- static int acpi_table_data_init(struct acpi_table_header *th, struct acpi_table_attr *table_attr)
- {
- 	struct acpi_data_attr *data_attr;
--	int i;
-+	int i, ret;
- 
- 	for (i = 0; i < NUM_ACPI_DATA_OBJS; i++) {
- 		if (ACPI_COMPARE_NAMESEG(th->signature, acpi_data_objs[i].name)) {
-@@ -504,7 +502,13 @@ static int acpi_table_data_init(struct acpi_table_header *th, struct acpi_table_
- 			data_attr->attr.attr.mode = 0400;
- 			strscpy(data_attr->filename, table_attr->filename);
- 			data_attr->attr.attr.name = data_attr->filename;
--			return acpi_data_objs[i].fn(th, data_attr);
-+			ret = acpi_data_objs[i].fn(th, data_attr);
-+			if (!ret)
-+				ret = sysfs_create_bin_file(tables_data_kobj,
-+							    &data_attr->attr);
-+			if (ret)
-+				kfree(data_attr);
-+			return ret;
- 		}
- 	}
- 	return 0;
+Changes in v2:
+- New patch 1, fixing the data_attr leak for BERT and CCEL as well.
+- Patch 2: the BDAT callback only checks the table and sets the address
+  and size of the data, and returns -ENOMEM if mapping the header fails.
+
+v2: https://lore.kernel.org/r/20261012230632.3574987-1-jamien@nvidia.com
+v1: https://lore.kernel.org/r/20261009232955.866131-1-jamien@nvidia.com
+
+[1]: https://lore.kernel.org/r/20261013180728.957618-1-jamien@nvidia.com
+[2]: https://lore.kernel.org/r/20261013193900.1258808-1-jamien@nvidia.com
+
+Tested on an arm64 server (64K pages):
+
+- The file matches a /dev/mem dump of the data region taken in the same
+  boot, byte for byte, and decodes with valid CRCs.
+- With lockdown=integrity, /dev/mem is refused and the file still reads.
+- Malformed BDAT tables loaded via initrd table upgrade (test-only change
+  adding BDAT to table_sigs[]) are rejected without creating a file: no
+  "BDATHEAD" signature, size below the header, non-memory address space,
+  zero address, and a table shorter than struct acpi_table_bdat.
+- With a test-only change that makes sysfs_create_bin_file() fail with
+  -EEXIST for one BDAT table, kmemleak reports its data_attr as leaked
+  without patch 1, and the data_attr is freed with patch 1 applied.
+
+Jamie Nguyen (2):
+  ACPI: sysfs: Fix data_attr leak when creating a data file fails
+  ACPI: sysfs: Expose BDAT data region
+
+ Documentation/ABI/testing/sysfs-firmware-acpi | 12 ++++
+ drivers/acpi/sysfs.c                          | 69 ++++++++++++++++---
+ 2 files changed, 71 insertions(+), 10 deletions(-)
+
+
+base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
 -- 
 2.43.0
 
