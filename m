@@ -1,55 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794251799;
-	b=RgXiUnztu2yOqAFIS9tNbmrrLdh6UNnmKKbwpJm+T9FlKIPQpxxrxBraTV12e+Rxh34R
-	 EisfKNajR+2DIbnr0V3iSFG7jj5yXZhgEW34FX+qpQAQeOhyFsXW2NyZ8ijw+S52DR0un
-	 LlonippdRYDI0Kga1J8ewmEYgV5AEb0LF5jyWop2/2PkXqidEFpsuEvMfPy3aIo6swiKa
-	 Aim6oR6lhKsW1BntW1Dns/aARagPMniQHkuxOcyJZT+q+xbi0RdD6gCbTbNLI8f2Wt9Dk
-	 NA4QWC27GaTbQnKHf0Ny68DQrD3/HA55SfM163C/Y6JjV2BYzePkp+KdWDQWca0OhLQ==
+	t=1794252012;
+	b=JSaHe8/CJBdA++yVxw1K1TIwbAqobbvgbnkRMNkgq+YjgNoNmc7GebdnV13kyLVCHx9q
+	 +IHxJY011tDrrdVuyQ/JMLe2+JNMEvnQUnpgf8L4Z5NJJ16S/LAZvWVREQkDOJ/g0ojVn
+	 jWjHsGN4b3KWZZ8dUWb+6LUit73hOCoHRRFIyEyvQ83FdDBG7YJr2rdPkcD/A8hUWx60J
+	 1sqWr2JrxdPvCEycZNGvL11c8ArqHgyJqLfz829ff8/uDn6Oc9wRWGVJ0VKLO/kwRf9Tt
+	 zKkJaCmlExZIN+d3MOx3KLgMvrGrtTZnzOQTelRVxtXJ93EU4tHwBjbwWsduiFW3S2g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794251799;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=hKAQdA3xa/ca1jx07L9rSksx5n8SHXVGckAyI+PNUn4=;
-	b=VFS3c5FDt+zl8bKMIVALjCkaDT1F/mvx6ApdYoL4dlIonIDtziJNA6oooOnl4ef3aIPu
-	 Wea+DJfGLrBn3tU8U+fJ5vdwho2vHgYEZE00XG8KdIJ3VLWWcoz59A7swjutUUa7/O8qy
-	 WBbKQK2J7UKCu19wazXrwxCWjJNTiFbyShZgz88I6+yOrN5ZvxY8iYF6taqZPyeCJcSoi
-	 KheMF0O7uo8olkIB6lFJn8m+zizVWAlVHdqQsQOwrxqQY9VKa1T4QeBwwmkjxcRS3E5Fg
-	 RHkLLiIDL1HoT19jPD6l/dzesquWwV5azfsTkXFHYgHwpLBH1+BNwcrX+r7/sme85wA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794252012;
+	h=Received:DKIM-Signature:Received:X-Gm-Message-State:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:
+	 X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:Subject:To:Cc:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=xu2nW/Iy/kEVEZarXQTAQA9kyZ4pEzHrOyNF0r/PGSo=;
+	b=dNVV5Rex5sc+xf90OzEVUdIW5UQeRppc4EGJ1hORtm5RAB8BtLrcfrBRM8wOQt4kpOFs
+	 2YLS05g3onlvZnRIcklHchcjzoDE6IvPZtEKqr8GWdxBKrluIFR9OXMHZ/pUrPRevpex6
+	 92CoJVf/oeVRz1O/rUtjj0zE3A/qZj5PpMcuExNveBSIBFZ6QzpDm3Mv58GklTkLp3v5R
+	 q+LHg2KZ1E/sonAcv0/Yw6HeG3VVqFejPVkeZ2bvnhJbMSaKVSql8zm5uD7V+6MEZyGxg
+	 RyD4EB9Y4y93jPAJuzumHPSjWAZ1VU1TDfh5viKZTMqSkPWTS8eqEM0cHQy7bleR3ZA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YK+1B2jN;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RYuFsW01;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C8C0606A31C
-	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:16:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EE98606A32A
+	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:20:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YK+1B2jN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF8901F008A1
-	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:16:37 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RYuFsW01
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26DA21F008A2
+	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:20:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794251797;
-	bh=hKAQdA3xa/ca1jx07L9rSksx5n8SHXVGckAyI+PNUn4=;
+	s=k20260515; t=1794252012;
+	bh=xu2nW/Iy/kEVEZarXQTAQA9kyZ4pEzHrOyNF0r/PGSo=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=YK+1B2jN/k2S/q7Bau/EZiMetHzk9oLZCRIcrM3auKnbLWOAT+uelMatzkdXaNTod
-	 3/dwKhVfpiTNHxxfZvjURrOhvpc5AbUzyqqL8lOHAoAA6OVoFGpFRops19+rBopTao
-	 wkotyM0DgerObW4nQ8u4GN5rm7l3bW1GdSjkitXKdGBTzYyP+sKBd3dTdmEf2Wjk7i
-	 mXXGeu/GLhCtwiK6TCaD42k7Riw66oNIheWDAh0zrktbe1br/RUgOmOvG/a1+s5KbB
-	 9cbvlRIuQVdHpdGyGL9n7FaULAQOXjCPuQFPLcOaNN845Uc8b6e/79pmkWYavPRrBa
-	 F05TrVdqFRVXA==
-Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-3acc7a0b558so9298121fa.3
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Nov 2026 11:16:37 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErGc2BlMr4e7qcwRKcivPxsTbkKYxnCeTL+YWSuK6kCC4MZQyOb5d7mBzhiJPPYp9Kiq45HrF2y7u2MR@vger.kernel.org
-X-Gm-Message-State: APuU4Z+aTCBfAwgJDrQgtJBXfiAtEh0Z94VTjpU1J12h/almBrFJL17b
-	GvJAGzcbGAn3BCyEa254O70ILJT+N3hBblB9EYxAvBfwcKiefLQ97PXeQIE5M0rRRhnguEhfS4n
-	6z/8P7flJatjgWcn7TP8E9J+IkctQhoo=
-X-Received: by 2002:a05:651c:1612:b0:3ac:e5ef:1b8c with SMTP id
- 38308e7fff4ca-3ae0961fc0cmr447841fa.11.1794251796214; Mon, 09 Nov 2026
- 11:16:36 -0800 (PST)
+	b=RYuFsW01IhMwyc1EYwEjerSaF5Soc/2GLj/kQNcK3U4a9f06HFtpXjD+sslLIH6W1
+	 YzFdmcSCXeCu8sO/KT1xWvKIagOeB8TLu+H1lq5wJYvLVT3duWwvkoP4T7+QMQuxbf
+	 63XyB9EM9c+4kBr3fN89Zv2Z1Gr3stMxP4AKD+HuxN4Sxi9rKJ3lX+gRo7YhfoMLd3
+	 9O2knycqwE+3U/nOkPR1lCZhkaLdfSITLS7RCAEQAmz0hhPUKZKj2jq77w0OtDhV6d
+	 yrJYec/bPR2TppUeRRVX5Rz+aP4Dg7rrCnJCqhs6Mti6ITc8JBsDyQuaw2F+qp9yKn
+	 SycKOW2sb9o0Q==
+Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-3ab3b29a298so10272691fa.3
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Nov 2026 11:20:12 -0800 (PST)
+X-Gm-Message-State: APuU4Z+UDQU+5VSygFD2Ptk8EVxpZuyJ+BRiUadmQqEK7gMrKVDEq9o7
+	RYpJjm0RXoa2uoVBs5dzOjPMIwfcordGigqwV7Yfg0IcEe6EesMScz1KNPBcC2xn0NOEHBJ3tdT
+	9Y9dlQCVKYW0MTMT68HAQ6lnmPJnQtnA=
+X-Received: by 2002:a05:651c:1b14:b0:3a3:5a01:a794 with SMTP id
+ 38308e7fff4ca-3ae0955c9f7mr555661fa.1.1794252010431; Mon, 09 Nov 2026
+ 11:20:10 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,103 +58,60 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261020-acpi-sbs-serialize-v1-1-913abf8ed30c@gmail.com>
-In-Reply-To: <20261020-acpi-sbs-serialize-v1-1-913abf8ed30c@gmail.com>
+References: <20261023060426.3821716-1-yong.hu@windriver.com>
+In-Reply-To: <20261023060426.3821716-1-yong.hu@windriver.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Mon, 9 Nov 2026 20:16:23 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0gaTgn-L8R8X_XWesxDNJsCybM6-Wyj4eo6CbOa16ueOw@mail.gmail.com>
-X-Gm-Features: AclHuK8KPeR5AAr78YhZ8OA-lcxrUTleUxc9Kx9JKlQhl_Z6Cxy6hVNYGjEtgQs
-Message-ID: <CAJZ5v0gaTgn-L8R8X_XWesxDNJsCybM6-Wyj4eo6CbOa16ueOw@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: SBS: Serialize battery state refreshes
-To: balthasar978@gmail.com
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
+Date: Mon, 9 Nov 2026 20:19:56 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0jNziZrnjJ8Yjq0X97oaJf-OR9=Xwe2J4b4jvcSAZEpoA@mail.gmail.com>
+X-Gm-Features: AclHuK_c-aMWohLE9hE7o9IOTB9jsL5x5x6mbotib79oa8bxGW9n3HIhL8qS0bM
+Message-ID: <CAJZ5v0jNziZrnjJ8Yjq0X97oaJf-OR9=Xwe2J4b4jvcSAZEpoA@mail.gmail.com>
+Subject: Re: [PATCH] ACPICA: Initialize parser_state.aml_end in acpi_install_method()
+To: Yong Hu <yong.hu@windriver.com>
+Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, lenb@kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 20, 2026 at 12:58=E2=80=AFPM Penkacelsus via B4 Relay
-<devnull+balthasar978.gmail.com@kernel.org> wrote:
+On Fri, Oct 23, 2026 at 8:06=E2=80=AFAM Yong Hu <yong.hu@windriver.com> wro=
+te:
 >
-> From: Penkacelsus <balthasar978@gmail.com>
+> In acpi_install_method(), the local parser_state is stack-allocated and
+> only parser_state.aml was initialized. Parser helpers called by this path
+> read parser_state.aml_end for bounds checking: acpi_ps_peek_opcode() read=
+s
+> it before validating the first AML opcode, and acpi_ps_get_next_package_e=
+nd()
+> reads it indirectly via acpi_ps_get_next_package_length(). The subsequent
+> package-limit check also compares against parser_state.aml_end. Because
+> aml_end was never set, these checks operated on an uninitialized value,
+> which could lead to incorrect parser bounds decisions.
 >
-> acpi_battery_get_state() refreshes the battery state at most once per
-> cache_time (1 s), but the check and the update are not serialized:
-> callers that arrive together all see a stale cache and each read all
-> seven state registers over SMBus.
+> Initialize parser_state.aml_end to the end of the table (buffer +
+> table->length) so the parser bounds checks operate on a valid limit.
 >
-> On T2 MacBooks (MacBookPro16,1: SBS battery behind the EC's SMBus host
-> controller) every SMBus word read takes about two dozen EC GPEs. A
-> desktop shell that reloads ten BAT0 attributes in parallel every 2 s
-> drove the EC GPE to ~680/s, which kept irq/9-acpi near 16% of a CPU.
-> Readers of a single attribute file each get their own thread in such
-> shells, so the race is the common case, not a corner case.
->
-> Serialize the refresh with a per-battery mutex taken in
-> acpi_battery_get_state(), so that the power supply readers and the
-> SMBus alarm callback share it. The first caller does the SMBus reads;
-> the others wait and then find a fresh cache. Use a new lock rather than
-> sbs->lock: acpi_sbs_remove() holds sbs->lock while it unregisters the
-> power supplies, which waits for sysfs readers to drain.
->
-> With ten parallel readers of state attributes every 200 ms, SMBus reads
-> drop from 26-29/s to 6/s (the cache floor) and EC GPEs from 600-670/s
-> to ~140/s.
->
-> Signed-off-by: Penkacelsus <balthasar978@gmail.com>
+> Fixes: bdc357540129 ("ACPICA: add boundary checks in two places")
+> Link: https://github.com/acpica/acpica/commit/19429ef91ebfb2144c918038dce=
+13e297b4ef051
+> Signed-off-by: Yong Hu <yong.hu@windriver.com>
 > ---
->  drivers/acpi/sbs.c | 12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
+>  drivers/acpi/acpica/nsxfname.c | 1 +
+>  1 file changed, 1 insertion(+)
 >
-> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-> index f10bbf13c..861739b18 100644
-> --- a/drivers/acpi/sbs.c
-> +++ b/drivers/acpi/sbs.c
-> @@ -55,6 +55,7 @@ struct acpi_battery {
->         struct power_supply_desc bat_desc;
->         struct acpi_sbs *sbs;
->         unsigned long update_time;
-> +       struct mutex state_lock;        /* serializes state refreshes */
->         char name[8];
->         char manufacturer_name[ACPI_SBS_BLOCK_MAX];
->         char device_name[ACPI_SBS_BLOCK_MAX];
-> @@ -355,6 +356,13 @@ static int acpi_battery_get_state(struct acpi_batter=
-y *battery)
->  {
->         int i, result =3D 0;
+> diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfnam=
+e.c
+> index fabae9b08e31..b1234567890a 100644
+> --- a/drivers/acpi/acpica/nsxfname.c
+> +++ b/drivers/acpi/acpica/nsxfname.c
+> @@ -503,6 +503,7 @@ acpi_status acpi_install_method(u8 *buffer)
+>         /* First AML opcode in the table must be a control method */
 >
-> +       /*
-> +        * Callers that find the cache stale at the same time would each
-> +        * re-read the whole state over SMBus. Serialize them so that onl=
-y
-> +        * the first one does; the others then find a fresh cache.
-> +        */
-> +       guard(mutex)(&battery->state_lock);
-> +
->         if (battery->update_time &&
->             time_before(jiffies, battery->update_time +
->                                 msecs_to_jiffies(cache_time)))
-> @@ -367,9 +375,8 @@ static int acpi_battery_get_state(struct acpi_battery=
- *battery)
->                                          (u8 *)battery +
->                                                 state_readers[i].offset);
->                 if (result)
-> -                       goto end;
-> +                       break;
->         }
-> -      end:
->         battery->update_time =3D jiffies;
->         return result;
->  }
-> @@ -530,6 +537,7 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int=
- id)
->
->         battery->id =3D id;
->         battery->sbs =3D sbs;
-> +       mutex_init(&battery->state_lock);
->         result =3D acpi_battery_read(battery);
->         if (result)
->                 return result;
->
-> ---
+>         parser_state.aml =3D buffer + sizeof(struct acpi_table_header);
+> +       parser_state.aml_end =3D buffer + table->length;
+>         opcode =3D acpi_ps_peek_opcode(&parser_state);
+>         if (opcode !=3D AML_METHOD_OP) {
+>                 return (AE_BAD_PARAMETER);
+> --
 
-Applied as 7.5 material, thanks!
+This should be fixed by commit ec696f34774d ACPICA: Initialize
+parser_state.aml_end in acpi_install_method().
+
+Thanks!
