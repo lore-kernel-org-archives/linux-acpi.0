@@ -1,70 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794236362;
-	b=hEmxp9SQ0LG75mxj1ypP0bRdxIsX13Tx8+1xRbvK25Y6YbOvAnBlutK/8F/MjRKFFDdM
-	 SkUI/VJPxtZ0pVkMOfUX46g6LchiFyFd1bnBuDjGfPliBySpBtgse85TZRoNJ+mjMy2X8
-	 57nqQy9pachxaFpkpMhS4sCObBN3WRumnaB4mgywkpONEeoB4/3bc4AqqE/9gVX0nHfA+
-	 0O3EQ1vzbOh5ogu8LLljXyDgcd6rODm+g9VI4NL8Tm5P8yDJu1EIIOyBUZuY/mqIKxYPG
-	 or+CgHFCPs+jGhiQ99WlsaL/+bh24u2GG2m/AGC8GigYAQoc0CWwwBdeTknDcGwLiVg==
+	t=1794237457;
+	b=OCo1ng85VJiVwSsamnfheBhHc4arZ5kztHYrfcZQpzbW51kpyfq1WifAnfxB6ync2+ow
+	 zDNs6f8SjZbP/N6s+My/RW8nAWLVJeuTtRJJgft60dHnXjxfimN8NT83uRqXFFLsu4x4m
+	 y5ANtdFi90ec+uDgS1EZiiUJ9dDPietztR0B97FEpOJscSx23esazNitpYUY8+DGKvMsE
+	 d/o8lVjctjijtrE+qc9OgR59mWkFBBw2eU86LvVG87xVK3Y7ECnhYQp7kxqkOANKBL5/W
+	 tAHEIZdPWmzjt4whduunXAAiWU4SB7IstaIsNcld5ffd+MFfEn52V6XAEdpvw/QmaVQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794236362;
-	h=Received:DKIM-Signature:Received:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=0MXD1olVR1VK2jv8CjAecVpZq6Cd7JFM5zil6KQVVHw=;
-	b=eShOVi3WwrBPDZO8i7mKMQTixxlp/pnYHRKu5hmnYdLwju1rjqQjGifa6GiezFGbDN1t
-	 L0wZ+thT48S7quYFIGB/2+JmyXPCGJ1fYogVpO8QFV8cQSr+mMGPr6IpSN/bNIbZmStdN
-	 mn5XLTb6uJb9OmeEf54gnnRuHQSuFvidyUQbTzM7PgLwZgbd3I7mhzapk587DD51AvPVg
-	 agIKIpuEeU+Ym8/JXKv1vRBKkvYDxfPL473CUBkd5IKAqhCc719pv+DCXrXxzXbBtOKT4
-	 dBRyKWrfXu4G6sdwOEzCZ262PeadVHJp2BTTcnTZyltp8HOi2+quI7USFj8/0smEP+A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794237457;
+	h=Received:DKIM-Signature:Mime-Version:Content-Transfer-Encoding:
+	 Content-Type:Date:Message-Id:Subject:Cc:To:From:References:
+	 In-Reply-To;
+	bh=CfHap0q6P6c91MZbBlQG5hfjcm9Nfhv5PV47PljtmhY=;
+	b=b3lxSPMMBcLboSEJR+qsqvYlUrRmkNpxKGhgGsi1+xuR+PqoQvulFidk4OMyJxowJg6d
+	 nVFlfTPou0qtd9SqHkW5VVP1wHxvoBZyI3hUxOT0tOIjT9tqd5rvNyu7tKAvRMniWz7fv
+	 eUM4ek3c8nOW/wSwODEi+dBVlZwqUG5VjkSgjKR01R71IW7+YMpwe4FgJkmCdhsq+OUb5
+	 33nFC1AnyGJXPazR19DqdR/HZ9VYMpM1tytcP2HTQ9nsLWTcvH1aBAbpmgEXYc6F3ZuMX
+	 Ha8gBXxJC+yrNAMQAmKL5rcwyuSg9pWL2EVkfx06woJI9VjI5TOCozL2uztP0j/sxug==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GxcGcMAU;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mbK5tj5B;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A76C606A333;
-	Mon,  9 Nov 2026 14:59:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 095BC606A331;
+	Mon,  9 Nov 2026 15:17:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GxcGcMAU
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0087C1F008A5;
-	Mon,  9 Nov 2026 14:59:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mbK5tj5B
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65DB61F008BD;
+	Mon,  9 Nov 2026 15:17:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794236362;
-	bh=0MXD1olVR1VK2jv8CjAecVpZq6Cd7JFM5zil6KQVVHw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=GxcGcMAUxCz0SQoiXLJgG8/t6tK0uZFMbBLXWXbfeTpgnvD8OyU2vkFI+oTvLZvNl
-	 ZPGeUtA3IrZ/vvuWC0/ZwAosXMmtOWMAMNumvG7ZrCH0tvqDq5fdjzMtmm5M9oUO+m
-	 NPncYbsELb0l7+VaTl456F3FbwDppCxquN7a7BvC+pKOtEOqpXA2gtq+g4UihrgNVM
-	 shEJUlOW1OBJyuFeTEABFNXgQfi/GZ2OEOZ1+ZjMroGh0AM1GEfhf5KcNP6FNdHVa1
-	 BKvNrb+ZomYBhhPYjkBRq/Z0QLkVSI9edjSns+uUeV6xEpgw5aTxN42vvrv1HXueZn
-	 AxvhOZSrjr2Rg==
-Received: from johan by xi.lan with local (Exim 4.100.1)
-	(envelope-from <johan@kernel.org>)
-	id 1xQQq7-0000000AFDp-1J45;
-	Mon, 09 Nov 2026 15:59:19 +0100
-Date: Mon, 9 Nov 2026 15:59:19 +0100
-From: Johan Hovold <johan@kernel.org>
-To: Danilo Krummrich <dakr@kernel.org>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	Balasubramani Vivekanandan <balasubramani.vivekanandan@intel.com>
-Subject: Re: [PATCH] software node: only let the owner release a managed node
-Message-ID: <avHfx80pHRPwtqRt@hovoldconsulting.com>
-References: <20261102-swnode-only-owner-release-v1-1-ee4c9022a629@oss.qualcomm.com>
- <avHMhh8ChrFE_b_e@hovoldconsulting.com>
- <DMQQO3DTZE66.1Q2XGGDGN3WUP@kernel.org>
- <avHZ5U_YR9QSqd0G@hovoldconsulting.com>
- <DMQREV9DFQST.1Z4ZFOFTS0Z7W@kernel.org>
+	s=k20260515; t=1794237456;
+	bh=CfHap0q6P6c91MZbBlQG5hfjcm9Nfhv5PV47PljtmhY=;
+	h=Date:Subject:Cc:To:From:References:In-Reply-To;
+	b=mbK5tj5BA19WbMwGdas1Q1+I1CSPXuGwsyEa+SrzP7WhvMEjXBtaWSSHD9wyGS9Jf
+	 CccTFcfNpk1W281ZQvRy+OrA6VcmLCMCtkaH1y6DocwctAdvSg2JqJiDu7s6Yf1oh7
+	 Uw7jbjtmjzbgLZLSapVuDcG8TCgBRd+oIy8EnQCJ5v+5L08oX22PmoWJXVbiOIAn77
+	 ecEK85TtVu109xYYkQijVHJ2wSiVvdGC5slKD7Rq7LU92z4XXJXeMgIUGIJ9o9OQmE
+	 COW/iHr8/t8gpqYJDS5EaBd2WOsicAID2zZT5PGEdpk2hxAw85Ju7HQtJdYAyTsqXk
+	 XkK+CwX4vzy2g==
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -73,67 +48,50 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <DMQREV9DFQST.1Z4ZFOFTS0Z7W@kernel.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 09 Nov 2026 16:17:33 +0100
+Message-Id: <DMQS3EURP5MB.2DY989AOI0CSD@kernel.org>
+Subject: Re: [PATCH] software node: only let the owner release a managed
+ node
+Cc: "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>, "Andy
+ Shevchenko" <andriy.shevchenko@linux.intel.com>, "Daniel Scally"
+ <djrscally@gmail.com>, "Heikki Krogerus" <heikki.krogerus@linux.intel.com>,
+ "Sakari Ailus" <sakari.ailus@linux.intel.com>, "Bartosz Golaszewski"
+ <brgl@kernel.org>, "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki"
+ <rafael.j.wysocki@intel.com>, <linux-acpi@vger.kernel.org>,
+ <driver-core@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
+ "Balasubramani Vivekanandan" <balasubramani.vivekanandan@intel.com>
+To: "Johan Hovold" <johan@kernel.org>
+From: "Danilo Krummrich" <dakr@kernel.org>
+References: <20261102-swnode-only-owner-release-v1-1-ee4c9022a629@oss.qualcomm.com> <avHMhh8ChrFE_b_e@hovoldconsulting.com> <DMQQO3DTZE66.1Q2XGGDGN3WUP@kernel.org> <avHZ5U_YR9QSqd0G@hovoldconsulting.com> <DMQREV9DFQST.1Z4ZFOFTS0Z7W@kernel.org> <avHfx80pHRPwtqRt@hovoldconsulting.com>
+In-Reply-To: <avHfx80pHRPwtqRt@hovoldconsulting.com>
 
-On Mon, Nov 09, 2026 at 03:45:29PM +0100, Danilo Krummrich wrote:
-> On Mon Nov 9, 2026 at 3:34 PM CET, Johan Hovold wrote:
-> > On Mon, Nov 09, 2026 at 03:10:31PM +0100, Danilo Krummrich wrote:
-> >> On Mon Nov 9, 2026 at 2:37 PM CET, Johan Hovold wrote:
-> >> > On Mon, Nov 02, 2026 at 04:25:16PM +0100, Bartosz Golaszewski wrote:
-> >> >> device_create_managed_software_node() creates a node whose lifetime is
-> >> >> tied to the device it was created for. software_node_notify_remove() is
-> >> >> called for every device that has the node as its fwnode (primary OR
-> >> >> secondary) and, if the node is managed, unconditionally detaches it from
-> >> >> that device and drops the creation reference.
-> >> >> 
-> >> >> This breaks when the node is shared with another device. Example: the
-> >> >> i2c-designware copies the parent's fwnode to the adapter's struct device.
-> >> >> When the adapter is deleted, it releases the reference that belongs to
-> >> >> the owner and the latter ends up with a dangling pointer.
-> >> >> 
-> >> >> Record the device's "manager" and only perform the actual release when
-> >> >> notify is called for that "owner" device.
-> >> >> 
-> >> >> Reported-by: Balasubramani Vivekanandan <balasubramani.vivekanandan@intel.com>
-> >> >> Closes: https://lore.kernel.org/all/20261009164241.923756-2-balasubramani.vivekanandan@intel.com/
-> >> >> Fixes: 151f6ff78cdf ("software node: Provide replacement for device_add_properties()")
+On Mon Nov 9, 2026 at 3:59 PM CET, Johan Hovold wrote:
+> Yeah, I skimmed the thread now. I think the last thing he said was:
+>
+> 	The patch looks fine to me but I still see that there are some
+> 	concerns. Like Danilo's points are valid, can those be addressed
+> 	later?
+>
+> 	...
+>
+> 	Let's wait a little and if nothing arises I can apply this for
+> 	XE.
+>
+> and in the reply they say would go back to managed nodes "once the
+> limitation is addressed".
 
-> >> Also, are we sure this is -rc material? I think the original commit wasn't
-> >> technically broken and the bug in Xe was fixed otherwise.
-> >
-> > The regression was introduced by 0f485f88656a ("drm/xe/i2c: use
-> > device_create_managed_software_node()") in 7.3 and Bartosz framed it as
-> > an alternative fix for that bug.
-> >
-> > Are you saying this has since been fixed differently?
-> >
-> > If so, this can obviously wait.
-> 
-> There's the fix in [1] and Andy said he'll pick it up for Xe in one of the
-> replies.
+Oh, I missed that part, that's good then.
 
-Yeah, I skimmed the thread now. I think the last thing he said was:
+> The proposed xe fix is still not in linux-next however, and this patch
+> carries a Closes: tag for the regression.
+>
+> So I think we can just go ahead and fix this in driver core directly.
 
-	The patch looks fine to me but I still see that there are some
-	concerns. Like Danilo's points are valid, can those be addressed
-	later?
+Ok, then I agree it is fine as is. :)
 
-	...
-
-	Let's wait a little and if nothing arises I can apply this for
-	XE.
-
-and in the reply they say would go back to managed nodes "once the
-limitation is addressed".
-
-The proposed xe fix is still not in linux-next however, and this patch
-carries a Closes: tag for the regression.
-
-So I think we can just go ahead and fix this in driver core directly.
-
-Johan
-
-> [1] https://lore.kernel.org/all/20261009164241.923756-2-balasubramani.vivekanandan@intel.com/
+Thanks,
+Danilo
