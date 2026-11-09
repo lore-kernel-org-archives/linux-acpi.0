@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794251502;
-	b=Zq6mRr3Dc3qh4Ww+HNrXABAF9af69lsh4yyFfQur3S7reu/O/2aBJZgAu+nqY47HHIQ8
-	 6/YdCpcSYxjpPkCvWZZMpXQCqvepOL5JoUiTIBKmmYwg1abjdcF2cxVRxxp2TwGdkKDvb
-	 N1/nQ9DBcm9i4J5brbYbKTjJZQeqWFvr2RA7dcIcueKSI9hCxdsYcLLqQgRs1Q5DfEm3K
-	 qMGxkThADS7HnQpjaYyNXnReDdC4lbI8eWrGegpgwIZwH7AssnEn2+bAoTHrM/hN8dhD2
-	 5ogAV5jNatfRt1QuMmY1cEgEA3EcvOYEnoUI/zNukVGSoHeWMBzhIkdbjH4Dlq+zoKQ==
+	t=1794251799;
+	b=RgXiUnztu2yOqAFIS9tNbmrrLdh6UNnmKKbwpJm+T9FlKIPQpxxrxBraTV12e+Rxh34R
+	 EisfKNajR+2DIbnr0V3iSFG7jj5yXZhgEW34FX+qpQAQeOhyFsXW2NyZ8ijw+S52DR0un
+	 LlonippdRYDI0Kga1J8ewmEYgV5AEb0LF5jyWop2/2PkXqidEFpsuEvMfPy3aIo6swiKa
+	 Aim6oR6lhKsW1BntW1Dns/aARagPMniQHkuxOcyJZT+q+xbi0RdD6gCbTbNLI8f2Wt9Dk
+	 NA4QWC27GaTbQnKHf0Ny68DQrD3/HA55SfM163C/Y6JjV2BYzePkp+KdWDQWca0OhLQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794251502;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794251799;
 	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
 	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
 	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=DJss7vF018jxE3CgpbZ29VThuXk5wnx614xdus0Glzc=;
-	b=nKU2g96iGXtQHpbIyCwP9GhQ4hic4PL2EkUZ/kE0V1QhKxxJO0/hJzOYdHTrL/wa0iJn
-	 3GsZfasLJqkSGu67t3C6TPLKuiFAAVK+VFRtu05F6sK3s5eC4x59kjZfyxb25WWRcmV/X
-	 vCqMpLfKEM3JJL6QNprttaBq4mZgfR4qtfp+wQoiw0mvd1syAHVAdLBBmGjzdD2gOOsLP
-	 QFQ09Hi5Rz9W8hNhugSz2s3zUZrlCLQGBt4d/jQjjIaT5AHQjER8jYax5/osdXVgcwJC8
-	 y8mLt89T62TCp64V1dAUsjW6UtIuzFCDZ+WPzlTHIUNjOos26bAVYSNhfhwuuNw4nQA==
+	bh=hKAQdA3xa/ca1jx07L9rSksx5n8SHXVGckAyI+PNUn4=;
+	b=VFS3c5FDt+zl8bKMIVALjCkaDT1F/mvx6ApdYoL4dlIonIDtziJNA6oooOnl4ef3aIPu
+	 Wea+DJfGLrBn3tU8U+fJ5vdwho2vHgYEZE00XG8KdIJ3VLWWcoz59A7swjutUUa7/O8qy
+	 WBbKQK2J7UKCu19wazXrwxCWjJNTiFbyShZgz88I6+yOrN5ZvxY8iYF6taqZPyeCJcSoi
+	 KheMF0O7uo8olkIB6lFJn8m+zizVWAlVHdqQsQOwrxqQY9VKa1T4QeBwwmkjxcRS3E5Fg
+	 RHkLLiIDL1HoT19jPD6l/dzesquWwV5azfsTkXFHYgHwpLBH1+BNwcrX+r7/sme85wA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f4Sv859R;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YK+1B2jN;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58858606A321
-	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:11:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C8C0606A31C
+	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:16:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f4Sv859R
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 352761F0089F
-	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:11:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YK+1B2jN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF8901F008A1
+	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:16:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794251502;
-	bh=DJss7vF018jxE3CgpbZ29VThuXk5wnx614xdus0Glzc=;
+	s=k20260515; t=1794251797;
+	bh=hKAQdA3xa/ca1jx07L9rSksx5n8SHXVGckAyI+PNUn4=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=f4Sv859R4DrgEnPEvT/I04GNwFNGnCcO3NcpXc8kUtbt60Qhv1icbO0TP4o8vvczu
-	 k2XqYObS6IP2A3mXna8+uvL4qx7UhzDFQiWCEpkAzzpM+4H01Pe4cLIpMTwWQugkDc
-	 oei0/01C+5zeWS8Ag/LeQ99C+0/mBpZFWnqA3591x3xpNVj6Vg/CzAXm3J84jSA3Pf
-	 gv3t39V8v1hzyKeDpn9kvZJCW7TavFEuz8isvqdzvgL6uCxBFXjPLarLAq0KNIsOvn
-	 a1pwwpcgBaYLEuSjJjn/an4gksWOqvQUQVrfbCwM+EZfG95qOw8ASe46dfmC26THOk
-	 APBe1L6mSTWSA==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5c146cf35ceso1185686e87.3
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Nov 2026 11:11:42 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErHfj5Gmoo7lFzYo5UVGox+fxVE5/7tZtU0LbJbo02kMSi4Jte9f2ornJ8OTG+P8oi84D39dAZGGMmfh@vger.kernel.org
-X-Gm-Message-State: APuU4Z+4am4fZHz7cHQaaW+SfW2odlO2PEkGOBr7LCwYPWwyIkcI0f9J
-	swId1iDSVcmOwmWOqEEVNLVJJRlyxyD6SyNY9pn0bXqbdwMrdZN2YMERrPj3AcreWXruhpAluRs
-	YVTANv2AnFWooRkcXe4xV+9LMsP7HJno=
-X-Received: by 2002:a05:6512:1286:b0:5c1:4bb4:a6bb with SMTP id
- 2adb3069b0e04-5c156ea28ecmr81403e87.36.1794251500588; Mon, 09 Nov 2026
- 11:11:40 -0800 (PST)
+	b=YK+1B2jN/k2S/q7Bau/EZiMetHzk9oLZCRIcrM3auKnbLWOAT+uelMatzkdXaNTod
+	 3/dwKhVfpiTNHxxfZvjURrOhvpc5AbUzyqqL8lOHAoAA6OVoFGpFRops19+rBopTao
+	 wkotyM0DgerObW4nQ8u4GN5rm7l3bW1GdSjkitXKdGBTzYyP+sKBd3dTdmEf2Wjk7i
+	 mXXGeu/GLhCtwiK6TCaD42k7Riw66oNIheWDAh0zrktbe1br/RUgOmOvG/a1+s5KbB
+	 9cbvlRIuQVdHpdGyGL9n7FaULAQOXjCPuQFPLcOaNN845Uc8b6e/79pmkWYavPRrBa
+	 F05TrVdqFRVXA==
+Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-3acc7a0b558so9298121fa.3
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Nov 2026 11:16:37 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErGc2BlMr4e7qcwRKcivPxsTbkKYxnCeTL+YWSuK6kCC4MZQyOb5d7mBzhiJPPYp9Kiq45HrF2y7u2MR@vger.kernel.org
+X-Gm-Message-State: APuU4Z+aTCBfAwgJDrQgtJBXfiAtEh0Z94VTjpU1J12h/almBrFJL17b
+	GvJAGzcbGAn3BCyEa254O70ILJT+N3hBblB9EYxAvBfwcKiefLQ97PXeQIE5M0rRRhnguEhfS4n
+	6z/8P7flJatjgWcn7TP8E9J+IkctQhoo=
+X-Received: by 2002:a05:651c:1612:b0:3ac:e5ef:1b8c with SMTP id
+ 38308e7fff4ca-3ae0961fc0cmr447841fa.11.1794251796214; Mon, 09 Nov 2026
+ 11:16:36 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,124 +59,103 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261016141440.2794000-1-yaojiale02@163.com> <7192d240.1879.1a148c7d925.Coremail.19888972804@163.com>
-In-Reply-To: <7192d240.1879.1a148c7d925.Coremail.19888972804@163.com>
+References: <20261020-acpi-sbs-serialize-v1-1-913abf8ed30c@gmail.com>
+In-Reply-To: <20261020-acpi-sbs-serialize-v1-1-913abf8ed30c@gmail.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Mon, 9 Nov 2026 20:11:27 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0h_oa2zguxw=5E5w9Jhc-m2cnbOfvFdPJoXerBhFmeh5Q@mail.gmail.com>
-X-Gm-Features: AclHuK_BUF-fAHbf6jyj3Z7UKdsM4Q5zT5fl2jVdiFMvd9z0XP0bfa11sJk1W4Q
-Message-ID: <CAJZ5v0h_oa2zguxw=5E5w9Jhc-m2cnbOfvFdPJoXerBhFmeh5Q@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: processor: validate CPU mapping entries
-To: jiale yao <19888972804@163.com>
+Date: Mon, 9 Nov 2026 20:16:23 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0gaTgn-L8R8X_XWesxDNJsCybM6-Wyj4eo6CbOa16ueOw@mail.gmail.com>
+X-Gm-Features: AclHuK8KPeR5AAr78YhZ8OA-lcxrUTleUxc9Kx9JKlQhl_Z6Cxy6hVNYGjEtgQs
+Message-ID: <CAJZ5v0gaTgn-L8R8X_XWesxDNJsCybM6-Wyj4eo6CbOa16ueOw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: SBS: Serialize battery state refreshes
+To: balthasar978@gmail.com
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
 	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Oct 17, 2026 at 9:33=E2=80=AFAM jiale yao <19888972804@163.com> wro=
-te:
+On Tue, Oct 20, 2026 at 12:58=E2=80=AFPM Penkacelsus via B4 Relay
+<devnull+balthasar978.gmail.com@kernel.org> wrote:
 >
-> At 2026-10-16 22:14:40, "Jiale Yao" <yaojiale02@163.com> wrote:
-> >CPU physical ID lookup walks MADT subtables directly and also accepts
-> >records returned by _MAT. Both paths can pass a truncated typed record
-> >to a CPU-specific mapper, and the MADT walker can be stalled or moved
-> >outside the table by an invalid length.
-> >
-> >Validate generic record bounds and the minimum size required by each
-> >supported CPU record before dispatching it on both provider paths.
-> >
+> From: Penkacelsus <balthasar978@gmail.com>
 >
-> Fixes: 78ed8bd2944b ("ACPI: processor: move acpi_get_cpuid into processor=
-_core.c")
+> acpi_battery_get_state() refreshes the battery state at most once per
+> cache_time (1 s), but the check and the update are not serialized:
+> callers that arrive together all see a stale cache and each read all
+> seven state registers over SMBus.
+>
+> On T2 MacBooks (MacBookPro16,1: SBS battery behind the EC's SMBus host
+> controller) every SMBus word read takes about two dozen EC GPEs. A
+> desktop shell that reloads ten BAT0 attributes in parallel every 2 s
+> drove the EC GPE to ~680/s, which kept irq/9-acpi near 16% of a CPU.
+> Readers of a single attribute file each get their own thread in such
+> shells, so the race is the common case, not a corner case.
+>
+> Serialize the refresh with a per-battery mutex taken in
+> acpi_battery_get_state(), so that the power supply readers and the
+> SMBus alarm callback share it. The first caller does the SMBus reads;
+> the others wait and then find a fresh cache. Use a new lock rather than
+> sbs->lock: acpi_sbs_remove() holds sbs->lock while it unregisters the
+> power supplies, which waits for sysfs readers to drain.
+>
+> With ten parallel readers of state attributes every 200 ms, SMBus reads
+> drop from 26-29/s to 6/s (the cache floor) and EC GPEs from 600-670/s
+> to ~140/s.
+>
+> Signed-off-by: Penkacelsus <balthasar978@gmail.com>
+> ---
+>  drivers/acpi/sbs.c | 12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+> index f10bbf13c..861739b18 100644
+> --- a/drivers/acpi/sbs.c
+> +++ b/drivers/acpi/sbs.c
+> @@ -55,6 +55,7 @@ struct acpi_battery {
+>         struct power_supply_desc bat_desc;
+>         struct acpi_sbs *sbs;
+>         unsigned long update_time;
+> +       struct mutex state_lock;        /* serializes state refreshes */
+>         char name[8];
+>         char manufacturer_name[ACPI_SBS_BLOCK_MAX];
+>         char device_name[ACPI_SBS_BLOCK_MAX];
+> @@ -355,6 +356,13 @@ static int acpi_battery_get_state(struct acpi_batter=
+y *battery)
+>  {
+>         int i, result =3D 0;
+>
+> +       /*
+> +        * Callers that find the cache stale at the same time would each
+> +        * re-read the whole state over SMBus. Serialize them so that onl=
+y
+> +        * the first one does; the others then find a fresh cache.
+> +        */
+> +       guard(mutex)(&battery->state_lock);
+> +
+>         if (battery->update_time &&
+>             time_before(jiffies, battery->update_time +
+>                                 msecs_to_jiffies(cache_time)))
+> @@ -367,9 +375,8 @@ static int acpi_battery_get_state(struct acpi_battery=
+ *battery)
+>                                          (u8 *)battery +
+>                                                 state_readers[i].offset);
+>                 if (result)
+> -                       goto end;
+> +                       break;
+>         }
+> -      end:
+>         battery->update_time =3D jiffies;
+>         return result;
+>  }
+> @@ -530,6 +537,7 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int=
+ id)
+>
+>         battery->id =3D id;
+>         battery->sbs =3D sbs;
+> +       mutex_init(&battery->state_lock);
+>         result =3D acpi_battery_read(battery);
+>         if (result)
+>                 return result;
+>
+> ---
 
-So please resend.
-
-Also, is it possible that some systems currently in the field will not
-pass this new validation and stop booting as a result?
-
-> >Signed-off-by: Jiale Yao <yaojiale02@163.com>
-> >---
-> > drivers/acpi/processor_core.c | 48 ++++++++++++++++++++++++++++++++++-
-> > 1 file changed, 47 insertions(+), 1 deletion(-)
-> >
-> >diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core=
-.c
-> >index 3bf076c150fa..4d5ff53f27ab 100644
-> >--- a/drivers/acpi/processor_core.c
-> >+++ b/drivers/acpi/processor_core.c
-> >@@ -157,6 +157,47 @@ static int map_core_pic_id(struct acpi_subtable_hea=
-der *entry,
-> >       return -EINVAL;
-> > }
-> >
-> >+static bool madt_cpu_entry_is_valid(struct acpi_subtable_header *entry,
-> >+                                  unsigned long end)
-> >+{
-> >+      unsigned long start =3D (unsigned long)entry;
-> >+      size_t length, min_length;
-> >+
-> >+      if (start >=3D end || end - start < sizeof(*entry))
-> >+              return false;
-> >+
-> >+      length =3D entry->length;
-> >+      if (length < sizeof(*entry) || length > end - start)
-> >+              return false;
-> >+
-> >+      switch (entry->type) {
-> >+      case ACPI_MADT_TYPE_LOCAL_APIC:
-> >+              min_length =3D sizeof(struct acpi_madt_local_apic);
-> >+              break;
-> >+      case ACPI_MADT_TYPE_LOCAL_X2APIC:
-> >+              min_length =3D sizeof(struct acpi_madt_local_x2apic);
-> >+              break;
-> >+      case ACPI_MADT_TYPE_LOCAL_SAPIC:
-> >+              min_length =3D sizeof(struct acpi_madt_local_sapic);
-> >+              break;
-> >+      case ACPI_MADT_TYPE_GENERIC_INTERRUPT:
-> >+              min_length =3D offsetofend(struct acpi_madt_generic_inter=
-rupt,
-> >+                                       arm_mpidr);
-> >+              break;
-> >+      case ACPI_MADT_TYPE_RINTC:
-> >+              min_length =3D offsetofend(struct acpi_madt_rintc, uid);
-> >+              break;
-> >+      case ACPI_MADT_TYPE_CORE_PIC:
-> >+              min_length =3D sizeof(struct acpi_madt_core_pic);
-> >+              break;
-> >+      default:
-> >+              min_length =3D sizeof(*entry);
-> >+              break;
-> >+      }
-> >+
-> >+      return length >=3D min_length;
-> >+}
-> >+
-> > static phys_cpuid_t map_madt_entry(struct acpi_table_madt *madt,
-> >                                  int type, u32 acpi_id)
-> > {
-> >@@ -172,7 +213,8 @@ static phys_cpuid_t map_madt_entry(struct acpi_table=
-_madt *madt,
-> >       /* Parse all entries looking for a match. */
-> >
-> >       entry +=3D sizeof(struct acpi_table_madt);
-> >-      while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
-> >+      while (madt_cpu_entry_is_valid((struct acpi_subtable_header *)ent=
-ry,
-> >+                                     madt_end)) {
-> >               struct acpi_subtable_header *header =3D
-> >                       (struct acpi_subtable_header *)entry;
-> >               if (header->type =3D=3D ACPI_MADT_TYPE_LOCAL_APIC) {
-> >@@ -251,6 +293,10 @@ static phys_cpuid_t map_mat_entry(acpi_handle handl=
-e, int type, u32 acpi_id)
-> >       }
-> >
-> >       header =3D (struct acpi_subtable_header *)obj->buffer.pointer;
-> >+      if (!madt_cpu_entry_is_valid(header,
-> >+                      (unsigned long)header + obj->buffer.length))
-> >+              goto exit;
-> >+
-> >       if (header->type =3D=3D ACPI_MADT_TYPE_LOCAL_APIC)
-> >               map_lapic_id(header, acpi_id, &phys_id);
-> >       else if (header->type =3D=3D ACPI_MADT_TYPE_LOCAL_SAPIC)
-> >--
-> >2.34.1
+Applied as 7.5 material, thanks!
