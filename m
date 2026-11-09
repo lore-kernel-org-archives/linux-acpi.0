@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794209660;
-	b=aGm8pt+VRWk1naiatDjpP+2gCjIy0ST/4xYClsJN4uFAz5PhEliNEXVmZW7IzVl7lHWm
-	 T7uJS579oj3o9aIii2Qu/D1kMHcZFcfrQwCb0RP6S9rw7LgsSRR+EUT6ZyRDaOAXa6sKK
-	 7ogJ/tNaxAlD/lqFJ0/Z+GUX5quFl/8N9gWCb1U4XayC/Q8p4VFdrGovkZP4STNaMQ/nh
-	 +MAguPJ6ehsRGvPwtzy12BJDfbWwyfg5jV7ZjAU5Xl3rx2+4sJvpNd3pbv+aOxryLXGTP
-	 epNcinPCPBM015KYyoftzO+RAXl26jg3ORYeqCVp3GIqVjWFneQCUtug4YHLXJEOq3A==
+	t=1794209673;
+	b=wKnimjeQdz+IeCJcT9ZKIJi/8ekY509fW4G9phVhne9qhff5F3IfwYJMwd59TDyy9D7H
+	 EwkYwX88iSQZoLvqiQcjuC5/JCdfTjGsoTto4Mh4+SqEtWgnAd3RdL8stSMRzlZvvP3vY
+	 BffEYhI/sp+E0kUyc0qeCZICJ9hXChKrO5zoE4jbmdz/lQd22m8NQezk03G9wbzV3RRzm
+	 kYzEBatHYu6poJ8iNr1pulW3Smvyl8E27aHw3bq/abSr+yh6N+m3m1yBWlXirVM54Z7xu
+	 8j5F892zqGOgFRkv1RHUIKnHu6CEf6kpOdMoPmPXfO/AJqaOLCE8bldE/u9qXZ0lJzA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794209660;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794209673;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
 	 Content-Transfer-Encoding;
-	bh=wh2ChqYF9XmNrt6b8ATpGBOGwb3/qYFuxeZ+hTus5/8=;
-	b=jmGFALX9uzjFWdVunLJ+mqgnHA+1OFJ/ESN02ouCwRM5+gnRNVs63Cd0Bw0YeHdVzqZL
-	 sJO7i7TVBOwfyBNq5fa/N75naqGD4PBgHmX7GBYNiiPQ1y5Ut+3SXAc0OfHHYDKNgNYSc
-	 J4/9XCGmHsS6Ia6nUbBs7ZusSpVBHUZyCipWiFODm65EOwrCTUIA2UawO8HOT3oGcWTV4
-	 yO4/0jZu4fN4o+PZgkcSBKIRNQ3zdHQtNFdLADEUWBXORaR8BizteXK01nf/lnumNSfhu
-	 A2ioqnSNra5EvM5GUHOgFeFYc9TUDCsDB7fK+cCCZQIk1FhW9GeTzhvYTLqZ1mH3bKQ==
+	bh=vG0WCZy3iE1+4XczqhoA7nnJoT9xeOvH5Oigf6iHqe8=;
+	b=v81t+adMhO47hcQnwejvoV2ghx0cRRWwJurxUXyx0u75t5lOSA4eNxQxs7ouitdHfIke
+	 CE59nUzmr8ZcAvvJG2s/mua1XEGdy9b5zw1gzLW9RHNaU903K+99rT4wKYBc+jzg0Sxt9
+	 J8aEZ5jWfG1AUWdmKfuXUKCQMSbATtP6tc3ZVLiAe4mpx+NRfcvieFfWPGQGdw/VubDKE
+	 f2UsnBDV7jI1vugb9365VGYThzBVEAnhag7gsoTeU6D1UVTEsii8q5ng7zOzDq6Z1Pz13
+	 vGpxKP1XQST9vU8EkzMuykhrrGdi3ncc+0/6Z9EFPvLSAMnPfRYxaRengstIvWjUSCg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=laYxnljf;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=X6v5NU8e;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFE236082BD7;
-	Mon,  9 Nov 2026 07:34:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 089AD60A2634;
+	Mon,  9 Nov 2026 07:34:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=laYxnljf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CB551F008A1;
-	Mon,  9 Nov 2026 07:34:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=X6v5NU8e
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC7311F0089F;
+	Mon,  9 Nov 2026 07:34:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794209659;
-	bh=wh2ChqYF9XmNrt6b8ATpGBOGwb3/qYFuxeZ+hTus5/8=;
+	s=k20260515; t=1794209672;
+	bh=vG0WCZy3iE1+4XczqhoA7nnJoT9xeOvH5Oigf6iHqe8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=laYxnljfw/dZnl22s4rzHk5vSm7ZDFxtqehSxMhT3r/VinDboZwVpJfyJNhGqjE/h
-	 WCze+Mn1WHl2/tNoC9vojzEpPivRs+6SRkVyF9nygJo3xSduXtKOCloTwRoaB6gbBh
-	 yXAgTbI2MamI/qPYq7pd4M0R/b6UQ39nDW3jvi3Erqp5sU8AeOL2xWsr5HX57guu8k
-	 TFtnF74FBLBk/vmEzDCrXOz+hr4i2BmbSWfck9TU6NWMqQRbnvPbwsP44NFHEHEl1P
-	 aD1hvNkvAXaJoZp1iJYhlSiGiKNI71pRNQdHRiPaSDCvDKCRFsgd6ntWXGf59d1iGm
-	 JCQ+qySHzerAA==
+	b=X6v5NU8e7hboZBFNVdkE+TCnE3/kJjqC+16mkWkg0Iz47daUPWcD+YSeDoAOenaXw
+	 s+LmP7Owp9d/f/5//lNu99peSAtIOfWxtLtJyplCTYeOGfgOYmuBj2YDo5VSFtCBd6
+	 5qwk4B0VmUNFI+FxJOz6c3l3X1s2/gMVumnA5Wj1ed1RHu0eWzZ4qP9Nlkex3I0OIQ
+	 JFV5LzMnctyHjI6W2fXOCazR3j9DmULS4x3qHm4n6FJ3D71V0TBO9lGhyrmb3I900/
+	 2K8qLMCG3124kkBYFbXRsJDA2VdfI8qfnRF8ny8gf0yF7axZiHABTSAxSWjlZqM8wm
+	 mSFJF5wTe1Dlg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
@@ -82,9 +82,9 @@ Cc: linux-kernel@vger.kernel.org,
 	linux-pci@vger.kernel.org,
 	iommu@lists.linux.dev,
 	Jason Gunthorpe <jgg@ziepe.ca>
-Subject: [PATCH v2 06/19] cdx: Propagate DMA configuration errors
-Date: Mon,  9 Nov 2026 09:33:36 +0200
-Message-ID: <20261109-device-trust-core-v2-6-3b12d9a9f861@nvidia.com>
+Subject: [PATCH v2 10/19] net: phy: Use the compatibility driver attachment API
+Date: Mon,  9 Nov 2026 09:33:40 +0200
+Message-ID: <20261109-device-trust-core-v2-10-3b12d9a9f861@nvidia.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261109-device-trust-core-v2-0-3b12d9a9f861@nvidia.com>
 References: <20261109-device-trust-core-v2-0-3b12d9a9f861@nvidia.com>
@@ -103,32 +103,106 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-CDX reports successful DMA configuration when firmware setup defers or
-default-domain acquisition fails. Driver probing can then proceed without
-the required DMA setup or IOMMU ownership.
+The generic PHY fallback probes directly before publishing its binding.
+Device trust admission needs to precede that probe without changing the
+caller's serialization.
 
-Return the configuration result so driver core stops or defers probing
-instead of allowing a driver to use a rejected domain.
+Use device_driver_attach_full() and leave driver ownership cleanup to the
+helper. Mark generic drivers during probe so failure and removal callbacks
+observe the right state.
 
-Fixes: 2959ab247061 ("cdx: add the cdx bus driver")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/cdx/cdx.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/phy/phy_device.c | 29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/cdx/cdx.c b/drivers/cdx/cdx.c
-index a118a89a7779d..0a030bf522690 100644
---- a/drivers/cdx/cdx.c
-+++ b/drivers/cdx/cdx.c
-@@ -367,7 +367,7 @@ static int cdx_dma_configure(struct device *dev)
- 			arch_teardown_dma_ops(dev);
+diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
+index 5d4508bcfbe99..5f0ca981644ec 100644
+--- a/drivers/net/phy/phy_device.c
++++ b/drivers/net/phy/phy_device.c
+@@ -1912,7 +1912,9 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
+ 	struct device *d = &phydev->mdio.dev;
+ 	struct module *ndev_owner = NULL;
+ 	struct module *drv_owner;
++	struct device_driver *drv;
+ 	int irq = phydev->irq;
++	bool bind_genphy;
+ 	int err;
+ 
+ 	/* For Ethernet device drivers that register their own MDIO bus, we
+@@ -1939,16 +1941,16 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
+ 	/* Assume that if there is no driver, that it doesn't
+ 	 * exist, and we should use the genphy driver.
+ 	 */
+-	if (!d->driver) {
++	drv = d->driver;
++	bind_genphy = !drv;
++	if (bind_genphy) {
+ 		if (phydev->is_c45)
+-			d->driver = &genphy_c45_driver.mdiodrv.driver;
++			drv = &genphy_c45_driver.mdiodrv.driver;
+ 		else
+-			d->driver = &genphy_driver.mdiodrv.driver;
+-
+-		phydev->is_genphy_driven = 1;
++			drv = &genphy_driver.mdiodrv.driver;
  	}
  
--	return 0;
-+	return ret;
- }
+-	drv_owner = d->driver->owner;
++	drv_owner = drv->owner;
+ 	if (!try_module_get(drv_owner)) {
+ 		phydev_err(phydev, "failed to get the device driver module\n");
+ 		err = -EIO;
+@@ -1956,11 +1958,10 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
+ 	}
+ 	phydev->drv_owner = drv_owner;
  
- static void cdx_dma_cleanup(struct device *dev)
+-	if (phydev->is_genphy_driven) {
+-		err = d->driver->probe(d);
+-		if (err >= 0)
+-			err = device_bind_driver(d);
+-
++	if (bind_genphy) {
++		err = device_driver_attach_full(drv, d);
++		if (err == -EBUSY)
++			irq = phydev->irq;
+ 		if (err)
+ 			goto error_module_put;
+ 	}
+@@ -2071,8 +2072,6 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
+ 	module_put(phydev->drv_owner);
+ 	phydev->drv_owner = NULL;
+ 	phydev->irq = irq;
+-	phydev->is_genphy_driven = 0;
+-	d->driver = NULL;
+ error_put_device:
+ 	put_device(d);
+ 	if (ndev_owner != bus->owner)
+@@ -3813,6 +3812,8 @@ static int phy_probe(struct device *dev)
+ 	int err = 0;
+ 
+ 	phydev->drv = phydrv;
++	phydev->is_genphy_driven = phydrv == &genphy_driver ||
++				 phydrv == &genphy_c45_driver;
+ 
+ 	/* Disable the interrupt if the PHY doesn't support it
+ 	 * but the interrupt is still a valid one
+@@ -3949,6 +3950,7 @@ static int phy_probe(struct device *dev)
+ out_reset:
+ 	/* Re-assert the reset signal on error */
+ 	phy_device_reset(phydev, 1);
++	phydev->is_genphy_driven = 0;
+ 
+ 	return err;
+ }
+@@ -3977,6 +3979,7 @@ static int phy_remove(struct device *dev)
+ 	phy_device_reset(phydev, 1);
+ 
+ 	phydev->drv = NULL;
++	phydev->is_genphy_driven = 0;
+ 
+ 	return 0;
+ }
 
 -- 
 2.56.0
