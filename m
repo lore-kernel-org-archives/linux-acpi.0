@@ -1,54 +1,72 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794239682;
-	b=B9Oz328X74gfcA2dwSkP5/VZ7mb4hbrXNUkSXoH3godC3pNtP72CHpgZziCm0wEj9dDq
-	 qqkYPia3PDoGhbQ1Z/SAp1P043abfXKWuR43wwo41wohOo+NXOD6N3OPgX43bUh8tTBi2
-	 bXMZ9BLnn7Ylht/kXoCQHpgdMPMMzDkXYYGfwUIQOkYwBg3EbAgXT1nOmv2BHMhxApzLV
-	 bTxfLWDuO3oSSDfEyk8p11hOjyVO+QovBFhSz+/9dLUriRinYsnpjmwXqyhyWbPcxqqfl
-	 mOq7ueesG/YE4Zx0dm1RDUQcDl3Ak9M9ZFfk4DwzZvTzZuVZ+ZiWX7FkdwN1bkzNdhA==
+	t=1794239738;
+	b=hU/YZEs+9S7oEaM3adTCu7QH4h7wXVAEekX3BSvt6m7Ekq2WTnYdCo36QG6qv8ajaQqy
+	 39j9u69nF80c77AXrGNjPw8C3AJBW+38zSr7emJs/Pij51bMmQ8+gDNnzUY9dnL4U5BCE
+	 1yBaX0DIjJx0MxwOW29XENxCW8N8LBHAc7o1ogGmeWmGf5wGkCvpmUfM742iGnl+y9VPl
+	 giTK8E5H7DWKloxdCpTZRl/bKlhnZQ0YKxV1X5agoVwgkLyvJ55xBdtEElSqlpbQPivkO
+	 gblXyuehE2pj/mQgluBvxb9Gu4tD8DmiiPvQt4LTU4G22eVG7w5xNWsYJTybqagj+DQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794239682;
-	h=Received:DKIM-Signature:Received:X-Gm-Message-State:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:
-	 X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:Subject:To:Cc:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=+VkAVcjgFq8xZaM7uRYAgPL6bY7r/rKvNqG7d8ZK/lk=;
-	b=H8nsOZQBDI2o0nFwQYzIFAAja4bJ1RSnWp3Gg6RCDQTEmFicOHjUV4Z9q/XFB2ffOYuH
-	 oPdBJeBhOh2K1nlvG4Ud+LhwDdmQeueoPvkY8Yd+fgrvXnJThZet+7L/YDYia/aM6qOYk
-	 4TIOabT1Bd5bObacv9WI4e6k4eDNOprQ1OWyubsE2JOQroVQq27azxgqyBUi+Bq7oBUbS
-	 pjMaR3Gg2s3qBcNJdojKjFY95G/POj2Zr+CCtWmFGWZ8cGPYXyAkfGV+FjV436VnO9leR
-	 PgrhlqP3StspEQXYgpWmSBTN4uMhy/cRgvuubWmq/ghFGmEBlkLePIZWvAxtRT+jAfg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794239738;
+	h=Received:DKIM-Signature:Received:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=/2hDZvu5IDKTr5dLPiIf2Oa0od0qY863w2cYiK9JPBE=;
+	b=pMm1KcY8kNbZRJ62bvPslnlKoTMgFDjgM5xvD/VGc4GS5OXaH1rsv+VXrQdijLEm3HqO
+	 Dn9ChDJ4D9P87QVqCG16e2z8SLDKKy7DjBDwm9DagsqfSLpKad+51SpoxaXIQV9dppi7z
+	 44Pp94d/CZ8lwl/Y5rvWtF+cqCA8t3139c0r+noX1NXpG2QMGym1fsZkie3M1L68MPvp3
+	 sd7c/CTaHUfU8KHSE2zefqrmP9NST0NyRs5lgbz1cDAOKZ82AX0YCCE3IdvqPZ/SlNxMB
+	 gPm2REEYRnLqBPDFNF1k/ZgNVtbDoDeFWubUoj8wyOVJJnufkIFAJSQYuA0iMo9/wFw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bmAaDPkO;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZU1k5P5r;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FE0C606A332
-	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 15:54:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C359C606A31C;
+	Mon,  9 Nov 2026 15:55:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bmAaDPkO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 052F51F008A3
-	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 15:54:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZU1k5P5r
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BDF71F008A1;
+	Mon,  9 Nov 2026 15:55:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794239682;
-	bh=+VkAVcjgFq8xZaM7uRYAgPL6bY7r/rKvNqG7d8ZK/lk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=bmAaDPkOZa0ZSi7e9ZpJWBnMUZ4gQG6mkynC2XqbpAZ9X3FVulSF23WS7jWKAPxrR
-	 V9MKrMwN+NvWc+ll5JUwpGL84XIbula2U1zeQs+pDHzY7jqwZ51Kj+JDm2yiuTLXCc
-	 p97tWG9hIvER9vmcnkBKf6iqjQ7+lZfBZgQwtvWb5R3YWlIQO6jy10qrL/UafGQx27
-	 l+Lwi4fbq1Rytz3l85fmL09KSm0sPmJaKT+1tbRAk7t0XjOoGc3+HRibcFWGPWEI8R
-	 kqjrtmXKSOf6o3Fi/d3wuKVQTA4U4KydpTCuOPKUoQzjQF0vbeSXwhCHxYC1RkfLV3
-	 sPDQqEjBDGOog==
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-3adfc004920so8931851fa.3
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Nov 2026 07:54:41 -0800 (PST)
-X-Gm-Message-State: APuU4Z+vIg5H8qwHhLkqsuAUQ01wIjlIysM5rTX9tR78XkSMECC8eEBK
-	2kM9CxurTHDEjJo+DW9s42UVcrg29lQhdE8fuqXA8zmngM8wpuwuJCRQ8J0jbEROXD7oEZ3V1YE
-	JAC7YYPeFAOGmV/yFizUn2W1otxxMCoY=
-X-Received: by 2002:a05:651c:150d:b0:3a6:10d4:61c4 with SMTP id
- 38308e7fff4ca-3adfa48f107mr11733841fa.28.1794239680276; Mon, 09 Nov 2026
- 07:54:40 -0800 (PST)
+	s=k20260515; t=1794239737;
+	bh=/2hDZvu5IDKTr5dLPiIf2Oa0od0qY863w2cYiK9JPBE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=ZU1k5P5rFOrwyhMK6/lmpmmiLCcf0AIa74/fZns7V5SeIhdN7EreZ6Z4dxyOPCGZU
+	 KXqociUOfKJdxYOLzOHPn/Py4Zh0dwUKCCF3VolpA66bcrZANrgwFGnCmtECHKeTy3
+	 AyfQakXBn0N7/sIR+DwAyJr/VdcmDh0t4yujO35Wn/YSKonkEPGAG17igeOxa9I4ul
+	 C+H90bJ5k08l5YYXUMO7rURDZ5BEr602IBYoofQodDgbV/018iQYfu9B+DY17zTyKj
+	 pjeWuacr+M7i/bUlBfmijMdT0vUXb8767lK23Q0ieCMs3kPVW5hE5IUEr9JZkwu1Hd
+	 6i8nmtvODhOHw==
+Received: from johan by xi.lan with local (Exim 4.100.1)
+	(envelope-from <johan@kernel.org>)
+	id 1xQRiY-0000000AHHl-2f2c;
+	Mon, 09 Nov 2026 16:55:34 +0100
+Date: Mon, 9 Nov 2026 16:55:34 +0100
+From: Johan Hovold <johan@kernel.org>
+To: Danilo Krummrich <dakr@kernel.org>
+Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Balasubramani Vivekanandan <balasubramani.vivekanandan@intel.com>
+Subject: Re: [PATCH] software node: only let the owner release a managed node
+Message-ID: <avHs9hKOc3QVLM4x@hovoldconsulting.com>
+References: <20261102-swnode-only-owner-release-v1-1-ee4c9022a629@oss.qualcomm.com>
+ <avHMhh8ChrFE_b_e@hovoldconsulting.com>
+ <DMQQO3DTZE66.1Q2XGGDGN3WUP@kernel.org>
+ <avHZ5U_YR9QSqd0G@hovoldconsulting.com>
+ <DMQREV9DFQST.1Z4ZFOFTS0Z7W@kernel.org>
+ <avHfx80pHRPwtqRt@hovoldconsulting.com>
+ <DMQS3EURP5MB.2DY989AOI0CSD@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -58,301 +76,26 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261106125814.1112331-1-saranya.gopal@intel.com>
-In-Reply-To: <20261106125814.1112331-1-saranya.gopal@intel.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Mon, 9 Nov 2026 16:54:26 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0jTx2jZ2j3bKCcYxPpWVWtOQu+RWpeV8Zp6mmCt1Ys9iQ@mail.gmail.com>
-X-Gm-Features: AclHuK9isenKf0n6872RcaroQP2S1n3PV8buEVL_VTJNfINW60Ut6WFslnN2qOI
-Message-ID: <CAJZ5v0jTx2jZ2j3bKCcYxPpWVWtOQu+RWpeV8Zp6mmCt1Ys9iQ@mail.gmail.com>
-Subject: Re: [PATCH v3] ACPI: s2idle: Handle shared _Ixx GPEs without an EC
-To: Saranya Gopal <saranya.gopal@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, rafael.j.wysocki@intel.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <DMQS3EURP5MB.2DY989AOI0CSD@kernel.org>
 
-On Fri, Nov 6, 2026 at 1:59=E2=80=AFPM Saranya Gopal <saranya.gopal@intel.c=
-om> wrote:
->
-> When first_ec is NULL, acpi_ec_dispatch_gpe() previously treated any
-> active GPE as a wake source. On platforms where an _Ixx GPE is shared
-> by user-wakeup and background events, that can cause unnecessary
-> wakeups.
->
-> Make acpi_ec_dispatch_gpe() return an int and return -ENODEV when no
-> EC instance is available so that acpi_s2idle_wake() can handle that
-> case: on x86, treat the first GPE armed for wake via an _Ixx method
-> like the EC GPE, mirroring acpi_ec_dispatch_gpe(). That is, report a
-> wakeup if the status bit is set for any enabled GPE other than the
-> _Ixx one. Otherwise, cancel the SCI-related wakeup and dispatch the
-> _Ixx GPE if its status bit is set, so the events behind it can be
-> processed. Drivers handling genuine wake events are expected to
-> report them via pm_wakeup_event(), which the common s2idle path will
-> catch after synchronizing event processing.
->
-> If no _Ixx GPEs have been armed, and in the non-x86 fallback, the
-> previous any-GPE status check is retained. If GPEs are armed via more
-> than one _Ixx method, the first one is used as the wake indicator and
-> the remaining ones are treated as regular wake sources.
->
-> Fixes: 46767b17fda3 ("ACPI: PM: s2idle: Add _Ixx GPE wake indicator suppo=
-rt")
-> Signed-off-by: Saranya Gopal <saranya.gopal@intel.com>
-> ---
-> Changes from v2:
->  - Restructured ret checks in sleep.c as per Rafael's suggestion to
->    cover !CONFIG_ACPI_EC case that returns -EOPNOTSUPP (Sashiko report)
->  - Drop the open-coded scan over acpi_current_gpe_count that conflated
->    sequential GPE indices with raw GPE numbers (Sashiko report)
->  - Mirror acpi_ec_dispatch_gpe() with the first GPE armed via an _Ixx
->    method playing the role of the EC GPE, so the existing single-skip
->    acpi_any_gpe_status_set() is sufficient and no ACPICA changes are
->    needed.
->  - Follow acpi_ec_dispatch_gpe() for the status check and dispatch of
->    the _Ixx GPE as well, which also drops the error paths that
->    requested a system wakeup in v2 (questioned by Rafael).
->  - Add a comment describing acpi_x86_s2idle_check_ixx_gpes(), including
->    the role of pm_system_cancel_wakeup().
->  - Preserve the previous any-GPE behavior when no _Ixx GPEs have been
->    armed for wakeup.
-> Changes from v1:
->  - -ENOTSUP replaced with the correct -EOPNOTSUPP for !CONFIG_PM_SLEEP
->    case
->
->  drivers/acpi/ec.c         | 10 +++----
->  drivers/acpi/internal.h   |  6 ++--
->  drivers/acpi/sleep.c      | 11 +++++--
->  drivers/acpi/sleep.h      |  8 +++++
->  drivers/acpi/x86/s2idle.c | 61 +++++++++++++++++++++++++++++++++++++++
->  5 files changed, 86 insertions(+), 10 deletions(-)
->
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index 64ad4cfa6208..8be572af4115 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -2155,19 +2155,19 @@ static bool acpi_ec_work_in_progress(struct acpi_=
-ec *ec)
->         return ec->events_in_progress + ec->queries_in_progress > 0;
->  }
->
-> -bool acpi_ec_dispatch_gpe(void)
-> +int acpi_ec_dispatch_gpe(void)
->  {
->         bool work_in_progress =3D false;
->
->         if (!first_ec)
-> -               return acpi_any_gpe_status_set(U32_MAX);
-> +               return -ENODEV;
->
->         /*
->          * Report wakeup if the status bit is set for any enabled GPE oth=
-er
->          * than the EC one.
->          */
->         if (acpi_any_gpe_status_set(first_ec->gpe))
-> -               return true;
-> +               return 1;
->
->         /*
->          * Cancel the SCI wakeup and process all pending events in case t=
-here
-> @@ -2195,7 +2195,7 @@ bool acpi_ec_dispatch_gpe(void)
->         spin_unlock_irq(&first_ec->lock);
->
->         if (!work_in_progress)
-> -               return false;
-> +               return 0;
->
->         pm_pr_dbg("ACPI EC GPE dispatched\n");
->
-> @@ -2212,7 +2212,7 @@ bool acpi_ec_dispatch_gpe(void)
->                 spin_unlock_irq(&first_ec->lock);
->         } while (work_in_progress && !pm_wakeup_pending());
->
-> -       return false;
-> +       return 0;
->  }
->  #endif /* CONFIG_PM_SLEEP */
->
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 40f875b265a9..d5435338d6ca 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -236,7 +236,7 @@ void acpi_ec_register_opregions(struct acpi_device *a=
-dev);
->
->  #ifdef CONFIG_PM_SLEEP
->  void acpi_ec_flush_work(void);
-> -bool acpi_ec_dispatch_gpe(void);
-> +int acpi_ec_dispatch_gpe(void);
->  #endif
->
->  #else
-> @@ -256,9 +256,9 @@ static inline void acpi_ec_remove_query_handler(struc=
-t acpi_ec *ec, u8 query_bit
->  static inline void acpi_ec_register_opregions(struct acpi_device *adev) =
-{}
->
->  static inline void acpi_ec_flush_work(void) {}
-> -static inline bool acpi_ec_dispatch_gpe(void)
-> +static inline int acpi_ec_dispatch_gpe(void)
->  {
-> -       return false;
-> +       return -EOPNOTSUPP;
->  }
->
->  #endif
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 132a9df98471..09bd661187b6 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -761,6 +761,8 @@ bool acpi_s2idle_wake(void)
->                 return pm_wakeup_pending();
->
->         while (pm_wakeup_pending()) {
-> +               int ret;
-> +
->                 /*
->                  * If IRQD_WAKEUP_ARMED is set for the SCI at this point,=
- the
->                  * SCI has not triggered while suspended, so bail out (th=
-e
-> @@ -789,11 +791,16 @@ bool acpi_s2idle_wake(void)
->
->                 /*
->                  * Check non-EC GPE wakeups and if there are none, cancel=
- the
-> -                * SCI-related wakeup and dispatch the EC GPE.
-> +                * SCI-related wakeup and dispatch the EC GPE.  If there =
-is no
-> +                * EC to consult, check the GPEs armed for wakeup via _Ix=
-x
-> +                * methods instead.
->                  */
-> -               if (acpi_ec_dispatch_gpe()) {
-> +               ret =3D acpi_ec_dispatch_gpe();
-> +               if (ret > 0) {
->                         pm_pr_dbg("ACPI non-EC GPE wakeup\n");
->                         return true;
-> +               } else if (ret < 0 && acpi_x86_s2idle_check_ixx_gpes()) {
-> +                       return true;
->                 }
->
->                 acpi_os_wait_events_complete();
-> diff --git a/drivers/acpi/sleep.h b/drivers/acpi/sleep.h
-> index 9c3cb109c5d2..955e9c22bf0d 100644
-> --- a/drivers/acpi/sleep.h
-> +++ b/drivers/acpi/sleep.h
-> @@ -20,6 +20,14 @@ extern int acpi_s2idle_prepare(void);
->  extern bool acpi_s2idle_wake(void);
->  extern void acpi_s2idle_restore(void);
->  extern void acpi_s2idle_end(void);
-> +#if defined(CONFIG_X86) && defined(CONFIG_SUSPEND)
-> +extern bool acpi_x86_s2idle_check_ixx_gpes(void);
-> +#else
-> +static inline bool acpi_x86_s2idle_check_ixx_gpes(void)
-> +{
-> +       return acpi_any_gpe_status_set(U32_MAX);
-> +}
-> +#endif
->
->  extern void acpi_s2idle_setup(void);
->
-> diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-> index c278ea14c0b3..b79bf0fa9a7f 100644
-> --- a/drivers/acpi/x86/s2idle.c
-> +++ b/drivers/acpi/x86/s2idle.c
-> @@ -24,6 +24,13 @@
->
->  #ifdef CONFIG_SUSPEND
->
-> +/*
-> + * First GPE armed for wake via an _Ixx method, U32_MAX if none.  On
-> + * platforms without an ACPI-enumerated EC, this GPE plays the role of
-> + * the EC GPE in acpi_ec_dispatch_gpe().
-> + */
-> +static u32 acpi_s2idle_ixx_gpe =3D U32_MAX;
-> +
->  static void acpi_setup_ixx_gpes(void)
->  {
->         acpi_handle gpe_root;
-> @@ -47,11 +54,65 @@ static void acpi_setup_ixx_gpes(void)
->
->                 acpi_mark_gpe_for_wake(NULL, i);
->                 acpi_set_gpe_wake_mask(NULL, i, ACPI_GPE_ENABLE);
-> +               if (acpi_s2idle_ixx_gpe =3D=3D U32_MAX)
-> +                       acpi_s2idle_ixx_gpe =3D i;
->
->                 pm_pr_dbg("ACPI: GPE0x%02x armed for wake via %s\n", i, g=
-pe_nr_str);
->         }
->  }
->
-> +/*
-> + * acpi_x86_s2idle_check_ixx_gpes - Handle an SCI wakeup without an EC
-> + *
-> + * Called to decide whether or not to wake up the system when an SCI has
-> + * triggered during suspend-to-idle on a platform without an EC instance=
-,
-> + * mirroring acpi_ec_dispatch_gpe() with the first GPE armed for wake vi=
-a
-> + * an _Ixx method playing the role of the EC GPE.
-> + *
-> + * Report a wakeup if the status bit is set for any enabled GPE other th=
-an
-> + * the _Ixx one.  If no _Ixx GPE has been armed, acpi_s2idle_ixx_gpe is
-> + * U32_MAX and this amounts to checking all of the GPEs, which is the
-> + * previous behavior.
-> + *
-> + * Otherwise, cancel the pending SCI-related wakeup, so it does not caus=
-e
-> + * the pm_wakeup_pending() check in the caller to succeed by itself, and
-> + * dispatch the _Ixx GPE if it is active, so the events behind it can be
-> + * processed.  If any of those events turn out to be genuine wake events=
-,
-> + * the drivers handling them are expected to call pm_wakeup_event() and
-> + * the caller will catch that via pm_wakeup_pending() after synchronizin=
-g
-> + * the event processing.
-> + */
-> +bool acpi_x86_s2idle_check_ixx_gpes(void)
-> +{
-> +       acpi_event_status status =3D 0;
-> +
-> +       /*
-> +        * Report wakeup if the status bit is set for any enabled GPE oth=
-er
-> +        * than the _Ixx one.
-> +        */
-> +       if (acpi_any_gpe_status_set(acpi_s2idle_ixx_gpe))
-> +               return true;
-> +
-> +       if (acpi_s2idle_ixx_gpe =3D=3D U32_MAX)
-> +               return false;
-> +
-> +       /*
-> +        * Cancel the SCI wakeup and dispatch the _Ixx GPE in case there =
-are
-> +        * any wakeup events behind it.
-> +        */
-> +       pm_system_cancel_wakeup();
-> +
-> +       acpi_get_gpe_status(NULL, acpi_s2idle_ixx_gpe, &status);
-> +       if (status & ACPI_EVENT_FLAG_STATUS_SET) {
-> +               pm_pr_dbg("ACPI _Ixx GPE 0x%02x dispatched\n",
-> +                         acpi_s2idle_ixx_gpe);
-> +
-> +               acpi_dispatch_gpe(NULL, acpi_s2idle_ixx_gpe);
-> +       }
-> +
-> +       return false;
-> +}
-> +
->  static bool sleep_no_lps0 __read_mostly;
->  module_param(sleep_no_lps0, bool, 0644);
->  MODULE_PARM_DESC(sleep_no_lps0, "Do not use the special LPS0 device inte=
-rface");
-> --
+On Mon, Nov 09, 2026 at 04:17:33PM +0100, Danilo Krummrich wrote:
+> On Mon Nov 9, 2026 at 3:59 PM CET, Johan Hovold wrote:
 
-Applied as 7.4-rc material, thanks!
+> > So I think we can just go ahead and fix this in driver core directly.
+> 
+> Ok, then I agree it is fine as is. :)
+
+Good. :)
+
+I've updated the commit with the missing Reviewed-by and Fixes tag. I
+also decided to drop the reordering of releasing the swnode references
+as that is arguable an unrelated change and the current code expects
+users to hold a reference unless it's a managed node.
+
+End-result is here:
+
+	https://git.kernel.org/pub/scm/linux/kernel/git/driver-core/driver-core.git/commit/?h=driver-core-linus&id=f8623ce596492d2e96ca57eeec992938d3d79f00
+
+Johan
