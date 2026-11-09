@@ -1,63 +1,66 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794229671;
-	b=uuTfE2ApL2C/S4WrCQ5OlsrjQte9x1ghoMi1C9cKP5YiiKfzvt405Tguvci8QD0fE+Lu
-	 eUE76JRlFZgiUeiFogzyGGC9eB32IMHFOLZojbRShxne4Bs72LpeeJpz+kumNGTz5sVwE
-	 cQdXkM6OstVo47XzjAYWogl4lCn5oGKU+UoMjjCUmIulO1Ou8KJEAa0AeesW4wBvpFGWO
-	 DVi8rjPtjOyqqu8U9XAQgGoAu4quT3R937Du00QHwdo5G6XOBgfkV2DKlOt14r6oEBZnM
-	 Q5ywJpvTyr8jV/13Lf+d2QD+MN6/zaYkP63xzriYqk7ebMLMVpAqz1dLS3DJXOUQN0g==
+	t=1794231433;
+	b=374BUvOPLvZCTiB3qEl2ccTiKzULyBeXEpidSWbfvG3dkAiG42e9DvdFXfeEoHwrR6Ar
+	 SR8Ua/Bt96P/DriLQ9vPkulbG1Z1uoddo2861FOrjScDHdIl9Mo6dP8SSiEtNHNN+BB/q
+	 hWmE7v0K+xRM9Mn51QkaCeZWTYnNuB+FI49sUZJX1AqIgKSkQYfI5zfp2GDSmntc5H3Xl
+	 E9mTzD55gtz0JtgrKwZ5BmD5+/uVz6sa+L2d4LOtEnN2BbehxDUttU72avH/ZZ3GOCveZ
+	 st641SQTNM0jOVZiJWD1za4f/LYymPm/YIESpPaYLIlQDSMUrHVmOSR2erhJcnMW+Vw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794229671;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	a=rsa-sha256; c=relaxed/relaxed; t=1794231433;
+	h=Received:DKIM-Signature:Received:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=RlG2R7zxRuzI1EwTLRR97Wkh9iIVS7sG83F7CjPUTS4=;
-	b=Wnkto+fWoyo6o5QIFv6dIjug6m+zpwu8H8yqmrrjagXUZou0GFnX63FoilxHA5uQ27kO
-	 Qt8Xqq+EThDm1f/Dmsjj2IHrIWQtC49E09aYcvhhu1a3VkvYQnASrLK10wK+1z/L3ghiW
-	 ddWLmjS1p5K0YW5KXusjW1XIjjtUgr1+1daotbBundU3hmjEZc6xikqyNebcSow98rggh
-	 6iFrbX+TiU/WAHfwmkDH/s+bApRjcGoVe9FU9G3aXEaRGQU45zTK5iYWeMCTDaXfg9lSb
-	 olTN97UbYkLv7KiNQl3L0Wc+otUJpab2r/C/UHRYe0rv7vipl2T4WtRo+0WQwoAJRWg==
+	bh=1XP/xL6wprFXu/4sOwbnCPUmhNy5zoBYrEw61hir05s=;
+	b=0LDczDqvvvVlUtHpOXdIwZ7MY4UufpgT68kwDyGJcdSV/J32XJfjcG17O1K+m1PJy0+r
+	 ADR36Hy09Sslfj+NzGmhoFfRpOCQXDEhII9VxOUmwZ7HnEskhCb+/q5UcugLMJMoFKUN5
+	 pxYQDtvuIf+Y2HakTi0ZpArpfXpN5chnYayxjlVA8E7McmmqsNyhSFTDNP7n2a+JwkDlg
+	 SyyEh+qK94StmjtA+RWwzUcfSfPvKRhI4www7sWV2jQLFWCM2//ZQIPXhP1rOmYm3e8Cv
+	 PYprgPc6bcgMwR62zjou3PKUrqpDaaFQTJuP0A50lWInvR3Emty5rkFbxJSncEQRyQg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WeCoO0RO;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=axu63CiT;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 50033606A321;
-	Mon,  9 Nov 2026 13:07:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CA00606A31C;
+	Mon,  9 Nov 2026 13:37:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WeCoO0RO
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 0322C1F008A1;
-	Mon,  9 Nov 2026 13:07:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=axu63CiT
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E23541F0089F;
+	Mon,  9 Nov 2026 13:37:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794229670;
-	bh=RlG2R7zxRuzI1EwTLRR97Wkh9iIVS7sG83F7CjPUTS4=;
+	s=k20260515; t=1794231432;
+	bh=1XP/xL6wprFXu/4sOwbnCPUmhNy5zoBYrEw61hir05s=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=WeCoO0RO+xOQaqdf1sP8Sqxy+c4iFkJe1+fbwymEKAsYf7i/NbpXCV/eoqytqluFq
-	 +pIPuYx3iRQh0asqKseSbXVL712LLWoxN23cMr+fbLDVC2hXiFhEFBDKQTck3ceIHu
-	 73rp6aIi5Pfgac1pP8K8eee5eaMxamHMPOc1+nSrqMbdR9kFl09HvLEZbt2uB3Imbn
-	 tUrRfQ3l6dCDvVX4ElyF2HliGALI4BAovrXPxH4qxbi4/sA+qQAJxX8zIANWJmEqlB
-	 uq5FfhVsO0eO3NnmjCQ2IER510TFKsc4c9ChhGney8s0OLno8d63rESt6Sdva1A3f2
-	 tee2LVaVvN7aw==
-Date: Mon, 9 Nov 2026 14:07:46 +0100
-From: Bartosz Golaszewski <brgl@kernel.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
-	Johan Hovold <johan@kernel.org>, Hans Verkuil <hverkuil@kernel.org>, 
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Kees Cook <kees@kernel.org>, Andy Shevchenko <andy@kernel.org>, 
-	Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Saravana Kannan <saravanak@kernel.org>, Linus Walleij <linusw@kernel.org>, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH 5/9] of: property: implement the .property_get_names()
- fwnode operation
-Message-ID: <7sfr4ljlwbehal3or4dmy5jxbjz6ya2lf3dq3yptr54wym5tea@eqaexflmocih>
-References: <20261104-fwnode-for-each-prop-v1-0-6e28fe1c72c4@oss.qualcomm.com>
- <20261104-fwnode-for-each-prop-v1-5-6e28fe1c72c4@oss.qualcomm.com>
- <auuhy40x1BMoW96-@ashevche-desk.local>
+	b=axu63CiT2B4n+m6z3amuPyKUmACa7xNfaa5xPDenPIVyl+VAZHls09okNSdXAH5Fy
+	 mDj1dtROSso9FRGkpTVbpPYiIGPg/FM05xjVbDlh4qA/wwUSKG8wV0Ni6n5oWySvrm
+	 0OwQp65K9dIJND+CzHSpHZXfwmtx03vxNnjU0eI/2YhtP5oFS8hagKzd4QKlaZkSHV
+	 CMwUUt6regCs5NTws5LoKY36c7uR2Ng/FP3utdLx/M3l4heeLMfc1cVQqOZxIetf2+
+	 5/rwGqyQThZxYn9tNTPASoFi8oFO2UamP058RlUppNu0jLl/KpQgS6Jr3Jut+m8Twn
+	 8Fqd+Y7PFxGnw==
+Received: from johan by xi.lan with local (Exim 4.100.1)
+	(envelope-from <johan@kernel.org>)
+	id 1xQPYc-0000000ADlk-0Hrs;
+	Mon, 09 Nov 2026 14:37:10 +0100
+Date: Mon, 9 Nov 2026 14:37:10 +0100
+From: Johan Hovold <johan@kernel.org>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Balasubramani Vivekanandan <balasubramani.vivekanandan@intel.com>
+Subject: Re: [PATCH] software node: only let the owner release a managed node
+Message-ID: <avHMhh8ChrFE_b_e@hovoldconsulting.com>
+References: <20261102-swnode-only-owner-release-v1-1-ee4c9022a629@oss.qualcomm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -69,70 +72,86 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <auuhy40x1BMoW96-@ashevche-desk.local>
+In-Reply-To: <20261102-swnode-only-owner-release-v1-1-ee4c9022a629@oss.qualcomm.com>
 
-On Wed, Nov 04, 2026 at 11:21:15PM +0200, Andy Shevchenko wrote:
-> On Wed, Nov 04, 2026 at 03:03:47PM +0100, Bartosz Golaszewski wrote:
-> > Implement the property_get_names() callback from the fwnode interface
-> > for OF nodes.
+On Mon, Nov 02, 2026 at 04:25:16PM +0100, Bartosz Golaszewski wrote:
+> device_create_managed_software_node() creates a node whose lifetime is
+> tied to the device it was created for. software_node_notify_remove() is
+> called for every device that has the node as its fwnode (primary OR
+> secondary) and, if the node is managed, unconditionally detaches it from
+> that device and drops the creation reference.
 > 
-> ...
+> This breaks when the node is shared with another device. Example: the
+> i2c-designware copies the parent's fwnode to the adapter's struct device.
+> When the adapter is deleted, it releases the reference that belongs to
+> the owner and the latter ends up with a dangling pointer.
 > 
-> >  #include <linux/string.h>
-> > +#include <linux/string_helpers.h>
+> Record the device's "manager" and only perform the actual release when
+> notify is called for that "owner" device.
 > 
-> Same comment as per fwnode patch.
+> Reported-by: Balasubramani Vivekanandan <balasubramani.vivekanandan@intel.com>
+> Closes: https://lore.kernel.org/all/20261009164241.923756-2-balasubramani.vivekanandan@intel.com/
+> Fixes: 151f6ff78cdf ("software node: Provide replacement for device_add_properties()")
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> ---
+> Hi!
 > 
-> ...
-> 
-> > +static int of_fwnode_property_get_names(const struct fwnode_handle *fwnode,
-> > +					char ***props)
-> > +{
-> > +	const struct device_node *node = to_of_node(fwnode);
-> > +	struct property *prop;
-> > +	int count = 0, i = 0;
-> > +	char **names;
-> 
-> > +	for_each_property_of_node(node, prop)
-> > +		count++;
-> 
-> Hmm... Don't we have a helper for that already?
-> 
+> This is my approach at addressing the bug reported by Vivekanandan
+> directly in driver core. Please test it if you can.
 
-I haven't found one. Though I'm thinking that maybe
-fwnode_property_get_names() with props == NULL could serve that purpose?
-Possibly wrapped in a static inline fwnode_property_count()? Would
-anyone use it though?
+This looks good to me, but I think the patch should be simplified somewhat.
 
-> > +	names = kcalloc(count, sizeof(*names), GFP_KERNEL);
-> > +	if (!names)
-> > +		return -ENOMEM;
-> > +
-> > +	for_each_property_of_node(node, prop) {
-> > +		names[i] = kstrdup(prop->name, GFP_KERNEL);
-> 
-> Can property be statically defined somewhere? We might want to also optimize
-> these duplications with const variant (here or elsewhere, for fwnode generic
-> path, I believe).
-> 
+> @@ -1190,6 +1191,7 @@ void software_node_notify(struct device *dev)
+>  void software_node_notify_remove(struct device *dev)
+>  {
+>  	struct swnode *swnode;
+> +	bool is_owner;
+>  
+>  	swnode = dev_to_swnode(dev);
+>  	if (!swnode)
+> @@ -1206,9 +1208,13 @@ void software_node_notify_remove(struct device *dev)
+>  	if (!device_match_fwnode(dev, &swnode->fwnode) && swnode->fwnode.dev == dev)
+>  		swnode->fwnode.dev = NULL;
+>  
+> +	is_owner = swnode->owner && swnode->owner == dev;
 
-Please rephrase because I'm not quite following what you're saying.
+The NULL check here is redundant.
 
-Bart
+> +	if (is_owner)
+> +		swnode->owner = NULL;
 
-> > +		if (!names[i]) {
-> > +			kfree_strarray(names, i);
-> > +			return -ENOMEM;
-> > +		}
-> > +		i++;
-> > +	}
-> > +
-> > +	*props = names;
-> > +	return count;
-> > +}
-> 
-> -- 
-> With Best Regards,
-> Andy Shevchenko
-> 
-> 
+There is no need to clear the owner field as devices are not allowed to be
+re-registered.
+
+> +
+>  	swnode_put(swnode);
+>  
+> -	if (swnode->managed) {
+> +	if (is_owner) {
+>  		set_secondary_fwnode(dev, NULL);
+>  		swnode_put(swnode);
+>  	}
+
+And if we drop the managed reference before the notify one, we can drop
+the temporary as well and this chunk just becomes:
+
+@@ -1206,12 +1207,12 @@ void software_node_notify_remove(struct device *dev)
+        if (!device_match_fwnode(dev, &swnode->fwnode) && swnode->fwnode.dev == dev)
+                swnode->fwnode.dev = NULL;
+ 
+-       swnode_put(swnode);
+-
+-       if (swnode->managed) {
++       if (swnode->owner == dev) {
+                set_secondary_fwnode(dev, NULL);
+                swnode_put(swnode);
+        }
++
++       swnode_put(swnode);
+ }
+
+The end-result applied for 7.4 (to fix the 7.3 regression) is here:
+	
+	https://git.kernel.org/pub/scm/linux/kernel/git/driver-core/driver-core.git/commit/?h=driver-core-linus&id=95418e71bdcbf8f2073a730365c11d22ff8473f3
+
+Johan
