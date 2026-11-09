@@ -1,100 +1,97 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.160.173
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794263409;
-	b=GzSr9kTqgzxWojsPUER/brIHXngr+/YMkYwutD1HrPNaUcxM2gCqzUsp3hPE/vtEZ2YJ
-	 FyDwUQoiF3gF1wPFWo2FQ2NelOS9JnxA+yK2Uqe/WuqxlJOH3T9lLJ0AD/Rl8sQvSbeYj
-	 aI2+SVNwwOomRZoioZqxuaCG8gie77/od8EsU+nWAj18G5YkuBVwI4rk2O/gueE3AdBtU
-	 ot2pXGXKQckR0ku85USmgplt8CCgqHgT/tS9dLqKZnXSlI0myrenjGJNGXVrcNVjBjaZS
-	 oInco9S29ZNOQQyJS2tUKsn9MzLkcTE69kKhDFFR2MdTsfH3ySDitgQYIW1K0AgpR+g==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794263409;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=S6J9qhUwfhfejNNDnNi/t39zME3R/+tshu3QmKCryWs=;
-	b=y+Eg/weg3p8rzjBZpZ1A+2MMnNsQuJ0JR5sbIpnvyQvnOm2Y2NoXZu/K1QQecXseauLx
-	 V36KQJqLKYiQBFoaktp2OkLUq6ZkK+tCt9KvUaet4d8nptvmijXfby7iJoC+SLkZtgYGy
-	 H1TEijIvRULN9XjQKENuwUobldAbF19ps9ZzZNiZMven7P+0U7wx9gLz1nUuZRvD5bRoB
-	 CoWcPzZGhFl9LrkaglQzuTcBDETU4a2mrW8kkuwU5RKO7g+DZJzIWphS+jzgysvJw20ht
-	 VS805gmYeh3Q8+TGfCaArWua/6Aadexv0wG/myS0mTY9wCQnhPdFkdXnNhe1gbceZxg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=google.com;
-	spf=pass smtp.mailfrom=google.com;
-	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=bc6ecKnX;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.160.173
-Received: from mail-qt1-f173.google.com (mail-qt1-f173.google.com [209.85.160.173])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794263793;
+	b=ykrV5v8js5kOrtEEHcq1Fv10ueJtEhkpR92BXWwVJ4JKcmxDfNskQMzsBT8fNhDGxZHC
+	 475QeGVLTFgtxfqo7WhylTaZAQYIkzV6YjcTyQCTODFSQdx3KNkrTeZ6hHIM6uKE+V6xT
+	 K1lFzJQKHYUIxbHt6BEj1IEAmaWl2d3Wp4K9vVYy2ZA5oTtMtTkokXI0ebHBaEbwsI1xw
+	 vZ4R8Dj93OEOrmwjBpoSw89OC5abhxVXj639dEmrdP9kRE6ZuKTWqAl2mB9PLfqLGL3b8
+	 I2GMpP02cde8CmSlTRHFGwIewfq4sBUhsuEA31NLEGzq9RkWTlsstXaI1mpDpB6FOFg==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794263793;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To:Organization;
+	bh=RAD7j9whtlVxi4idGzxZNOOQo3aSRCIudDY3EkMacks=;
+	b=h1N4Oj36Soa9scINYriD4/+/3Y5w2C9nqtatYuAM/+jZdBzkISynQ6C8Keswc2wZDTHj
+	 bBDd/hlqdT+WU1T6sw54gpqskbLi9Rj6L7VtPE9Ye538iCc3fj/8Blai3P+RqX0Ka707P
+	 aKyjYOCu/H8mjYY3Hezq4IFWlcvLSd9/txbhMa9o1DCb5A8KnmXqHuXCZTT1w9dGuIKp7
+	 +1OQs6NfA4wyk+YwoDRl8Ihs/1jVGNpjFrY5tGlYyk3bEFqjvODwxso0qdFRnrTDYLMVe
+	 E7CJotgDmAao77zafJMo9sYbbVXibum+2wbHIV2Niruh27mIb98v6uA1Njvjjr5OjdQ==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=bly0HD4a;
+	arc=none smtp.remote-ip=198.175.65.18
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45C13606A326
-	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 22:30:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 45C13606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69689606A325;
+	Mon,  9 Nov 2026 22:36:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 69689606A325
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=bc6ecKnX
-Received: by mail-qt1-f173.google.com with SMTP id d75a77b69052e-535f598d126so39631cf.1
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Nov 2026 14:30:09 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794263408; cv=none;
-        d=google.com; s=arc-20260327;
-        b=dejvHaWlN/iGjl+MODn05MfwsxlaNsIaMJGqtyFF97xfwpjDe+H1fb7me2i24766Xl
-         UkkLJDEi6Y9zf8G8mSVVXWc2f8rVzfUIHKjS2JxAwVmN/6F04fv8oSEqntLHKr01Zooh
-         tK26v3V9ywVMwelz5dGgTL7OLu5LMntKmumKI9kZecBNCqywXB76RUrB4PeQ7c5F5ABV
-         RfpocC9dgEdRVVJrJkhpdoX/0pcBCO/sQDgPkZsqLSPkrlnQZeddynlL0TkBVfDcSJ/L
-         EWD7Xo02nx4WJQDhPOi5FYEJ9n9ZiZTRbN6zrNnjhKU9hkT74NaT+QSPd6IsCjbVDcBS
-         QxaA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=S6J9qhUwfhfejNNDnNi/t39zME3R/+tshu3QmKCryWs=;
-        fh=9O6IrTp0LJAHgdhKYenEy7t/8smrgsO2kLa4ftBp/Mk=;
-        b=TYqpeDpdwzu3O3uvNysRo7CpjYb2Fg/eclDwsVUB201SrSck9rM29RPY/E+uWf9cd2
-         A7P3H6x5/hW6osgWxtLOXUr/GrZDcBpF7aBtMZGuIzds6cpxGha+fQIbpIP/0hYXStFb
-         oDGUnMxanGDqSrgy21Pf2cVWLx2QhQFjt8A7Uze8aIM3dvPSsNc5gHaXZHzgLL0zBmZG
-         ZdwfssStyvMP3EDrcBcA1zjqOej0DE/RKMuAHs8J2OdmYT9e3q8MjJCC8sCCmyf0yyIr
-         dilMYQeuzInysAJzqo66Y0c6MBu5UB4qMexrdp1ol6VlFRkTOPXH297iffE6stSnyJ8x
-         FscQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20260707; t=1794263408; x=1794868208; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=S6J9qhUwfhfejNNDnNi/t39zME3R/+tshu3QmKCryWs=;
-        b=bc6ecKnXzqp5zahKN5US+W/GLFNu9bOCxLTorv75CdL/TyOgB/Qh6QFUi86M3M/XI3
-         3gbxOXuAYS2+xcjqU4SLj5C27dCKM/SCCgBGdSbxDV00eICb4MzgEjo9vjECQ1QTCTmr
-         MgCtojiqIWlVyB6AunwAs2qSQJP0tUdJsdT71C1y4WilJg+rQa++O5B+9FpAikzFpyGD
-         TU94u5aUZCMHCz2bEPFushfsTW1bpin21NCA0WBKSF7omxyVw4eI3lnqeaGfI4JhzN5X
-         ZQZwi7mBvwRBGIVH1EKWZ2xsmVHzuYxoBrVKANockiyw6pDDJKKlw7J5nTOQpM4hDjUm
-         KR1A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794263408; x=1794868208;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=S6J9qhUwfhfejNNDnNi/t39zME3R/+tshu3QmKCryWs=;
-        b=Ja/UvqJqu1HuQg1AuKaYc0omgrLh+G6sdJegaNfD8Zsn5O9Pr94bmSWAPbevhMeuZ2
-         eQUSTyDfJJsqNItxGiiETgC5RBEuhxrdy1Dd5PzynGRl90ad8oTASzMLIJi1IDyZw122
-         bsFrG/aL7Bjs7iG0amjoQqkQBik2gQHX84toYmLJKo9zs5M0W9jI9TFmtSFtoBZHZN77
-         fb9Fe5Q9sXuq5lzfJLoKhxDKE3F1CpjFUkejxPo+BlnFeVxes3W25yPcvqzo63IWtSQO
-         Y/dz+wJl4SmIDd6Qt2BhpERuhBUofMeWNGz5z1xrO0prxf5DJKTHgaxEP/wijUhrQ7e1
-         uG7A==
-X-Forwarded-Encrypted: i=1; AL+hErEYZ1Gh88U6j1JwbQr5UaksUArYUt1F3G+BXZrwnD31LOxziqBDqkzAp0oYOnwi/46soU6EFfKIhQKr@vger.kernel.org
-X-Gm-Message-State: APuU4Z8eo2UX6nk2xh7mcwB4gwX5qYCXRbRWLuSPNn46YobxRlBgfA2N
-	04rRLF26Rd1O589gjnRB/1rPvnV0WznQI1Hba/QwgBTRNtOlbkhFtebt/irPPGG1nKPumoVrl6j
-	M67MH91sv1N/J7nz8/gy4zvSeGuJ6sKimLxOPDxFw
-X-Gm-Gg: AYBFou2fAV2rSbWuaFZh2NG81mRPWH0gdP6+j3Rx80zbmmXTLHXFBLUPjyEy4dX3uwI
-	q0L/y+2+HeHey8AvatQDoTp8zl4duCydatsyxRyHhsktsK50Q6NZY6MVVDaaMAT1RMyrP4NFzaG
-	sZYWQkecfr8TvtXLBpt6W10a3KryqclAKnmULoX1GksZk8N9Ao5Q3O6PyOUcg862WfP+BD1hgy0
-	kFywi0XlQAnshmMvk/yCtAJk/EpsXlJ2CZnrNANRvK052n7m1GwdU9N0t3zzL7e18BNOhHmqOAE
-	0Ur+rzdRxe5C4gxiW8qNaumhPETYTMYMXazHRc8pb1H0YD1dFaRLY9YC8J8p6zqq6ZwarSl3Ejn
-	ZZBS8hrGGzZik01QcI2CvNhWRvC7bSIZ9qWyRPSib2Y6Ud3YXEXBu4EmVJdXM6d3FH8M=
-X-Received: by 2002:a05:622a:1b16:b0:530:e00f:7768 with SMTP id
- d75a77b69052e-555290bb288mr6464421cf.0.1794263407457; Mon, 09 Nov 2026
- 14:30:07 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=bly0HD4a
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794263793; x=1825799793;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=qoEBEYWCz9dH5MiLs3jExw8OGhdQVJnuSBEorHHTbAQ=;
+  b=bly0HD4aJEyDtMu7hSRADCJmNcsB58G31IXeggR8ja2ohPRmY4UN0ybQ
+   8i8YdJ7FFGBi7Ar5bXgSv/7vGsuFGwqw1iPZeDcQjc8gKmZJPHIi8cZI1
+   doZBBvHGDkTBAwlFjIOtyfkv9SjEs/pk4iYF+W+IuniXcLdmwvvdYE0Zw
+   QleqXpVxcQFdFALLG9IHsbwVpXFHQshiwLlUJ6N6JW2TvS2Hek1uAL+xf
+   ya186Q6cye4T9rYT65sFmg+d0USfb08MHrAcgAZ6NvHw8K6R2OFeJadn/
+   mtM1vTXALrhFznKP+RwRvKufwKgqiSPM07zN2egnjtlNV0NTscBhqAXwV
+   A==;
+X-CSE-ConnectionGUID: Rprrm0S6SSSc43dV3t9CuA==
+X-CSE-MsgGUID: C1FIyUsBSZGSPZx8k5czvQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11961"; a="3012003"
+X-IronPort-AV: E=Sophos;i="6.27,204,1787036400"; 
+   d="scan'208";a="3012003"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2026 14:36:32 -0800
+X-CSE-ConnectionGUID: VmjHkxDAT6SPVaN2PnVDmA==
+X-CSE-MsgGUID: rqdczbCuRKSkmkeXwVwD3A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,204,1787036400"; 
+   d="scan'208";a="8125082"
+Received: from amilburn-desk.amilburn-desk (HELO localhost) ([10.245.244.144])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2026 14:36:25 -0800
+Date: Tue, 10 Nov 2026 00:36:23 +0200
+From: Andy Shevchenko <andriy.shevchenko@intel.com>
+To: Alejandro Colomar <alx+linux-hardening@kernel.org>
+Cc: Alejandro Colomar <alx@kernel.org>,
+	"Maciej W. Rozycki" <macro@orcam.me.uk>,
+	Geert Uytterhoeven <geert@linux-m68k.org>, andy@kernel.org,
+	bartosz.golaszewski@oss.qualcomm.com, brgl@kernel.org,
+	dakr@kernel.org, devicetree@vger.kernel.org, djrscally@gmail.com,
+	driver-core@lists.linux.dev,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	heikki.krogerus@linux.intel.com, hverkuil-cisco@xs4all.nl,
+	joe@perches.com, johan@kernel.org, kees@kernel.org,
+	laurent.pinchart@ideasonboard.com, lenb@kernel.org,
+	linusw@kernel.org, linux-acpi@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-hardening@vger.kernel.org,
+	linux-kernel@vger.kernel.org, namhyung@kernel.org,
+	rafael@kernel.org, robh@kernel.org, rostedt@goodmis.org,
+	sakari.ailus@linux.intel.com, saravanak@kernel.org,
+	schwab@linux-m68k.org,
+	Linus Torvalds <torvalds@linux-foundation.org>, zanussi@kernel.org
+Subject: Re: [PATCH v2 1/2] string: Add strprefix(), and deprecate
+ str_has_prefix()
+Message-ID: <avJK54xRN9_Sta3k@ashevche-desk.local>
+References: <d3b325ecefd1d991ca25a4de2a859353f3ad7cfb.1793882260.git.alx@kernel.org>
+ <20261105125154.83478-1-geert@linux-m68k.org>
+ <aux8LYQkGSNjCGHv@devuan>
+ <alpine.DEB.2.21.2611070223510.17804@angie.orcam.me.uk>
+ <au7TvMP0YhW2e_oM@debian>
+ <alpine.DEB.2.21.2611071115110.17804@angie.orcam.me.uk>
+ <avBglVuXPjbKnWwl@debian>
+ <avBikocxPXRos_GF@debian>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -104,114 +101,88 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261108223913.3624571-1-irogers@google.com> <20261108223913.3624571-7-irogers@google.com>
- <b8d171de-52fe-474e-96db-d119840c6240@suse.com>
-In-Reply-To: <b8d171de-52fe-474e-96db-d119840c6240@suse.com>
-From: Ian Rogers <irogers@google.com>
-Date: Mon, 9 Nov 2026 14:29:55 -0800
-X-Gm-Features: AclHuK-dlWDp0B4FdK6V9QBR5LM_sA67_T-19O3ovPwDJ5RdBpzojQ18ICzxF_E
-Message-ID: <CAP-5=fXd640kfaR+soPdiEV2mfqCPGDANCt04KzaXBphYP4Htg@mail.gmail.com>
-Subject: Re: [PATCH v3 6/9] xen/sys-hypervisor: Add release callback to hyp_sysfs_kobj_type
-To: Juergen Gross <jgross@suse.com>
-Cc: Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Kees Cook <kees@kernel.org>, Miguel Ojeda <ojeda@kernel.org>, 
-	"Rafael J . Wysocki" <rafael@kernel.org>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
-	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
-	Christophe Leroy <chleroy@kernel.org>, Nayna Jain <nayna@linux.ibm.com>, 
-	Srish Srinivasan <ssrish@linux.ibm.com>, Mimi Zohar <zohar@linux.ibm.com>, 
-	Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Stefano Stabellini <sstabellini@kernel.org>, 
-	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, Nathan Chancellor <nathan@kernel.org>, 
-	Nick Desaulniers <ndesaulniers@google.com>, Viresh Kumar <viresh.kumar@linaro.org>, 
-	Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>, Alexander Aring <aahringo@redhat.com>, 
-	Felix Kuehling <felix.kuehling@amd.com>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
-	Zhihao Cheng <chengzhihao1@huawei.com>, Sumanth Korikkar <sumanthk@linux.ibm.com>, 
-	Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, driver-core@lists.linux.dev, 
-	llvm@lists.linux.dev, linux-hardening@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, 
-	linux-s390@vger.kernel.org, gfs2@lists.linux.dev, 
-	xen-devel@lists.xenproject.org, linux-mtd@lists.infradead.org, 
-	amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <avBikocxPXRos_GF@debian>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Sun, Nov 8, 2026 at 10:56=E2=80=AFPM Juergen Gross <jgross@suse.com> wro=
-te:
->
-> On 08.11.26 23:39, Ian Rogers wrote:
-> > hypervisor_init() in drivers/base/hypervisor.c creates hypervisor_kobj
-> > with kobject_create_and_add() (which allocates a dynamic kobject using
-> > dynamic_kobj_ktype), and hypervisor_subsys_init() in
-> > drivers/xen/sys-hypervisor.c then overwrites hypervisor_kobj->ktype wit=
-h
-> > &hyp_sysfs_kobj_type, which had no .release callback.
+On Sun, Nov 08, 2026 at 12:54:33PM +0100, Alejandro Colomar wrote:
+> > Date: 2026-11-08 12:49:08+0100
+> > From: Alejandro Colomar <alx@kernel.org>
 > >
-> > Add hyp_sysfs_release() calling kfree(kobj) to preserve the dynamic
-> > kobject release behavior.
-> >
-> > Fixes: cff7e81b3dd7 ("xen: add /sys/hypervisor support")
-> > Signed-off-by: Ian Rogers <irogers@google.com>
-> > ---
-> >   drivers/xen/sys-hypervisor.c | 6 ++++++
-> >   1 file changed, 6 insertions(+)
-> >
-> > diff --git a/drivers/xen/sys-hypervisor.c b/drivers/xen/sys-hypervisor.=
-c
-> > index 91923242a5ae..0e8a2cd69fd6 100644
-> > --- a/drivers/xen/sys-hypervisor.c
-> > +++ b/drivers/xen/sys-hypervisor.c
-> > @@ -659,7 +659,13 @@ static const struct sysfs_ops hyp_sysfs_ops =3D {
-> >       .store =3D hyp_sysfs_store,
-> >   };
-> >
-> > +static void hyp_sysfs_release(struct kobject *kobj)
-> > +{
-> > +     kfree(kobj);
-> > +}
-> > +
-> >   static const struct kobj_type hyp_sysfs_kobj_type =3D {
-> > +     .release =3D hyp_sysfs_release,
-> >       .sysfs_ops =3D &hyp_sysfs_ops,
-> >   };
-> >
->
-> Wouldn't it make sense to have a common function for just kfree(kobj)?
->
-> In your series there are 3 instances of .release just doing kfree(kobj).
->
-> In case this is not wanted or with using the suggested common .release
-> helper you can add my
->
-> Reviewed-by: Juergen Gross <jgross@suse.com>
+> > Hi Maciej,
+> > 
+> > > Date: 2026-11-08 11:05:51+0000
+> > > From: "Maciej W. Rozycki" <macro@orcam.me.uk>
+> > >
+> > > On Sat, 7 Nov 2026, Alejandro Colomar wrote:
+> > > 
+> > > > Hi Maciej,
+> > > > 
+> > > > > Date: 2026-11-07 02:44:23+0000
+> > > > > From: "Maciej W. Rozycki" <macro@orcam.me.uk>
+> > > > >
+> > > > > On Thu, 5 Nov 2026, Alejandro Colomar wrote:
+> > > > > 
+> > > > > > Do you think strafterprefix() would be better?  Do you have any other
+> > > > > > suggestions?
+> > > > > 
+> > > > >  FWIW strsuffix() seems an obvious choice to me.  After all what the API 
+> > > > > does is request the string's suffix beyond the specified leading part.
+> > > > 
+> > > > Actually, strsuffix() is something else:
+> > > > 
+> > > > 	char *
+> > > > 	strsuffix_(const char *str, const char *suffix)
+> > > > 	{
+> > > > 		ptrdiff_t  off;
+> > > > 
+> > > > 		off = strlen(str) - strlen(suffix);
+> > > > 		if (off < 0)
+> > > > 			return NULL;
+> > > > 
+> > > > 		if (!streq(str + off, suffix))
+> > > > 			return NULL;
+> > > > 
+> > > > 		return str + off;
+> > > > 	}
+> > > > 
+> > > > It finds the start of a suffix in a string.  That is:
+> > > > 
+> > > > 	strcmp(strsuffix("foobar", "bar"), "bar") == 0;
+> > > 
+> > >  Hmm, I'd have called that strskipto().  If that's not possible for some 
+> > > reason (I can't see it used in Linux), then strskip() or strskipover() 
+> > > could be used for this API.
+> 
+> Another issue with the name strskipto() is that the name doesn't make it
+> clear whether the second argument is a string, or a list of characters.
+> 
+> That is, would strskipto() something similar to strpbrk(3)?
+> It's not clear from the name.  From strprefix() and strsuffix(), the
+> meaning of the second argument is clear from the function name.
 
-Thanks Juergen!
+On this bikeshedding thread I'm with Alejandro.
 
-lib/kobject.c already has a static dynamic_kobj_release() that does
-this (and there are ~15 other places in the tree open-coding a static
-kfree(kobj) release wrapper), so include/linux/kobject.h +
-lib/kobject.c would be the natural home if we exported one.
+> > strsuffix() exists in many projects, and in all of them it seems to have
+> > these semantics (or very similar ones).
+> > 
+> > Just look at a Debian code search of those names.
+> > 
+> > The strprefix() and strsuffix() pair of functions are widely
+> > implemented, and while the exact details of the return value differ
+> > slightly (some return just a boolean, others return a pointer that can
+> > be used as a boolean too), the overall semantics of them are quite
+> > consistent.  strsuffix() has less drift than strprefix().
+> > 
+> > If we added strsuffix() here with the semantics commonly attributed to
+> > strprefix(), and then had strskipto() with the semantics commonly
+> > attributed to strsuffix(), I'd expect programmers to eventually get
+> > confused and use the wrong one. 
 
-I kept them as local static functions here for two reasons:
+-- 
+With Best Regards,
+Andy Shevchenko
 
-1. Patches 2/9, 3/9, and 6/9 carry Fixes: tags, and keeping the small
-   local callbacks avoids a dependency on a new driver-core export for
-   backports.
-2. Since kobjects are normally embedded in a larger struct and freed via
-   container_of(), I wasn't sure whether Greg and Danilo would view an
-   exported kfree(kobj) release helper (especially alongside
-   __must_init) as an invitation for misuse on embedded kobjects.
 
-Unless Greg or Danilo would like dynamic_kobj_release() (or similar)
-exported now, I'll plan to keep the local callbacks for this series
-and can send a follow-up cleanup for the tree-wide callers if
-driver-core maintainers think a shared helper makes sense.
-
-Thanks,
-Ian
-
->
->
-> Juergen
