@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794251045;
-	b=Wjj/51lqFFbyHo95Rwh/1zN20cjGEqkr8VZkrI8uRM7/M5yVFQ3NDSCv07nIqi6fRKrM
-	 5IlMWNBPTmsZgfh+SD7zFLj1P/4gboeBbPOrqAtjL6ZKpHKmbh+j67S4ynj/0BtleSCrx
-	 TKmfvwYeIvYjrbIuIf5suNKVaCq9CNDhjP4FTSh/ylkpvXML51q8KzujXWnYCNaV6XxA7
-	 4+TEXjqnIjj8t5XwlQmbHqUQnRQA3pNOUcr2b7DJNcmKoP6H6GFhJLP+OJcyTYkJI0VG3
-	 zp9VxsY/NKmssBZlJosIsc0v55yl5a22VYRZUZ+B/bGdg3THkOFz8A8OF14sX+IQHaw==
+	t=1794251502;
+	b=Zq6mRr3Dc3qh4Ww+HNrXABAF9af69lsh4yyFfQur3S7reu/O/2aBJZgAu+nqY47HHIQ8
+	 6/YdCpcSYxjpPkCvWZZMpXQCqvepOL5JoUiTIBKmmYwg1abjdcF2cxVRxxp2TwGdkKDvb
+	 N1/nQ9DBcm9i4J5brbYbKTjJZQeqWFvr2RA7dcIcueKSI9hCxdsYcLLqQgRs1Q5DfEm3K
+	 qMGxkThADS7HnQpjaYyNXnReDdC4lbI8eWrGegpgwIZwH7AssnEn2+bAoTHrM/hN8dhD2
+	 5ogAV5jNatfRt1QuMmY1cEgEA3EcvOYEnoUI/zNukVGSoHeWMBzhIkdbjH4Dlq+zoKQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794251045;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794251502;
 	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
 	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
 	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=ddDpqHN8JMlGYqqaMYsS2gQ4WMRnoqKhbmSdNjKCYaw=;
-	b=cD2bEM1rK6gQusJHXFSlOd/Jx0l0pcYgpLG8bghyMPB5sPUkqReQgC+tdnXzo/+n2ET4
-	 0f/m7GzhM0xIJEN2y8ZUo5nk1UDjfF1JCBYhf2g00Z9MKqmgFzFy/NFUquaFZEpmzHsgo
-	 8GZpibBcdeWwuLswYvc3QWLMdXjOcLBNEu/md/WO74/CC8gKwoILOWA8yFFzXK38Ad9oy
-	 4dI5nnD0UYp0zjJUnZUpj/23748cFAv3EW8PK2+sMCoPcLuQL+Iu3Bh4a/6ooFAmVP+t+
-	 dMrAc6gLkhQQJ3uV8sO7ri8p+IDjhJQPyFHY7NTshe9ghgRT1wiDk7Gzc4Pfw/Z2EEQ==
+	bh=DJss7vF018jxE3CgpbZ29VThuXk5wnx614xdus0Glzc=;
+	b=nKU2g96iGXtQHpbIyCwP9GhQ4hic4PL2EkUZ/kE0V1QhKxxJO0/hJzOYdHTrL/wa0iJn
+	 3GsZfasLJqkSGu67t3C6TPLKuiFAAVK+VFRtu05F6sK3s5eC4x59kjZfyxb25WWRcmV/X
+	 vCqMpLfKEM3JJL6QNprttaBq4mZgfR4qtfp+wQoiw0mvd1syAHVAdLBBmGjzdD2gOOsLP
+	 QFQ09Hi5Rz9W8hNhugSz2s3zUZrlCLQGBt4d/jQjjIaT5AHQjER8jYax5/osdXVgcwJC8
+	 y8mLt89T62TCp64V1dAUsjW6UtIuzFCDZ+WPzlTHIUNjOos26bAVYSNhfhwuuNw4nQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EilmE4fY;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f4Sv859R;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92A1A606A31C
-	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:04:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58858606A321
+	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:11:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EilmE4fY
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 478D51F008A1
-	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:04:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f4Sv859R
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 352761F0089F
+	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:11:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794251045;
-	bh=ddDpqHN8JMlGYqqaMYsS2gQ4WMRnoqKhbmSdNjKCYaw=;
+	s=k20260515; t=1794251502;
+	bh=DJss7vF018jxE3CgpbZ29VThuXk5wnx614xdus0Glzc=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=EilmE4fYEHbdQVuvHGBp4GUDdJ+lB3EpIywbmEGKbEugMjM/NPr9az+FNp7k6/25A
-	 4pOGUoqF4IwuCSgFNF908+vwfiqfdf6vBYxcKQR5PSz0SK+hzE9uuV5Yd4x/wRoAHC
-	 Tquo6ffZTtOsuTaAS6kOz1xSTB9qMaymvA8z+P3KfhvBj+JIIkZtVUgDAH08BpMS3B
-	 pJPILsw6PKLwdCuGAqoAwNaTzeQ2uRgF0w7Nutw1QqnknCP1A4/GZTpgR1sdMT70oW
-	 wpzpIq2rUEwH7Yq8aicyqy60NRV+ALXXMLDab8rqwgGQ5Y3bEC/VidzbLLY9VO90BP
-	 v8pVx7h/Vp8hw==
-Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-3acf82fdcdbso11981661fa.0
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Nov 2026 11:04:05 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErHJmcmXKq01YD+4Z9bRyN7zP/QQecdVJcm+X832nzVS8mt74AUDKQsRLlgWcm9CrW9S9hKv8csBadLT@vger.kernel.org
-X-Gm-Message-State: APuU4Z+KCht2Qh5qBoE7Rk/Qd0g+gexXALHXOLphGPkYrkzGWWBj7suf
-	Ehd4FC4ouSdc3qhiZTmedLZX9Gy8Em4EGcl7l1qvwzMgrQ+niXQBVOLWsakDU/BZ1H3Hsd5dJ9l
-	NX111VMbdVqGv+upcSSBkv5beHRrPS0w=
-X-Received: by 2002:a05:6512:1395:b0:5c0:e5:7e49 with SMTP id
- 2adb3069b0e04-5c156ed8345mr70112e87.44.1794251043503; Mon, 09 Nov 2026
- 11:04:03 -0800 (PST)
+	b=f4Sv859R4DrgEnPEvT/I04GNwFNGnCcO3NcpXc8kUtbt60Qhv1icbO0TP4o8vvczu
+	 k2XqYObS6IP2A3mXna8+uvL4qx7UhzDFQiWCEpkAzzpM+4H01Pe4cLIpMTwWQugkDc
+	 oei0/01C+5zeWS8Ag/LeQ99C+0/mBpZFWnqA3591x3xpNVj6Vg/CzAXm3J84jSA3Pf
+	 gv3t39V8v1hzyKeDpn9kvZJCW7TavFEuz8isvqdzvgL6uCxBFXjPLarLAq0KNIsOvn
+	 a1pwwpcgBaYLEuSjJjn/an4gksWOqvQUQVrfbCwM+EZfG95qOw8ASe46dfmC26THOk
+	 APBe1L6mSTWSA==
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5c146cf35ceso1185686e87.3
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Nov 2026 11:11:42 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErHfj5Gmoo7lFzYo5UVGox+fxVE5/7tZtU0LbJbo02kMSi4Jte9f2ornJ8OTG+P8oi84D39dAZGGMmfh@vger.kernel.org
+X-Gm-Message-State: APuU4Z+4am4fZHz7cHQaaW+SfW2odlO2PEkGOBr7LCwYPWwyIkcI0f9J
+	swId1iDSVcmOwmWOqEEVNLVJJRlyxyD6SyNY9pn0bXqbdwMrdZN2YMERrPj3AcreWXruhpAluRs
+	YVTANv2AnFWooRkcXe4xV+9LMsP7HJno=
+X-Received: by 2002:a05:6512:1286:b0:5c1:4bb4:a6bb with SMTP id
+ 2adb3069b0e04-5c156ea28ecmr81403e87.36.1794251500588; Mon, 09 Nov 2026
+ 11:11:40 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,171 +59,124 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261015204450.1270-1-atharvatiwarilinuxdev@gmail.com>
-In-Reply-To: <20261015204450.1270-1-atharvatiwarilinuxdev@gmail.com>
+References: <20261016141440.2794000-1-yaojiale02@163.com> <7192d240.1879.1a148c7d925.Coremail.19888972804@163.com>
+In-Reply-To: <7192d240.1879.1a148c7d925.Coremail.19888972804@163.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Mon, 9 Nov 2026 20:03:51 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0hmEjG4pqst5SgD4mKncUAFgvJ_ZRbzQ6htXyWV-pftvw@mail.gmail.com>
-X-Gm-Features: AclHuK--g_rgeQVvXE21BjxlcSk-Qh41OeZUkIE3HOwkyV0SN1WdI_6ZYKRXKVc
-Message-ID: <CAJZ5v0hmEjG4pqst5SgD4mKncUAFgvJ_ZRbzQ6htXyWV-pftvw@mail.gmail.com>
-Subject: Re: [PATCH RESEND] ACPI: processor: Use Apple-specific methods for P/C-states
-To: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
+Date: Mon, 9 Nov 2026 20:11:27 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0h_oa2zguxw=5E5w9Jhc-m2cnbOfvFdPJoXerBhFmeh5Q@mail.gmail.com>
+X-Gm-Features: AclHuK_BUF-fAHbf6jyj3Z7UKdsM4Q5zT5fl2jVdiFMvd9z0XP0bfa11sJk1W4Q
+Message-ID: <CAJZ5v0h_oa2zguxw=5E5w9Jhc-m2cnbOfvFdPJoXerBhFmeh5Q@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: processor: validate CPU mapping entries
+To: jiale yao <19888972804@163.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
 	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 15, 2026 at 10:45=E2=80=AFPM Atharva Tiwari
-<atharvatiwarilinuxdev@gmail.com> wrote:
+On Sat, Oct 17, 2026 at 9:33=E2=80=AFAM jiale yao <19888972804@163.com> wro=
+te:
 >
-> Use APSS and ACST instead of _PSS and _CST when available on Intel Macs.
-> These methods are used in X86PlatformPlugin.kext, and when not found we
-> fallback to generic _PSS and _CST methods.
+> At 2026-10-16 22:14:40, "Jiale Yao" <yaojiale02@163.com> wrote:
+> >CPU physical ID lookup walks MADT subtables directly and also accepts
+> >records returned by _MAT. Both paths can pass a truncated typed record
+> >to a CPU-specific mapper, and the MADT walker can be stalled or moved
+> >outside the table by an invalid length.
+> >
+> >Validate generic record bounds and the minimum size required by each
+> >supported CPU record before dispatching it on both provider paths.
+> >
 >
-> Signed-off-by: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
-> ---
->  drivers/acpi/acpi_processor.c    | 22 +++++++++++++++++-----
->  drivers/acpi/processor_perflib.c | 10 ++++++++++
->  2 files changed, 27 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.=
-c
-> index 5fbab5417..782676ef7 100644
-> --- a/drivers/acpi/acpi_processor.c
-> +++ b/drivers/acpi/acpi_processor.c
-> @@ -18,6 +18,7 @@
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/pci.h>
-> +#include <linux/platform_data/x86/apple.h>
->  #include <linux/platform_device.h>
->
->  #include <acpi/processor.h>
-> @@ -837,27 +838,38 @@ int acpi_processor_evaluate_cst(acpi_handle handle,=
- u32 cpu,
->         acpi_status status;
->         u64 count;
->         int last_index =3D 0;
-> -       int i, ret =3D 0;
-> +       int i, ret =3D 0, base =3D 0;
->
-> +       if (x86_apple_machine) {
-> +               status =3D acpi_evaluate_object(handle, "ACST", NULL, &bu=
-ffer);
-> +               if (ACPI_SUCCESS(status)) {
-> +                       base =3D 1; /* ACST is a 4 field variable we need=
- to skip the first field */
+> Fixes: 78ed8bd2944b ("ACPI: processor: move acpi_get_cpuid into processor=
+_core.c")
 
-s/variable/package/ in the comment.
+So please resend.
 
-> +                       goto success;
-> +               }
-> +
-> +               buffer.length =3D ACPI_ALLOCATE_BUFFER;
-> +               buffer.pointer =3D NULL;
-> +       }
+Also, is it possible that some systems currently in the field will not
+pass this new validation and stop booting as a result?
 
-I'd put the above into a separate function returning 1 on success and
-0 on failure, say acpi_processor_apple_acst(), that would also reset
-the buffer on failures, so the code in acpi_processor_evaluate_cst()
-can be something like
-
-base =3D acpi_processor_apple_acst(handle, &buffer);
-if (!base) {
-
->         status =3D acpi_evaluate_object(handle, "_CST", NULL, &buffer);
->         if (ACPI_FAILURE(status)) {
->                 acpi_handle_debug(handle, "No _CST\n");
->                 return -ENODEV;
->         }
-> +success:
->
->         cst =3D buffer.pointer;
->
->         /* There must be at least 2 elements. */
-
-The above comment is not applicable to the ACST case, is it?
-
-> -       if (!cst || cst->type !=3D ACPI_TYPE_PACKAGE || cst->package.coun=
-t < 2) {
-> +       if (!cst || cst->type !=3D ACPI_TYPE_PACKAGE || cst->package.coun=
-t < base + 2) {
->                 acpi_handle_warn(handle, "Invalid _CST output\n");
-
-You should also avoid printing "_CST" in this message if _CST is not
-actually used (and analogously below).
-
->                 ret =3D -EFAULT;
->                 goto end;
->         }
->
-> -       count =3D cst->package.elements[0].integer.value;
-> +       count =3D cst->package.elements[base].integer.value;
->
->         /* Validate the number of C-states. */
-> -       if (count < 1 || count !=3D cst->package.count - 1) {
-> +       if (count < 1 || count !=3D cst->package.count - 1 - base) {
->                 acpi_handle_warn(handle, "Inconsistent _CST data\n");
->                 ret =3D -EFAULT;
->                 goto end;
-> @@ -882,7 +894,7 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u=
-32 cpu,
->
->                 memset(&cx, 0, sizeof(cx));
->
-> -               element =3D &cst->package.elements[i];
-> +               element =3D &cst->package.elements[base + i];
->                 if (element->type !=3D ACPI_TYPE_PACKAGE) {
->                         acpi_handle_info(handle, "_CST C%d type(%x) is no=
-t package, skip...\n",
->                                          i, element->type);
-> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_pe=
-rflib.c
-> index 9e25d6124..b4b36e60d 100644
-> --- a/drivers/acpi/processor_perflib.c
-> +++ b/drivers/acpi/processor_perflib.c
-> @@ -17,6 +17,7 @@
->  #include <linux/cpufreq.h>
->  #include <linux/slab.h>
->  #include <linux/acpi.h>
-> +#include <linux/platform_data/x86/apple.h>
->  #include <acpi/processor.h>
->  #ifdef CONFIG_X86
->  #include <asm/cpufeature.h>
-> @@ -324,11 +325,20 @@ static int acpi_processor_get_performance_states(st=
-ruct acpi_processor *pr)
->         int i;
->         int last_invalid =3D -1;
->
-> +       if (x86_apple_machine) {
-> +               status =3D acpi_evaluate_object(pr->handle, "APSS", NULL,=
- &buffer);
-> +               if (ACPI_SUCCESS(status))
-> +                       goto success;
-
-In analogy with the above, I'd introduce acpi_evaluate_apple_apss(),
-so the code here can be written as
-
-if (!acpi_evaluate_apple_apss(pr->handle, &buffer)) {
-        status =3D acpi_evaluate_object(pr->handle, "_PSS", NULL, &buffer);
-
-etc.
-
-> +
-> +               buffer.length =3D ACPI_ALLOCATE_BUFFER;
-> +               buffer.pointer =3D NULL;
-> +       }
->         status =3D acpi_evaluate_object(pr->handle, "_PSS", NULL, &buffer=
-);
->         if (ACPI_FAILURE(status)) {
->                 acpi_evaluation_failure_warn(pr->handle, "_PSS", status);
->                 return -ENODEV;
->         }
-> +success:
->
->         pss =3D buffer.pointer;
->         if (!pss || pss->type !=3D ACPI_TYPE_PACKAGE) {
-> --
-
-And there are diagnostic messages below mentioning _PSS directly that
-should not mention it when it is not actually used.
+> >Signed-off-by: Jiale Yao <yaojiale02@163.com>
+> >---
+> > drivers/acpi/processor_core.c | 48 ++++++++++++++++++++++++++++++++++-
+> > 1 file changed, 47 insertions(+), 1 deletion(-)
+> >
+> >diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core=
+.c
+> >index 3bf076c150fa..4d5ff53f27ab 100644
+> >--- a/drivers/acpi/processor_core.c
+> >+++ b/drivers/acpi/processor_core.c
+> >@@ -157,6 +157,47 @@ static int map_core_pic_id(struct acpi_subtable_hea=
+der *entry,
+> >       return -EINVAL;
+> > }
+> >
+> >+static bool madt_cpu_entry_is_valid(struct acpi_subtable_header *entry,
+> >+                                  unsigned long end)
+> >+{
+> >+      unsigned long start =3D (unsigned long)entry;
+> >+      size_t length, min_length;
+> >+
+> >+      if (start >=3D end || end - start < sizeof(*entry))
+> >+              return false;
+> >+
+> >+      length =3D entry->length;
+> >+      if (length < sizeof(*entry) || length > end - start)
+> >+              return false;
+> >+
+> >+      switch (entry->type) {
+> >+      case ACPI_MADT_TYPE_LOCAL_APIC:
+> >+              min_length =3D sizeof(struct acpi_madt_local_apic);
+> >+              break;
+> >+      case ACPI_MADT_TYPE_LOCAL_X2APIC:
+> >+              min_length =3D sizeof(struct acpi_madt_local_x2apic);
+> >+              break;
+> >+      case ACPI_MADT_TYPE_LOCAL_SAPIC:
+> >+              min_length =3D sizeof(struct acpi_madt_local_sapic);
+> >+              break;
+> >+      case ACPI_MADT_TYPE_GENERIC_INTERRUPT:
+> >+              min_length =3D offsetofend(struct acpi_madt_generic_inter=
+rupt,
+> >+                                       arm_mpidr);
+> >+              break;
+> >+      case ACPI_MADT_TYPE_RINTC:
+> >+              min_length =3D offsetofend(struct acpi_madt_rintc, uid);
+> >+              break;
+> >+      case ACPI_MADT_TYPE_CORE_PIC:
+> >+              min_length =3D sizeof(struct acpi_madt_core_pic);
+> >+              break;
+> >+      default:
+> >+              min_length =3D sizeof(*entry);
+> >+              break;
+> >+      }
+> >+
+> >+      return length >=3D min_length;
+> >+}
+> >+
+> > static phys_cpuid_t map_madt_entry(struct acpi_table_madt *madt,
+> >                                  int type, u32 acpi_id)
+> > {
+> >@@ -172,7 +213,8 @@ static phys_cpuid_t map_madt_entry(struct acpi_table=
+_madt *madt,
+> >       /* Parse all entries looking for a match. */
+> >
+> >       entry +=3D sizeof(struct acpi_table_madt);
+> >-      while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
+> >+      while (madt_cpu_entry_is_valid((struct acpi_subtable_header *)ent=
+ry,
+> >+                                     madt_end)) {
+> >               struct acpi_subtable_header *header =3D
+> >                       (struct acpi_subtable_header *)entry;
+> >               if (header->type =3D=3D ACPI_MADT_TYPE_LOCAL_APIC) {
+> >@@ -251,6 +293,10 @@ static phys_cpuid_t map_mat_entry(acpi_handle handl=
+e, int type, u32 acpi_id)
+> >       }
+> >
+> >       header =3D (struct acpi_subtable_header *)obj->buffer.pointer;
+> >+      if (!madt_cpu_entry_is_valid(header,
+> >+                      (unsigned long)header + obj->buffer.length))
+> >+              goto exit;
+> >+
+> >       if (header->type =3D=3D ACPI_MADT_TYPE_LOCAL_APIC)
+> >               map_lapic_id(header, acpi_id, &phys_id);
+> >       else if (header->type =3D=3D ACPI_MADT_TYPE_LOCAL_SAPIC)
+> >--
+> >2.34.1
