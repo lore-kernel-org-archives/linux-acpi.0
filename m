@@ -1,112 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.85.28
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794249520;
-	b=WH1ERt4Gjyhoa1eT6UQmvy7vqzNHN0sninSwsvzErkkXmdjA671zsEDDFQBWdu5Mv7cN
-	 XvsDYnNKXZFNjfOoNYGSM+iy3V6kqfqDQIhqe7YaqjeWWP1ibFzg43/+eZXfEHByTeDuk
-	 FRTgluowuEXQsoNX4WpZ479FAviMdwKqfmgSXFBZGtWkmrwFpAw0ENAgeSZF9ESkDiJYU
-	 jSYNztAhBV543EOGrGvKo3uVRRDbs+4SgzRxsZAVNQ994NhIdfSRcagZ7WMXOQdXXQg0n
-	 f6zVuN4XLXy8vaPC/Rb+XunoqNzJugemZ67PBrF9Bl85bZEY6VIzjVO4u5yhS3g2Jbg==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794249520;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:
-	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
-	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
-	 Content-Type:X-NV-OnPremToCloud:X-EOPAttributedMessage:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=OG5cgyTcboInVl4FFh4bO/dtSV50dy9Bqe3m2+yAFdM=;
-	b=aiqgDyTott3vhzKQyCvSK8XGbmragBqrd+nbJgAD/xYCynH2EWB3dPvjS3IQ8fMp3t1J
-	 AsIgcR5nxKd1Kc78+7F5iS3eg1NHRuCtoQrEM8E5S0+DpSvnA8RakfMZ1syLS17QYH67m
-	 +aAuk9Pm5oqU98ywcFeeSSFSp4+r2iF/bL5G8hBUZdh6lCvB22TKgDO9lCxURILIS6gXc
-	 XmijAVm2cRw/O4p2+3aR3+bGeFjGxGgL2ER2btbvVv2iIMu+z2wGPzv3+DJd1XFwS+6BX
-	 6uHPaK/caoUNsF5qpI3/409udy64tjzuhbyUBcVSYtq/tD2HK7CfKG7iunUIGm8ZuGA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=UwJDpH9e;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.85.28
-Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010028.outbound.protection.outlook.com [52.101.85.28])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794251045;
+	b=Wjj/51lqFFbyHo95Rwh/1zN20cjGEqkr8VZkrI8uRM7/M5yVFQ3NDSCv07nIqi6fRKrM
+	 5IlMWNBPTmsZgfh+SD7zFLj1P/4gboeBbPOrqAtjL6ZKpHKmbh+j67S4ynj/0BtleSCrx
+	 TKmfvwYeIvYjrbIuIf5suNKVaCq9CNDhjP4FTSh/ylkpvXML51q8KzujXWnYCNaV6XxA7
+	 4+TEXjqnIjj8t5XwlQmbHqUQnRQA3pNOUcr2b7DJNcmKoP6H6GFhJLP+OJcyTYkJI0VG3
+	 zp9VxsY/NKmssBZlJosIsc0v55yl5a22VYRZUZ+B/bGdg3THkOFz8A8OF14sX+IQHaw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794251045;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=ddDpqHN8JMlGYqqaMYsS2gQ4WMRnoqKhbmSdNjKCYaw=;
+	b=cD2bEM1rK6gQusJHXFSlOd/Jx0l0pcYgpLG8bghyMPB5sPUkqReQgC+tdnXzo/+n2ET4
+	 0f/m7GzhM0xIJEN2y8ZUo5nk1UDjfF1JCBYhf2g00Z9MKqmgFzFy/NFUquaFZEpmzHsgo
+	 8GZpibBcdeWwuLswYvc3QWLMdXjOcLBNEu/md/WO74/CC8gKwoILOWA8yFFzXK38Ad9oy
+	 4dI5nnD0UYp0zjJUnZUpj/23748cFAv3EW8PK2+sMCoPcLuQL+Iu3Bh4a/6ooFAmVP+t+
+	 dMrAc6gLkhQQJ3uV8sO7ri8p+IDjhJQPyFHY7NTshe9ghgRT1wiDk7Gzc4Pfw/Z2EEQ==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EilmE4fY;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A4D0606A321;
-	Mon,  9 Nov 2026 18:38:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0A4D0606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92A1A606A31C
+	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:04:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=UwJDpH9e
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=sl28JkXWmPjrj0dk1q0uP70kZ7ENPh5qGoaQs/6GTqoTqjAiUKkSMRIqK5Rf7W3EDDcKekqPhGavSpQ9SG8F+9bxBYVytf/yoGVdS5/8pj9WGYksPk1tGwNCKJVLylxc0OMnMGp3n1aY6ysTNhqrL31EVVGPnN+m0LkiSxKocNLzkANe5cdwujAo8xliqaH73qNwpY5Y6bToVcsbpVmTvY+89C9E39WTo1tBTOXIwcHk/01z7s2fECcF4pLRh6LcXrcaPwjUE6KuXsXyVPNh3klP2DeoxddpB57fE1jD7eSEf+JOp5a1Qgz17dgC5aa5aMJshITbSv8J/MvzFTkCbw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=OG5cgyTcboInVl4FFh4bO/dtSV50dy9Bqe3m2+yAFdM=;
- b=J3AGTTJ2KFdUXq9xgiLjaD9OrsdsSJA4SMzjfbEaZjaFVgrq4as36BYADXMcXV43g4G+0TaGr2zTIkANOPXymZUruDYAGzEFgE0qyYDWu3WV5H+H5tGn468j8CpWvNiGGOK8vtNRf+UpehOdH/nltQu+TyGcUeDg8m4QYFQbO3V/ObKd8Uiqqit9u3MCj3UnKMP/nIKQ1uiDCie+st83k9GRshUmwYYnRLCfYPPHsjyq8ayy468NoRA/G+LDQp3yUpXJwHCQupTCPUqcoYw4Uw9h2+fW1B6LD+F5SGljf+mcJ0Xpc4cV67YO3UMA4BAmdt0dremLvR1u2drmUL0CUA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=OG5cgyTcboInVl4FFh4bO/dtSV50dy9Bqe3m2+yAFdM=;
- b=UwJDpH9eWSWVe2CGHJfSceME8hjgHfTxrCZdQOE3EIqETmIelVXR0h8CoHBSPcHwVm537O1ZF3Tqjo57ChoJAYfucfQpXRr/P1NwXQdoEoht9CPP4bjxMnjFrYQIoFPW1dNQH0253CNhCyjACOVStfeFS6g4z+NSfTtSi+bCqKBE+eNjmF++32VVgv4zl+H7B6B19xPw/Phr//FQURvhHe7iYVZwx2uUj1ClmFhppDur76ogdnJHM63ZIxlhtJMQJNmMIqe+uY4j5AGoy9h0T3d/JKVEDHzJCFaaBlstAck6qz3xvZAd1z8xVehNo2aOjIwN3SMr123rhu+2y4Uy+Q==
-Received: from DS3P221CA0005.NAMP221.PROD.OUTLOOK.COM (2603:10b6:8:45e::15) by
- SJ5PPF09E5F035B.namprd12.prod.outlook.com (2603:10b6:a0f:fc02::988) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.12; Mon, 9 Nov
- 2026 18:38:28 +0000
-Received: from DM3PEPF000265BF.namprd03.prod.outlook.com
- (2603:10b6:8:45e:cafe::1e) by DS3P221CA0005.outlook.office365.com
- (2603:10b6:8:45e::15) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.546.22 via Frontend Transport; Mon, 9
- Nov 2026 18:38:26 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.118.232) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- DM3PEPF000265BF.mail.protection.outlook.com (10.167.23.180) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Mon, 9 Nov 2026 18:38:26 +0000
-Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Mon, 9 Nov
- 2026 10:38:03 -0800
-Received: from drhqmail202.nvidia.com (10.126.190.181) by
- drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56; Mon, 9 Nov 2026 10:38:03 -0800
-Received: from dgx-1v-42.nvidia.com (10.127.8.11) by mail.nvidia.com
- (10.126.190.181) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56 via Frontend
- Transport; Mon, 9 Nov 2026 10:38:03 -0800
-From: Jamie Nguyen <jamien@nvidia.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-CC: Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, "Punit
- Agrawal" <punitagrawal@gmail.com>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-Subject: [PATCH v4 2/2] ACPI: sysfs: Expose BDAT data region
-Date: Mon, 9 Nov 2026 10:38:03 -0800
-Message-ID: <20261109183803.2724859-3-jamien@nvidia.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261109183803.2724859-1-jamien@nvidia.com>
-References: <20261109183803.2724859-1-jamien@nvidia.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EilmE4fY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 478D51F008A1
+	for <linux-acpi@vger.kernel.org>; Mon,  9 Nov 2026 19:04:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794251045;
+	bh=ddDpqHN8JMlGYqqaMYsS2gQ4WMRnoqKhbmSdNjKCYaw=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=EilmE4fYEHbdQVuvHGBp4GUDdJ+lB3EpIywbmEGKbEugMjM/NPr9az+FNp7k6/25A
+	 4pOGUoqF4IwuCSgFNF908+vwfiqfdf6vBYxcKQR5PSz0SK+hzE9uuV5Yd4x/wRoAHC
+	 Tquo6ffZTtOsuTaAS6kOz1xSTB9qMaymvA8z+P3KfhvBj+JIIkZtVUgDAH08BpMS3B
+	 pJPILsw6PKLwdCuGAqoAwNaTzeQ2uRgF0w7Nutw1QqnknCP1A4/GZTpgR1sdMT70oW
+	 wpzpIq2rUEwH7Yq8aicyqy60NRV+ALXXMLDab8rqwgGQ5Y3bEC/VidzbLLY9VO90BP
+	 v8pVx7h/Vp8hw==
+Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-3acf82fdcdbso11981661fa.0
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Nov 2026 11:04:05 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErHJmcmXKq01YD+4Z9bRyN7zP/QQecdVJcm+X832nzVS8mt74AUDKQsRLlgWcm9CrW9S9hKv8csBadLT@vger.kernel.org
+X-Gm-Message-State: APuU4Z+KCht2Qh5qBoE7Rk/Qd0g+gexXALHXOLphGPkYrkzGWWBj7suf
+	Ehd4FC4ouSdc3qhiZTmedLZX9Gy8Em4EGcl7l1qvwzMgrQ+niXQBVOLWsakDU/BZ1H3Hsd5dJ9l
+	NX111VMbdVqGv+upcSSBkv5beHRrPS0w=
+X-Received: by 2002:a05:6512:1395:b0:5c0:e5:7e49 with SMTP id
+ 2adb3069b0e04-5c156ed8345mr70112e87.44.1794251043503; Mon, 09 Nov 2026
+ 11:04:03 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -116,146 +59,171 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM3PEPF000265BF:EE_|SJ5PPF09E5F035B:EE_
-X-MS-Office365-Filtering-Correlation-Id: fdd5897f-bc34-4ec5-b53e-08df3e90a495
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|36860700016|82310400026|376014|1800799024|22082099003|18002099003|6133799003|10067099003|13003099007|11063799006|56012099006|261026121527099003|261102123227099003|261021130227099003|261022113327099003|261022075727099003|261022105027099003|261021123027099003|261021133027099003|261021121427099003|261022115727099003|261026135527099003|261026130827099003|261026140227099003|261021135927099003|261009223027099003|261028144727099003;
-X-Microsoft-Antispam-Message-Info:
-	70Et/Se+YVRWa24C14gJ0ld3CewvhA7ITVxLRtjHxbWAjrqCR6+bwuEKx5Th4xgpG6gD2fDFFZjMHfSZ1Bz1Bdzz+nQbeASAUIu6wZzwqVMfBvHVGpUD2ijdL5mVQCUpko/Mi2uZVRa//J8XFLFAtczeBh3OnVZPtIGxHD3rJxp8bo56wI3BZIR6O5XPeuSIOjAlAM5YQ+YFZsKDEdz/7oYF3W+1TmMJMb+Gt+gTDfJpgE2tVhI0wNgcnbaFlGwFfsjUkJ9D5Ro053Xmrys73hDNeu6TopZxLLLLmcHWmqe+6eVUnLzI2hSzn9VqfwHW527GdVV/IOFNwL9NYt+GcP61hkk86qvu6FfOcMWywOtXlnLYwjABK1zrbztQlUTKCI56IDfXHvEEg38hWa88iAggeOOz7u4gJ0XVcCgLiC5WbZHYPfkC0gLJhBv/iFaU0BuA9Scf2S4upjJyPEJpc6nlJXeRhYFOS3yJeS656ubmlY9le3e2Grdg+6SKOdXiKsOIKbOh6CQjlHDagb29kegOCUT+hgDmUFR4hx/heYTuXg5+HYXTmnsgkohy81ZOyWMHFQeR3BxNqJ91c264QfD/xfVH+Ly91f6NLMhr0+RsciWuZTDtefRVXhSFSG2N/VN/i7Txi2mk1Vp6y7xc4+8QqXlCJQEYj9jthlPT8XGQCPtr+JSYXLJOFXy5LysORhI7ubs6XgT/CkSzteVUBQ==
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(36860700016)(82310400026)(376014)(1800799024)(22082099003)(18002099003)(6133799003)(10067099003)(13003099007)(11063799006)(56012099006)(261026121527099003)(261102123227099003)(261021130227099003)(261022113327099003)(261022075727099003)(261022105027099003)(261021123027099003)(261021133027099003)(261021121427099003)(261022115727099003)(261026135527099003)(261026130827099003)(261026140227099003)(261021135927099003)(261009223027099003)(261028144727099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	9026NySC36cqzUScM+v1iMNH+4wyt9e9G4DQyr1QHpDCl29Xv5s7xlghANQEw9/k4KDmGlRg3NS+ykqGPCgw1EUw8oF+y5XqURkDmiqbluGaZhcWlNFUlW8DCOWMLNcFFNOLIwnXKlYgStH8AVQUC7Z3WUal+8gs7HnoWy2IzAwN9db4Cmpp6JMMZZ+eWd/Gikye0cpwsOehBswNJXS+U4CuL0Mvr5lfmZOrBap6NrnGhTlTaiI9xqZjv+Vf731RTA9IYAAl6kSGpUPDk2elZFes5sniPafJdhO7nuOUHT1wWlq8d2TDkdAsszSkU+5PpmVh7u9YJyxsEEkwxreAYDHuYDWUB7xtHO3hBov/FlBIchHz52VC08+emJdDiLEyQMJO96bCbItk8QojZ9PA7zrNiO38y+eKJjFqqftxjhvfXlujcwNLXPGOe6X5qBBu
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Nov 2026 18:38:26.6049
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: fdd5897f-bc34-4ec5-b53e-08df3e90a495
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	DM3PEPF000265BF.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ5PPF09E5F035B
+References: <20261015204450.1270-1-atharvatiwarilinuxdev@gmail.com>
+In-Reply-To: <20261015204450.1270-1-atharvatiwarilinuxdev@gmail.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Mon, 9 Nov 2026 20:03:51 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0hmEjG4pqst5SgD4mKncUAFgvJ_ZRbzQ6htXyWV-pftvw@mail.gmail.com>
+X-Gm-Features: AclHuK--g_rgeQVvXE21BjxlcSk-Qh41OeZUkIE3HOwkyV0SN1WdI_6ZYKRXKVc
+Message-ID: <CAJZ5v0hmEjG4pqst5SgD4mKncUAFgvJ_ZRbzQ6htXyWV-pftvw@mail.gmail.com>
+Subject: Re: [PATCH RESEND] ACPI: processor: Use Apple-specific methods for P/C-states
+To: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The BIOS Data ACPI Table (BDAT) points to a firmware data structure that
-carries memory training results and other boot-time data. The table is
-only a pointer: /sys/firmware/acpi/tables/BDAT holds the ACPI header and
-a Generic Address Structure, and the data itself lives in reserved
-memory.
+On Thu, Oct 15, 2026 at 10:45=E2=80=AFPM Atharva Tiwari
+<atharvatiwarilinuxdev@gmail.com> wrote:
+>
+> Use APSS and ACST instead of _PSS and _CST when available on Intel Macs.
+> These methods are used in X86PlatformPlugin.kext, and when not found we
+> fallback to generic _PSS and _CST methods.
+>
+> Signed-off-by: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
+> ---
+>  drivers/acpi/acpi_processor.c    | 22 +++++++++++++++++-----
+>  drivers/acpi/processor_perflib.c | 10 ++++++++++
+>  2 files changed, 27 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.=
+c
+> index 5fbab5417..782676ef7 100644
+> --- a/drivers/acpi/acpi_processor.c
+> +++ b/drivers/acpi/acpi_processor.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/pci.h>
+> +#include <linux/platform_data/x86/apple.h>
+>  #include <linux/platform_device.h>
+>
+>  #include <acpi/processor.h>
+> @@ -837,27 +838,38 @@ int acpi_processor_evaluate_cst(acpi_handle handle,=
+ u32 cpu,
+>         acpi_status status;
+>         u64 count;
+>         int last_index =3D 0;
+> -       int i, ret =3D 0;
+> +       int i, ret =3D 0, base =3D 0;
+>
+> +       if (x86_apple_machine) {
+> +               status =3D acpi_evaluate_object(handle, "ACST", NULL, &bu=
+ffer);
+> +               if (ACPI_SUCCESS(status)) {
+> +                       base =3D 1; /* ACST is a 4 field variable we need=
+ to skip the first field */
 
-Expose the data as /sys/firmware/acpi/tables/data/BDAT, as is already
-done for BERT and CCEL. Unlike those tables, BDAT carries no length, so
-check the "BDATHEAD" signature at the start of the data structure and
-take the size from its BiosDataStructSize field. Reject sizes smaller
-than that header, and addresses where the header would wrap around the
-end of the address space, which acpi_os_map_iomem() can't handle.
-Document the new file in Documentation/ABI.
+s/variable/package/ in the comment.
 
-The BDAT specification is published by the UEFI Forum [1].
+> +                       goto success;
+> +               }
+> +
+> +               buffer.length =3D ACPI_ALLOCATE_BUFFER;
+> +               buffer.pointer =3D NULL;
+> +       }
 
-Link: https://uefi.org/sites/default/files/resources/BDAT_Spec_v4_0_9%20%282%29.pdf # [1]
-Signed-off-by: Jamie Nguyen <jamien@nvidia.com>
----
- Documentation/ABI/testing/sysfs-firmware-acpi | 12 +++++
- drivers/acpi/sysfs.c                          | 50 +++++++++++++++++++
- 2 files changed, 62 insertions(+)
+I'd put the above into a separate function returning 1 on success and
+0 on failure, say acpi_processor_apple_acst(), that would also reset
+the buffer on failures, so the code in acpi_processor_evaluate_cst()
+can be something like
 
-diff --git a/Documentation/ABI/testing/sysfs-firmware-acpi b/Documentation/ABI/testing/sysfs-firmware-acpi
-index fa33dda331f2440..5fb50a72d468f5c 100644
---- a/Documentation/ABI/testing/sysfs-firmware-acpi
-+++ b/Documentation/ABI/testing/sysfs-firmware-acpi
-@@ -275,3 +275,15 @@ Description:
- 
- 		remote_region_id: ID associated with access by agents
- 		non-local to this range of addresses.
-+
-+What:		/sys/firmware/acpi/tables/data/BDAT
-+Date:		October 2026
-+Contact:	Jamie Nguyen <jamien@nvidia.com>
-+Description:
-+		The BIOS data structure referenced by the ACPI BDAT (BIOS Data
-+		ACPI Table). It starts with a "BDATHEAD" header and holds data
-+		published by firmware, such as memory training results. The
-+		file size is the structure size given in that header.
-+
-+		The format is defined by the BDAT Interface Specification,
-+		published by the UEFI Forum. The file is readable by root only.
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 4182627eeafd2f8..49a820b39c2917a 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -477,12 +477,62 @@ static int acpi_ccel_data_init(void *th, struct acpi_data_attr *data_attr)
- 	return 0;
- }
- 
-+/*
-+ * The BDAT table only holds the address of the BIOS data structure. Its
-+ * size is in the structure's own header ("BDAT Interface Specification"
-+ * v4.0, section 4).
-+ */
-+struct acpi_bdat_data_header {
-+	char signature[8];	/* "BDATHEAD" */
-+	u32 size;		/* whole structure, including this header */
-+	u16 crc16;
-+	u16 reserved;
-+	u16 primary_version;
-+	u16 secondary_version;
-+	u32 oem_offset;
-+	u32 reserved1;
-+	u32 reserved2;
-+} __packed;
-+
-+static int acpi_bdat_data_init(void *th, struct acpi_data_attr *data_attr)
-+{
-+	struct acpi_table_bdat *bdat = th;
-+	struct acpi_bdat_data_header hdr;
-+	void __iomem *base;
-+	u64 end;
-+
-+	if (bdat->header.length < sizeof(struct acpi_table_bdat) ||
-+	    bdat->gas.space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY ||
-+	    !bdat->gas.address)
-+		return -EINVAL;
-+
-+	/* acpi_os_map_iomem() can't handle a range that wraps around */
-+	if (check_add_overflow(bdat->gas.address, sizeof(hdr), &end))
-+		return -EINVAL;
-+
-+	base = acpi_os_map_iomem(bdat->gas.address, sizeof(hdr));
-+	if (!base)
-+		return -ENOMEM;
-+	memcpy_fromio(&hdr, base, sizeof(hdr));
-+	acpi_os_unmap_iomem(base, sizeof(hdr));
-+
-+	if (memcmp(hdr.signature, "BDATHEAD", sizeof(hdr.signature)) ||
-+	    hdr.size < sizeof(hdr))
-+		return -EINVAL;
-+
-+	data_attr->addr = bdat->gas.address;
-+	data_attr->attr.size = hdr.size;
-+
-+	return 0;
-+}
-+
- static struct acpi_data_obj {
- 	char *name;
- 	int (*fn)(void *, struct acpi_data_attr *);
- } acpi_data_objs[] = {
- 	{ ACPI_SIG_BERT, acpi_bert_data_init },
- 	{ ACPI_SIG_CCEL, acpi_ccel_data_init },
-+	{ ACPI_SIG_BDAT, acpi_bdat_data_init },
- };
- 
- #define NUM_ACPI_DATA_OBJS ARRAY_SIZE(acpi_data_objs)
--- 
-2.43.0
+base =3D acpi_processor_apple_acst(handle, &buffer);
+if (!base) {
 
+>         status =3D acpi_evaluate_object(handle, "_CST", NULL, &buffer);
+>         if (ACPI_FAILURE(status)) {
+>                 acpi_handle_debug(handle, "No _CST\n");
+>                 return -ENODEV;
+>         }
+> +success:
+>
+>         cst =3D buffer.pointer;
+>
+>         /* There must be at least 2 elements. */
+
+The above comment is not applicable to the ACST case, is it?
+
+> -       if (!cst || cst->type !=3D ACPI_TYPE_PACKAGE || cst->package.coun=
+t < 2) {
+> +       if (!cst || cst->type !=3D ACPI_TYPE_PACKAGE || cst->package.coun=
+t < base + 2) {
+>                 acpi_handle_warn(handle, "Invalid _CST output\n");
+
+You should also avoid printing "_CST" in this message if _CST is not
+actually used (and analogously below).
+
+>                 ret =3D -EFAULT;
+>                 goto end;
+>         }
+>
+> -       count =3D cst->package.elements[0].integer.value;
+> +       count =3D cst->package.elements[base].integer.value;
+>
+>         /* Validate the number of C-states. */
+> -       if (count < 1 || count !=3D cst->package.count - 1) {
+> +       if (count < 1 || count !=3D cst->package.count - 1 - base) {
+>                 acpi_handle_warn(handle, "Inconsistent _CST data\n");
+>                 ret =3D -EFAULT;
+>                 goto end;
+> @@ -882,7 +894,7 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u=
+32 cpu,
+>
+>                 memset(&cx, 0, sizeof(cx));
+>
+> -               element =3D &cst->package.elements[i];
+> +               element =3D &cst->package.elements[base + i];
+>                 if (element->type !=3D ACPI_TYPE_PACKAGE) {
+>                         acpi_handle_info(handle, "_CST C%d type(%x) is no=
+t package, skip...\n",
+>                                          i, element->type);
+> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_pe=
+rflib.c
+> index 9e25d6124..b4b36e60d 100644
+> --- a/drivers/acpi/processor_perflib.c
+> +++ b/drivers/acpi/processor_perflib.c
+> @@ -17,6 +17,7 @@
+>  #include <linux/cpufreq.h>
+>  #include <linux/slab.h>
+>  #include <linux/acpi.h>
+> +#include <linux/platform_data/x86/apple.h>
+>  #include <acpi/processor.h>
+>  #ifdef CONFIG_X86
+>  #include <asm/cpufeature.h>
+> @@ -324,11 +325,20 @@ static int acpi_processor_get_performance_states(st=
+ruct acpi_processor *pr)
+>         int i;
+>         int last_invalid =3D -1;
+>
+> +       if (x86_apple_machine) {
+> +               status =3D acpi_evaluate_object(pr->handle, "APSS", NULL,=
+ &buffer);
+> +               if (ACPI_SUCCESS(status))
+> +                       goto success;
+
+In analogy with the above, I'd introduce acpi_evaluate_apple_apss(),
+so the code here can be written as
+
+if (!acpi_evaluate_apple_apss(pr->handle, &buffer)) {
+        status =3D acpi_evaluate_object(pr->handle, "_PSS", NULL, &buffer);
+
+etc.
+
+> +
+> +               buffer.length =3D ACPI_ALLOCATE_BUFFER;
+> +               buffer.pointer =3D NULL;
+> +       }
+>         status =3D acpi_evaluate_object(pr->handle, "_PSS", NULL, &buffer=
+);
+>         if (ACPI_FAILURE(status)) {
+>                 acpi_evaluation_failure_warn(pr->handle, "_PSS", status);
+>                 return -ENODEV;
+>         }
+> +success:
+>
+>         pss =3D buffer.pointer;
+>         if (!pss || pss->type !=3D ACPI_TYPE_PACKAGE) {
+> --
+
+And there are diagnostic messages below mentioning _PSS directly that
+should not mention it when it is not actually used.
