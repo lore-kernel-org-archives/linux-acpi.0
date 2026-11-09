@@ -1,89 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.19
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794216189;
-	b=gwne/rXXPA7GS5EQd4T9sm1FKdCSVT+kUJp+lW27nIFJt+aTT7nYLzX0IL4h2834ERLP
-	 LkLxjzLr9z4l+KFX0pnBcainOs4FfNvPlOcNLdqFz28KVvXgQSn//hZRFIiOsylsEBQ4A
-	 f6bHuy8TpvaXW6F5N826efAWs38IWB7xvtV9SfVXvzhyEyyLQihUO3l+Quz7vmBvvr3Qh
-	 ayoMvV7iaw1AWm+zt4nxCmB2xHwZP9riiQktcIngaROR3ga4mVmrCbAAwmgGPf3z3GcMH
-	 Kxo3vmHLdOr/ZyhqYH6qCEJb1739opxgkj8YpptcKGxNQzg05STpvXKtLXLD6GNdj2A==
+	t=1794221147;
+	b=UVscejRxEoYxREDYsDIOZoDy1azQPsBb2nCS+UB1VAd26hphTwNcLLcZm6SmIF9gGhWK
+	 f9HcpbXQuKWJgh1q6oNi5kA79PdCBbVDn4ECJQPLk7C/O3/rIkQmaA7bzsCJ+kt8+yLN1
+	 3kTPX4wp/XE4imJ8nwdXjOdsHZAVQeYNROm9rdAosCQIu9drKEtWkG7Wr0JvNmrEwIKEp
+	 MmzpEZAW6SyPnA/UQoQUYbiVU/TfnJJD+UizSUxcVhNqcjSgLdxJnBhirzcLlwJyNe+bG
+	 ERTTa6oX7zSLSYjKeMqQo+zpYgxCj6rtLTZ4esAlf4dOoaLOvFOex3q707BTR1V4dQQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794216189;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=3a6/w1xWJzr0AfOc6H7D9LndxRKnZcP9ByrmJVJZKlg=;
-	b=4b4GDCF1BWf7T+XQ2osb3z4KXHZNEOmqh3P4f24YGzd0AXuECnlZQBS+y311ic2WUSqr
-	 1u/E/4/0TTMgjORVRUD7+L7X1docHDUp1cQu42SjFoFXpHTKmWmM2WcLQgJg9UyDRCOvS
-	 /qQ1AZDEtb3FVW3F1WHa7f3ulxKwMPS0CeChsbqqNVLfNOniVaZCKmgT+j0cN/L2oADrO
-	 hOJ0DGvpP9crDLiCklYgbL0IT2UYtBxdNNIEfTbrrQc18QkKXm27/NQY/cAYZXwdT5jYK
-	 1yl+XGBBlvDNEU3Y3xDBY5QBWYiwBCPN0iNZSnyxY6fYGqBDB9U7UQDGdWuLgE0MLsQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794221147;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:Content-Transfer-Encoding:In-Reply-To;
+	bh=nl+/KralOh+dGROnNTooIdasnREF4uPn5x3o1Ua7Igc=;
+	b=2Tn+ACMUNmBKXNYZTlS704WYvbU1bkSJ42lGY7d2u/vQP+xJrBcF8FMJtEmAvSJSArDE
+	 nM9cPvoXVU0nWYFGNkfjeylyqE7aQncnMry9dLK8nKujIv4+Yrl0+cb0iZ7D4gTU7QYPl
+	 6SoXNtGRLai3rH/kcYj6mcZFOApIYAbtVmMfUGSmQ+PZ4SJm7Mz/sXHmr0KiVOfs4HLjX
+	 ZKXutjvwP1fizVaNyKHfzpYHS80xbzrr9J8Z58OTRoNdVH0merIW2fDmGwxG3TN8CuePy
+	 B9gDHyx22+1kgPpUjpuII+ixmxRNLHEG9pkgXmh7pf5vh/6C09YXAGpbs8KTi9y4x9A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jPerqchO;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=nEBBO2wO;
+	arc=none smtp.remote-ip=198.175.65.19
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65012606EEA1;
-	Mon,  9 Nov 2026 09:23:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4C70606A31C;
+	Mon,  9 Nov 2026 10:45:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B4C70606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jPerqchO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C70D1F0089F;
-	Mon,  9 Nov 2026 09:23:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794216189;
-	bh=3a6/w1xWJzr0AfOc6H7D9LndxRKnZcP9ByrmJVJZKlg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=jPerqchOgRaBjw8X4fE92dxajm9AqaZxq/CWymw4Q92RQ0WDcbFVO1k/1PNDbaxcI
-	 hGT2oMS+lRCX8Zhan8FgyX3B2GyGobWKynYHS/ynXoApxjg+DTgow/J3R6Jf6EN4uN
-	 /dWDbNcHJUTRN2JieRsY+YReAOL/18x838383G1sdN/cfFv4qcUu/eSWCjlVfJ3VeD
-	 n2DWeW81faiyxdDwq/o7AhuCqzQFbH4a1/fxSxT9FBJLVQBqSK9BYPkasSXMg9hQ1g
-	 AHBaXva0eMOPfkUu4wYtOVUyc1s/KgOuS0Kr0ybeBztodfszj/JpEpJ+oegaxOvTRW
-	 PyG1J9kzrpLCA==
-Date: Mon, 9 Nov 2026 11:23:04 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Heiner Kallweit <hkallweit1@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
-	Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Lu Baolu <baolu.lu@linux.intel.com>,
-	Johan Hovold <johan@kernel.org>, Eric Dumazet <edumazet@kernel.org>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-	Nipun Gupta <nipun.gupta@amd.com>,
-	Nikhil Agarwal <nikhil.agarwal@amd.com>,
-	Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
-	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-input@vger.kernel.org, netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-pci@vger.kernel.org,
-	iommu@lists.linux.dev, Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 05/17] USB: Lock registered interfaces during manual
- driver binding
-Message-ID: <20261109092304.GC8635@unreal>
-References: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
- <20261105-device-trust-core-v1-5-1e536825b4eb@nvidia.com>
- <bb83fe3c-cebb-4bc8-bfc9-24df1cf72b0b@rowland.harvard.edu>
- <20261105184442.GF8298@unreal>
- <bf756e50-c77e-40f2-916d-e88887426806@rowland.harvard.edu>
- <20261108110909.GA8635@unreal>
- <647f3199-909d-425f-b485-b598a18844d1@rowland.harvard.edu>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=nEBBO2wO
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794221145; x=1825757145;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=YVRlamkkZSozoLLTh5QkHe05MxLIm7RB7e8eWyXUKzg=;
+  b=nEBBO2wO+hlcPRE20lRKMoFJYF0njezqwL06BbqD32T8Mc1+kg+s1kXo
+   FHYEEQz3eXHxSU8U0Vf7Viqf8AItAjEB1dAhqxN6PhdRdjrYF2u6eijD1
+   jUc/xL2ZMN9WD2XyfwhmicxlM9I/lsFYCqx/dD9q4otbdYI3EoFxLt06k
+   3dPCwGG8Et+70kGCPA+i6i91q2rVo+jRq8DYEQqcji6xOUU71MsE+Qovj
+   p+ZG8gmZ6KpOuUdpjLrVvYyGgTzvGUGXljedOSeczx4uBq6rm2c9Isgfd
+   U3exYI0dhII5lraGqdIeQT4dDiSxWc+76lFBE7yC/V4F1ZCcDkS0CbRvD
+   w==;
+X-CSE-ConnectionGUID: blaZpK8wTDiPEmWwqPm8aQ==
+X-CSE-MsgGUID: M8+hGPvJQXCZMD+0fNX5GQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11960"; a="2979102"
+X-IronPort-AV: E=Sophos;i="6.27,203,1787036400"; 
+   d="scan'208";a="2979102"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2026 02:45:45 -0800
+X-CSE-ConnectionGUID: FTtmwNsNTFSGqLCPz16Y9A==
+X-CSE-MsgGUID: EVqy3W1nQDGL9YDZgIKh9g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,203,1787036400"; 
+   d="scan'208";a="8174231"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by fmviesa008.fm.intel.com with ESMTP; 09 Nov 2026 02:45:44 -0800
+Received: by black.igk.intel.com (Postfix, from userid 1001)
+	id A7BC199; Mon, 09 Nov 2026 11:45:42 +0100 (CET)
+Date: Mon, 9 Nov 2026 11:45:42 +0100
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: penhouse24@proton.me
+Cc: "westeri@kernel.org" <westeri@kernel.org>,
+	"andi.shyti@kernel.org" <andi.shyti@kernel.org>,
+	"linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Subject: Re: [BUG] i2c: acpi: Dell XPS 17 9720 ELAN 04F3:311C touchpad
+ (VEN_04F3) needs 100 kHz like DLL0945
+Message-ID: <20261109104542.GL176724@black.igk.intel.com>
+References: <CYQ1dYF3ZUj0L_VRzN490SfuHRaulkT_y5NWcIEIl8OtpIgWgXyOlwEyUqZD_uz9bmVBXM2uLOo8bkyzcR-qCxNObstCqFUlK6lUYXK5euE=@proton.me>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -93,55 +83,54 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <647f3199-909d-425f-b485-b598a18844d1@rowland.harvard.edu>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CYQ1dYF3ZUj0L_VRzN490SfuHRaulkT_y5NWcIEIl8OtpIgWgXyOlwEyUqZD_uz9bmVBXM2uLOo8bkyzcR-qCxNObstCqFUlK6lUYXK5euE=@proton.me>
 
-On Sun, Nov 08, 2026 at 11:59:11AM -0500, Alan Stern wrote:
-> On Sun, Nov 08, 2026 at 01:09:09PM +0200, Leon Romanovsky wrote:
-> > On Thu, Nov 05, 2026 at 03:04:18PM -0500, Alan Stern wrote:
-> > > >  it ensures that the lock is
-> > > > acquired when the driver is bound.
-> > > 
-> > > That may have been your intention when the patch was created, but if you 
-> > > read the patch you'll see that it includes a whole bunch of material 
-> > > not related to locking during binding.  Namely, this part:
-> > 
-> > Once I added `device_lock()` to `bind`, I had to add it to `unbind` as well.
-> 
-> Obviously I'm not making my points clear.  Let me try again.
-> 
-> The entire patch description, as you wrote it, is this:
-> 
-> > Interface claims hold the USB device lock, but device_bind_driver()
-> > requires the target interface lock. Without it, trust-policy writes  can
-> > race admission.
-> 
-> This says nothing about holding the interface lock during unbinding.  In 
-> other words, it isn't a complete description of the patch.  It implies 
-> that the patch changes nothing outside the device_bind_driver() 
-> function, which isn't true.
-> 
-> Furthermore, the patch does not change any of the code in 
-> usb_driver_release_interface(), which is where unbinding takes place, 
-> because that routine already takes the interface lock.  So to say that 
-> you had to add device_lock() to `unbind` is not accurate.
-> 
-> Instead the patch adds a new usb_driver_release_refused_claim() routine, 
-> plus code in usb_set_configuration() to call the new routine.  The patch 
-> description says nothing about either of these things.  Not to mention 
-> the fact that your other changes make it now possible for the driver 
-> core to delete an interface claim when the interface is registered, 
-> something which was not possible before.  This is another inadequacy in 
-> the patch description.
-> 
-> I'm not saying that any of the code is wrong.  But the description does 
-> a very bad job of explaining the new code.
+Hi,
 
-I hope v2 explains this better. I also split the USB patch further.
-
-Thanks
-
+On Fri, Nov 06, 2026 at 05:48:02PM +0000, penhouse24@proton.me wrote:
+> Hi Mika, Andi,
 > 
-> Alan Stern
+> The ELAN 04F3:311C touchpad in the Dell XPS 17 9720 intermittently becomes
+> sluggish and sticky for several seconds to minutes, then recovers. I dual boot
+> with Windows and I do not experience this issue on Windows, only on Linux and
+> across multiple distros (Linux mint, Ubuntu and Pop_os). I'm not the only one
+> who experiences this issue; it seems to be widespread among Dell XPS users.
+> This looks like the excessive-smoothing issue fixed for the Precision 5560 by
+> commit 0b7c9528facd (“i2c: Force DLL0945 touchpad i2c freq to 100khz”). The
+> Precision 5560 uses the same 04F3:311C touchpad. On the XPS 17 9720, the
+> firmware exposes it with _HID “VEN_04F3” instead of “DLL0945”, so the existing
+> quirk doesn’t apply.
 > 
+> Forcing the bus to 100 kHz fixes it here. The DSDT already supports 100 kHz:
+> _SB.PC00.I2C1.TPD0._INI sets SPED from the TPDS NVS variable (0 = 100 kHz, 1 =
+> 400 kHz, 2 = 1 MHz), and this firmware uses TPDS = 1. To test it, I loaded an
+> SSDT through configfs that sets _SB.PC00.I2C1.TPD0.SPED = 0x186A0 and rebound
+> i2c_designware.1. After 5 days of use, including on AC power, the lag has not
+> come back. Without the override, it returns as randomly as before. 
+> 
+> System:
+> 
+>   • Dell XPS 17 9720, BIOS 1.41.0
+>   • Touchpad: VEN_04F3:00 04F3:311C on i2c_designware.1 (_SB.PC00.I2C1.TPD0),
+>     touchpad firmware 0x000b
+>   • Kernel: 7.2.15-76070215-generic
+> 
+> Adding “VEN_04F3” to i2c_acpi_force_100khz_device_ids would fix this machine.
+> However, VEN_04F3 looks like a generic vendor ID rather than a model-specific
+> one like DLL0945, so it may need to be limited to this model with a DMI match.
+> I’m happy to test a patch.
+
+That VEN_04F3 is not even a valid ACPI/PNP ID. Have you checked if there is
+a BIOS upgrade for your system?
+
+It's odd that Dell would use identifier like this as they typically follow
+these pretty well. Anyways if there is no BIOS upgrade (or if it does not
+change anything) then I don't see much other option than adding a quirk. I
+do see there is one quirk added already for GPIO side on Dell system with
+VEN_0488 entry (drivers/gpio/gpiolib-acpi-quirks.c).
+
+In that case we would need output of 'sudo dmidecode' to be able to add the
+DMI strings.
