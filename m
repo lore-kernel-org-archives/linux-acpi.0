@@ -1,92 +1,47 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794245322;
-	b=37r7/e89T/tpEBaq0jnlKKrqkxdmgK8u/6BhbkFcf+vWlgBjSxQSF5WIvbE1fuGjzEfQ
-	 j/2+WYXSwXJUTf5ShVKt5xgUtKWE6AtgEz/y3bZF8wNHOGOOitLYUE0M/fuhfVsM1JgzH
-	 07b7kOB+PbGDYthQfq7GjH1tmbvTVoZA3b/vM72r9URxO/l8Q0738U+0/2M17xb3drkDP
-	 aLpDgfgqnGGZozyxmclrQjHenPeyqjkddZdMTrBIxmREyDuoxJWGMsK/SKu2GIRFW076W
-	 VHnHqZVnwNqPzCrOFZH8RQyJxvjv5WtnQRFv0k/MQ03mJDYU46Ax31eKXPQtgTQX7dA==
+	t=1794245998;
+	b=fbUeAmZAiEyIVceHPEgEI9vsfpsSlQuZX9iBpYTwp8qZ/N7V54gIXe+uq4/XPd9W7NMY
+	 11CE6rgRF19VInbKeWwX5CEWcOFIVOJFakvLGdUSFrJidIClzvGpBfNOWuWQu6+GPtorq
+	 JjfHYb2ged9bCuWZUUlHtnM1BgpIF87IhdQZCuVS6g02MvveURqimhBCoGAOVIUHTIqd7
+	 wUrMoMCuQpNchfGC1XmoCe/tfkLJ+b25IbnYm0X8NSgj6ZtDa5COapWW2KlbndHM1IvPK
+	 7N3ceTiaQXS1j67T/Zo+Iio6PlxTpIRaxLCn5bpL6HxG5KCziOqiWIL3l98447FS36g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794245322;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To:Organization;
-	bh=qRjzt/bH5jDngzJr4W8d1d/oZfLkUy/oU6+unqf5Pk4=;
-	b=SWmj8afr7Fe5sOpb45pmYAjB1UY0eZhowzRzF7778AteP7rgvo/z6Gngc180lobvOj8J
-	 fk8otKB/5rABFAuuf7nAr3v5i0c6NOkLDU9MxNZlYGITrQQ/ZPssrpznS35mKfnF+mf+T
-	 zxDuRKfpgJ2GoduLrOhxgI6k680EB8o99qE7rUqaNqxZsoU0LdQqB1LjhbG7D+lTz9Vk8
-	 Iz7fylDqyEYWbtABjrEMqkCrusKjcFv8BayazTn6JG7nnQ07nPxm6c3eAImpXHastxs5o
-	 Xg8m2kf2wKKbSmCtwHntPRABBWcYLqCA0XZZzRQU1dg0rgv6fXc045XZNp5vcY8+FaQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794245998;
+	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:Content-Language:To:Cc:References:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=o5Udb0XWqFBLDvZNe6CnQotNEj65tbZoPfPX1A5XjZQ=;
+	b=X77SC5PWyxVncsktC8zokMfiC5Kn/3GK+5LhyWQ37aJ6AH87DRjkgLURgAZQ7iu6hTRw
+	 Z0I7TaC684ShSUSu/huQ/wV9eV4xKS+7Hr0SVs3dbDrZqarL4aPoNiQFHBfRdi9C5zeFp
+	 mMIlAcy12aX4VFyv2vIKTubbK5CaMZ7HRbpg+kADtNnoiH9GHxrbcuHjbaq2jwai3KdCF
+	 rWnJGm+Ord7+fjifuGnqEL52uLxz5ojvYWIDOzOA3EAoRvsvYiHvPCaVv23sJU6Nd8qBO
+	 p3gD2cHGwM228XqKgO4lGaWqyf9BYw/0uj+KefxxYJ5uTEZkl6atKnvjkzGoveufcIg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=PjfNukQx;
-	arc=none smtp.remote-ip=192.198.163.15
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mcZce49I;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAE5F606A330;
-	Mon,  9 Nov 2026 17:28:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BAE5F606A330
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6031606A32A;
+	Mon,  9 Nov 2026 17:39:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=PjfNukQx
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794245322; x=1825781322;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=ar1TVtAm+rvGquAEzkco4mRBe7I0DyfasS/JM+grgNc=;
-  b=PjfNukQxbqA3dtIT/h64Gv6izhyVEfhLKz5J/Ei27qEpKK2pZAvOXFkj
-   ww4tdn163l0DtTeOISBiLN7V22nQfl8juvb1ek5ONlbxXqUyaY9div7bJ
-   V5I4V7KUDjqieU+480r67PGPsIChzxbl6bsOdUshye9VtfWpyhqtnZ1Fi
-   Sr2HuJwHB5M52RE+Rb19+X3AckITUDAeOlu+fdZ1P8Gb6Q0SGCSwe/n1x
-   dS1hkFBY9Ent+sHM68syZ546qLLMRZ/4xLgFdz0RaiiTih7O5mEUlpWpq
-   HB0jUZeTUT5Mx2ij6/NbFvqzTdRSNvk9OBuTQjoPueUnZE+bE5+AY6RD5
-   w==;
-X-CSE-ConnectionGUID: kQULd7oLTjmchRuVTUZwBA==
-X-CSE-MsgGUID: 428/Vel6Qu2Nui9WYPJDYA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11961"; a="2970916"
-X-IronPort-AV: E=Sophos;i="6.27,204,1787036400"; 
-   d="scan'208";a="2970916"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2026 09:28:41 -0800
-X-CSE-ConnectionGUID: VdCIUz+9TlyfdNc/xxFYmA==
-X-CSE-MsgGUID: ucYIODM9ShSeTtbSAloFqw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,204,1787036400"; 
-   d="scan'208";a="8069574"
-Received: from amilburn-desk.amilburn-desk (HELO localhost) ([10.245.244.144])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2026 09:28:36 -0800
-Date: Mon, 9 Nov 2026 19:28:33 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <brgl@kernel.org>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
-	Hans Verkuil <hverkuil@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kees Cook <kees@kernel.org>, Andy Shevchenko <andy@kernel.org>,
-	Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Linus Walleij <linusw@kernel.org>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
-	linux-hardening@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-gpio@vger.kernel.org
-Subject: Re: [PATCH 5/9] of: property: implement the .property_get_names()
- fwnode operation
-Message-ID: <avICwdxyi-W1Y3PD@ashevche-desk.local>
-References: <20261104-fwnode-for-each-prop-v1-0-6e28fe1c72c4@oss.qualcomm.com>
- <20261104-fwnode-for-each-prop-v1-5-6e28fe1c72c4@oss.qualcomm.com>
- <auuhy40x1BMoW96-@ashevche-desk.local>
- <7sfr4ljlwbehal3or4dmy5jxbjz6ya2lf3dq3yptr54wym5tea@eqaexflmocih>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mcZce49I
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 960C91F008A2;
+	Mon,  9 Nov 2026 17:39:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794245997;
+	bh=o5Udb0XWqFBLDvZNe6CnQotNEj65tbZoPfPX1A5XjZQ=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=mcZce49IknFj31vX4Xra8sKoPHS+KWe0CPypUVmYctDDPIfVyg6WGQcd567XIWafz
+	 pMQ9dKpJaRrXQD963nd+n9G4wzQvQ5zo6pjrlqeo2Hxgv3xz4lDTl1KiY0bOBqyxO0
+	 LYfUjeFGfIQDHcHQ+IIlVIQTp853nXxRlMN21vRlTUCV30+txQ8Vq5UPXsRU8KQ+5s
+	 DTDYNnOuCb0olwpTj7dJlsJVwhMkWxSR+sNphtL7PH+Tvl/C7nIXCo9C8Mx6zU1UiY
+	 C0DFl2Jw5PkhzuZZ0S2kI75jZqTfg7RLumyIOs/BsmlaKnhmW1bmsxl6tWoc0b7Ife
+	 wGMkuTnUaP1gQ==
+Message-ID: <34c23beb-88d5-4456-b84f-f00e31578468@kernel.org>
+Date: Mon, 9 Nov 2026 11:39:54 -0600
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -96,51 +51,48 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7sfr4ljlwbehal3or4dmy5jxbjz6ya2lf3dq3yptr54wym5tea@eqaexflmocih>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 0/4] Make platform profiles firmware independent
+Content-Language: en-US
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
+ Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+ Randy Dunlap <rdunlap@infradead.org>, Viresh Kumar
+ <viresh.kumar@linaro.org>, Hans de Goede <hansg@kernel.org>,
+ =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+ Maximilian Luz <luzmaximilian@gmail.com>,
+ Shyam Sundar S K <Shyam-sundar.S-k@amd.com>,
+ Mark Pearson <mpearson-lenovo@squebb.ca>,
+ "Derek J. Clark" <derekjohn.clark@gmail.com>,
+ Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>,
+ Lukasz Luba <lukasz.luba@arm.com>, Armin Wolf <W_Armin@gmx.de>,
+ Jai Luthra <jai.luthra@ideasonboard.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Jack Wu <jackbb_wu@compal.com>, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org
+References: <20261024223501.1420953-1-daniel.lezcano@oss.qualcomm.com>
+ <ed4aac63-ac58-4e2a-ae45-ebf4da158228@oss.qualcomm.com>
+ <CAJZ5v0gGeKEqMWvP3cQrXztZt-faFZJF+yNfygcBPT57f-a8Lw@mail.gmail.com>
+From: Mario Limonciello <superm1@kernel.org>
+In-Reply-To: <CAJZ5v0gGeKEqMWvP3cQrXztZt-faFZJF+yNfygcBPT57f-a8Lw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Mon, Nov 09, 2026 at 02:07:46PM +0100, Bartosz Golaszewski wrote:
-> On Wed, Nov 04, 2026 at 11:21:15PM +0200, Andy Shevchenko wrote:
-> > On Wed, Nov 04, 2026 at 03:03:47PM +0100, Bartosz Golaszewski wrote:
-
-...
-
-> > > +	for_each_property_of_node(node, prop)
-> > > +		count++;
-> > 
-> > Hmm... Don't we have a helper for that already?
+On 11/9/26 10:46, Rafael J. Wysocki (Intel) wrote:
+> On Mon, Nov 9, 2026 at 5:37 PM Daniel Lezcano
+> <daniel.lezcano@oss.qualcomm.com> wrote:
+>>
+>>
+>> Hi,
+>>
+>> sashiko validated this series
+>>
+>> Is there any other comments for these changes I should take care of ?
 > 
-> I haven't found one. Though I'm thinking that maybe
-> fwnode_property_get_names() with props == NULL could serve that purpose?
-> Possibly wrapped in a static inline fwnode_property_count()? Would
-> anyone use it though?
-
-I haven't found any users for this. Most of the current ones of
-for_each_property_of_node() are filtering by property name.
-
-...
-
-> > > +		names[i] = kstrdup(prop->name, GFP_KERNEL);
-> > 
-> > Can property be statically defined somewhere? We might want to also optimize
-> > these duplications with const variant (here or elsewhere, for fwnode generic
-> > path, I believe).
+> I'd love to see some feedback from someone having a vested interest in
+> this interface.  Mario?  Mark?
 > 
-> Please rephrase because I'm not quite following what you're saying.
+I am onboard with the new approach.
 
-Can prop->name come from something that is declared as
-
-static const ... foo = {
-	... .name = "bar";
-};
-
-?
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>
