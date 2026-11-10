@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794332571;
-	b=APEWuncwoH09nZbLe9Swz/v2SOjbejA/u60ZOKHpPpa0Au9BKM4z2GOb0MKa63csEd5y
-	 QTUCwNqylBnvvgUQCONNMJZkZIJdEHxvx0wYNnTMJB7PRVeakjI+IrHrEZ8ETdySpa7Mq
-	 c+Kkp3y6KhCOjE0a+UVUf5X3HNprD4X1g9BmEM2VTnIy+ejjCmdMa1SqTz4tXlqs2KG8K
-	 jeGxrSomseGFhmfeHoYQm498XK3lkXDI/YtvxyYPnLYm1GfZgfmseSisbqlAWQB6Msif2
-	 0JTYT2Ru/bp4ku0ILHNbFuGhfzVni9VWBnKcv36rpdtOQKyL7r5uQvVYugce1nem8OA==
+	t=1794333292;
+	b=nr3SxBoLG1eNfM0g6UOUwkSoH5kh8PSJY5ASmUHiKjVSze+YdVZSy0PojgRPAmKkTZsc
+	 HDM9yHh6dzbD09yMRLKMmHQUUf6pqRVtKOWE6Y26E+zcnpDvZX/jF0r0TPbKMWVEnjwbl
+	 wnNzrQeZ3vkIau8WyK7nDAsyC7FG8/aQ7vIPfqx3Xp250Q74jtgUYgKSvh07K8T53sO1E
+	 U4goPAz82pbU60NLjNpGPyn8eINzOJ4gotJ0TNPKgXhBmhWlWZmGepyn5MogLe9w83cDm
+	 3PCxcl4a1KVx6zN5gsmNbNo2wJ+Z4O/4gVuNey4o1NJ1gFaMzk2g/X+jDOcDHThTNuQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794332571;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794333292;
 	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
 	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
 	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=WJ2VhX1zIunziDo8+1yMjNUGG0cVlFTY9J5xCG4anBY=;
-	b=nT+pqosZoi9ZIDXekaY288VBvoYT1+FHGdViL2xf91AdlVYg6EhYUP2AbNY7ZSdA3t5k
-	 GZ8pnTKqSWzaAZzIatRPlaNDjS1Y4YQyD3gsElLJFnIRKVgXCKRofxF/mzhbJXxIhHqxs
-	 TlWN1Hd8ZgBqGcpoi9K/B6+p4wg9NgKzaRhH2TkJkepX/Vmffsusj9xR0C39hc8Y82bvU
-	 /MEpp9CiYS7sxyVFgBvGT4oTY94w7NaVGHWHy6+3tQzZXnmcTh8pXEdkEDHTNWtJqTO8M
-	 LKv57Tee11pVi//d0jHV3e87JktPeg21uV3nx4BRWtrGZCL1MODaSIkwfP2Ch80jJkg==
+	bh=zP8fZhrxg38D3pFbn2ZYa3+X1FsyIW75yZtjJDJNluE=;
+	b=q8jY5dPHGeB8HbO1DrZnuzbmN+pBa0g1JKoiIOTysLWps9oCZVB5rfhIVglppFP7M4rq
+	 /pYZVV/nRmYRlLKGG40tKG4HBxj4aiqXh80m9kBjrUJv0YBUlbE4TVTxKqt06X6Fc34D4
+	 tNsC1JQrO78ZL23DQC/hiQRIkxUsAlwXXWNT8dwee3H+TpqJSdBad/fd0h/WQ4KdPZf0b
+	 I8vHVK4IWkpPKwuTdmF95yja3+w6lAmRY8GsL2WyyVZuzB2zmkRa+ylrRtcSv+rnC9aVT
+	 3ekD/3B8y1YQuD1L9ntPKofiu27Ox0MQqmQW7YEpT4Ppy4XGkRSneCsSeTtLZ4c2QRg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Rrs1g4bI;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LezZI98t;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B9D560A2612
-	for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 17:42:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CC24606B402
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 17:54:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Rrs1g4bI
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27EE81F008A6
-	for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 17:42:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LezZI98t
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5170A1F008A3
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 17:54:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794332571;
-	bh=WJ2VhX1zIunziDo8+1yMjNUGG0cVlFTY9J5xCG4anBY=;
+	s=k20260515; t=1794333292;
+	bh=zP8fZhrxg38D3pFbn2ZYa3+X1FsyIW75yZtjJDJNluE=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=Rrs1g4bI3bealFFCrTKGzgW7nULJYNNq0U8n1ryvUN1UTexowUObEe4GzxWkm0SVc
-	 bax9c4VqNOuEFa5aCuIQGmbq0iwqZmNUIXBpc90R5VJ0fHsKlZl3na6po4egT9VG7D
-	 jtlhGQhkLMDEX0jg1gynA1aA7kFPMbeeR1DaSii57Ixd+aeAvRgN/mkorgUsybNxHP
-	 xNAaNSJU4BMfro1OFEf9Z6vET8jPzpijibNpWVc/4zw+DFeeGZRc1wi3wX4sT9251/
-	 vVKENhp0EPpTtxUtfH5VVaUXMTig6S6wNV21t/BtY/aA8tQu0NxOM5nEqZ2zMM493i
-	 lKxn8PQ7h4sgQ==
-Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-3acff56a300so20810501fa.2
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 09:42:51 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErHzuqlBJEkYezUpwdACgyHuNvwzV8VlXrqbjZ7086h31u17mvAls3wqC/8XpdDwb9bDCe3FaFsNfMrJ@vger.kernel.org
-X-Gm-Message-State: APuU4Z9qOlk369mkucf2dxNTrNMKzSxAb8Fd6vienuI9gVVudkGn4nzd
-	9fLFJ8GcqPQ+X1ANQcfl4543CXvn7C1FqNr7VlIAWBlhWUvlywfFemkc/Xd1PkGyXjEladAlzLe
-	2NDKqqQwKtV46HsTtDfOAz0NJjS0RrUg=
-X-Received: by 2002:a05:651c:2110:b0:3ac:f258:6191 with SMTP id
- 38308e7fff4ca-3ae0964afcemr8335641fa.23.1794332569598; Tue, 10 Nov 2026
- 09:42:49 -0800 (PST)
+	b=LezZI98tbPwmX7d/tmK6BKDrV6DLNiycu1iZ6LfFbbo/9IO776NupBdnknIhOWVgU
+	 JEtOjNSrDl7GREUDKDOPmDnXwtRKuj+moEnyO0w8glM7uflfO7cMIUNNjwIYiEZBhP
+	 6oOWz0+tKQHzVcKpgIScFteJjuee0uSc0mGV/J8Ef9ITwAAZNXb4EUiYmow02SxdU/
+	 uCHUShtJZ718/AhB1/oxv0XEfPmlLhbcM5n9nMpvqHvH1WNyiIn9HquADHpMup2lI7
+	 RI+JdBEV/Fha4qYEUANBvYmo6C66c9cGICdF60gWTcQFNprEtCCX+5kTYtP/EJ3nRx
+	 wMs4O+ZYNl+aw==
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5c15956ce07so665296e87.0
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 09:54:52 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErE4/Ci4Tc1UCJociRb91Skq1Yantc7OdPyharUGF7CLsSBHLIIC+IKOAyuLUvIFXmngFIr4VNSwWdhW@vger.kernel.org
+X-Gm-Message-State: APuU4Z922Fx7+sHCBd526pN9GGeIt4y6O6Rc4eOyVVxEnr6msbZH7hcv
+	+GK3/+vcy+m2mJJ5gR+YUankODGT2Uukyybm+5bMwFKAEc2CMMKewXO5EGj7Sp+9dY6sHRTzAZW
+	MSUth3FVtTPdogUk4ez9A2hMW1qi9l/s=
+X-Received: by 2002:a05:6512:3412:b0:5c0:b5f9:2f2a with SMTP id
+ 2adb3069b0e04-5c15c7faf64mr95400e87.13.1794333290746; Tue, 10 Nov 2026
+ 09:54:50 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,94 +59,85 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261103114143.75756-1-k.chen@smail.nju.edu.cn>
-In-Reply-To: <20261103114143.75756-1-k.chen@smail.nju.edu.cn>
+References: <20261107-0d0c29e10a-acpi-configfs-1@mail.sdu.edu.cn>
+In-Reply-To: <20261107-0d0c29e10a-acpi-configfs-1@mail.sdu.edu.cn>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 10 Nov 2026 18:42:36 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0huO=PGM60O=e-SmVdGpevFH0JWXb4vaVNAiJL-9wOUPQ@mail.gmail.com>
-X-Gm-Features: AclHuK8Vk8YduiLbbVx_kyTD4Z9jZoc1RuwBnQppkz7Vu3gLKg-vqQlNv_eOdGY
-Message-ID: <CAJZ5v0huO=PGM60O=e-SmVdGpevFH0JWXb4vaVNAiJL-9wOUPQ@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: property: verify nested _DSD packages
-To: Kang Chen <k.chen@smail.nju.edu.cn>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Josh Triplett <josh@joshtriplett.org>, Hanjun Guo <guohanjun@huawei.com>, 
-	Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Tue, 10 Nov 2026 18:54:38 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0iN+GTaSs3G=Kbq0u6FCh_eVX2K2W1zCnjM2fNUCTfpmw@mail.gmail.com>
+X-Gm-Features: AclHuK8TooCU38iQ53MAGHHLcecMhnYdHtStqZsVlht5Lfzj1Xnxt_2S48imf44
+Message-ID: <CAJZ5v0iN+GTaSs3G=Kbq0u6FCh_eVX2K2W1zCnjM2fNUCTfpmw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: configfs: Fix potential table item leak on removal
+To: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 3, 2026 at 12:42=E2=80=AFPM Kang Chen <k.chen@smail.nju.edu.cn>=
- wrote:
+On Sat, Nov 7, 2026 at 7:54=E2=80=AFAM Guangshuo Li <liguangshuo@mail.sdu.e=
+du.cn> wrote:
 >
-> acpi_properties_format_valid() and acpi_add_nondev_subnodes() inspect
-> the package.count of nested elements before checking that those
-> elements actually are packages.  In union acpi_object, count aliases
-> the length of a string or buffer, so a Buffer(2) or String(2) element
-> passes the two-element test and the following elements[0]/elements[1]
-> accesses read past the small allocation.  In the non-device subnode
-> path, the resulting string pointer can reach acpi_get_handle().
+> The table item type has no release callback, so dropping its last
+> configfs reference never frees the allocated struct acpi_table.
 >
-> Test for ACPI_TYPE_PACKAGE before using package.count in both
-> functions.  Also require an even number of entries in the _DSD package
-> before reading paired GUID/link elements.
+> Add a release callback and only unload items that have a table.
+> Keep the AML buffer alive: ACPICA retains installed tables after
+> unload and requires the caller's buffer to remain valid for reload.
 >
-> Fixes: ffdcd955c307 ("ACPI: Add support for device specific properties")
-> Fixes: 99db5ff7fe0b ("ACPI / property: Hierarchical properties support up=
-date")
-> Signed-off-by: Kang Chen <k.chen@smail.nju.edu.cn>
+> This issue was found by our static analysis tool under development.
+>
+> Fixes: 612bd01fc6e0 ("ACPI: add support for loading SSDTs via configfs")
+> Signed-off-by: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
+> ---
+> Validation: Changed-object compilation passed with W=3D1 in the recorded
+> configuration. No hardware/kernel runtime test or full linked-kernel
+> build.
+> OpenAI Codex assisted with source review, patch implementation and
+> commit-message drafting. The submitter has reviewed the changes.
+>
+>  drivers/acpi/acpi_configfs.c | 16 +++++++++++++++-
+>  1 file changed, 15 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/acpi_configfs.c b/drivers/acpi/acpi_configfs.c
+> index 6071699c7165..89ef17d5d5a5 100644
+> --- a/drivers/acpi/acpi_configfs.c
+> +++ b/drivers/acpi/acpi_configfs.c
+> @@ -199,8 +199,21 @@ static struct configfs_attribute *acpi_table_attrs[]=
+ =3D {
+>         NULL,
+>  };
+>
+> +static void acpi_table_release(struct config_item *cfg)
+> +{
+> +       struct acpi_table *table =3D container_of(cfg, struct acpi_table,=
+ cfg);
+> +
+> +       /* ACPICA retains the table buffer for possible reload after unlo=
+ad. */
+> +       kfree(table);
+> +}
+> +
+> +static const struct configfs_item_operations acpi_table_item_ops =3D {
+> +       .release =3D acpi_table_release,
+> +};
+> +
+>  static const struct config_item_type acpi_table_type =3D {
+>         .ct_owner =3D THIS_MODULE,
+> +       .ct_item_ops =3D &acpi_table_item_ops,
+>         .ct_bin_attrs =3D acpi_table_bin_attrs,
+>         .ct_attrs =3D acpi_table_attrs,
+>  };
+> @@ -224,7 +237,8 @@ static void acpi_table_drop_item(struct config_group =
+*group,
+>         struct acpi_table *table =3D container_of(cfg, struct acpi_table,=
+ cfg);
+>
+>         pr_debug("Host-directed Dynamic ACPI Table Unload\n");
+> -       acpi_unload_table(table->index);
+> +       if (table->header)
+> +               acpi_unload_table(table->index);
+>         config_item_put(cfg);
+>  }
+>
+>
 
 Applied as 7.5 material, thanks!
-
-> ---
->  drivers/acpi/property.c | 13 +++++++++----
->  1 file changed, 9 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index 8ee5a1f0eb48..f5e0dc87edde 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -194,7 +194,8 @@ static bool acpi_add_nondev_subnodes(acpi_handle scop=
-e,
->
->                 link =3D &links->package.elements[i];
->                 /* Only two elements allowed. */
-> -               if (link->package.count !=3D 2)
-> +               if (link->type !=3D ACPI_TYPE_PACKAGE ||
-> +                   link->package.count !=3D 2)
->                         continue;
->
->                 /* The first one (the key) must be a string. */
-> @@ -262,6 +263,9 @@ static bool acpi_enumerate_nondev_subnodes(acpi_handl=
-e scope,
->         int i;
->
->         /* Look for the ACPI data subnodes GUID. */
-> +       if (desc->package.count % 2)
-> +               return false;
-> +
->         for (i =3D 0; i < desc->package.count; i +=3D 2) {
->                 const union acpi_object *guid;
->                 union acpi_object *links;
-> @@ -331,9 +335,10 @@ static bool acpi_properties_format_valid(const union=
- acpi_object *properties)
->                  * Only two elements allowed, the first one must be a str=
-ing and
->                  * the second one has to satisfy certain conditions.
->                  */
-> -               if (property->package.count !=3D 2
-> -                   || property->package.elements[0].type !=3D ACPI_TYPE_=
-STRING
-> -                   || !acpi_property_value_ok(&property->package.element=
-s[1]))
-> +               if (property->type !=3D ACPI_TYPE_PACKAGE ||
-> +                   property->package.count !=3D 2 ||
-> +                   property->package.elements[0].type !=3D ACPI_TYPE_STR=
-ING ||
-> +                   !acpi_property_value_ok(&property->package.elements[1=
-]))
->                         return false;
->         }
->         return true;
-> --
-> 2.34.1
->
