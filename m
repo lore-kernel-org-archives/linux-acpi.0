@@ -1,67 +1,102 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794307674;
-	b=Mms9nhuyyz+yog4L9eLj4BCljzQtWzlYp/BQIO9dBf5Nk5Ofk9WxBSYFAJ2inZJ2ixLc
-	 Ba+1ScTMDiJO9oWIxjdt/uhvEuMNyJd3MTMG9Ia39iqoy3aJREESNgvQQF+2GQqCmqIv/
-	 B+Zo85/mpW8v40aqGN25Zz8WLrssOHxaSVKZXQkumBjlJFgJ2aTcMgzYnORhSdZQIv/2d
-	 cSx26YWhs05JyjLYZYHhwn/DMGrBZFlBl2CIjIJAUwoq0UWQE3qS9QqVI0QBbyDxJaN94
-	 uINr7Au8fLJgCK9m28D1HQgu8buGA5LHj00UGPV/dehZIp7s5WYrJVDZZ0GGmkmN8RQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794307674;
-	h=Received:DKIM-Signature:Received:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=ZWIVM6tG5A2WF1SayFxe4exG8xdz+gKhA6LhjdeSoRs=;
-	b=U898BVd8K+bh8xRXs3ujq3nJZA77WmTMesN4XYSubeDGFzdblZ5LrGT411WxPTw9wXlR
-	 DhtkuqlIL+bsJ1/BO0dMqrSNduUA4DyhGDIoIppdPmKXWkbo4SHEiFpq8kZ0swDE42Zm2
-	 6VEhgTbBgin1fJgK4EB45TJNp7zXYbPyUaXOl/+D46fHo0rT47bRkKRDtcFgi0C0ZEHDx
-	 vlwA1RzeoJCgP0yTbe7jz8Iuky6oDvgh4OLXlu5z9rnHIcJMHst4s9cwl2gxUFiTRMq7g
-	 84T9YlSVXxoQ8zVv66A+eWlW47nsUbPGU3IN8YMB+U7X+6VuAJ8DKoLQojzoWpqQkJA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LoA6wm8G;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.128.174
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794307951;
+	b=Io+Z6+zejtQ+foKY4uPmmCIX4DE19MizbNLkIIf7v9+5+a7FwhoG4QjP4dnd7J1+/HcB
+	 AjuCR+7effEkoLBQfLfjN2SRfhHSrkyMxmdllhpuMeewfbhXeRkKv2lN6pbcvK84P+cB8
+	 UqqK8B5zdOt1hKwpEEvZEKltvG2OT/48KH04gLH5o1MTT3Td1kb9YWxukBRkPSWbFNGxT
+	 peN0FT0Pwe3ImTNT0uuuh8gi6jZRtGB9l+rFwTp/f9iX7y4V/U3G+x1uo6/hiNSa3yZhI
+	 yKcS5kBjIvlCwqt97wLg/k7CGy/0UIc0zXSoxE9aW2UTvB+bMZ5+pwDwHYIs+rdq0Yw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794307951;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=hz1/GqxJfr5fovZK3WCpsTphS4Ees9ZlA9FefTtrxKA=;
+	b=PXTknle0Av9cPmHHBHw8ULGCMo4xaGk9UAZg2TOyHyUjMKcSUTaMptPWc/FvV96nhM08
+	 ZzybrLV9nnNnHrGkxSpwwEp28Vi1gnyQz6vVp8AXJmWRuBFxwIhVJPqhBnBXsQnXpZ+we
+	 zIu+daeOELf5eM5TjrFuHEECQY1QRAFilS1wUni/ruR5qNDQNlMZcsj+R8I04pF1PkB1q
+	 +zrkVLhDYkY/GCD7/1yn/uVB2pu+QyyvHKrikjcVZlswInCQkLWE/KUvYM8OUH21MXEVD
+	 rX6Y4C6W682veQQ9Xu6WF7jyMhjvSqJylrI5gfR5rjpuFvHIR8lkLV5ATTK3cxHR8Wg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=G2yKUg4k;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.128.174
+Received: from mail-yw1-f174.google.com (mail-yw1-f174.google.com [209.85.128.174])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 183A7606A333;
-	Tue, 10 Nov 2026 10:47:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42002606A333
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 10:52:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 42002606A333
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LoA6wm8G
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FFA51F0089F;
-	Tue, 10 Nov 2026 10:47:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794307673;
-	bh=ZWIVM6tG5A2WF1SayFxe4exG8xdz+gKhA6LhjdeSoRs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=LoA6wm8GUyWUL3HEjZWsX3/jKbn25d+HXkJZVESkJ0+AIHov+TIc12Rw4I3CwtfFi
-	 cWXpC5xrjAP8JjV5HfehbYSXFkoIlnyzwzQgcMkGP/72BOHlJyXspzTzZJz1INEmVg
-	 1MjtvDfDFrPDdLRw9WXDVx+CrjRLGeYV0X1Z00+k43MC/7dSns7J9NKa3l8e+tghi6
-	 6++3BXO05Ja/hP3nDFDOaqP1HOkapUuv2pp4myjbNaAuZLafpAtX/SHlUzyA6XN92O
-	 kBtp/f20AJOuJhn3QidohgrcKcRCUcaNSZJTfCustsoPVJVuRaDtymTP3KAxSBD1rQ
-	 JjmHWlQKpt2fQ==
-Received: from johan by xi.lan with local (Exim 4.100.1)
-	(envelope-from <johan@kernel.org>)
-	id 1xQjOJ-0000000AmhB-0u4b;
-	Tue, 10 Nov 2026 11:47:51 +0100
-Date: Tue, 10 Nov 2026 11:47:51 +0100
-From: Johan Hovold <johan@kernel.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Andi Shyti <andi.shyti@kernel.org>, driver-core@lists.linux.dev,
-	linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: Re: [PATCH v2 5/8] driver core: platform: warn on bad fwnode
- assignment
-Message-ID: <avL2Vxi7PADCNio2@hovoldconsulting.com>
-References: <20261110085125.2535508-1-johan@kernel.org>
- <20261110085125.2535508-6-johan@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=G2yKUg4k
+Received: by mail-yw1-f174.google.com with SMTP id 00721157ae682-8b308fca7c3so17389117b3.2
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 02:52:31 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794307950; cv=none;
+        d=google.com; s=arc-20260327;
+        b=WD9QBmHB+JBC+jlc99G8CdwILSr/LkXMogPFnDEATNTa8LYp7FL5TjfR1IlgSeUErd
+         lJR6qbsN2hcf9qVrCLqX9RDWBur7jf1XHGSoCDa2nViFDIgJkyX7XsiG9K9dbnc+R1XA
+         KyLTW4ZuuJKzMKfknYfWM89IaOTYakQ3y5tm01u7RFrpWjx8Obuc9e0yKbQJfrfIhCat
+         UC+wSQZ6XpNN5FApPVSug/FBrLvDe0m2zOpPHmUgg7r7EjVc4lQEgebTLoVQs8NwjktH
+         IsS7KSWRnACaICiRxEb75jlFKDIpM31247fBRduhPGku7FJmAG8xO6jnJql8d/5ky978
+         0HoQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=hz1/GqxJfr5fovZK3WCpsTphS4Ees9ZlA9FefTtrxKA=;
+        fh=VSQS4c+VcsaF404fyf3QB3QWF4HxG4aa5/bnG0HMuLE=;
+        b=GEoVQJ2UE8DABRvIstxSPPvneUbWi3SQyc5m+D5F2+TNlRKweF1nZB6r9u6aqeUad9
+         /oOTdBFECpTLKxcURsmG7lYThE1EtMiT2nNyfjETEqwwYyJ7zEZcwh22XRiK+MLkK0fG
+         m7s55v6aUyfMVOeFn9Uhb0BJqohrX+3WMBy1tV+DF9J6A9AYC9SXkelnA+uSwJprHcvZ
+         +i+UwuNfH7a9EKyiMN7SG6iNilHwyytqxkx6IyhZAiy7Lr76eHYEqKYvrHFOcQ3VaW2p
+         INTfJYwSA42dJPX9bWRm8K3CpITXFE4fHuhuR6tVfgvqdOsc02dbDyE8G4s9F32CbZIP
+         F0vQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794307950; x=1794912750; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=hz1/GqxJfr5fovZK3WCpsTphS4Ees9ZlA9FefTtrxKA=;
+        b=G2yKUg4kkkNyrAQLdA+svzeZn6bsiQXP/vEdrNCmE3xn8ePwe7ypVchrXLzPlmsfmW
+         lzJ/znIv2TTl48zXBASM/vBEzAZQnZV3IFI5K7mcP1Sn/aQJmC0Q+3u8jnETQdK+OdKT
+         UMrinFt0wmlR5B7U/Wi6+upm+BxqtF+PZgq6G7oUC/R/Rve1Wc3Qgg9fKoBY1jL0KR5y
+         wgYtSJTLX2BHOwgJdKHSOoj+wx6LNeG9PNM34mQWbkp45RbZKXP4v4JWPrUO0bsZObJ2
+         PjKKSQAC6V527ZMIejd5C4uGw2iRY5wETwfo5byFtMVf+095etPOYZnI4Z26jWNMjqMB
+         xylA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794307950; x=1794912750;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=hz1/GqxJfr5fovZK3WCpsTphS4Ees9ZlA9FefTtrxKA=;
+        b=Uc/7YbhS3ML3+ZXaAZ1LSUsnua9T/j1i815eO3TGXHmRth0rvndutedNU90Snfrtl5
+         BFAGOBZ3xMsKjIUcAHayMUrr8Rt8RLj5C12Y6nHKW+p4wcdQwWGz61hTDZ4fyOwQg4YJ
+         NZYirVt97QRXFvIbcBXCY7KJXMtn9koXdbFtefA2spIVsDdGAwvI8oWYrTQxn7Yp2uhr
+         FWh2t08FmMauMNjkLLYcqK/92rvyeVvyvw7vmAQ2/14HKObNZmHP4Xa8fIa0sJ8UfiLU
+         oIkso+QJEnwBNYvXc7tlUXSj/Y5IChksE8DQRCiXZh0+FgUtiaWFaYwwCFDlfPVubDtr
+         UAAQ==
+X-Forwarded-Encrypted: i=1; AL+hErHSuw7ZPArSU5wO++nUSDbjlEOAVxdeOYMjendLZZ9Oqq2rx1IusaTSUmkY8OLh5ThN5fRAut0CEW+h@vger.kernel.org
+X-Gm-Message-State: APuU4Z/kjwxCRGCJQ5f/ARyjAMCz5p2G4OQEJOQY7enV5/4jKcX6xLK/
+	g/LDXNCMQPP7oENQ+eLxWdzYnpeWlQLQDJB+d+QPTqwN0pMEXSV0p1q9Bvi8Jg8pSVNdNjJbAUS
+	Je1xfxxSEI57JtdVqEz7c41pSrwekoYM=
+X-Gm-Gg: AYBFou0JTn1VMfrxPYZ1gilJ22v+U7q/lmoaYspFlqnufWMqJ/4HmZ+c/EvJv8ECvxY
+	ec614ReSKMInXVvVZq5+UKepPMKL85Yoai1NqYb8NGATrpUKP1bJ0ThnevtiISRkXwW2BwyKgMO
+	Gpydsibvoy80EdU3FTkhX+vxE9wY5vdVs7TNFoXkDvUn3waBJdwmOTjpaMSxr+XQKPbNP04Psv0
+	B73L2OW3phEwG+X81pgGpixqaOyqAwcD8Ud5zZITfsw5Nd/HgcjBs1OBbrzHMbELZ0o1bjN8oF5
+	BnXuV1hGn2n9YVcG9H2jj7xGAKqWavqhdegCYzqi7MRIuvfA2XsJBB8zA+U31FIPXN0b6jKM8JP
+	hviXF7AatF9kw9Z5ksOCVsrr9R+F7nnUEITNr4WHGyq4Bqbb/hClSKvl44wConPFz67VHyTRTpk
+	RYRboYpjIzI6zFqm5zTXnrxr1pH9SNJZ6dX9oOnAQoYXTUmkHUmFgWJkuEqpThzKiHOkmhRByMi
+	iRrVZEqA34ZTQb05nZLDz6iQLN/qvr8YiIeHcd0ERmudrUxTJTOxYau3LC+Xg==
+X-Received: by 2002:a05:690c:4804:b0:8b3:4022:d81b with SMTP id
+ 00721157ae682-8b39281e93amr14763687b3.4.1794307950215; Tue, 10 Nov 2026
+ 02:52:30 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -71,56 +106,79 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261110085125.2535508-6-johan@kernel.org>
+References: <20261104-fwnode-for-each-prop-v1-0-6e28fe1c72c4@oss.qualcomm.com>
+ <20261104-fwnode-for-each-prop-v1-5-6e28fe1c72c4@oss.qualcomm.com>
+ <auuhy40x1BMoW96-@ashevche-desk.local> <7sfr4ljlwbehal3or4dmy5jxbjz6ya2lf3dq3yptr54wym5tea@eqaexflmocih>
+ <avICwdxyi-W1Y3PD@ashevche-desk.local> <ab73ez55exen3ew52svsxfinwsuatppdodu2e2zp6izjwwqwwu@2imxzxwclgtl>
+ <CAHp75VcwiGHB73ny8iSvXeFdjbTKUpnXZPS5iD7NwaMcJ6q-7A@mail.gmail.com> <l7ppjeoqvc6hblk52a6upei4ee2caahe2ltiur4gwig3ez7d3c@dmzzy22ixvlc>
+In-Reply-To: <l7ppjeoqvc6hblk52a6upei4ee2caahe2ltiur4gwig3ez7d3c@dmzzy22ixvlc>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Date: Tue, 10 Nov 2026 12:51:53 +0200
+X-Gm-Features: AclHuK_OONOCVTyFsjjRyXe2igkmpzvumbiGAvSGjLyAIyl_gOSbE4gZk1U_Cc4
+Message-ID: <CAHp75VdZpqt8PzVypQ85U1OjxszXOmCP9MKv3ozQOh-UVFnR-w@mail.gmail.com>
+Subject: Re: [PATCH 5/9] of: property: implement the .property_get_names()
+ fwnode operation
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>, Hans Verkuil <hverkuil@kernel.org>, 
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Kees Cook <kees@kernel.org>, 
+	Andy Shevchenko <andy@kernel.org>, Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Saravana Kannan <saravanak@kernel.org>, Linus Walleij <linusw@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
+	linux-hardening@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-gpio@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 10, 2026 at 09:51:21AM +0100, Johan Hovold wrote:
-> Commit e6054f410c97 ("driver core: platform: amend the API contract for
-> fwnode setters") added a warning to platform_device_set_fwnode() in case
-> the current firmware node pointer points to a software node as that may
-> prevent software_node_notify_remove() from being called.
-> 
-> This is only an issue if the platform device has been registered however
-> as software_node_notify() is only called for registered devices. A
-> bigger issue is that a secondary firmware node assigned before the call
-> may be silently lost (and leaked in case of software nodes) as these
-> helpers do not use set_primary_fwnode().
-> 
-> Replace the current software node check with a warning in case the
-> device already has a primary or secondary firmware node assigned to
-> catch any (hard-to-debug) issues due to a secondary node being assigned
-> before the call.
-> 
-> Note that this also avoids making claims about the device firmware node
-> pointing to the primary firmware node, which is not the case when the
-> device only has a secondary node.
-> 
-> Fixes: e6054f410c97 ("driver core: platform: amend the API contract for fwnode setters")
-> Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-> Signed-off-by: Johan Hovold <johan@kernel.org>
-> ---
->  drivers/base/platform.c | 24 +++++++++++-------------
->  1 file changed, 11 insertions(+), 13 deletions(-)
+On Tue, Nov 10, 2026 at 11:50=E2=80=AFAM Bartosz Golaszewski <brgl@kernel.o=
+rg> wrote:
+> On Tue, Nov 10, 2026 at 11:12:02AM +0200, Andy Shevchenko wrote:
+> > On Tue, Nov 10, 2026 at 11:00=E2=80=AFAM Bartosz Golaszewski <brgl@kern=
+el.org> wrote:
+> > > On Mon, Nov 09, 2026 at 07:28:33PM +0200, Andy Shevchenko wrote:
+> > > > On Mon, Nov 09, 2026 at 02:07:46PM +0100, Bartosz Golaszewski wrote=
+:
+> > > > > On Wed, Nov 04, 2026 at 11:21:15PM +0200, Andy Shevchenko wrote:
+> > > > > > On Wed, Nov 04, 2026 at 03:03:47PM +0100, Bartosz Golaszewski w=
+rote:
 
->  void platform_device_set_fwnode(struct platform_device *pdev,
->  				struct fwnode_handle *fwnode)
->  {
->  	/*
-> -	 * If we call this function for a platform device whose primary
-> -	 * firmware node is a software node, we'll never end up calling the
-> -	 * symmetric software_node_notify_remove(). There are no users for this
-> -	 * right now in the tree so just disallow it.
-> +	 * A secondary firmware node may be lost as set_primary_fwnode() is
-> +	 * not used here, warn for now if a node has already been set.
->  	 */
-> -	WARN_ON(is_software_node(dev_fwnode(&pdev->dev)));
-> +	WARN_ON(dev_fwnode(&pdev->dev));
+...
 
-Sashiko points out that this may trigger a warning on probe deferral in
-an ASoC driver due to a new user of platform_device_set_of_node()
-currently in linux-next.
+> > > PS: is there a way of using match_string() with non-const data?
+> >
+> > Why? It's an input parameter, it returns an index. Whatever you
+> > provide will be not modified.
 
-Will revisit.
 
-Johan
+> What I mean is that the following change
+
+> +               ret =3D match_string(merged, n1, sec_props.array[i]);
+> +               if (ret >=3D n1) {
+>                         merged[count++] =3D sec_props.array[i];
+>                         sec_props.array[i] =3D NULL;
+>                 }
+>
+> Results in:
+
+> drivers/base/property.c: In function =E2=80=98fwnode_property_get_names=
+=E2=80=99:
+> drivers/base/property.c:607:36: error: passing argument 1 of =E2=80=98mat=
+ch_string=E2=80=99 from incompatible pointer type [-Wincompatible-pointer-t=
+ypes]
+
+> And I don't see a good way of working around it without doing:
+>
+>         match_string((const char *const)merged, n1, sec_props.array[i]));
+>
+> which is ugly.
+
+Ah, got it! But why is the "merges" char ** and not char * const *? I
+believe that will fix the issue.
+
+--=20
+With Best Regards,
+Andy Shevchenko
