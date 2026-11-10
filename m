@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794300728;
-	b=P3WGMPgNZEcgGBqm0S88DFs+BxdI5Mxdj4GP21pPj98IoWAZltBSdvvtQiWrDPwmtzVJ
-	 oHmNwoqhATeq3hpn2iqPdvFagydL9iVTBDyzwy1K+SVxt0rte1eYjZJzh67n29Oz2LWx3
-	 83piI5fu/L1aOaH8om33c8QTQ3Q27FUOkvYU9wvds41dLE+f++oG1TWu8LwHhqQm93doW
-	 fMHh7DXH8qztUBZjJHtNMIBCFRIh6QRtmGjS4AYszXlP0PLwo/xILoo5o1BtnxQbD0LUR
-	 vINXqAVWQePPHlJnchcneZOj6CJpLGiEBJ73/fSplNeRjistoxYJ9GecrwlgsglQNkQ==
+	b=0529ESlXbk8FJhreSC+1N3GXKtay8qkNajsqcGL6lhtR+Edqt4h65Xe1B4KBj9iU9z5u
+	 8Y2oIjGyYcgFL4U3jsfZuwZxUax7eZoYxzQD6F9fLpBc0e9RUy4C5uHwvXT8OvsFLIqm5
+	 faj0XmSUcUYBoeQoXxohkPilTXJUi10e7bm+cZ8b/GJhrsrjoQVDyBYo+t3SAVP3nLm+T
+	 S8J1DKsnMEfGttlRVjuPi4m11KDGSqp3OGhMZeVOCPJa96YrEngl7jNkkKYeaRQcOpCuU
+	 jP2Dj51ULbUPiV5mJJjwb/qcXNEa3gT2eyQX9PWvTsaeATAckVteuR3mkr4bLpWIWtQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794300728;
 	h=Received:DKIM-Signature:Received:From:To:Cc:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=R+e3kpbpPde9VoezRbcL7JxDyHszt965T/owVz7GYhE=;
-	b=jv5YltHoLCaB0Yoa5WAbZWYx1uhEiM9XyQG5BRbKMuicWILFDE7Wuyl++gKFcIOnx+QY
-	 YpS8K5NF1HG2n2j71EJP+bjHaFZnlp3j5No8HstK6gjH7P5haf4FASimh/JA+ExhaR6rB
-	 Z3JR6p1Hxp8Lqw9u0uPU4UrHUON/b1zQR75wlLQgW7wkpEGQMefu4xzUNB9LWSPr2RExE
-	 5UmeRtGCNwYpCQVWByP8FnXnV0C+41QcXB7GFuC3wiplkaos/5/WuLsQv7929FrZCd1co
-	 CwCjgE94x9OeotAz2VDBc1KBWB8RC7j15eUkbwK2+ws2faBz0PPdeSOy8MfbVzSZE9g==
+	bh=KPkSyWmMxgDZuWDbTvIEXPsXYBpnEBPaDZSbFviXDFY=;
+	b=eRfbUH6TpVai8AIoAZzALeV1Yknx4yyLmxWMhFR4iQs62kw9NFyIXjjFlkufdfdSgBkG
+	 +EYKuSL414hTe4wbJBFqv0+adM7EQFLxMP8U7utZs3337oiF+gTh+P0WFyXRybNaOPMMZ
+	 dnUozDPGEhNCwNxc5Y+MnojShSpOqoJ+tE3yzeVHAvkYhimJLmiBf8c6B0cUGsVxbloUO
+	 MK+zd06DEkVb2yemHhl/IRTBaplB2FiY7nbZfvwHSgIzHBPM+V2oAssfRuslq8z/X/pKT
+	 XfGXUGHcmLflS8FdeJozAquehQT18rRAoVcvVWYA7yz2ku7TRL48JD9kS3D3jQSLwNA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oenIbExN;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=areamqLr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E788606A332;
-	Tue, 10 Nov 2026 08:52:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7BAE606A33C;
+	Tue, 10 Nov 2026 08:52:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oenIbExN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 966251F008A4;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=areamqLr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B098B1F008BD;
 	Tue, 10 Nov 2026 08:52:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1794300726;
-	bh=R+e3kpbpPde9VoezRbcL7JxDyHszt965T/owVz7GYhE=;
+	bh=KPkSyWmMxgDZuWDbTvIEXPsXYBpnEBPaDZSbFviXDFY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=oenIbExNIT2iO7aDPRfI4ai6ipJqLPbC/frxda06e2Dtu0SmeDoavXbaXoaHauHVq
-	 XzA+FV7Pf/2fV0lzV/jbQjlN1kSCOesEwkXujnIH/zgWAOJRXe/JIjsmbyToxCNrHs
-	 ci39SkcHEGfEiSccwwOuirTgWg4m6VMYH8uaSUIRCKJsYj9D4haFLsP4psvN+qdsvh
-	 4cyQCPcZlyqwtdjlc52CSQpoJhdNQlSYLGo6vcoRzm0N2xwPruLuMjuSaOoezZdUvA
-	 wKO8ByrWLfr3WUwiyL7s1TGy7R3muHrxVHy0ox7lSQFZINwupCj6siu5zMCHzFxF+A
-	 L0F5EGiPJZbTw==
+	b=areamqLrr2+WLInL6xF6oO1rPJLMODIhdyXAGv3v4LFmNX4ZuJIXuibyDNp3zo6Ob
+	 +jLAsTrQ1onUhG0V9HKYx5j4wCVYpv8hK8kGZII+b2KxFQtfzcQqkQgROR8E9QQMBB
+	 rCLblL6yXni7wzejibF0vEUO3ikY8lH8PzHvn8oan8g1At1lHwUcklkFccbwP5WKhJ
+	 Pv6U6UnCGwmd9oQSrhe6st0BTtuaPXSnFPSzbxGEkbucC1rv15vgLlmcdWG/W/j0hu
+	 Qlg2DNZEioFEaSGwfh3USL0GROrKS01nT+Xy/vndLELBWqTOoMjbaIChFdubxdyCsi
+	 WOL8kiMkSjTjA==
 Received: from johan by xi.lan with local (Exim 4.100.1)
 	(envelope-from <johan@kernel.org>)
-	id 1xQhaG-0000000AdcK-0QT2;
+	id 1xQhaG-0000000AdcI-0NOh;
 	Tue, 10 Nov 2026 09:52:04 +0100
 From: Johan Hovold <johan@kernel.org>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -59,10 +59,10 @@ Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 	linux-acpi@vger.kernel.org,
 	linux-i2c@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	Xu Yang <xu.yang_2@nxp.com>
-Subject: [PATCH v2 8/8] device property: fix fwnode_get_next_child_node() comments
-Date: Tue, 10 Nov 2026 09:51:24 +0100
-Message-ID: <20261110085125.2535508-9-johan@kernel.org>
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: [PATCH v2 7/8] swnode: fix software_node_notify() primary node comment
+Date: Tue, 10 Nov 2026 09:51:23 +0100
+Message-ID: <20261110085125.2535508-8-johan@kernel.org>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261110085125.2535508-1-johan@kernel.org>
 References: <20261110085125.2535508-1-johan@kernel.org>
@@ -77,46 +77,48 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The parent pointer in fwnode_get_next_child_node() may not point to a
-primary firmware node so update the comments to reflect that.
+The firmware node pointer in struct device may point to either a primary
+or a secondary firmware node and driver core sets the dev pointer of
+that node when registering devices.
 
-While add it, fix an indefinite article in an earlier comment.
+Fix the comments in software_node_notify() and
+software_node_notify_remove() which incorrectly suggest that driver
+core only sets the dev pointer of primary firmware nodes.
 
-Fixes: 190069255582 ("device property: fix infinite loop in fwnode_for_each_child_node()")
-Cc: Xu Yang <xu.yang_2@nxp.com>
+Fixes: 37e586675993 ("software node: add fw_devlink support")
+Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 Signed-off-by: Johan Hovold <johan@kernel.org>
 ---
- drivers/base/property.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/base/swnode.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 51109794d727..32df0c6724ac 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -810,7 +810,7 @@ fwnode_get_next_child_node(const struct fwnode_handle *fwnode,
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index a90c20cb84e6..8e12f518e13f 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -1169,8 +1169,8 @@ void software_node_notify(struct device *dev)
+ 		return;
  
  	/*
- 	 * If this function is in a loop and the previous iteration returned
--	 * an child from fwnode->secondary, then we need to use the secondary
-+	 * a child from fwnode->secondary, then we need to use the secondary
- 	 * as parent rather than @fwnode.
+-	 * When the software node is the device's secondary firmware node,
+-	 * the core only records the owning device on the primary fwnode
++	 * When a device has both a primary and a secondary firmware node the
++	 * core only records the owning device in the primary node
+ 	 * (see device_add()). fw_devlink resolves a supplier device through
+ 	 * fwnode->dev, so without this a consumer referencing the software
+ 	 * node could never find the supplier device and would defer forever.
+@@ -1205,9 +1205,8 @@ void software_node_notify_remove(struct device *dev)
+ 	sysfs_remove_link(&dev->kobj, "software_node");
+ 
+ 	/*
+-	 * Drop the device pointer mirrored onto a secondary software node in
+-	 * software_node_notify(). For a primary software node the core owns
+-	 * fwnode->dev and clears it in device_del().
++	 * Clear any device pointer set in a secondary software node in
++	 * software_node_notify().
  	 */
- 	if (child) {
-@@ -822,12 +822,12 @@ fwnode_get_next_child_node(const struct fwnode_handle *fwnode,
- 	if (IS_ERR_OR_NULL(parent))
- 		return NULL;
- 
--	/* Try to find a child in primary fwnode */
-+	/* Try to find a child in parent */
- 	next = fwnode_call_ptr_op(parent, get_next_child_node, child);
- 	if (next)
- 		return next;
- 
--	/* When no more children in primary, continue with secondary */
-+	/* When no more children in parent, continue with any secondary */
- 	return fwnode_get_next_child_node(parent->secondary, NULL);
- }
- EXPORT_SYMBOL_GPL(fwnode_get_next_child_node);
+ 	if (!device_match_fwnode(dev, &swnode->fwnode) && swnode->fwnode.dev == dev)
+ 		swnode->fwnode.dev = NULL;
 -- 
 2.56.0
 
