@@ -1,70 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=216.40.44.15
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794328375;
-	b=Ibe0/d5v8U98ZMWBKc5cmXSUhTfro1uUdHjqjhXKhmp4Gxsh0wFCU4jjNLYyfRj2Ckd/
-	 1YROxa6STZOru0HW8w95+cADC8v5eQxwJ+/5ajoa4CtupLfD9CEudBUKs2B1o7UXhHZe2
-	 7C0L5Q3lr9VsRWjq5AhRvDOQmuIVARC++IpDpj4zsd+k8lUVs6zmZwrfR/QyQWOXPkKOZ
-	 XFl1L7e9Vxe2r1PknN8jBKKs6cQWrXstOdmlgFVzOMJeoGKB27MwtJCSMTNIYUDq7qv8z
-	 3Y8RLSt4Y8cQuXgisGexsiFL9/wxxK8y/vRq2qoY+lyImIZkaVVcft6zSDqkbhdu21A==
+	t=1794330318;
+	b=G/h++9gziW7KFoKT4k1tzT5Ljof9O4KHyGNVwdBN7/zuqijDqYBFprKpLb142jnT6lwJ
+	 fb2IAi5iQdxZbr/uOGYewy0yX+dYyErd/IiJPHXN1D5GbkQEIb1KemKZ0JiznZ0LXnDdd
+	 1xwxfVpmKTKGkGSmI9Y7YCXx4JBO8+q4rlcLWhg8RtOzYWjT+LMaQaVlm8SwxIV26T5R0
+	 /zuiVKMI1nOUVN4vL6k63V5+XqrZzTYU6SVh0ZOAAbp+I9btgMPKdAuzI4t/WdlKg5YA/
+	 XV1ia5KSUOfpuSKxo2c1k+a3l8lSiZRS3Nv95QgN2Y21kTVJQ6pEf6yrEGIHgucys5A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794328375;
-	h=DMARC-Filter:Received:Received:Message-ID:Subject:From:To:Cc:Date:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:
-	 User-Agent:MIME-Version:X-Rspamd-Server:X-Rspamd-Queue-Id:
-	 X-Stat-Signature:X-Spam-Status:X-Session-Marker:X-Session-ID:X-HE-Tag:
-	 X-HE-Meta;
-	bh=O7Jegl1jgTWHpCnkVKKRRzSGStNzjcqpAmRoYpUqNSo=;
-	b=BwSdPQ4QHmMQjx5DRDSIPZqZjsy31QO5kxHB64X24103XhQOhN1Gv8t5VLUfXgHmekK9
-	 Z8mlFja7G3laYjXC5dDMoM/uBfxU9byKkuca3QrWEgI44bCs8axVbOHCuKZV/9ysB/nLJ
-	 /aiy5Y+xvTnOIewchBBmi7hUoGFDqWxzSPAqrLPy9ty2DTcecGhLoXErpwlADRMSOlTdD
-	 ITEOFr2aEZ8qdv8NG6RuxF59Eyx1fET2tgsOCctCkj0+D+u1UEVHT6yKdJoNIBLKfQ0Re
-	 MYoZtd4d6W4BpDxWvKP3xjYN/ppd9Bzp2HGlkSspdLc0UVkuokhqngC8BTKtQIAox2g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794330318;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=uB4ZLTKdeIOszVbl3ScpQcZZ6kYQypB/7bAvtfA4px0=;
+	b=yAYVHOzUPtDgAiXJReIfTZJXOUbySHJfuK8HM8dQWYxifrwE7EiKkv+xfFssDlRz9a4B
+	 2Z1Tcyp+XXgvMfpuJKHEsqFTY1WyKr59a11Md7oXiHKMbqDZ0OyLM8781I7bYUo5Kdf0+
+	 u0aJDXEROn4gDEMkaL+odyntTa0uevtpZhtDGyss6RWE1BR+NW+3UFdBfiZ0uZjANNNGI
+	 HCSE28URTVSWJFTSzihlZtL1+REOug1yt0BMe8E7zwXRMMdrfBtpSE0jOswrJ2gYcuJNR
+	 GvYfBYWyngkkbfI24s76IWbxatRFyvLS3samxSNnTO2Y5E2lws4S6MSgg/7R9H+tfRg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=perches.com;
-	spf=pass smtp.mailfrom=perches.com;
-	arc=none smtp.remote-ip=216.40.44.15
-Received: from relay.hostedemail.com (smtprelay0015.hostedemail.com [216.40.44.15])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XpIJYiT+;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF2AC606A204;
-	Tue, 10 Nov 2026 16:32:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EF2AC606A204
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=perches.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=perches.com
-Received: from omf01.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay01.hostedemail.com (Postfix) with ESMTP id 0DD7E1C4341;
-	Tue, 10 Nov 2026 16:32:51 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: joe@perches.com) by omf01.hostedemail.com (Postfix) with ESMTPA id EE3BD60016;
-	Tue, 10 Nov 2026 16:32:41 +0000 (UTC)
-Message-ID: <64aa89daf23821f95780813fe96882ff61688578.camel@perches.com>
-Subject: Re: [PATCH v3 5/5] string: Make strprefix() const-qualifier-generic
-From: Joe Perches <joe@perches.com>
-To: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org
-Cc: Krzysztof Kozlowski <krzk@kernel.org>, "Maciej W. Rozycki"	
- <macro@orcam.me.uk>, Geert Uytterhoeven <geert@linux-m68k.org>, Andreas
- Schwab	 <schwab@linux-m68k.org>, Andy Shevchenko <andy@kernel.org>, Bartosz
- Golaszewski	 <brgl@kernel.org>, Daniel Scally <djrscally@gmail.com>, Danilo
- Krummrich	 <dakr@kernel.org>, Greg Kroah-Hartman
- <gregkh@linuxfoundation.org>, Hans Verkuil <hverkuil-cisco@xs4all.nl>,
- Heikki Krogerus <heikki.krogerus@linux.intel.com>, Johan Hovold
- <johan@kernel.org>, Kees Cook <kees@kernel.org>, Laurent Pinchart	
- <laurent.pinchart@ideasonboard.com>, Len Brown <lenb@kernel.org>, Linus
- Torvalds <torvalds@linux-foundation.org>, Linus Walleij
- <linusw@kernel.org>, Namhyung Kim	 <namhyung@kernel.org>, "Rafael J.
- Wysocki" <rafael@kernel.org>, Rob Herring	 <robh@kernel.org>, Sakari Ailus
- <sakari.ailus@linux.intel.com>, Saravana Kannan	 <saravanak@kernel.org>,
- Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi	 <zanussi@kernel.org>,
- linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-gpio@vger.kernel.org
-Date: Tue, 10 Nov 2026 08:32:41 -0800
-In-Reply-To: <35bf6672f84f07de3f40e8db9e7fcfd643894fec.1794323750.git.alx@kernel.org>
-References: <cover.1794323750.git.alx@kernel.org>
-	 <35bf6672f84f07de3f40e8db9e7fcfd643894fec.1794323750.git.alx@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.60.2 (3.60.2-3.fc44) 
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA787606A320
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 17:05:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XpIJYiT+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F7B71F008A3
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 17:05:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794330317;
+	bh=uB4ZLTKdeIOszVbl3ScpQcZZ6kYQypB/7bAvtfA4px0=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=XpIJYiT+DH6Wls6kI8zB618/xlP5iKiYSo3kgWy0vFFY4fNoab+zmqYxl2/2aCxA2
+	 xt54dX7HTI3Yn6CMIqlHPHo8yEJLA2SeKbTC42PdBtd7LHya1k2uDXAjv0InURlce4
+	 DgotbK6dFH47phW9EneVun9IOeEXl2iQQspg0gGTU2YK44C2SRz8rxDK6a/r0KleeW
+	 n20mfqHWrLA/LmRg+NJvMEtCcWZYLuY+VjbpPvq7uOiJG4SwX8KEshwThbdWhnO1r7
+	 KMe/Ue/eBPqI4J9U7xoGGNUVBJzo6+HQS/hEWFC9zsqW+/KAEkMLwJ0T0v7s6ef5MX
+	 t51HZYkYMmzNQ==
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5c148d4dbfbso2069064e87.3
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 09:05:17 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErEpIVKYm60RWmZWN+gmWg8/etNksgfIP1qUNvAMsHxKLN1skrJwVApH82a6w0yw8gEAVUg/xgDTCZGD@vger.kernel.org
+X-Gm-Message-State: APuU4Z/v6PiOuYE29mMt5GCSdBuUPxJphfNFFlsBC8Tg3Hyhp/h+Tdm7
+	5irexVDsy423hWG69vD+losPPk6+n8bTAv7+ACcV+LNBrc06btdsXGjthy2utYW5W2Ou29zCdk+
+	e/FDST6SXObHXfk9RblwZT3js49PS3mg=
+X-Received: by 2002:a05:6512:3408:b0:5c1:4a5d:6ae1 with SMTP id
+ 2adb3069b0e04-5c156e7d626mr1138550e87.14.1794330315914; Tue, 10 Nov 2026
+ 09:05:15 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -74,36 +59,56 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-Rspamd-Server: rspamout05
-X-Rspamd-Queue-Id: EE3BD60016
-X-Stat-Signature: mp8xao1qrwddju9nzuyip8mr885n8do4
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-Session-ID: U2FsdGVkX18QrhYeut7Lp9jEX7fMdRrU/x1vmS6is5s=
-X-HE-Tag: 1794328361-279135
-X-HE-Meta: U2FsdGVkX19mRZocbBpptel45dGmmyuITr1m5kU6f/MCdgw7zyp42Lt9p8rwk1AwtWwqvUuTXSrVbbpC+WZMCNQlScguvbF/fp8QvUKZy6bX5OrrWZVylJIK5F/uf/mP//94tQRpit19ctDzMHGmXyZHRUFZIahy7AXe+ttUOBAh8XiedqLFbcyMoZseYLv8KKb9P525JfTfeaipS3TohBcIVQOrwjl0q7sqJVCQkzab2gi2Y6fSCJY9aE/ycYkpvrssOELldVCYA/OT+QQagS8c/evSCjag8q9+FlL47GakQTWD6qMRb/yjUefhkQv+0cylqj9qmuN3Dgv6C1hQH070PEeodHlIUH5Xx5H14aAuv5AkhkMaKT8d8hNm0FHqaTzMXG236F+W/jDWUK48Bw==
+References: <20261030193128.19493-1-muniquefeitoz4@gmail.com>
+In-Reply-To: <20261030193128.19493-1-muniquefeitoz4@gmail.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 10 Nov 2026 18:05:02 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0hkM4POv0BYo5uDj7g5DonVx8c2jc2XVXEsBkkqCxVZRw@mail.gmail.com>
+X-Gm-Features: AclHuK-M2pQJ8zn9halWfGVBafGfe7PU_zzxvYKLCPtO2WYLRMQ1Zok4-aTVUM4
+Message-ID: <CAJZ5v0hkM4POv0BYo5uDj7g5DonVx8c2jc2XVXEsBkkqCxVZRw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: processor: idle: Add DMI quirk for HA0QING A520
+To: Munique Feitoza <muniquefeitoz4@gmail.com>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2026-11-10 at 16:33 +0100, Alejandro Colomar wrote:
-
-no commit description on proposed patch
-
-> Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Signed-off-by: Alejandro Colomar <alx@kernel.org>
+On Fri, Oct 30, 2026 at 8:31=E2=80=AFPM Munique Feitoza
+<muniquefeitoz4@gmail.com> wrote:
+>
+> On the HA0QING A520 motherboard paired with AMD Ryzen 5000 series
+> processors (such as the Ryzen 5 5500, Cezanne), entering deep ACPI
+> C-states (C2/C3 mapped to I/O ports 0x414/0x415, corresponding to
+> hardware C6) causes severe system instability, random hard freezes,
+> and memory corruption ('BUG: Bad page state' and list_del corruption
+> in page allocator / LRU paths) during idle transitions.
+>
+> Restrict max_cstate to C1 via processor_power_dmi_table for the
+> HA0QING A520 board to prevent the processor from entering broken deep
+> C-states and ensure system stability.
+>
+> Signed-off-by: Munique Feitoza <muniquefeitoz4@gmail.com>
 > ---
->  include/linux/string.h | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->=20
-> diff --git a/include/linux/string.h b/include/linux/string.h
-> index 9e59f9697c9e..55ca4cb5122c 100644
-> --- a/include/linux/string.h
-> +++ b/include/linux/string.h
-> @@ -590,7 +590,9 @@ void memcpy_and_pad(void *dest, size_t dest_len, cons=
-t void *src, size_t count,
->   * *  @s+strlen(@prefix) if @s starts with @prefix
->   * *  NULL if @s does not start with @prefix
->   */
-> -static inline char *strprefix(const char *s, const char *prefix)
-> +#define strprefix(s, pfx)  const_cast(CQChar_of(s) *, strprefix(s, pfx))
-> +
-> +static inline char *(strprefix)(const char *s, const char *prefix)
+>  drivers/acpi/processor_idle.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.=
+c
+> index e113bcbbb..49768b176 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -105,6 +105,10 @@ static const struct dmi_system_id processor_power_dm=
+i_table[] =3D {
+>           DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+>           DMI_MATCH(DMI_PRODUCT_NAME,"L8400B series Notebook PC")},
+>          (void *)1},
+> +       { set_max_cstate, "HA0QING A520", {
+> +         DMI_MATCH(DMI_BOARD_VENDOR, "HA0QING"),
+> +         DMI_MATCH(DMI_BOARD_NAME, "A520") },
+> +        (void *)1},
+>         {},
+>  };
+>
+> --
 
-Why introduce a new coding style?
+Applied as 7.5 material, thanks!
