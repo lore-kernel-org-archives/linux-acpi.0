@@ -1,55 +1,52 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=207.46.229.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794315796;
-	b=0wS+DgLWlgERt3V5FkuDshcD8UdIoe9NODli3OCdDbdjOobhXA4/mhaQ/epVDwJgEY/U
-	 4hblrkqiXnBAX//KonZtdiatKmssPmQ7eAvSxI5o/pdxm7r+rlIMghTm5Vcb5r0TFqJuF
-	 GrlmLvEwKElb3ZvLmXsiJfP7BBhJG9Y30XDHmThfc1WInNQdoW8RutLVWOqtTshZcMr+B
-	 oTUrWSZbcs7zIDbNN/jkiSLiUWLLDJQscFrCMII4kJ5N8KUUQwldAMkLeUt72ckI9fB9z
-	 8ywIdwvs2Ss4naJNgSUk/c1mu24ArcWvPZVM5cQXKlQLTbQy5wZiN5YMpQksZZ2m9PQ==
+	t=1794315938;
+	b=0k08EU5beveBFGROOaOpV45ZtXei485N0T2c2z1Zk0vxUBrcFgqla34pmLIro3+PnBLl
+	 38+Hk5PjpERGWp9E4LLxX0TU/ODUP6b4hcn3ZGnNF76wnvKgYnxc4PrTk5L/Hhb4husSo
+	 OniWSYet9mUzZLEBKLvkiEHUwpe/+DGy71VK3TPqTX0F1ugpFMISCk/AKU6XATdpALfeG
+	 JtSt3A4S/WJUlV9ng4aLxs1PDMJtvdHjy7f7J5TC1Qf2WkaqepNQAQsdwCKd/AN9gFSIJ
+	 TMVi0ISy6LF0fEJWA3X62j394G3JeTIKhcbzI4HjjvmQ49wMBVjrtoVlPa/NkD5T+nw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794315796;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=6pwwepmjTUl49OHZ5STOt5SUhTuA3dLbSUXmCL5j6f8=;
-	b=Pl8dGfI1n4FRCa8AXVvBHAZ1neNO4a1jeOcP3ucOPdSU6lOy35AYFtCaKB03NgcydDqC
-	 F4OMTPoLGauRcUrVwwy11QveVHocGd4MyBUgdkVN1lRIcPO7KYFkFE/YfrVQKyWHzX+sQ
-	 3sEG6GaBXzE1hsAWGZXCyDEI76tKqBBvCAYqXf2MlZIOYxjt5og3Kzkikx8g6UIXIGaO9
-	 DqwPxPlY6e2LJiESOD3kUrUaoO/Qmlh6y50VyxnhR68WSYfTJAKLe/WASWZe8L6RscWXS
-	 Tib4282/e6KEuJRfEuVeWyTBySUMS4a0pLnSw0r5rKuBse9d2kwai8j+fHLhRTRaR2g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794315938;
+	h=DMARC-Filter:Received:X-Originating-IP:Date:X-CM-HeaderCharset:From:
+	 To:Cc:Subject:X-Priority:X-Mailer:In-Reply-To:References:
+	 X-CM-CTRLMSGS:Content-Type:MIME-Version:Message-ID:X-Coremail-Locale:
+	 X-CM-TRANSID:X-CM-SenderInfo:X-Coremail-Antispam;
+	bh=uTzwnrjRc73wCYH8W+oc99KA8Jw3uU2G8Thk8NC3Ar4=;
+	b=34bE4GUsHteDwrsmM1SVcO9Z1S1AuM2dqNJTEDcPqdS6yaVBOPuoj6MlEG+8nYVid83Q
+	 rbjoFMdJfUqdNsw6nvBUMYdnWupzxOjb2nCCqg6eHh632TlPuF+ZVvkRoFbbatppyCY9+
+	 dhfgGx+JVD3R9+BmfJJzs7YajHfsadpVLerXWNQShJUDg5I2HSMm6bJXe6Z+aifBWXUTp
+	 qNXFUBy5RvJp9vCLQbPR7Yx7rioFcDqkaVpMFLMW99TZSZuryN2pg0cjjnBfEdDsKASpR
+	 IJEeY6nu8zVz65utHvtZmQpWvkBGspwLpfnqAOQZWsxCrNAvYFc5oN1R6b4qzch4MSQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TkHR4HPX;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88FBB606A33F
-	for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 13:03:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TkHR4HPX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 663AC1F008A1
-	for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 13:03:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794315796;
-	bh=6pwwepmjTUl49OHZ5STOt5SUhTuA3dLbSUXmCL5j6f8=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=TkHR4HPXdLeZWl4ob3lLsA7fxwi24Ky1wvxbr1Xi949bri+a+BESgcpFXw25/dM94
-	 /7byIMt4yidx368FDyIHTDFd+1mrl46HyJSwqeea/T+3AaSAWVbnLIFLfz7jOM7zOX
-	 46A/uajQB4CN3cL3zEw3PEMkzYSCCPxiPV52YpAytJ8DOrllAVL51WlFBrGx2KibDx
-	 XZLeuNcBsoRurWJK9pJB0kt/7le3hEg6gc2GJ0QgCYSrV2rVR45CMk5yQEalkdsllB
-	 xW3dhXRm0LJzavOW6myULhzzfAdM6vvRkX39w5YcO3MVEL1I5/NhdlgcWD6x/lBORq
-	 Ifxm6/EHWRyNw==
-Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-5c151178f0cso1324548e87.0
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 05:03:16 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErHUDf9kWw5Qzp9E3ZhvZ3KCfa7UEc1G8fNl9yQXdrEQzVdPwVLQR5QeFLx5dbKZ9qSRRQSQitZwm2Iu@vger.kernel.org
-X-Gm-Message-State: APuU4Z+GHQIEwM4EucKZSuvW1EccwOKRVFnF4JYgrFDovvbh1esPLaKg
-	TajnffA0zwAwS9+U5+B0lrkmb7PC79ldn6t3BuCAR4Wh5OW6hpqWDoTNohWCpkqHebiYg+9S/tL
-	TccqjS5f2XnkAGjjvqS5NdBhdtrM+6YY=
-X-Received: by 2002:a05:6512:39d0:b0:5c0:160:6dae with SMTP id
- 2adb3069b0e04-5c156e99541mr851697e87.24.1794315794795; Tue, 10 Nov 2026
- 05:03:14 -0800 (PST)
+	dmarc=none header.from=hust.edu.cn;
+	spf=pass smtp.mailfrom=hust.edu.cn;
+	arc=none smtp.remote-ip=207.46.229.174
+Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [207.46.229.174])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D21BE606ED40;
+	Tue, 10 Nov 2026 13:05:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D21BE606ED40
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=hust.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hust.edu.cn
+Received: from xuhx$hust.edu.cn ( [10.12.190.107] ) by ajax-webmail-app2
+ (Coremail) ; Tue, 10 Nov 2026 21:05:26 +0800 (GMT+08:00)
+Date: Tue, 10 Nov 2026 21:05:26 +0800 (GMT+08:00)
+X-CM-HeaderCharset: UTF-8
+From: =?UTF-8?B?5b6Q5pmX57+U?= <xuhx@hust.edu.cn>
+To: rafael@kernel.org, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, viresh.kumar@linaro.org,
+	linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: ACPI: CPPC: per-CPU cpc_desc is freed on processor unbind without
+  clearing the published pointer, causing UAF in cpufreq accessors
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version 2025.3-cmXT6 build
+ 20260810(6c94e3b5) Copyright (c) 2002-2026 www.mailtech.cn hust
+In-Reply-To: <2026102727-data-sequel-ce41@gregkh>
+References: <4c7f9772.192e1.1a17d5c2ed5.Coremail.xuhx@hust.edu.cn>
+ <2026102727-data-sequel-ce41@gregkh>
+X-CM-CTRLMSGS: =?B?nJ1wQDiH6nJ5xwDR7hwMki1N8jM=
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_474513_85074609.1794315926123"
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,234 +56,175 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261108233900.4043941-3-ca@modelmiser.com>
-In-Reply-To: <20261108233900.4043941-3-ca@modelmiser.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 10 Nov 2026 14:03:02 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0iBKOgYeTHYvrzAR=URQX+gpmpF-S0JSJwzkfYBqQHL6A@mail.gmail.com>
-X-Gm-Features: AclHuK-54cehDMOrJTGpS_ib2FV9q8AklIT9qCi-8k6gpKsXn8vFETw18ma8yvk
-Message-ID: <CAJZ5v0iBKOgYeTHYvrzAR=URQX+gpmpF-S0JSJwzkfYBqQHL6A@mail.gmail.com>
-Subject: Re: [PATCH 1/2] ACPI: pfr_telemetry: keep the state until the last
- file is closed
-To: Chad Aldreda <ca@modelmiser.com>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Chen Yu <yu.c.chen@intel.com>, 
-	linux-acpi@vger.kernel.org, stable@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Message-ID: <610cc333.22ad9.1a1c5903a6b.Coremail.xuhx@hust.edu.cn>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:IQEQrMC23saWFvNqyJcNAA--.9850W
+X-CM-SenderInfo: bgsqjkayqyjmo6kx23oohg3hdfq/1tbiAgQHB2rx8m6R6QAAs5
+X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VWkKw
+	CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
+	daVFxhVjvjDU=
 
-On Mon, Nov 9, 2026 at 12:39=E2=80=AFAM Chad Aldreda <ca@modelmiser.com> wr=
-ote:
->
-> struct pfrt_log_device is allocated with devm_kzalloc() and embeds the
-> miscdevice, so it is freed when the driver unbinds. A file that is open
-> on the node outlives the unbind and nothing holds a reference for it:
-> the next ioctl() or mmap() on that file uses freed memory. Unbinding the
-> driver needs root.
->
-> Allocate the structure with kzalloc() and reference count it: open()
-> takes a reference, under misc_mtx, which misc_deregister() also takes,
-> release() drops it, and a devm action drops the driver's own. The
-> structure also holds a reference on the parent device it uses. A call to
-> ioctl() or mmap() that starts after remove() returns fails with -ENODEV;
-> one already running finishes against state that is still valid.
->
-> The problem was found with a Coccinelle script that reports device nodes
-> in devm memory [1]. The fix, the reproducer and this message were
-> written with an AI assistant (Claude) and checked by hand. The bug was
-> reproduced and the fix tested in QEMU with KASAN, using an SSDT whose
-> _DSM stands in for the firmware: ioctl() and mmap() worked before an
-> unbind and, on a file held open across it, failed with -ENODEV. A call
-> racing with the unbind was not tested, nor was hardware with this
-> firmware interface.
->
-> Link: https://lore.kernel.org/r/20261106193517.3267013-2-ca@modelmiser.co=
-m [1]
-> Fixes: b0013e037a8b ("ACPI: Introduce Platform Firmware Runtime Telemetry=
- driver")
-> Cc: stable@vger.kernel.org
-> Assisted-by: Claude:claude-opus-5-5
-> Signed-off-by: Chad Aldreda <ca@modelmiser.com>
+------=_Part_474513_85074609.1794315926123
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 
-There is Sashiko's feedback on this:
+YWNwaV9wcm9jZXNzb3Jfc3RvcCgpIGNhbiBiZSByZWFjaGVkIHRocm91Z2ggdGhlIHByb2Nlc3Nv
+ciBkcml2ZXIncwpzeXNmcyB1bmJpbmQgYXR0cmlidXRlIHdoaWxlIHRoZSB0YXJnZXQgQ1BVIGlz
+IHN0aWxsIG9ubGluZS4gIEl0IGNhbGxzCmFjcGlfY3BwY19wcm9jZXNzb3JfZXhpdCgpLCB3aGlj
+aCBpb3VubWFwKClzIHRoZSBfQ1BDIHN5c3RlbS1tZW1vcnkKcmVnaXN0ZXJzIGFuZCBrZnJlZSgp
+cyB0aGUgcGVyLUNQVSBzdHJ1Y3QgY3BjX2Rlc2MsIGJ1dCBuZXZlciBjbGVhcnMKcGVyX2NwdShj
+cGNfZGVzY19wdHIsIHByLT5pZCkuICBUaGUgY3B1ZnJlcSBhY2Nlc3NvcnMgKGFuZCB0aGUKYWNw
+aV9jcHBjIHN5c2ZzIGF0dHJpYnV0ZXMpIHJlYWQgdGhhdCBwZXItQ1BVIHBvaW50ZXIgd2l0aG91
+dCBhIGNvbW1vbgpsb2NrLCByZWZjb3VudCwgb3IgUkNVIGdyYWNlIHBlcmlvZCwgc28gYWZ0ZXIg
+dGhlIHVuYmluZCB0aGV5IGNhbgpjb250aW51ZSB0byB1c2UgdGhlIGZyZWVkIGRlc2NyaXB0b3Iu
+ICBBIEtBU0FOIGtlcm5lbCByZXByb2R1Y2VkIHRoZQpzbGFiLXVzZS1hZnRlci1mcmVlIHdpdGgg
+YSByZWFsICJlY2hvIGNwdTAgPiAuLi4vcHJvY2Vzc29yL3VuYmluZCIsCm5vdCB3aXRoIGEgc3lu
+dGhldGljIGRpcmVjdCBjYWxsIHRvIHRoZSBleGl0IGZ1bmN0aW9uLgoKVGhlIGRldGFpbGVkIGRl
+c2NyaXB0aW9uOgoKKiBUZXN0IGVudmlyb25tZW50IC8gYWZmZWN0ZWQgdmVyc2lvbgoKICBMaW51
+eCA3LjMuMCAobWFpbmxpbmUgNy4zIHNvdXJjZSwgdW5tb2RpZmllZCksIEtBU0FOIGJ1aWxkIGZy
+b20KICB2ZXJpZmljYXRpb24vYnVpbGQta2FzYW4tNy4zLCB4ODZfNjQgUUVNVS9LVk0gZ3Vlc3Qs
+IDIgdkNQVSwKICBDT05GSUdfS0FTQU49eSwgQ09ORklHX0JVRz15LCBDT05GSUdfSE9UUExVR19T
+TVQ9eS4gIFRoZSBndWVzdCB1c2VkIGEKICB0ZXN0IFNTRFQgKGNwY2ludC5hbWwpIHRoYXQgYWRk
+cyBhIDIxLWVudHJ5LCBhbGwtaW50ZWdlciBfQ1BDIHBhY2thZ2UKICB0byBcX1NCLkNQVVMuQzAw
+MC9DMDAxLCBzbyB0aGUgbm9ybWFsIGFjcGlfY3BwY19wcm9jZXNzb3JfcHJvYmUoKQogIGNyZWF0
+ZWQgYSByZWFsIGNwY19kZXNjIGFuZCBhIHJlYWwgYWNwaV9jcHBjIHN5c2ZzIGRpcmVjdG9yeS4K
+CiAgVGhlIHRlc3Qga2VybmVsIGhhcyBDT05GSUdfQUNQSV9DUFBDX0xJQj15IGFuZAogIENPTkZJ
+R19BQ1BJX1BST0NFU1NPUj15LCBidXQgQ09ORklHX0FDUElfQ1BQQ19DUFVGUkVRIGlzIG5vdCBl
+bmFibGVkLgogIFRoZSBjb25jdXJyZW50IGFjY2Vzc29yIGluIHRoZSByZXByb2R1Y2VyIGlzIHRo
+ZXJlZm9yZSBhIG1vZHVsZQogIGNhbGxpbmcgdGhlIGV4cG9ydGVkIGNwcGNfZ2V0X3BlcmZfY2Fw
+cygwKSwgbm90IGEgcmVhbAogIGNwcGNfY3B1ZnJlcSB0aWNrLiAgVGhlIHJlbGVhc2Ugc2lkZSBp
+cyB0aGUgcmVhbCBkcml2ZXItY29yZQogIHVuYmluZCBwYXRoOyB0aGUgYWNjZXNzb3IgZnVuY3Rp
+b24gYW5kIHRoZSByZWxlYXNlZCBvYmplY3QgYXJlIHRoZQogIHNhbWUgYXMgaW4gdGhlIGNwdWZy
+ZXEvc3lzZnMgcGF0aHMgZGVzY3JpYmVkIGJlbG93LiAgTGluZSBudW1iZXJzCiAgYXJlIGZyb20g
+TGludXggNy4zLgoKKiBNZWNoYW5pc20KCiAgVGhlIEFDUEkgcHJvY2Vzc29yIGRyaXZlciBpcyBi
+b3VuZCB0byB0aGUgY3B1X3N1YnN5cyBDUFUgZGV2aWNlIGFuZAogIGhhcyAucmVtb3ZlID0gYWNw
+aV9wcm9jZXNzb3Jfc3RvcCAoZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9kcml2ZXIuYzoKICA0NS01
+MCkuICBXcml0aW5nIGEgQ1BVIG5hbWUgdG8KICAvc3lzL2J1cy9jcHUvZHJpdmVycy9wcm9jZXNz
+b3IvdW5iaW5kIHJ1bnMKICB1bmJpbmRfc3RvcmUoKSAtPiBkZXZpY2VfcmVsZWFzZV9kcml2ZXIo
+KSAtPiBhY3BpX3Byb2Nlc3Nvcl9zdG9wKCkKICAoZHJpdmVycy9iYXNlL2J1cy5jOjIzNS0yNTEs
+IGRyaXZlcnMvYmFzZS9kZC5jOjEzMTgtMTM3NSkuCiAgX19kZXZpY2VfcmVsZWFzZV9kcml2ZXIo
+KSB0YWtlcyBvbmx5IHRoZSBDUFUgZGV2aWNlJ3MgZGV2aWNlX2xvY2s7CiAgaXQgZG9lcyBub3Qg
+dGFrZSBhIENQVS1ob3RwbHVnIGxvY2sgYW5kIGRvZXMgbm90IHJlcXVpcmUgdGhlIENQVSB0bwog
+IGJlIG9mZmxpbmUuICBhY3BpX3Byb2Nlc3Nvcl9zdG9wKCkgaGFzIG5vIG9ubGluZSBjaGVjayBl
+aXRoZXIgYW5kCiAgY2FsbHMgYWNwaV9jcHBjX3Byb2Nlc3Nvcl9leGl0KHByKSBhdCBwcm9jZXNz
+b3JfZHJpdmVyLmM6MjA0LgoKICBhY3BpX2NwcGNfcHJvY2Vzc29yX2V4aXQoKSAoZHJpdmVycy9h
+Y3BpL2NwcGNfYWNwaS5jOjEwMzctMTA2OCkKICBwZXJmb3JtcywgaW4gdGhpcyBvcmRlcjoKCiAg
+ICBwY2NfZGF0YSByZWZjb3VudC9mcmVlCiAgICAgIC0+IGlvdW5tYXAoY3BjX3B0ci0+Y3BjX3Jl
+Z3NbaV0uc3lzX21lbV92YWRkcikKICAgICAgLT4ga29iamVjdF9wdXQoJmNwY19wdHItPmtvYmop
+CiAgICAgIC0+IGtmcmVlKGNwY19wdHIpCgogIFRoZXJlIGlzIG5vIGNvcnJlc3BvbmRpbmcKICBw
+ZXJfY3B1KGNwY19kZXNjX3B0ciwgcHItPmlkKSA9IE5VTEwuICBUaGUgcG9pbnRlciB3YXMgcHVi
+bGlzaGVkIGJ5CiAgYWNwaV9jcHBjX3Byb2Nlc3Nvcl9wcm9iZSgpIGF0IGNwcGNfYWNwaS5jOjEw
+MDIuICBjcHBjX2t0eXBlIGhhcyBubwogIC5yZWxlYXNlIGNhbGxiYWNrIChjcHBjX2FjcGkuYzoz
+MDAtMzAzKSwgc28ga29iamVjdF9wdXQoKSBvbmx5CiAgcmVtb3ZlcyB0aGUgc3lzZnMgZGlyZWN0
+b3J5IGFuZCBkcmFpbnMgaXRzIGFjdGl2ZSByZWZlcmVuY2VzOyBpdCBpcwogIG5vdCBhIGxpZmV0
+aW1lIGJhcnJpZXIgZm9yIHRoZSBkZXNjcmlwdG9yLgoKICBUaGUgYWNjZXNzb3JzIHRha2UgdGhl
+IHBvaW50ZXIgb3V0c2lkZSBhbnkgbG9jazoKCiAgICBjcHBjX2dldF9yZWdfdmFsKCk6ICAgIGNw
+Y19kZXNjID0gcGVyX2NwdShjcGNfZGVzY19wdHIsIGNwdSk7CiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgIGlmICghY3BjX2Rlc2MpIHJldHVybiAtRU5PREVWOwogICAgICAgICAgICAgICAgICAg
+ICAgICAgICByZWcgPSAmY3BjX2Rlc2MtPmNwY19yZWdzW3JlZ19pZHhdOwogICAgY3BwY19nZXRf
+cGVyZl9jYXBzKCk6ICBzYW1lIHBhdHRlcm4gKGNwcGNfYWNwaS5jOjE0ODggb253YXJkcykKICAg
+IGNwcGNfZ2V0X3BlcmZfY3RycygpOiAgc2FtZSBwYXR0ZXJuIChjcHBjX2FjcGkuYzoxNjc4IG9u
+d2FyZHMpCgogIFRoZSBOVUxMIGNoZWNrIGRvZXMgbm90IGhlbHA6IGFmdGVyIGV4aXQgdGhlIHBl
+ci1DUFUgc2xvdCBpcyBzdGlsbAogIG5vbi1OVUxMIGFuZCBwb2ludHMgdG8gZnJlZWQgbWVtb3J5
+LgoKICBUaGUgY3B1ZnJlcSBwb2xpY3kgaXMgb3duZWQgYnkgdGhlIGNwdWZyZXEgY29yZSwgbm90
+IGJ5IHRoZSBBQ1BJCiAgcHJvY2Vzc29yIGRyaXZlci4gIGFjcGlfcHJvY2Vzc29yX3N0b3AoKSBu
+ZWl0aGVyIG9mZmxpbmVzIHRoZSBDUFUgbm9yCiAgdGVhcnMgZG93biB0aGUgcG9saWN5LCBzbyBh
+IHJlZ2lzdGVyZWQgQ1BQQyBmcmVxdWVuY3ktaW52YXJpYW5jZQogIHNvdXJjZSBjYW4ga2VlcCBj
+YWxsaW5nIGNwcGNfZ2V0X3BlcmZfY3RycygpIGFmdGVyIHVuYmluZAogIChkcml2ZXJzL2NwdWZy
+ZXEvY3BwY19jcHVmcmVxLmM6NjktMTA0LCAxNTAtMTg0KS4gIFRoZQogIGNwdWluZm9fY3VyX2Zy
+ZXEgc3lzZnMgYXR0cmlidXRlIHJlYWNoZXMgdGhlIGRyaXZlcidzIC5nZXQgY2FsbGJhY2sKICB0
+aHJvdWdoIF9fY3B1ZnJlcV9nZXQoKSAoZHJpdmVycy9jcHVmcmVxL2NwdWZyZXEuYzo3NTUtNzY0
+KSwgYW5kIHRoZQogIGFjcGlfY3BwYyBhdHRyaWJ1dGVzIGNhbGwgY3BwY19nZXRfcGVyZl9jYXBz
+KCkgZnJvbSBzaG93X2NwcGNfZGF0YSgpCiAgKGNwcGNfYWNwaS5jOjE2MC0xODYpLgoKICBUaGVy
+ZSBpcyBhbHNvIGEgbWFwcGluZy1saWZldGltZSBzdWItY2FzZS4gIEZvciBfQ1BDIHJlZ2lzdGVy
+cyBpbgogIEFDUElfQURSX1NQQUNFX1NZU1RFTV9NRU1PUlksIGNwY19yZWFkKCkvY3BjX3dyaXRl
+KCkgdXNlCiAgcmVnX3Jlcy0+c3lzX21lbV92YWRkciBkaXJlY3RseSAoY3BwY19hY3BpLmM6MTE2
+Mi0xMTgwIGFuZAogIDEyMzUtMTI1MCksIHdoaWxlIGV4aXQgaW91bm1hcCgpcyB0aG9zZSBhZGRy
+ZXNzZXMgYmVmb3JlCiAga29iamVjdF9wdXQoKS4gIEEgc3lzZnMgc2hvdyB0aGF0IGlzIHN0aWxs
+IHJ1bm5pbmcgY2FuIHRoZXJlZm9yZQogIHJlYWNoIHJlYWRiL3JlYWR3L3JlYWRsL3JlYWRxX3Jl
+bGF4ZWQoKSBhZnRlciB0aGUgbWFwcGluZyB3YXMKICByZXZva2VkOyBhbiBFUFAgc3RvcmUgY2Fu
+IGRvIHRoZSBzYW1lIHRocm91Z2ggY3BjX3dyaXRlKCkuICBUaGUKICBrZXJuZnMgZHJhaW4gaW5z
+aWRlIGtvYmplY3RfcHV0KCkgcHJvdGVjdHMgdGhlIGxhdGVyIGtmcmVlKGNwY19wdHIpLAogIGJ1
+dCBpdCBzdGFydHMgb25seSBhZnRlciBpb3VubWFwKCksIHNvIGl0IGRvZXMgbm90IHByb3RlY3Qg
+dGhlCiAgbWFwcGluZy4gIFRoaXMgc3ViLWNhc2UgaXMgc291cmNlLWxldmVsIG9ubHkgaW4gdGhp
+cyByZXBvcnQ7IHRoZQogIHRlc3RlZCBndWVzdCBoYWQgYW4gYWxsLWludGVnZXIgX0NQQyBhbmQg
+ZGlkIG5vdCBlc3RhYmxpc2ggYQogIHN5c3RlbS1tZW1vcnkgX0NQQyBzdWNjZXNzZnVsbHkuCgog
+IEEgc2VwYXJhdGUgU01UIHBhdGggaXMgd29ydGggZml4aW5nIGV2ZW4gdGhvdWdoIGl0IHdhcyBu
+b3QgdGhlCiAgcmVwcm9kdWNlZCBvbmU6IGNwdWhwX3NtdF9lbmFibGUoKSBjYWxscyBfY3B1X3Vw
+KGNwdSwgMCwKICBDUFVIUF9PTkxJTkUpIHdpdGhvdXQgdGFraW5nIHRoZSBDUFUgZGV2aWNlJ3Mg
+ZGV2aWNlX2xvY2sKICAoa2VybmVsL2NwdS5jOjI3MDItMjcyNSwgY2FsbGVkIGZyb20gdGhlIHNt
+dC9jb250cm9sIHN0b3JlIGF0CiAgMjkyMC0yOTQwKSwgd2hpbGUgdW5iaW5kX3N0b3JlKCkgdGFr
+ZXMgb25seSB0aGF0IGRldmljZV9sb2NrLiAgRm9yIGEKICBuZXZlci1vbmxpbmUgU01UIHNpYmxp
+bmcsIHRoZSBmaXJzdCBhY3BpX3NvZnRfY3B1X29ubGluZSgpIHByb2JlIGNhbgogIHRoZXJlZm9y
+ZSBvdmVybGFwIHRoZSBzYW1lIENQVSdzIHVuYmluZCBhbmQgaGl0IHRoZSAxMDAyLTEwMDQgd2lu
+ZG93CiAgKHB1Ymxpc2ggY3BjX2Rlc2MsIHRoZW4ga29iamVjdF9pbml0X2FuZF9hZGQoKSkuCgoK
+CiogUmVwcm9kdWNlciAoYXR0YWNoZWQ6IGFjcGlfY2FzZTF1bmJpbmQuYykgYW5kIHJlc3VsdHMg
+b24gNy4zCgogIFRoZSBhdHRhY2hlZCBtb2R1bGUgc3RhcnRzIGEga3RocmVhZCB0aGF0IHJlcGVh
+dGVkbHkgY2FsbHMgdGhlCiAgZXhwb3J0ZWQgY3BwY19nZXRfcGVyZl9jYXBzKDAsICZjYXBzKSwg
+dGhlbiB0aGUgZ3Vlc3QgcGVyZm9ybXMgdGhlCiAgcmVhbCB1bmJpbmQ6CgogICAgaW5zbW9kIC9h
+Y3BpX2Nhc2UxdW5iaW5kLmtvCiAgICBzbGVlcCAxCiAgICBlY2hvIGNwdTAgPiAvc3lzL2J1cy9j
+cHUvZHJpdmVycy9wcm9jZXNzb3IvdW5iaW5kCgogIEl0IGRvZXMgbm90IG1vZGlmeSBrZXJuZWwg
+c291cmNlLiAgSXQgbmVlZHMgdGhlIHRlc3QgU1NEVCB0aGF0CiAgcHJvdmlkZXMgdGhlIF9DUEMg
+cGFja2FnZSwgYW5kIHRoZSBtb2R1bGUgYnVpbGQgdXNlcyB0aGUgc2FtZQogIGJ1aWxkLWthc2Fu
+LTcuMyB0cmVlLgoKICBBY3R1YWwgS0FTQU4gb3V0cHV0ICh0cmltbWVkKToKCiAgICBDQVNFMVVO
+QklORDogdW5iaW5kaW5nIGNwdTAKICAgIEJVRzogS0FTQU46IHNsYWItdXNlLWFmdGVyLWZyZWUg
+aW4gY3BwY19nZXRfcGVyZl9jYXBzKzB4MTRhLzB4ODgwCiAgICBSZWFkIG9mIHNpemUgNCBhdCBh
+ZGRyIGZmMTEwMDAwMDE5YTYwMTggYnkgdGFzayBjcHBjX2hhbW1lcl91bmIvNzMKICAgIENhbGwg
+VHJhY2U6CiAgICAgY3BwY19nZXRfcGVyZl9jYXBzKzB4MTRhLzB4ODgwCiAgICAgaGFtbWVyX2Zu
+KzB4ZjUvMHgxMTAgW2FjcGlfY2FzZTF1bmJpbmRdCiAgICAga3RocmVhZAogICAgLi4uCiAgICBB
+bGxvY2F0ZWQgYnkgdGFzayAyMDoKICAgICBhY3BpX2NwcGNfcHJvY2Vzc29yX3Byb2JlKzB4MTc0
+LzB4ZTYwCiAgICAgYWNwaV9zb2Z0X2NwdV9vbmxpbmUrMHg5MC8weDE5MAogICAgLi4uCiAgICBG
+cmVlZCBieSB0YXNrIDE6CiAgICAga2ZyZWUrMHgxMjEvMHgzOTAKICAgICBhY3BpX3Byb2Nlc3Nv
+cl9zdG9wKzB4NzcvMHg5MAogICAgIGRldmljZV9yZWxlYXNlX2RyaXZlcl9pbnRlcm5hbCsweDI0
+Ni8weDJlMAogICAgIHVuYmluZF9zdG9yZSsweGE5LzB4YjAKICAgICBrZXJuZnNfZm9wX3dyaXRl
+X2l0ZXIrMHgxZWYvMHgyOTAKICAgIC4uLgogICAgQ0FTRTFVTkJJTkQ6IHVuYmluZCByZXR1cm5l
+ZCAwCgogIFRoZSBhbGxvY2F0aW9uIHN0YWNrIGlzIHRoZSBub3JtYWwgcHJvYmUgcGF0aCwgYW5k
+IHRoZSBmcmVlIHN0YWNrIGlzCiAgdGhlIHJlYWwgc3lzZnMgdW5iaW5kIHBhdGguICBUaGlzIGNv
+bmZpcm1zIHRoYXQgdGhlIHJlbW92ZSBjYWxsYmFjawogIHJhbiB3aGlsZSBDUFUwIHdhcyBvbmxp
+bmUgYW5kIHRoYXQgdGhlIHB1Ymxpc2hlZCBwZXItQ1BVIHBvaW50ZXIKICBzdXJ2aXZlZCB0aGUg
+ZnJlZS4gIFRoZSBtb2R1bGUgaXMgYW4gYWNjZXNzb3Igc3RhbmQtaW46IGl0IGRvZXMgbm90CiAg
+cHJvdmUgdGhlIHNjaGVkdWxlci10aWNrIHRpbWluZyBvciB0aGUgc3lzdGVtLW1lbW9yeSBpb3Vu
+bWFwCiAgc3ViLWNhc2UsIGFuZCB0aGUgdGVzdCBrZXJuZWwgZGlkIG5vdCBoYXZlIGNwcGNfY3B1
+ZnJlcSBlbmFibGVkLgogIFRoZSBjb3JlICJleGl0IGZyZWVzLCBwdWJsaXNoZWQgcG9pbnRlciBy
+ZW1haW5zLCBhY2Nlc3NvciByZWFkcyIKICBsaWZldGltZSBpcyBuZXZlcnRoZWxlc3MgZGVtb25z
+dHJhdGVkIGVuZCB0byBlbmQuCgoKKiBTdWdnZXN0ZWQgZGlyZWN0aW9uIAoKICBDbGVhciBwZXJf
+Y3B1KGNwY19kZXNjX3B0ciwgcHItPmlkKSBiZWZvcmUgcmVsZWFzaW5nIHRoZSBvYmplY3QsIGFu
+ZAogIGdpdmUgYWNjZXNzb3JzIGEgcmVhbCBsaWZldGltZSBydWxlOiBhbiBSQ1UvcmVmY291bnQt
+cHJvdGVjdGVkCiAgbG9va3VwLCBvciBhIHF1aWVzY2VuY2UgcG9pbnQgdGhhdCBzdG9wcyB0aGUg
+Y3B1ZnJlcSBwb2xpY3kvRklFIGFuZAogIHdhaXRzIGZvciBpbi1mbGlnaHQgYWNjZXNzb3JzIGJl
+Zm9yZSBpb3VubWFwKCkva2ZyZWUoKS4gIFRoZSByZW1vdmUKICBwYXRoIHNob3VsZCBhbHNvIHJl
+ZnVzZSB0byBydW4gd2hpbGUgdGhlIENQVSBpcyBvbmxpbmUgKG9yIG9mZmxpbmUKICBhbmQgc3Rv
+cCBjcHVmcmVxIGZpcnN0KS4gIEZvciB0aGUgU01UIHBhdGgsIG1ha2UgdGhlIGZpcnN0LW9ubGlu
+ZQogIHByb2JlIGFuZCBkcml2ZXIgcmVtb3ZlIHNoYXJlIGEgbG9jaywgb3IgZXhjbHVkZSByZW1v
+dmUgZHVyaW5nIHRoZQogIHByb2JlIHdpbmRvdy4gIElmIHN5c2ZzIG1hcHBpbmdzIHJlbWFpbiBy
+ZWFjaGFibGUgZHVyaW5nIHJlbW92YWwsCiAgbW92ZSBpb3VubWFwKCkgYWZ0ZXIgdGhlIGtlcm5m
+cyBkcmFpbiBvciBwcm90ZWN0IHRoZSB2YWRkciB3aXRoIHRoZQogIHNhbWUgbGlmZXRpbWUgbWVj
+aGFuaXNtLiAgUmVwb3J0LWZpcnN0LCBubyBwYXRjaCBhdHRhY2hlZDsgaGFwcHkgdG8KICB0ZXN0
+IGFueSBwcm9wb3NhbC4KCgogIFBsZWFzZSBrZWVwIG1lIGluIENjOyBJIGFtIG5vdCBzdWJzY3Jp
+YmVkIHRvIHRoZSBsaXN0cy4KCgoKUmVnYXJkcywKSGFueGlhbmcgWHUKeHVoeEBodXN0LmVkdS5j
+bgo=
+------=_Part_474513_85074609.1794315926123
+Content-Type: text/plain; name=acpi_case1unbind.c
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="acpi_case1unbind.c"
 
-https://sashiko.dev/#/patchset/20261108233900.4043941-3-ca%40modelmiser.com
+Ly8gU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEdQTC0yLjAKI2luY2x1ZGUgPGxpbnV4L21vZHVs
+ZS5oPgojaW5jbHVkZSA8bGludXgva3RocmVhZC5oPgojaW5jbHVkZSA8bGludXgvZGVsYXkuaD4K
+I2luY2x1ZGUgPGxpbnV4L2FjcGkuaD4KI2luY2x1ZGUgPGFjcGkvY3BwY19hY3BpLmg+CgpzdGF0
+aWMgc3RydWN0IHRhc2tfc3RydWN0ICpoYW1tZXI7CgpzdGF0aWMgaW50IGhhbW1lcl9mbih2b2lk
+ICpkYXRhKQp7CglzdHJ1Y3QgY3BwY19wZXJmX2NhcHMgY2FwczsKCXVuc2lnbmVkIGxvbmcgbiA9
+IDA7CgoJd2hpbGUgKCFrdGhyZWFkX3Nob3VsZF9zdG9wKCkpIHsKCQltZW1zZXQoJmNhcHMsIDAs
+IHNpemVvZihjYXBzKSk7CgkJY3BwY19nZXRfcGVyZl9jYXBzKDAsICZjYXBzKTsKCQluKys7CgkJ
+aWYgKCEobiAmIDB4M2ZmKSkKCQkJY29uZF9yZXNjaGVkKCk7Cgl9Cglwcl9pbmZvKCJBQ1BJX0NB
+U0UxVU5CSU5EOiBoYW1tZXIgaXRlcmF0aW9ucz0lbHVcbiIsIG4pOwoJcmV0dXJuIDA7Cn0KCnN0
+YXRpYyBpbnQgX19pbml0IGNhc2UxdW5iaW5kX2luaXQodm9pZCkKewoJaGFtbWVyID0ga3RocmVh
+ZF9ydW4oaGFtbWVyX2ZuLCBOVUxMLCAiY3BwY19oYW1tZXJfdW5iaW5kIik7CglpZiAoSVNfRVJS
+KGhhbW1lcikpIHsKCQlwcl9lcnIoIkFDUElfQ0FTRTFVTkJJTkQ6IGt0aHJlYWRfcnVuIGZhaWxl
+ZFxuIik7CgkJcmV0dXJuIFBUUl9FUlIoaGFtbWVyKTsKCX0KCXByX2luZm8oIkFDUElfQ0FTRTFV
+TkJJTkQ6IGhhbW1lciBzdGFydGVkOyB1bmJpbmQgY3B1MCBub3dcbiIpOwoJcmV0dXJuIDA7Cn0K
+CnN0YXRpYyB2b2lkIF9fZXhpdCBjYXNlMXVuYmluZF9leGl0KHZvaWQpCnsKCWlmIChoYW1tZXIp
+CgkJa3RocmVhZF9zdG9wKGhhbW1lcik7Cn0KCm1vZHVsZV9pbml0KGNhc2UxdW5iaW5kX2luaXQp
+Owptb2R1bGVfZXhpdChjYXNlMXVuYmluZF9leGl0KTsKTU9EVUxFX0xJQ0VOU0UoIkdQTCIpOwo=
 
-please address.
+------=_Part_474513_85074609.1794315926123--
 
-> ---
-> The Coccinelle script reports a devm_k*() allocation when it, or an
-> address inside it, is passed to misc_register() or a similar
-> registration function in the same function, or when the allocated struct
-> embeds such an object. It reports this driver for the misc_register() of
-> &pfrt_log_dev->miscdev.
->
-> Reproduced in QEMU 10.2.4 (q35, KASAN, booted with kasan_multi_shot). An
-> SSDT adds a device with _HID INTC1081 and a _DSM that returns valid
-> packages, and memmap=3D reserves memory for the log buffer. A process
-> opens /dev/acpi_pfr_telemetry0, uses SET_INFO, GET_INFO, GET_DATA_INFO
-> and mmap(), and unbinds the driver through sysfs with the file open.
-> Repeating those calls gives, without this patch, 15 KASAN reports in
-> pfrt_log_ioctl(), set_pfrt_log_level() and get_pfrt_log_data_info().
->
-> With it there are none. All the calls succeed before the unbind and
-> return -ENODEV after it, a mapping made before the unbind was still
-> readable after it, and the same sequence behaves the same after a bind.
-> Unbinding with the file already closed, or never opened, gives no
-> reports either.
->
-> No lock is added. A call that passed the removed check can run during
-> the unbind, against state and a parent device that are still valid; the
-> driver has never serialized calls from different files. Mappings of
-> the firmware log buffer outlive the unbind, as they did before.
->
-> kzalloc() rather than kzalloc_obj(), which first appears in v7.0, for
-> the stable trees.
->
->  drivers/acpi/pfr_telemetry.c | 55 +++++++++++++++++++++++++++++++++---
->  1 file changed, 51 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/acpi/pfr_telemetry.c b/drivers/acpi/pfr_telemetry.c
-> index 2387376832a1..5ab8baabcc60 100644
-> --- a/drivers/acpi/pfr_telemetry.c
-> +++ b/drivers/acpi/pfr_telemetry.c
-> @@ -15,10 +15,12 @@
->  #include <linux/errno.h>
->  #include <linux/file.h>
->  #include <linux/fs.h>
-> +#include <linux/kref.h>
->  #include <linux/miscdevice.h>
->  #include <linux/module.h>
->  #include <linux/mm.h>
->  #include <linux/platform_device.h>
-> +#include <linux/slab.h>
->  #include <linux/string.h>
->  #include <linux/uaccess.h>
->  #include <linux/uio.h>
-> @@ -62,6 +64,8 @@ struct pfrt_log_device {
->         struct pfrt_log_info info;
->         struct device *parent_dev;
->         struct miscdevice miscdev;
-> +       struct kref kref;
-> +       bool removed;
->  };
->
->  /* pfrt_guid is the parameter for _DSM method */
-> @@ -247,6 +251,9 @@ static long pfrt_log_ioctl(struct file *file, unsigne=
-d int cmd, unsigned long ar
->         void __user *p;
->         int ret =3D 0;
->
-> +       if (READ_ONCE(pfrt_log_dev->removed))
-> +               return -ENODEV;
-> +
->         p =3D (void __user *)arg;
->
->         switch (cmd) {
-> @@ -303,14 +310,17 @@ pfrt_log_mmap(struct file *file, struct vm_area_str=
-uct *vma)
->         phys_addr_t base_addr;
->         int ret;
->
-> +       pfrt_log_dev =3D to_pfrt_log_dev(file);
-> +
-> +       if (READ_ONCE(pfrt_log_dev->removed))
-> +               return -ENODEV;
-> +
->         if (vma->vm_flags & VM_WRITE)
->                 return -EROFS;
->
->         /* changing from read to write with mprotect is not allowed */
->         vm_flags_clear(vma, VM_MAYWRITE);
->
-> -       pfrt_log_dev =3D to_pfrt_log_dev(file);
-> -
->         ret =3D get_pfrt_log_data_info(&info, pfrt_log_dev);
->         if (ret)
->                 return ret;
-> @@ -337,8 +347,39 @@ pfrt_log_mmap(struct file *file, struct vm_area_stru=
-ct *vma)
->         return 0;
->  }
->
-> +static void pfrt_log_free(struct kref *kref)
-> +{
-> +       struct pfrt_log_device *pfrt_log_dev =3D
-> +               container_of(kref, struct pfrt_log_device, kref);
-> +
-> +       put_device(pfrt_log_dev->parent_dev);
-> +       kfree(pfrt_log_dev);
-> +}
-> +
-> +static void pfrt_log_put(void *data)
-> +{
-> +       struct pfrt_log_device *pfrt_log_dev =3D data;
-> +
-> +       kref_put(&pfrt_log_dev->kref, pfrt_log_free);
-> +}
-> +
-> +/* misc_open() holds misc_mtx here, and misc_deregister() takes it. */
-> +static int pfrt_log_open(struct inode *inode, struct file *file)
-> +{
-> +       kref_get(&to_pfrt_log_dev(file)->kref);
-> +       return 0;
-> +}
-> +
-> +static int pfrt_log_release(struct inode *inode, struct file *file)
-> +{
-> +       pfrt_log_put(to_pfrt_log_dev(file));
-> +       return 0;
-> +}
-> +
->  static const struct file_operations acpi_pfrt_log_fops =3D {
->         .owner          =3D THIS_MODULE,
-> +       .open           =3D pfrt_log_open,
-> +       .release        =3D pfrt_log_release,
->         .mmap           =3D pfrt_log_mmap,
->         .unlocked_ioctl =3D pfrt_log_ioctl,
->         .llseek         =3D noop_llseek,
-> @@ -349,6 +390,7 @@ static void acpi_pfrt_log_remove(struct platform_devi=
-ce *pdev)
->         struct pfrt_log_device *pfrt_log_dev =3D platform_get_drvdata(pde=
-v);
->
->         misc_deregister(&pfrt_log_dev->miscdev);
-> +       WRITE_ONCE(pfrt_log_dev->removed, true);
->  }
->
->  static void pfrt_log_put_idx(void *data)
-> @@ -373,10 +415,16 @@ static int acpi_pfrt_log_probe(struct platform_devi=
-ce *pdev)
->                 return -ENODEV;
->         }
->
-> -       pfrt_log_dev =3D devm_kzalloc(&pdev->dev, sizeof(*pfrt_log_dev), =
-GFP_KERNEL);
-> +       pfrt_log_dev =3D kzalloc(sizeof(*pfrt_log_dev), GFP_KERNEL);
->         if (!pfrt_log_dev)
->                 return -ENOMEM;
->
-> +       kref_init(&pfrt_log_dev->kref);
-> +       pfrt_log_dev->parent_dev =3D get_device(&pdev->dev);
-> +       ret =3D devm_add_action_or_reset(&pdev->dev, pfrt_log_put, pfrt_l=
-og_dev);
-> +       if (ret)
-> +               return ret;
-> +
->         ret =3D ida_alloc(&pfrt_log_ida, GFP_KERNEL);
->         if (ret < 0)
->                 return ret;
-> @@ -387,7 +435,6 @@ static int acpi_pfrt_log_probe(struct platform_device=
- *pdev)
->                 return ret;
->
->         pfrt_log_dev->info.log_revid =3D PFRT_DEFAULT_REV_ID;
-> -       pfrt_log_dev->parent_dev =3D &pdev->dev;
->
->         pfrt_log_dev->miscdev.minor =3D MISC_DYNAMIC_MINOR;
->         pfrt_log_dev->miscdev.name =3D devm_kasprintf(&pdev->dev, GFP_KER=
-NEL,
-> --
-> 2.43.0
->
->
