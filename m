@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794300728;
-	b=0529ESlXbk8FJhreSC+1N3GXKtay8qkNajsqcGL6lhtR+Edqt4h65Xe1B4KBj9iU9z5u
-	 8Y2oIjGyYcgFL4U3jsfZuwZxUax7eZoYxzQD6F9fLpBc0e9RUy4C5uHwvXT8OvsFLIqm5
-	 faj0XmSUcUYBoeQoXxohkPilTXJUi10e7bm+cZ8b/GJhrsrjoQVDyBYo+t3SAVP3nLm+T
-	 S8J1DKsnMEfGttlRVjuPi4m11KDGSqp3OGhMZeVOCPJa96YrEngl7jNkkKYeaRQcOpCuU
-	 jP2Dj51ULbUPiV5mJJjwb/qcXNEa3gT2eyQX9PWvTsaeATAckVteuR3mkr4bLpWIWtQ==
+	b=L5qyZY0yoxgoXj8V29FyozG/LAkk8VVNYa8gctsaLLMHj+lGIWSut6ZYQArOl+kPwtr9
+	 dl1QhxM3n6FtgXkO+s5PUdHYqjunW5sYCS6Xxrc63oYRQQVGb91XM9SBosODTQiatQisA
+	 E2EUtCOCJII6UE2F2dzbLp9hdevuhE3maZ1O2IHnyY/97n2gE5x65vcfQJb6N65rmMWNW
+	 hOxDSf+4h4oTEtvlKXBQHQfqd/H+et3sApBjkEtqGjJdenmhMITJqg7ZB6RhvQQ0cNWwP
+	 V38rqQgk6K3wiTC2Q+j9X3ETSbEqWaUvDQ6stjEcsE8ifVsBQIMePspSc/tW5dcrxHQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794300728;
 	h=Received:DKIM-Signature:Received:From:To:Cc:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=KPkSyWmMxgDZuWDbTvIEXPsXYBpnEBPaDZSbFviXDFY=;
-	b=eRfbUH6TpVai8AIoAZzALeV1Yknx4yyLmxWMhFR4iQs62kw9NFyIXjjFlkufdfdSgBkG
-	 +EYKuSL414hTe4wbJBFqv0+adM7EQFLxMP8U7utZs3337oiF+gTh+P0WFyXRybNaOPMMZ
-	 dnUozDPGEhNCwNxc5Y+MnojShSpOqoJ+tE3yzeVHAvkYhimJLmiBf8c6B0cUGsVxbloUO
-	 MK+zd06DEkVb2yemHhl/IRTBaplB2FiY7nbZfvwHSgIzHBPM+V2oAssfRuslq8z/X/pKT
-	 XfGXUGHcmLflS8FdeJozAquehQT18rRAoVcvVWYA7yz2ku7TRL48JD9kS3D3jQSLwNA==
+	bh=BD24lT/jCAqMVgRkJTQ9FPm/HI2ddCt1Pqe9zssOHQo=;
+	b=Rm/rDy8P39JLalGpqVwceewVe0UAglkLXA6XaKWkZE6cfuUNy+w8Vs+Fj8m7m/9BFB6w
+	 L4QN/uk/SBLCIBa687qP8g0/Bh1jsHLHZI07+K+l9x350if07RtcSPf0gNTgi6XT3FDfA
+	 eXZ4GWXi0hbu2FTLbILR1hINPvzfq9t4W2jY1ZAHUbRbiKkxsG4Gle/mWsKCP8hvshgy1
+	 WHo2ruFW5CE8Z5BoGsECwAX7Mpn+RSOo6CjnAB5oFbKYMbPtMuZlibyjCvzVS+GnK9GlL
+	 nmg53sM6V6wgyMW2vui5jHqVnYrNheqFwPWJd6dnFoZqPF05Qtrzq+JFPKipw8+5gxw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=areamqLr;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="gr2/rW1L";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7BAE606A33C;
-	Tue, 10 Nov 2026 08:52:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46D5160A261D;
+	Tue, 10 Nov 2026 08:52:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=areamqLr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B098B1F008BD;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gr2/rW1L
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6C161F00900;
 	Tue, 10 Nov 2026 08:52:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1794300726;
-	bh=KPkSyWmMxgDZuWDbTvIEXPsXYBpnEBPaDZSbFviXDFY=;
+	bh=BD24lT/jCAqMVgRkJTQ9FPm/HI2ddCt1Pqe9zssOHQo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=areamqLrr2+WLInL6xF6oO1rPJLMODIhdyXAGv3v4LFmNX4ZuJIXuibyDNp3zo6Ob
-	 +jLAsTrQ1onUhG0V9HKYx5j4wCVYpv8hK8kGZII+b2KxFQtfzcQqkQgROR8E9QQMBB
-	 rCLblL6yXni7wzejibF0vEUO3ikY8lH8PzHvn8oan8g1At1lHwUcklkFccbwP5WKhJ
-	 Pv6U6UnCGwmd9oQSrhe6st0BTtuaPXSnFPSzbxGEkbucC1rv15vgLlmcdWG/W/j0hu
-	 Qlg2DNZEioFEaSGwfh3USL0GROrKS01nT+Xy/vndLELBWqTOoMjbaIChFdubxdyCsi
-	 WOL8kiMkSjTjA==
+	b=gr2/rW1LAWeoIOCLoX/zhylGuDBK36vMy8smd2XZ958jj05lKvSUAn0FBGoZcHlzT
+	 GdgoN19Ybw2rTPVQyf0EZsjT0zjsYzjKFmWjqJ2xxjuow0Wsyl5PdLExL6JwEsmlqY
+	 uNzLGIpXKvMnP0hIeg47cDSawBRRVXO3bcm/LEr6h9OnDoKwEzqnjnHljcsihpqcaY
+	 5KkdE4pHXGxLAyXkiKz6xZJ4+f5R8M6J5pw+inulyiIgh1iwwO7VIUShzNFfWa4INn
+	 +zH9Yhs8CoUS0sIpGiEDd41d4AkALvZlBRYIFgVzQRX9jHo1w509oCdYrwT1T1cV7m
+	 Gg4uanKmcU2sw==
 Received: from johan by xi.lan with local (Exim 4.100.1)
 	(envelope-from <johan@kernel.org>)
-	id 1xQhaG-0000000AdcI-0NOh;
+	id 1xQhaG-0000000AdcE-0HdE;
 	Tue, 10 Nov 2026 09:52:04 +0100
 From: Johan Hovold <johan@kernel.org>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -60,9 +60,9 @@ Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 	linux-i2c@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: [PATCH v2 7/8] swnode: fix software_node_notify() primary node comment
-Date: Tue, 10 Nov 2026 09:51:23 +0100
-Message-ID: <20261110085125.2535508-8-johan@kernel.org>
+Subject: [PATCH v2 5/8] driver core: platform: warn on bad fwnode assignment
+Date: Tue, 10 Nov 2026 09:51:21 +0100
+Message-ID: <20261110085125.2535508-6-johan@kernel.org>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261110085125.2535508-1-johan@kernel.org>
 References: <20261110085125.2535508-1-johan@kernel.org>
@@ -77,48 +77,92 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The firmware node pointer in struct device may point to either a primary
-or a secondary firmware node and driver core sets the dev pointer of
-that node when registering devices.
+Commit e6054f410c97 ("driver core: platform: amend the API contract for
+fwnode setters") added a warning to platform_device_set_fwnode() in case
+the current firmware node pointer points to a software node as that may
+prevent software_node_notify_remove() from being called.
 
-Fix the comments in software_node_notify() and
-software_node_notify_remove() which incorrectly suggest that driver
-core only sets the dev pointer of primary firmware nodes.
+This is only an issue if the platform device has been registered however
+as software_node_notify() is only called for registered devices. A
+bigger issue is that a secondary firmware node assigned before the call
+may be silently lost (and leaked in case of software nodes) as these
+helpers do not use set_primary_fwnode().
 
-Fixes: 37e586675993 ("software node: add fw_devlink support")
+Replace the current software node check with a warning in case the
+device already has a primary or secondary firmware node assigned to
+catch any (hard-to-debug) issues due to a secondary node being assigned
+before the call.
+
+Note that this also avoids making claims about the device firmware node
+pointing to the primary firmware node, which is not the case when the
+device only has a secondary node.
+
+Fixes: e6054f410c97 ("driver core: platform: amend the API contract for fwnode setters")
 Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 Signed-off-by: Johan Hovold <johan@kernel.org>
 ---
- drivers/base/swnode.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/base/platform.c | 24 +++++++++++-------------
+ 1 file changed, 11 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index a90c20cb84e6..8e12f518e13f 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -1169,8 +1169,8 @@ void software_node_notify(struct device *dev)
- 		return;
- 
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index e0b38dbd5acf..869c044f8182 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -709,8 +709,7 @@ EXPORT_SYMBOL_GPL(platform_device_add_data);
+  * Assign an OF node to this platform device. Internally keep track of the
+  * reference count. Devices created with platform_device_alloc() must use this
+  * function instead of assigning the node manually. This function must not be
+- * called for a platform device that already has a software node as its primary
+- * firmware node assigned.
++ * called for a platform device that already has a firmware node assigned.
+  */
+ void platform_device_set_of_node(struct platform_device *pdev,
+ 				 struct device_node *np)
+@@ -727,19 +726,16 @@ EXPORT_SYMBOL_GPL(platform_device_set_of_node);
+  * Assign a firmware node to this platform device. Internally keep track of the
+  * reference count. Devices created with platform_device_alloc() must use this
+  * function instead of assigning the node manually. This function must not be
+- * called for a platform device that already has a software node as its primary
+- * firmware node assigned.
++ * called for a platform device that already has a firmware node assigned.
+  */
+ void platform_device_set_fwnode(struct platform_device *pdev,
+ 				struct fwnode_handle *fwnode)
+ {
  	/*
--	 * When the software node is the device's secondary firmware node,
--	 * the core only records the owning device on the primary fwnode
-+	 * When a device has both a primary and a secondary firmware node the
-+	 * core only records the owning device in the primary node
- 	 * (see device_add()). fw_devlink resolves a supplier device through
- 	 * fwnode->dev, so without this a consumer referencing the software
- 	 * node could never find the supplier device and would defer forever.
-@@ -1205,9 +1205,8 @@ void software_node_notify_remove(struct device *dev)
- 	sysfs_remove_link(&dev->kobj, "software_node");
- 
- 	/*
--	 * Drop the device pointer mirrored onto a secondary software node in
--	 * software_node_notify(). For a primary software node the core owns
--	 * fwnode->dev and clears it in device_del().
-+	 * Clear any device pointer set in a secondary software node in
-+	 * software_node_notify().
+-	 * If we call this function for a platform device whose primary
+-	 * firmware node is a software node, we'll never end up calling the
+-	 * symmetric software_node_notify_remove(). There are no users for this
+-	 * right now in the tree so just disallow it.
++	 * A secondary firmware node may be lost as set_primary_fwnode() is
++	 * not used here, warn for now if a node has already been set.
  	 */
- 	if (!device_match_fwnode(dev, &swnode->fwnode) && swnode->fwnode.dev == dev)
- 		swnode->fwnode.dev = NULL;
+-	WARN_ON(is_software_node(dev_fwnode(&pdev->dev)));
++	WARN_ON(dev_fwnode(&pdev->dev));
+ 	fwnode_handle_put(pdev->dev.fwnode);
+ 	device_set_node(&pdev->dev, fwnode_handle_get(fwnode));
+ }
+@@ -752,14 +748,16 @@ EXPORT_SYMBOL_GPL(platform_device_set_fwnode);
+  *
+  * Reuses the OF node of another device in this platform device while
+  * internally keeping track of reference counting. This function must not be
+- * called for a platform device that already has a software node as its primary
+- * firmware node assigned.
++ * called for a platform device that already has a firmware node assigned.
+  */
+ void platform_device_set_of_node_from_dev(struct platform_device *pdev,
+ 					  const struct device *dev2)
+ {
+-	/* See platform_device_set_fwnode(). */
+-	WARN_ON(is_software_node(dev_fwnode(&pdev->dev)));
++	/*
++	 * A secondary firmware node may be lost as set_primary_fwnode() is
++	 * not used here, warn for now if a node has already been set.
++	 */
++	WARN_ON(dev_fwnode(&pdev->dev));
+ 	device_set_of_node_from_dev(&pdev->dev, dev2);
+ 	pdev->dev.fwnode = of_fwnode_handle(pdev->dev.of_node);
+ }
 -- 
 2.56.0
 
