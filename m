@@ -1,85 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=114.242.206.163
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794296364;
-	b=amEIUw5xTzTzxpFNvYfyF2pPAlcInmfsFMcVeeX6dTG3KrElCUDY/4GOh5+CudDgpiHK
-	 fwl987UaynHn1ChnyJzMXgsBmOSPzw0YSzKd9JosEDUiLHSQqD5c8m/3dxg1bxwe+tuFL
-	 9nI+8fuho4UjOwZFIKzhpAwhqgUOnhMd9Ppfu/kc1aZ6N0I2UyvACFq1y26p/Jd9FxlmV
-	 yAWSv0QkIKvnlbU3PL1scefQP4ZWl44gChBcHnhmxAXXz3X+0ag91ny2l2Dw4HG6rPfYo
-	 LCLFp7qpkCzQDmL+TN9CHZiZai944MnPIfUkMeUoWwd1R2NbfgwWfHJJqbgrITyNkgg==
+	t=1794300389;
+	b=RTfXZ1JYzeS98YAAee2YkErvx0H0q86f6x4mdK8lBtCIXQOInvQAokjcXpQCSN0kB0zB
+	 KkPPmoHcXhbQ0LbL/FZnMO28mlj6sahiipvIOxmSCLJPl9VfTT0F6VxCbLo6gFecJV6XQ
+	 LHjUvENUw2SyJ322+TgvHA0EwOMAFz1ev7Xh+D0N/Uu9p0qeDBEsCudeSSUFgvVfaxwqd
+	 IFpUi0fMj+8Oe9X4spoO1Pu4w1eq5a7H1pHiVsMDo9Us/swuGiDN6Lh2UW2jLdyn6u9Nc
+	 r949ptrEC+Ojx/jCM4tLSGyqMDLEcaLr0giPvF6rkui8x6VuwSvKVaqnoVbd3WnX8Cg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794296364;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=DSBlFGn4E205gXuccBzZwAAPl+yDbfuCcd3h0VNHPkE=;
-	b=Ye92w12yqLwPR0BzL7dvlJW1tsryX5c/jTvgNuJfrT/WDNXA+PYHusOvKFMhiVZh63qv
-	 s84dQNdF51lq4ULHOS9Z2i6gQP+wmCeuUglK8R/D4Pw0RKwongEnPfN+rIke8OkVkc2PF
-	 JfPbaCvff5VlaAT1uZ4rz3NFbvxXWOhtNSR96jPUebHNwWWYN3Sm0q1Zgy60s/Z2Zp8eh
-	 0E9C3xaMa9WbMxBME/QGhDTIgzjTmxz/v+7+/nfw7l/IQW1zyu2eS9SEIG9DaLQ/P4ydi
-	 G8jEw9ovVkjBO00FQTHoZSTcHY90uWdtjBdpONnLvnTb752othy8JRdc9qUvlRVEA4w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794300389;
+	h=DMARC-Filter:Received:Received:From:To:Cc:Subject:Date:Message-Id:
+	 X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-CM-TRANSID:X-CM-SenderInfo:
+	 X-Coremail-Antispam;
+	bh=WODBY/C9mNszW/PzbpSN6cT6sbxCA9RxgeIBOD8aysI=;
+	b=woiC9HzhmewA/K5OiYyEO7V5aizxShZwJ0dXNdoUFS9bxeZbPo7l6fy3V24LiPM0Lagu
+	 7j25ttm1H9gIKgF0cXFh/O1jvQC3KLCdwIi2OdY+VGq7yinEqRKiqMuqo4DRNxnNqLS8J
+	 H+9se6H6xlFwJfl0WBZ1S5jy5wUbvEMaylAHOcXfsByEjCqzjGsPhuc+UqhOBpGjeLiUk
+	 IFenKG8mLe2NQu2YMbkFnGUuKhUfiruMFxaaOudHOBDQBepD2RQK4/RntFmgJ1cZP2kcm
+	 GIxVQH4byGvpNpD4gWKC4yI9Le7Jx/o9YsiyI6/a63g0m7cZP6wNK01e2VkuqWfj/oQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Cua8L9GY;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5E2F606A31C;
-	Tue, 10 Nov 2026 07:39:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Cua8L9GY
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC1DB1F0089F;
-	Tue, 10 Nov 2026 07:39:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794296363;
-	bh=DSBlFGn4E205gXuccBzZwAAPl+yDbfuCcd3h0VNHPkE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Cua8L9GY35tzd1wvxIkoHZWoj4b+Jnc4MmmXSS4xz1DMOhF7fnMzyvLCmrsGBqGj1
-	 Jb3832ICvaaSkhpxHKzVktwY0VN55YFhe3ayOJkh72n1kK3xADULAH5Ox4aWZpDvso
-	 SSbBNIbDYBnbE0pl1xpHF+Szz6q8g2PUN/I44F2G4akFrGsrJgkxavsbYV78rdzpjx
-	 zQNz+Gl7ioYOpICsUTt7r4k8bgeTs/LlSH/W8tT7ufcmOxtPXhedsyuDUNY/5l3SKw
-	 qP4k1ZQswUJUdtBBrFidqv9eamm01YnDLo/xUXPHRAgRbSU5FtK+emGYhLCVNfCVFg
-	 cz+s7VuHGQF/w==
-Date: Tue, 10 Nov 2026 09:39:19 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Heiner Kallweit <hkallweit1@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
-	Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Lu Baolu <baolu.lu@linux.intel.com>,
-	Johan Hovold <johan@kernel.org>, Eric Dumazet <edumazet@kernel.org>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-	Nipun Gupta <nipun.gupta@amd.com>,
-	Nikhil Agarwal <nikhil.agarwal@amd.com>,
-	Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
-	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-input@vger.kernel.org, netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-pci@vger.kernel.org,
-	iommu@lists.linux.dev, Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2 10/19] net: phy: Use the compatibility driver
- attachment API
-Message-ID: <20261110073919.GF8635@unreal>
-References: <20261109-device-trust-core-v2-0-3b12d9a9f861@nvidia.com>
- <20261109-device-trust-core-v2-10-3b12d9a9f861@nvidia.com>
- <ab062469-ece0-495e-8486-78404c580cdb@lunn.ch>
+	dmarc=none header.from=loongson.cn;
+	spf=pass smtp.mailfrom=loongson.cn;
+	arc=none smtp.remote-ip=114.242.206.163
+Received: from mail.loongson.cn (mail.loongson.cn [114.242.206.163])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E5E3A606A338;
+	Tue, 10 Nov 2026 08:46:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E5E3A606A338
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=loongson.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=loongson.cn
+Received: from loongson.cn (unknown [10.2.5.213])
+	by gateway (Coremail) with SMTP id _____8DxztLi2fJqeB8eAA--.20864S3;
+	Tue, 10 Nov 2026 16:46:26 +0800 (CST)
+Received: from localhost.localdomain (unknown [127.0.0.1])
+	by front1 (Coremail) with SMTP id qMiowJCxe87e2fJqWXMzAA--.22061S4;
+	Tue, 10 Nov 2026 16:46:25 +0800 (CST)
+From: Bibo Mao <maobibo@loongson.cn>
+To: Huacai Chen <chenhuacai@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
+	Pawel Chmielewski <pawel.chmielewski@intel.com>
+Cc: Len Brown <lenb@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
+	lixianglai@loongson.cn
+Subject: [PATCH 2/2] ACPI: LoongArch: Add checksum support with IOVT table
+Date: Tue, 10 Nov 2026 16:46:13 +0800
+Message-Id: <20261110084613.2746641-3-maobibo@loongson.cn>
+X-Mailer: git-send-email 2.39.3
+In-Reply-To: <20261110084613.2746641-1-maobibo@loongson.cn>
+References: <20261110084613.2746641-1-maobibo@loongson.cn>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -89,41 +60,75 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <ab062469-ece0-495e-8486-78404c580cdb@lunn.ch>
+X-CM-TRANSID:qMiowJCxe87e2fJqWXMzAA--.22061S4
+X-CM-SenderInfo: xpdruxter6z05rqj20fqof0/
+X-Coremail-Antispam: 1Uk129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7KY7
+	ZEXasCq-sGcSsGvfJ3UbIjqfuFe4nvWSU5nxnvy29KBjDU0xBIdaVrnUUvcSsGvfC2Kfnx
+	nUUI43ZEXa7xR_UUUUUUUUU==
 
-On Mon, Nov 09, 2026 at 02:45:35PM +0100, Andrew Lunn wrote:
-> > @@ -1956,11 +1958,10 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
-> >  	}
-> >  	phydev->drv_owner = drv_owner;
-> >  
-> > -	if (phydev->is_genphy_driven) {
-> > -		err = d->driver->probe(d);
-> > -		if (err >= 0)
-> > -			err = device_bind_driver(d);
-> > -
-> > +	if (bind_genphy) {
-> > +		err = device_driver_attach_full(drv, d);
-> > +		if (err == -EBUSY)
-> > +			irq = phydev->irq;
-> 
-> Just looking at this, it is not clear where the EBUSY can from? 
+Checksum information is put in acpi_table_header, here add
+checksum support with IOVT table.
 
-I relied on the comment above: “Assume that if there is no driver, ...”.
-Since PHYs do not use the standard automatic probing mechanism, I have no
-way to tell whether a driver is already bound.
+Signed-off-by: Bibo Mao <maobibo@loongson.cn>
+---
+ drivers/acpi/loongarch/iovt.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-> And why set irq to phydev->irq?
+diff --git a/drivers/acpi/loongarch/iovt.c b/drivers/acpi/loongarch/iovt.c
+index 6c5bcb4df7d8..c9830ba46729 100644
+--- a/drivers/acpi/loongarch/iovt.c
++++ b/drivers/acpi/loongarch/iovt.c
+@@ -20,6 +20,7 @@ struct iovt_fwnode {
+ 
+ static LIST_HEAD(iovt_fwnode_list);
+ static DEFINE_SPINLOCK(iovt_fwnode_lock);
++static bool checksum_valid;
+ 
+ #ifdef CONFIG_PCI
+ static void __init iovt_enable_acs(struct acpi_iovt_iommu *iommu)
+@@ -168,6 +169,17 @@ static void __init iovt_init_devices(struct acpi_table_header *header)
+ 	}
+ }
+ 
++/* Come from acpi_ut_checksum */
++static unsigned char acpi_iovt_checksum(unsigned char *buffer, unsigned int len)
++{
++	unsigned char sum = 0, *end = buffer + len;
++
++	while (buffer < end)
++		sum += *buffer++;
++
++	return sum;
++}
++
+ void __init acpi_iovt_init(void)
+ {
+ 	int i;
+@@ -184,6 +196,13 @@ void __init acpi_iovt_init(void)
+ 		return;
+ 	}
+ 
++	if (acpi_iovt_checksum((unsigned char *)hdr, hdr->length)) {
++		pr_err("IOVT invalid checksum\n");
++		acpi_put_table(hdr);
++		return;
++	}
++
++	checksum_valid = true;
+ 	iovt = (struct acpi_table_iovt *)hdr;
+ 	iommu = ACPI_ADD_PTR(struct acpi_iovt_iommu, iovt, iovt->iommu_offset);
+ 	for (i = 0; i < iovt->iommu_count; i++) {
+@@ -199,6 +218,9 @@ void __init acpi_iovt_late_init(void)
+ 	acpi_status status;
+ 	struct acpi_table_header *hdr;
+ 
++	if (!checksum_valid)
++		return;
++
+ 	status = acpi_get_table(ACPI_SIG_IOVT, 0, &hdr);
+ 	if (ACPI_FAILURE(status)) {
+ 		if (status != AE_NOT_FOUND)
+-- 
+2.39.3
 
-If the above operation can fail with -EBUSY, the wrong IRQ was restored.
-
-I checked this with AI, which says that -EBUSY can originate deep in the
-driver core. It may be better to remove this special case and rely on the
-PHY's guarantee that no driver can be bound concurrently.
-
-Thanks
-
-> 
->     Andrew
