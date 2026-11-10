@@ -1,87 +1,69 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794322724;
-	b=lWnrTLMsksh/elxxGURgrZyMWybzeqxhyiNpaIuGzqRzYSRnk6M13jDaXojI46qq+efb
-	 qMTlIch+ml5jHZ4fb8DmqkR0cJFmfNyXlcELEGT6Tf1fYM1+JPUh4GconFAedB5JrHbHj
-	 R3nBBtdkpYBamCntJrdi1UCaERFqDS45sdPclsfIGdxSFoDsPLzzlEZjCn6GioCpfsab0
-	 yTV0C903vUnjwDfgOKcRAt2Xwg6o4M4gMKJh/UQQqNecD+EWpV5dNVo6PS9fAENBkoVzA
-	 UUvGWy6qq0x5oA1GXo14AZIt2HnzggKwZgPf495Ph4zAzD6qJ9h7s/tW8YErhIo/uCA==
+	t=1794323461;
+	b=hyLRUFay9yH10S/slMhDJfavvGR5qAAoKckDf49Lyv6Ewv0OF3AuM0n/fGHee1p0fP6R
+	 VenQei5NFWOLTK9RibG/JB1Tw9HJ1PiCKIsa9Lj/ykt7CFHK/HxqHOZSC2Fb8wqm9o3GQ
+	 diOQFomyiQCWeKqyQlGb2kVr7JDE6iAKRYuGYsW0qsVYKZCiKEgxebwblH/i9dinJKu2N
+	 pjQ+xZKtOKl8pnb1Dag5GWA7+awvvPvTuYgY9eMpFnD5hG/H6FZxsiYT7Pr0rer/r3lZ3
+	 LUZMln/U1oc3AKxbtR/VzUB3BF395CuebuR+S8fUYsqxO44r/d37xZdxLSfmx+VYOtw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794322724;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794323461;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=tM0VlaEE8Hm4AV2LmNn9XxetntusdncCzYCV4dQnv+I=;
-	b=I8XogMkJxcxvfDQbyuy9mWKmHXbssvct/ZwPGnkby4RqoVA22pHbstNTqJnvuL+64cCS
-	 qKuEa3lrVZJmwA5VrX4oy4PBM8vROl31639mKmoyyx6ix7RtJHInMoEuLevrj71H5/Vps
-	 aLQn/6Gl/Yytp7BccV5btZUNYVBxpMS/ej+FQJXl/WJ8oH2CJCNoLhcko4ME4JbFgr5Oa
-	 GaIP3hRlarlsfYcC8fuV56VB6z3td8VM4k85/4ioJXswxD+s3uY106/5w59gV8F+1B0QB
-	 coatnUgKJNJSIoRlx3O1acdzb4Tbn8G/Duq4/0oPPZ4HfDwpHKtuWghTmaWaDcA8lJg==
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=k+JfUV0QhaAHCSo5uKVNqubmDMHshz3Y0tNpTYgBNWE=;
+	b=WX8kUhDlzDRCnaPncaycSbA5N31RSKip9nwxx7ruFbpuc5ZtExxkHCrWaLVquXkQCpMS
+	 hOiN0L4+0JyhTuksXKZYN9JLpB3J2Vt1QPSz1EUTFsWIpPWwCxWa9OdYeLcayFc7iYeWz
+	 5LBWl2iDezYSl1amuPszThASbamfvc9rYoPpKTiCXhjgHqGqKcGp0zZMWqVHkxisXkExH
+	 p04GgBOY1tR8gh1mtdQpAuiV04c2U1Wh0fgqxYIPTv3VdeOHUryphZoWbwOYc/xNwrKuf
+	 g2fn/Rw8ppbH3IbMK/Hx0H8aDJTaFQXGnT6yW1Xs+PrD407AmvqtlN6tqPOGMD7/iPw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AQA9PJv0;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ff3FmVsD;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45A7D60A2624;
-	Tue, 10 Nov 2026 14:58:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1160606A31C;
+	Tue, 10 Nov 2026 15:11:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AQA9PJv0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4BDE1F0089F;
-	Tue, 10 Nov 2026 14:58:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ff3FmVsD
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 117751F008A5;
+	Tue, 10 Nov 2026 15:10:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794322723;
-	bh=tM0VlaEE8Hm4AV2LmNn9XxetntusdncCzYCV4dQnv+I=;
+	s=k20260515; t=1794323460;
+	bh=k+JfUV0QhaAHCSo5uKVNqubmDMHshz3Y0tNpTYgBNWE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=AQA9PJv0ksr0R09Jj0CUrcfkHSXYBK4F28o8m6CiMYTG/g9/KCHzw3ScFpsl8KHBn
-	 IqR5F+5PdZW/FmiQE5hyG29Lzeqw+6oVbvf/T66VmVbH6qX4xDQsmnQP4JL1Zxz1cG
-	 HcVR6UVWB0lPyXOuO2W13chI8iBCDoJd9h9o6HPo0VeGfRKefSE8g3rzFtW3SMz0ih
-	 SzoL60sWHcZpYx9A8pICN24SG9Tfxgo9VRI3IPRWNgLxW2qBUU3IN0fzxr85x+mxlk
-	 gJ8kIj0CwgkJ7pNfVNYYt2T2RfA/IEeZ9/nu+9CpJ89HiVlO9DCubyth7h4DhZygs9
-	 tG+SC80+N19Dg==
-Date: Tue, 10 Nov 2026 16:58:39 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Heiner Kallweit <hkallweit1@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
-	Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Lu Baolu <baolu.lu@linux.intel.com>,
-	Johan Hovold <johan@kernel.org>, Eric Dumazet <edumazet@kernel.org>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-	Nipun Gupta <nipun.gupta@amd.com>,
-	Nikhil Agarwal <nikhil.agarwal@amd.com>,
-	Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
-	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-input@vger.kernel.org, netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-pci@vger.kernel.org,
-	iommu@lists.linux.dev, Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2 10/19] net: phy: Use the compatibility driver
- attachment API
-Message-ID: <20261110145839.GL8635@unreal>
-References: <20261109-device-trust-core-v2-0-3b12d9a9f861@nvidia.com>
- <20261109-device-trust-core-v2-10-3b12d9a9f861@nvidia.com>
- <ab062469-ece0-495e-8486-78404c580cdb@lunn.ch>
- <20261110073919.GF8635@unreal>
- <019fceab-1b0b-44a5-8cef-1f77d7d6ac07@lunn.ch>
+	b=ff3FmVsDnez4qfT39XX0kcfM/DNkc0rXxt/RVnKcZqMWRUtIVUZO3sY1Y1T/jrJAa
+	 LMkcjSntcqIt/Dbq3Xerko7WDpaJXndU2wUtOuoW2+uINMqX2Jsh+NPneCeq+ZzcTc
+	 y/10hlPv9GBW10fubJHi/KnE3+svfMF9H9xnKvALCEtFQgdn75smaq1BywPaQM223f
+	 lLXjmVkwU/bhZko1W7RzSFeDujo+89KOrwp2v8SoKRveZnQxtqZcT6qfBOCpXiNOJC
+	 WtdpzOM3P3/7d3roJBdk72LHb5u6IbqeBvAteyUJlQN8Vrn4anv8df/BaYyyG/q+C2
+	 W0F51h3lnQSGA==
+Date: Tue, 10 Nov 2026 16:10:54 +0100
+From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>, 
+	Hans Verkuil <hverkuil@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+	Kees Cook <kees@kernel.org>, Andy Shevchenko <andy@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Rob Herring <robh@kernel.org>, Saravana Kannan <saravanak@kernel.org>, 
+	Linus Walleij <linusw@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-gpio@vger.kernel.org
+Subject: Re: [PATCH 5/9] of: property: implement the .property_get_names()
+ fwnode operation
+Message-ID: <avMzoKHbsuMcZpW2@devuan>
+References: <20261104-fwnode-for-each-prop-v1-0-6e28fe1c72c4@oss.qualcomm.com>
+ <20261104-fwnode-for-each-prop-v1-5-6e28fe1c72c4@oss.qualcomm.com>
+ <auuhy40x1BMoW96-@ashevche-desk.local>
+ <7sfr4ljlwbehal3or4dmy5jxbjz6ya2lf3dq3yptr54wym5tea@eqaexflmocih>
+ <avICwdxyi-W1Y3PD@ashevche-desk.local>
+ <ab73ez55exen3ew52svsxfinwsuatppdodu2e2zp6izjwwqwwu@2imxzxwclgtl>
+ <avL4LoCz2wc164zo@devuan>
+ <avMBNUEL9_V7WnK-@devuan>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -91,126 +73,209 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="qpxgmtmgum7gp73j"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <019fceab-1b0b-44a5-8cef-1f77d7d6ac07@lunn.ch>
+In-Reply-To: <avMBNUEL9_V7WnK-@devuan>
 
-On Tue, Nov 10, 2026 at 03:31:15PM +0100, Andrew Lunn wrote:
-> On Tue, Nov 10, 2026 at 09:39:19AM +0200, Leon Romanovsky wrote:
-> > On Mon, Nov 09, 2026 at 02:45:35PM +0100, Andrew Lunn wrote:
-> > > > @@ -1956,11 +1958,10 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
-> > > >  	}
-> > > >  	phydev->drv_owner = drv_owner;
-> > > >  
-> > > > -	if (phydev->is_genphy_driven) {
-> > > > -		err = d->driver->probe(d);
-> > > > -		if (err >= 0)
-> > > > -			err = device_bind_driver(d);
-> > > > -
-> > > > +	if (bind_genphy) {
-> > > > +		err = device_driver_attach_full(drv, d);
-> > > > +		if (err == -EBUSY)
-> > > > +			irq = phydev->irq;
-> > > 
-> > > Just looking at this, it is not clear where the EBUSY can from? 
-> > 
-> > I relied on the comment above: “Assume that if there is no driver, ...”.
-> > Since PHYs do not use the standard automatic probing mechanism, I have no
-> > way to tell whether a driver is already bound.
-> 
-> They do use the automatic probe mechanism. But also extend it.
-> 
-> Maybe some background will help.
-> 
-> IEEE 802.3 specifies how PHYs should operate, it list all the
-> registers which are needed for basic operation etc. If a PHY follows
-> the standard, genphy is sufficient to drive the PHY.
-> 
-> Now. Networking vendors like to do two things:
-> 
-> 1) Do more than what the standard specifies, like interrupts and
-> blinking LEDs.
-> 
-> 2) Don't closely read the standard, and break their implementation
-> 
-> These two cases require a specific driver.
-> 
-> There is a lot of history to phylib, from before my time. It seems
-> like the current model was retrofitted around earlier code. The result
-> is that when the MDIO bus is enumerated, PHYs can be found on the bus
-> and are registered to the bus in the normal way. The driver core will
-> look to see if there is a driver which matches the ID values in
-> registers 2 and 3, and if so probe that driver. If there is no
-> matching driver, a call is made to user space to ask it to load the
-> driver with the given IDs.  That operates asynchronous, when such a
-> driver is loaded, the driver core will run the match again and probe
-> the device with the driver.
-> 
-> Because there can be up to 32 devices on the MDIO bus, the MAC driver
-> often knows which PHY device it should use. If not, MAC drivers
-> sometimes use the first PHY on the bus. It does not really matter, the
-> point is, we know the device exists, even if it has not been probed
-> yet, so we can get a reference to it.
-> 
-> The MAC most often connects to its PHY during open(). At that point,
-> if the driver core has bound a PHY driver to the PHY device, it is
-> good to go.
-> 
-> If however, there is no PHY driver for the PHY device, it can mean a
-> few different things:
-> 
-> There is no driver of that PHY because it follows 802.3, and genphy is
-> expected to be used. However, genphy does not have a list of IDs it
-> can drive, so the usual probing mechanism does not match it to the
-> device. It would be nice if it did actually have such a list, but it
-> does not.
-> 
-> There is driver, but it has not been built, or is missing from the
-> initramfs, or is not part of the image, etc. So we just use the genphy
-> driver and hope for the best.
-> 
-> So, if we have got this far, there is no driver for the PHY, we make
-> use of genphy.
-> 
-> > > And why set irq to phydev->irq?
-> > 
-> > If the above operation can fail with -EBUSY, the wrong IRQ was restored.
-> 
-> How has it got the wrong interrupt?
-> 
-> genphy cannot use interrupts, because interrupts are not part of
-> 802.3. Device tree can list an interrupt for the device, and if the
-> device specific driver is used, phylib can use that
-> interrupt. However, since interrupts are optional, phylib defaults to
-> polling.  phydev->irq is over powered and set to PHY_POLL to indicate
-> polling should be used. The phylib core will look at the PHY driver,
-> see if it supports interrupts, and if not, set phydev->irq ==
-> PHY_POLL.
-> 
-> The binding of genphy to the device cannot fail, at least in the
-> current phylib code. So up until recently, setting phydev->irq to
-> PHY_POLL was fine. However, that is changing. There is a use case,
-> because of bad hardware design, that genphy is initially used to get
-> the device up. But later, the real driver module becomes available and
-> gets loaded. /sysfs is then used to unbind genphy and bind the
-> specific driver. Because phylib has set phydev->irq to PHY_POLL, the
-> specific driver cannot use interrupts. So on unbind, phydev->irq is
-> set back to the value in the MDIO bus.
 
-Thanks for the explanation, I definitely lack knowledge in phylib
-history.
+--qpxgmtmgum7gp73j
+Content-Type: text/plain; protected-headers=v1; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>, 
+	Hans Verkuil <hverkuil@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+	Kees Cook <kees@kernel.org>, Andy Shevchenko <andy@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Rob Herring <robh@kernel.org>, Saravana Kannan <saravanak@kernel.org>, 
+	Linus Walleij <linusw@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-gpio@vger.kernel.org
+Subject: Re: [PATCH 5/9] of: property: implement the .property_get_names()
+ fwnode operation
+Message-ID: <avMzoKHbsuMcZpW2@devuan>
+References: <20261104-fwnode-for-each-prop-v1-0-6e28fe1c72c4@oss.qualcomm.com>
+ <20261104-fwnode-for-each-prop-v1-5-6e28fe1c72c4@oss.qualcomm.com>
+ <auuhy40x1BMoW96-@ashevche-desk.local>
+ <7sfr4ljlwbehal3or4dmy5jxbjz6ya2lf3dq3yptr54wym5tea@eqaexflmocih>
+ <avICwdxyi-W1Y3PD@ashevche-desk.local>
+ <ab73ez55exen3ew52svsxfinwsuatppdodu2e2zp6izjwwqwwu@2imxzxwclgtl>
+ <avL4LoCz2wc164zo@devuan>
+ <avMBNUEL9_V7WnK-@devuan>
+MIME-Version: 1.0
+In-Reply-To: <avMBNUEL9_V7WnK-@devuan>
 
-> 
-> As is said, this code is fragile, and complex. You have to assume your
-> LLM is producing slop, and really take a close look at the code, if
-> you want to get it correct.
+> Date: 2026-11-10 12:35:22+0100
+> From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+>
+> > Date: 2026-11-10 12:10:57+0100
+> > From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+> >
+> > Hi Bart,
+> >=20
+> > > Date: 2026-11-10 10:00:42+0100
+> > > From: Bartosz Golaszewski <brgl@kernel.org>
+> > >
+> > [...]
+> > > > > > > +		names[i] =3D kstrdup(prop->name, GFP_KERNEL);
+> > > > > >=20
+> > > > > > Can property be statically defined somewhere? We might want to =
+also optimize
+> > > > > > these duplications with const variant (here or elsewhere, for f=
+wnode generic
+> > > > > > path, I believe).
+> > > > >=20
+> > > > > Please rephrase because I'm not quite following what you're sayin=
+g.
+> > > >=20
+> > > > Can prop->name come from something that is declared as
+> > > >=20
+> > > > static const ... foo =3D {
+> > > > 	... .name =3D "bar";
+> > > > };
+> > > >
+> > >=20
+> > > You can't know it for every instance of struct fwnode_handle, so the
+> > > answer is: no.
+> > >=20
+> > > PS: is there a way of using match_string() with non-const data?
+> >=20
+> > Given the definition here:
+> >=20
+> > 	$ grepc match_string .
+> > 	./include/linux/string.h:int match_string(const char * const *array, s=
+ize_t n, const char *string);
+> > 	./lib/string_helpers.c:int match_string(const char * const *array, siz=
+e_t n, const char *string)
+> > 	{
+> > 		int index;
+> > 		const char *item;
+> >=20
+> > 		for (index =3D 0; index < n; index++) {
+> > 			item =3D array[index];
+> > 			if (!item)
+> > 				break;
+> > 			if (!strcmp(item, string))
+> > 				return index;
+> > 		}
+> >=20
+> > 		return -EINVAL;
+> > 	}
+> >=20
+> > You should be able to call it with a cast.  It's dangerous, but
+> > technically it works.  I'm not encouraging it, though.  :)
+> >=20
+> > 	char **strings;
+> >=20
+> > 	...
+> >=20
+> > 	i =3D match_string((const char *const *) strings, n, "foo");
+> >=20
+> > This is a historic problem in C, which was solved in C++.
+>=20
+> BTW, self-correction:  it is solved for char *const *, but char** is not
+> convertible to const char *const *, neither in C++ nor in future C.
 
-The problem is that I also assume that the code preceding the change is wrong
-too. People often produce code that's even worse than what a properly guided
-LLM produces.
+Self-correction of the self-correction: char ** will also be convertible
+to const char *const *.  I was confused during a short moment, it seems.
 
-Thanks
+	alx@devuan:~/tmp$ cat const.c=20
+	#include <stddef.h>
 
-> 
->     Andrew
+	int
+	main(void)
+	{
+		const char *const *ccp =3D NULL;
+		char **p;
+
+		ccp =3D p;
+	}
+	alx@devuan:~/tmp$ cat const.c | gcc -x c++ -
+	alx@devuan:~/tmp$=20
+
+
+Cheers,
+Alex
+
+>=20
+>=20
+> Cheers,
+> Alex
+>=20
+> >  I have
+> > a proposal paper for the C Committee for solving it as in C++:
+> > <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3987.htm>
+> >=20
+> > This paper will be discussed (and probably voted in) in the next meeting
+> > of the committee (which happens next week), so there's a chance that
+> > this will be solved for C2y, and thus the cast will no longer be
+> > necessary.
+> >=20
+> > The history of why this is not allowed in C but is in C++ is, as far as
+> > I've been told, the following:
+> >=20
+> > Back before C and C++ were standardized, C++ invented const, with rules
+> > slightly more allowing than what they are now.  This was going to be
+> > standardized first in C89.  But very close to the release of C89, they
+> > realized about the danger of converting a const char** to a char**
+> > implicitly.  They were so close to the release, that they opted for the
+> > safest approach: disallow any non-trivial conversions.
+> >=20
+> > Later, while standardizing C++98, they realized we could allow a few
+> > more conversions safely, and so they did.
+> >=20
+> > C could have taken advantage of that, and pick C++ rules in C99 or C11,
+> > but for some reason, nobody proposed that.  I'm proposing it now.  :)
+> >=20
+> > We've already discussed this proposal informally within the committee
+> > for some a year and a half, and there seems to be consensus that we want
+> > it.  We're only being careful about the specific language.  But I think
+> > I finally got it, and it will go in next week.
+> >=20
+> >=20
+> > Have a lovely day!
+> > Alex
+> >=20
+> > >=20
+> > > Bart
+> > >=20
+> >=20
+> > --=20
+> > <https://www.alejandro-colomar.es>
+>=20
+>=20
+>=20
+> --=20
+> <https://www.alejandro-colomar.es>
+
+
+
+--=20
+<https://www.alejandro-colomar.es>
+
+--qpxgmtmgum7gp73j
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmrzM/0ACgkQ64mZXMKQ
+wqm5Vg/9FMzxE1DzVEdsHiBQi+kE7cGOI4ma9sgDJoEjK6z5pi5vl41VIbj9mKII
+2gyshPP75e70Ee00CxPc7F1OEuG0DLkf7Rz9MfydiUWxowxGnZZmvwGjgknk3uZY
+TEq+UcZ4eJneqVtMT2O74AtskE0VxyxIrr0fBn/vn/3wxMd3atylcFUuZqSW1jiQ
+vUAiMxz6JNIKvtIvaK6FPdMJqP60PxQ5gtIXQtvFlnRx6y8cB2Qoq/wsPdo7RBqf
+kmx/lVrbl7Z+i7d3pjq7DkIMdpEYzozg3i0PrGJb3+XmXS4OnNN7GRQUHFZvGEXg
+We8350HB3xTkLK3uJTkJ2OO0Yx1Rvuc1x3qIoGlBhhmJirYwjO4smRXKIABqNjEM
+tZY+QdsyOgfIiAD+2HGpqyxSSznYC8nOZ8+XlhGVxwEdDeLjJzA3cBuGVQZVzwo2
+TXhd/ONWz3/s8yv63CnJINvJliYYJSedAf96xADYYUo+gJx7Nk93eepRxQDWIMI8
+jXvCFC4Q9bNXrS5t4lDPGzyiK35y//hBaz1r56nVjRPIiAaUnd5uKDAbY4elhUjM
+0GGBVUuPq/ucJ73OfL3fY/oWl8s5aF3AyyGJQRp6PVp8zEzpBIX/6mX2b4MIz2mv
++f+RIixqGWjFtWrhHpUqAN0MEqtmid9TfhEokNAKeWhIAhcZPfM=
+=i4c8
+-----END PGP SIGNATURE-----
+
+--qpxgmtmgum7gp73j--
