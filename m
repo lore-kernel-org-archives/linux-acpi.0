@@ -1,59 +1,65 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794301061;
-	b=E5DJT5VQlvhmdXHxD8Rvnz65sehDdmCrZLw+R4KxOep0f4GalCwNMg6mnbftlX8ZzXP/
-	 e6eY2HDFjA5xG6EtfW69EM6bSRHWbkVuLwo7VtE6V3OlDyFEEPVzx3tlN+ApwWYKZgb1b
-	 IiuW1KnnwntN3lmPIzZEWJhBDxB4ejlRVj7qOxbgxsBSlybzoo2HalouAiB4KkXPdXQiv
-	 fxZW1k0rkCI6yNF1yrwbCPtM6J0IySu1TazMiC2/o6aXNu/9j/47qqShw3G5PIVCHi6IH
-	 dEQAzsrzEWGK1cfF5m+5goYQ4x2el/oQRp3NlmuDmi0IwqvX2SnaMwD9tB0mg4wBiGA==
+	t=1794301246;
+	b=yaE1NsytD8vL3dhlRxHGLPb+ppQ3ETRQDVk5LbWj3Gnn+2MdR34LKA6YD4YZlERfchye
+	 fDFMnVYpFjSgOlnQu3xlqjBiLGvW1P68/2y0TSl2TQu98uDgQtVkup4KhW/ELTDCztx1x
+	 /pSi5SmdlGrRk5noiGCBSarRixSMrJZ4k9ZUfAVMuyIP+6DfK5aP3R894XS6uBnOCf6I5
+	 jXEXKDzEKHqrbi1NS1ioTCOv3METtHfoRdzWOrTJjoknBqbdHoXw59UWHOX9laAAyNrAK
+	 lmaNqpWvhgrev1PgRSSpP7FxuI2/wYX8wMeANlCd0r1jwTnrX+i6p/jnLCV0GVV2b1Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794301061;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794301246;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=QO3TC598PjuKBpjKdzTX4SuKJE/JMxeGN6A58UOqy2c=;
-	b=AlLPBOC8wf43f34A5KOQgHMkJEZ+b91r1Ld47jG93McIVNTCke8GFiv/ytgrtakRIds6
-	 9VX6lGADVT72OO7ci+LCQPllJ1fI2GOVvGLPyqU7PYp5NpD9458qhPuU7g2BLJGDoah/p
-	 5h/yp6TCAhWU5m0v1T71DhwAb8fPrKRxswET7YWTBL5pYf+fNiIMnNK03bMbWUu9/4a4/
-	 z9TyzCHnG6v5p98UTeyeYDpBr43utmDjDpTxIl2NqgRGqWDuLcJDZt1AEBmv+ak1lY5F6
-	 l/IvTmA3PFVqnEmW2yicrAIPhp6wQLJn9eJNtBiaWoKi31DzUomEYy3DDBQWXYzBCWw==
+	bh=3j4gUsFhEh2nfdqytzisLXu8cCMHpm+EG29QS7tXFIk=;
+	b=bramT4WtNLGa2APwAUU6fYywM8iogboX1ObOkqfQH4I5iHWlN91eEqugdin/6B9SgfSo
+	 95yiT59A5ABPQv9ST6h51QhAMjnU7i8ADU0YO/rDLFnGCnZDEGkiG9MrH1psfwT3C2ZcS
+	 t/v8eg/DG4gU1qc0OxB48fC5GYHQ4rNKQ0amOjyvGB8TW4skj40weU01iZHVecQVJ3Sv+
+	 OGbx5LEbvcxG3dKLAiyOZBCQ41qjL3jqy8spM6aCqL5vlz0wJU2003oNrA70eSPM+1r7f
+	 HBeeJyRxftxpjUsjAHhOLwiHSJ5jFmenfBozaBUWihUb39D0xS+4Q9VnwYymqHVFFFA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ohi12+lZ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CJ1oZCGt;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id EB84A606A321;
-	Tue, 10 Nov 2026 08:57:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 1EA1C606A31C;
+	Tue, 10 Nov 2026 09:00:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ohi12+lZ
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id E69361F008A5;
-	Tue, 10 Nov 2026 08:57:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CJ1oZCGt
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id D8F6F1F0089F;
+	Tue, 10 Nov 2026 09:00:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794301060;
-	bh=QO3TC598PjuKBpjKdzTX4SuKJE/JMxeGN6A58UOqy2c=;
+	s=k20260515; t=1794301245;
+	bh=3j4gUsFhEh2nfdqytzisLXu8cCMHpm+EG29QS7tXFIk=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=ohi12+lZlHUZQX+s905Dw9DFBrisQN0xiV0rzzgZu+NlzU3L15GiZsusvCdYmiGam
-	 4teSigLD5V53HUroqi9496ujv8mEOZVuAgia2xpur7VXf1eIMZ4sWgcygaV5pEVXkW
-	 0Lzo+/Qbp6IAHKHpOvy6MOaQAg7OvcWi+1nlQJbIM7GDU7h+Wc7eVoR2tozhPz52NZ
-	 oImRSjVqJ6Wkk6PLCNvdrLmghlcdc6CpDzSOr4M42MknGXlaIxdVZ5Uk03gMyaq5cN
-	 SiwjVohnF4x8w6vtnbiwoiDVtlB9NU3ALsTTtYoZgrpakukawkeLSHGrNVMsyRgOqA
-	 oCGr0B5uVtSZQ==
-Date: Tue, 10 Nov 2026 09:57:36 +0100
+	b=CJ1oZCGtt8PFgApVSJmdynBE9Wmam/U0OvgYSvGasShw/YozvRFpLUi8X6bjCGv/D
+	 G0HtjT1u9vUxOPaFvc+YTxRCQtEse6KllRxUbHS3VOijvQhaoPPdrREToIl0bihk4z
+	 q14+LZArzQ23MiUVmXtPTnGLQTGgs/Efvq7fyHYfZ5ghYvC/di8AibaaPtzNtMJDAT
+	 WVZEikd0ub96ezYKgALsvts4KlYsbsZrYr96pQzkih+yQ0+wn6ISnt+zU5PRBWH79g
+	 /GrNytRGplUi6HjUr68yk/KanlCmARcQT2OZt3E8q9q/3ILDFPkuO+eA4XY+B4726y
+	 xfSircixq+Hng==
+Date: Tue, 10 Nov 2026 10:00:42 +0100
 From: Bartosz Golaszewski <brgl@kernel.org>
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
 	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
 	Sakari Ailus <sakari.ailus@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
 	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
-	Johan Hovold <johan@kernel.org>, Linus Walleij <linusw@kernel.org>, 
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH] software node: make swnodes hold their own references on
- parents
-Message-ID: <esbdzbsadwc7hym6aa6x3lirhs3r47w2wcygwshcb3metdh773@ersixahci2rm>
-References: <20261106-swnode-kobject-parent-ref-v1-1-77dbd7213dd0@oss.qualcomm.com>
- <avIkbNrRtnJxZuYL@ashevche-desk.local>
+	Johan Hovold <johan@kernel.org>, Hans Verkuil <hverkuil@kernel.org>, 
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Kees Cook <kees@kernel.org>, Andy Shevchenko <andy@kernel.org>, 
+	Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Saravana Kannan <saravanak@kernel.org>, Linus Walleij <linusw@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
+Subject: Re: [PATCH 5/9] of: property: implement the .property_get_names()
+ fwnode operation
+Message-ID: <ab73ez55exen3ew52svsxfinwsuatppdodu2e2zp6izjwwqwwu@2imxzxwclgtl>
+References: <20261104-fwnode-for-each-prop-v1-0-6e28fe1c72c4@oss.qualcomm.com>
+ <20261104-fwnode-for-each-prop-v1-5-6e28fe1c72c4@oss.qualcomm.com>
+ <auuhy40x1BMoW96-@ashevche-desk.local>
+ <7sfr4ljlwbehal3or4dmy5jxbjz6ya2lf3dq3yptr54wym5tea@eqaexflmocih>
+ <avICwdxyi-W1Y3PD@ashevche-desk.local>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -65,40 +71,51 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <avIkbNrRtnJxZuYL@ashevche-desk.local>
+In-Reply-To: <avICwdxyi-W1Y3PD@ashevche-desk.local>
 
-On Mon, Nov 09, 2026 at 09:52:12PM +0200, Andy Shevchenko wrote:
-> On Fri, Nov 06, 2026 at 12:13:28PM +0100, Bartosz Golaszewski wrote:
-> > In swnode_register(), swnode->parent is assigned before calling
-> > kobject_init_and_add(), which normally acquires a reference on
-> > parent->kobj via kobject_add_internal() that is held until after
-> > software_node_release() completes. However, if kobject_init_and_add()
-> > fails before acquiring the parent reference or drops it on error in
-> > kobject_add_internal(), swnode->kobj holds no reference on parent->kobj
-> > while swnode->parent remains set.
-> > 
-> > With CONFIG_DEBUG_KOBJECT_RELEASE enabled, the random delay in
-> > kobject_delayed_cleanup() may create a situation where - when
-> > unregistering the child node and then the parent - the parent object
-> > gets released before the child who's left with a dangling pointer.
-> > 
-> > Acquire a refernce to the parent swnode when registering the child and
-> > drop it on child's release.
+On Mon, Nov 09, 2026 at 07:28:33PM +0200, Andy Shevchenko wrote:
+> On Mon, Nov 09, 2026 at 02:07:46PM +0100, Bartosz Golaszewski wrote:
+> > On Wed, Nov 04, 2026 at 11:21:15PM +0200, Andy Shevchenko wrote:
+> > > On Wed, Nov 04, 2026 at 03:03:47PM +0100, Bartosz Golaszewski wrote:
 > 
 > ...
 > 
-> > +	if (parent)
-> > +		swnode_put(parent);
+> > > > +	for_each_property_of_node(node, prop)
+> > > > +		count++;
+> > > 
+> > > Hmm... Don't we have a helper for that already?
+> > 
+> > I haven't found one. Though I'm thinking that maybe
+> > fwnode_property_get_names() with props == NULL could serve that purpose?
+> > Possibly wrapped in a static inline fwnode_property_count()? Would
+> > anyone use it though?
 > 
-> This will be the second case of potentially NULL being passed to swnode_put().
-> Since it's a static internal API, I would just add a check there and hope that
-> compiler will inline and that will be optimized away on the cases when the
-> parameter is known not to be NULL.
+> I haven't found any users for this. Most of the current ones of
+> for_each_property_of_node() are filtering by property name.
 > 
-> Maybe in a separate change.
+
+Yep, so no need to have it now.
+
+> ...
+> 
+> > > > +		names[i] = kstrdup(prop->name, GFP_KERNEL);
+> > > 
+> > > Can property be statically defined somewhere? We might want to also optimize
+> > > these duplications with const variant (here or elsewhere, for fwnode generic
+> > > path, I believe).
+> > 
+> > Please rephrase because I'm not quite following what you're saying.
+> 
+> Can prop->name come from something that is declared as
+> 
+> static const ... foo = {
+> 	... .name = "bar";
+> };
 >
 
-Yes, I actually added it to my TODO list but this is clearly a fix, so I
-wanted to keep it small.
+You can't know it for every instance of struct fwnode_handle, so the
+answer is: no.
+
+PS: is there a way of using match_string() with non-const data?
 
 Bart
