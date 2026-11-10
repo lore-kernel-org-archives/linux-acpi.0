@@ -1,42 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=159.226.251.21
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794318254;
-	b=yOw3bePmt09tYQMi8J2+3nGY7lCbQ9v0YRiJLxfClpxgPkP/BEeTWig8kuv7a/dY0yG6
-	 C04gch+RxtYwqSy6DQQA0jw8gSffocHd5ifZ6nZGUGynAg1zi5AktaPk5d21OLdKWYi1o
-	 AXn2LFgKZqKbUzsJNgS6gyOObb04ej7kiqsln6Y0ypWDIohq8/EjAM0yZfUq22WqEd+u3
-	 iXPlJQ+imWVMq6vh2kQHtQh/lGcHdlTJVOX7tZ8l9u1PUUkzqw3sWUVh+vETnhPu9NR9F
-	 lOpF6ldOjML4RA6C50RvYXpLhHwzXs7K2JoLkxplhFafnlLChhM/FuFUMPa34jZ9Akg==
+	t=1794318537;
+	b=ZGpgpJ1w7ksQn6Smo8RN/H54hq44Cs8w5hN/F5R0lrTMVK4YYoxMZoHTpWtWJjyKHkVU
+	 p62MXxe0bqXHVFIrPMpj2qD6ElK7S1bKSmGAhpy6dpBu46FNXwQc3TGPzmP80ti2iUO4G
+	 TSF3a5sBMr6J/UL62Vi8ZaPi1PAu7SJteBvbMlwC9t4w1LislZ8jVuGcNT3hG6KEY5wjp
+	 XpYYKwDl9ibFItEEMRikPyCNcN9oNaUwz1zOPGN4WeDpmknAbJkaCO1cWBHuH0VYDQKcE
+	 Pyh9pkT0OAS/vnhvlbot8TCZ4FTjrnAEGhXXH/xfpbndry6Ww3sNUAaBZdqZq6A2TjQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794318254;
-	h=DMARC-Filter:Received:From:Date:Subject:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:
-	 X-Mailer:X-CM-TRANSID:X-Coremail-Antispam:X-Originating-IP:
-	 X-CM-SenderInfo;
-	bh=/8eG7V+IcDdBQXwPQjy8Y/TEnkXIzPepTQcL05EXyfs=;
-	b=Um/k+erYjVHAUzjGZqQjvYfyBqPiKP81SRz+QhhxEIS09iyewZWMZgt0oPPWEi8Zux1e
-	 r0NbESRy5Mu7gCOwXBpcn2Hfxp/CMaUCbTXecRMTnWzzcD67mwMCW9KXJ+YOJNEUQfcKY
-	 rN+S3+gPLN92jDPA03PTjH0h+4YaRpbil9H3JoJgV4gIrqJL5Igk9UKK39tzZjeqjGAp1
-	 Wmccr17r1yw9jV20GckTfsR4vx7Nl7YNsfFLdR0VFteg4ixWJjmaVjd2tltfUzLZ4J5JD
-	 CsgNG4udnxbecvRXnjcpUBVj/1GG+DItTKy5eTPmsAzNDxWEiG+aasT9mJJVhcN/Z9A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794318537;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=gndjf7aFT+hCYUBKXAUjQiEIBojTbevvLFHHCbIYzhc=;
+	b=IIvgP4ZmM4uZjjOdQxAGS9zM6GdtIMyzOJJLtAGoyFFyRL66eGr2tp1TNNAmtEM2RPBy
+	 ej8vWUBMQxI3OSQUpYt0TilCJeSF1Xuv6cE40sufo/5oEK0eE8ag9V912MCYzhAX2fkAI
+	 fMyS/B6c6DdwQ3UO/Fm92kN3K/EvHoN+IjBt6eb4qEx4gEaSDfMoBT9zp4i0apy+t5DxS
+	 O01g2ObNLgIKyKIpcHdNCTpAWXI7htzAor/NGJCKRMXLl9sDGRtlw+qeJW+ZuedRic0+t
+	 N90Bb3pqGhzxyLAvBSSifUZLFWeVC04SJKjdAfHa/dggVJUA1xhL33VlTUPAIw2K0Vw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=iscas.ac.cn;
-	spf=pass smtp.mailfrom=iscas.ac.cn;
-	arc=none smtp.remote-ip=159.226.251.21
-Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h2agSBXV;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB6B0606A325;
-	Tue, 10 Nov 2026 13:44:11 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CB6B0606A325
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from [127.0.1.1] (unknown [223.166.93.97])
-	by APP-01 (Coremail) with SMTP id qwCowACXwfubH_NqRy+3AA--.4075S2;
-	Tue, 10 Nov 2026 21:44:02 +0800 (CST)
-From: Han Gao <gaohan@iscas.ac.cn>
-Date: Tue, 10 Nov 2026 21:43:54 +0800
-Subject: [PATCH] platform/wmi: Allow consumers to load without ACPI
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58A3D606A338
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 13:48:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h2agSBXV
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 361661F008A2
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 13:48:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794318537;
+	bh=gndjf7aFT+hCYUBKXAUjQiEIBojTbevvLFHHCbIYzhc=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=h2agSBXVWDGlNK9B8Wi59uwx9iD4hHre5yp2xvOmZBaVaR2ECFrVjhRqhsbABasRd
+	 iGA+/lnU1bj4NyKsZwawF2pmKWq7+Vp+rgZQXaVaO8FQXor6K80LyBdRnix7/PgTPm
+	 fv57qHdjaE2ogO8kUjinEXaCpK6LW7hAZ0TNL+W062JjvkrtHBzzbQuZdUJIygd5Hq
+	 KZtW4wy2LdHLsyuaat+KQGRaNFg2HlSGJ6mupJC09tVrbSO4zqddCWH9g9IoDQKsSJ
+	 KgD1Li9mzZucieHObtF6YwDzv6Re1AN3/riDnMNaI/2zPVdEb2XfoKSwuqJWVpl4TV
+	 8MK1++ZmGQMqw==
+Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-3aced9804e8so17561861fa.2
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 05:48:57 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErH+Mm1Z0JGEQ+GagV5JhiPRwgXxfMDmq71lCyVfJBilyByZT5CLQXw/7BFJOkBGDaAd/nSwrdNj+Uhl@vger.kernel.org
+X-Gm-Message-State: APuU4Z9/t9TFLMn68KJaPwwLm5hfejsVTuh2TPEAy5Ee9PdK2jcmxRPh
+	adJTV5zxr1ESFJqJxsMZbYbarHStCEgvixzbXuPg91okNKw9EUEVFHaZCmLEzRDSeOBpAZ/S5/r
+	33SmXee/5TfEFT1k4YbFP546gadYikzg=
+X-Received: by 2002:a05:651c:2214:b0:3ac:ff0a:9d86 with SMTP id
+ 38308e7fff4ca-3ae096202efmr5199701fa.15.1794318535632; Tue, 10 Nov 2026
+ 05:48:55 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -46,92 +59,80 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261110-wmi-no-acpi-v1-1-eebea07db551@iscas.ac.cn>
-X-B4-Tracking: v=1; b=H4sIAJkf82oC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
- vPSU3UzU4B8JSMDIzNDQ0MD3fLcTN28fN3E5IJMXUNTy0ST5DRDS1MLAyWgjoKi1LTMCrBp0bG
- 1tQAnfNK4XQAAAA==
-X-Change-ID: 20261110-wmi-no-acpi-159a4cf19580
-To: Armin Wolf <W_Armin@gmx.de>, 
- =?utf-8?q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
- Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, 
- linux-riscv@lists.infradead.org, Han Gao <rabenda.cn@gmail.com>, 
- platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Han Gao <gaohan@iscas.ac.cn>
-X-Mailer: b4 0.14.2
-X-CM-TRANSID:qwCowACXwfubH_NqRy+3AA--.4075S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7Zr18XF1kAw13uFWxWrW3KFg_yoW8ZryxpF
-	4Utay0krWrXa9FkwsrA3ZrW3y5uF1fu348Wry8C343Za1rWw1kW3Z7tas8XF98Jr4xAa1S
-	yFWkGay7ZFs8ZF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9j14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
-	6F4UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
-	0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
-	jxv20xvE14v26r1Y6r17McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr
-	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7M4IIrI8v6xkF7I0E8cxa
-	n2IY04v7MxkF7I0En4kS14v26r1q6r43MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4
-	AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE
-	17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMI
-	IF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4l
-	IxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvf
-	C2KfnxnUUI43ZEXa7VUb_Ma5UUUUU==
-X-CM-SenderInfo: xjdrxt3q6l2u1dvotugofq/1tbiBwIHDGry2F7bZwABst
+References: <20261107201553.9268-1-asaba90@gmail.com>
+In-Reply-To: <20261107201553.9268-1-asaba90@gmail.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 10 Nov 2026 14:48:42 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0jhQZeim_dmXG=CHsfjffY6irXfRSgRP7vwVGz9J+=OWA@mail.gmail.com>
+X-Gm-Features: AclHuK8Gi7vmCqKEjt2tT4GrLFgpWm1NuYKWB8dsvjv73V1tYGJ7lnDd1dWpliE
+Message-ID: <CAJZ5v0jhQZeim_dmXG=CHsfjffY6irXfRSgRP7vwVGz9J+=OWA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: EC: Add quirk for Lenovo Yoga S740-14IIL
+To: Amir Sabbaghi <asaba90@gmail.com>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Since commit 4ea18e604272 ("ACPI: video: Remove CONFIG_X86 handling from
-nvidia_wmi_ec_supported()"), the ACPI video module uses WMI on all
-architectures. When ACPI is disabled, e.g. on a devicetree boot,
-acpi_wmi_init() returns -ENODEV, so the wmi module fails to load and so
-do video, amdgpu and radeon, which depend on it.
+On Sat, Nov 7, 2026 at 9:16=E2=80=AFPM Amir Sabbaghi <asaba90@gmail.com> wr=
+ote:
+>
+> On the Lenovo Yoga S740-14IIL (81RS, BIOS BYCN29WW), the ECDT
+> advertises GPE 0x6E for the embedded controller, but the EC is
+> actually wired to GPE 0x43, which is what the DSDT EC0 device's
+> _GPE method returns. Since the ECDT and DSDT EC share the same
+> command/data ports (0x66/0x62), acpi_ec_add() keeps the ECDT GPE,
+> so no EC events are ever handled:
+>
+>   ACPI: EC: GPE=3D0x6e
+>
+>   /sys/firmware/acpi/interrupts/gpe6E:  0  EN  enabled   unmasked
+>   /sys/firmware/acpi/interrupts/gpe43:  0  EN STS invalid unmasked
+>
+> GPE 0x6E never fires, while GPE 0x43 is left enabled with its status
+> bit set and no handler, so each SCI it raises is counted in sci_not
+> (about 7/s, 1.4 million over 55 hours of uptime). As a result, EC
+> query events are lost: the brightness hotkeys and several other Fn
+> hotkeys produce no input events at all, and battery/AC notifications/
+> laptop lid event are not delivered.
+>
+> Add the machine to ec_dmi_table so that the DSDT GPE is used.
+>
+> Tested by overriding the ECDT through the initrd with a copy whose
+> GPE was changed from 0x6E to 0x43, and later by applying this patch
+> and removing the override. With the fix the kernel reports
+> "ACPI: EC: GPE=3D0x43", gpe43 receives events, sci_not stays at 0,
+> and the brightness and other Fn hotkeys work.
+>
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Amir Sabbaghi <asaba90@gmail.com>
+> ---
+>  drivers/acpi/ec.c | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+>
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index a89f10256..7c0643d5d 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -2007,6 +2007,16 @@ static const struct dmi_system_id ec_dmi_table[] _=
+_initconst =3D {
+>                         DMI_MATCH(DMI_PRODUCT_NAME, "HP 250 G7 Notebook P=
+C"),
+>                 },
+>         },
+> +       {
+> +               /*
+> +                * Lenovo Yoga S740-14IIL
+> +                */
+> +               .callback =3D ec_honor_dsdt_gpe,
+> +               .matches =3D {
+> +                       DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +                       DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo Yoga S740-=
+14IIL"),
+> +               },
+> +       },
+>         {
+>                 /*
+>                  * Samsung hardware
+> --
 
-Return 0 without registering the WMI bus instead. The exported helpers
-then report that no WMI device exists. Skip the teardown on module exit
-accordingly.
-
-Fixes: 4ea18e604272 ("ACPI: video: Remove CONFIG_X86 handling from nvidia_wmi_ec_supported()")
-Signed-off-by: Han Gao <gaohan@iscas.ac.cn>
----
-Tested on a HiFive Premier P550 booted with devicetree and an RX550,
-with ACPI_WMI, ACPI_VIDEO and DRM_AMDGPU built as modules. Without
-this patch, wmi fails to load and so do video and amdgpu. With it,
-wmi, video and amdgpu load and the RX550 is initialized.
----
- drivers/platform/wmi/core.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/platform/wmi/core.c b/drivers/platform/wmi/core.c
-index a99da9b7039d787ce3c1e0ece74ffbd79fafd3f7..6668789904a903c8d4e7810976f4e485d7a1b32a 100644
---- a/drivers/platform/wmi/core.c
-+++ b/drivers/platform/wmi/core.c
-@@ -1598,8 +1598,9 @@ static int __init acpi_wmi_init(void)
- {
- 	int error;
- 
-+	/* ACPI video still needs the exported helpers when ACPI is disabled. */
- 	if (acpi_disabled)
--		return -ENODEV;
-+		return 0;
- 
- 	error = class_register(&wmi_bus_class);
- 	if (error)
-@@ -1628,6 +1629,9 @@ static int __init acpi_wmi_init(void)
- 
- static void __exit acpi_wmi_exit(void)
- {
-+	if (acpi_disabled)
-+		return;
-+
- 	platform_driver_unregister(&acpi_wmi_driver);
- 	bus_unregister(&wmi_bus_type);
- 	class_unregister(&wmi_bus_class);
-
----
-base-commit: 7475ea8b58616b33c04afb976cf0fbaad9dd63fb
-change-id: 20261110-wmi-no-acpi-159a4cf19580
-
-Best regards,
--- 
-Han Gao <gaohan@iscas.ac.cn>
-
+Applied as 7.5 material, thanks!
