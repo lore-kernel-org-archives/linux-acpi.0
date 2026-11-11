@@ -1,113 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.54
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794371076;
-	b=fASNrSfZjEHS/HwqWY9BxChQm0idzNcPaZWW5jL7Sdf+ydRD8IV8zvCzN7BUzvX6rKAG
-	 xd7vT/jmUCEqd/MwHo4dJ42xNPgRMcmdeVbpNGhFkq3JIRVAkPdD9TRdAUN+2xtLwPjwE
-	 5qgVeZQINhpqr3LGUPuYO7K4tlPsB93t32JNbQetD6OHwb2I3n0K//pDO9dFI5ii4O2mq
-	 KDVxy5BpfqAg5+snHulE2HEoAEI9zMJZm8XUVUkrprvB1ZFdQ4ToOXtHcNw3JnQxtD+p9
-	 umFGV8qKyeFuhz797svgHyENkG00AuD5SZvjv4snPZjQ9Ebju5bT+bSFFf+BISpxIOQ==
+	t=1794378749;
+	b=HDu0cGO7I6/Z+eRw22zbcpRBVtGLLhaK8tk+++mQ6wfNeUQQPr3FiCZ3S6nf/MFnFN9a
+	 Ypbl/n5oB9bxIFf7idvlKPRQYEWfWSCCCT86R52XOwxxcRnghEeA9PePrOqM3rT5czFYC
+	 DKyo5K5B1jGb7dshGQKU7DWwJzlwlwAYmADc8NVRpBTSnlXIzPSs/v5G07ZE2Zu0pvZdK
+	 TqwgVwIIqSEB6zZF7i9CqeSau1jLZBAeznMDM1qh34N6+6tT0YdNwYnPe1j5zbK1yeWdY
+	 FytfPehXGKSmCR5SF+c6sC5h8yHZZJJNu8mcwGqGicLmEDW++BVPIFP6id8HH37M44w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794371076;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Message-ID:
-	 Date:MIME-Version:User-Agent:Subject:To:Cc:References:
-	 Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:X-Proofpoint-GUID:X-Authority-Analysis:
-	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Info:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Virus-Version:
-	 X-Proofpoint-Spam-Details;
-	bh=vWUrzMN8nC3qw9C+l9CmsKFKxbiwV/1FiCWDbdTG840=;
-	b=K1Eq3iZquA8uCYIBxu0BEZUXbi9YdXT90QDocdoZSD7V8MYnbv0e3pa03iHsWQgAaxah
-	 wWtrEWwv9T2tcPD1YPYwgtagApb7BCGG9Bsdv7bNrjtCHWlONiWnx3Joti5Jkv9/EFNVL
-	 9MtMKYosZrjFIzKrCOuidz/IxaG0/hz71uTIT31EioRQkvxix5lZDcml9e6evT7lcm+EF
-	 xfJH4jKsT2bQLtldhwhqbc1RHhmeGFpL5VWJ1jkG5m28vzAVAO9B/GsorFnAL3VzABKJI
-	 IR2w0emOHxosg3lsHcC0a6UVjQD1IGhkeW8d40VrSRQRuOTEnLVOvPMDafXgIe+UIRA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794378749;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=NjW1KmGU+DS1ERJ9U4i8KV9Kn21Cgrdw5EW3c2f8mCk=;
+	b=q4DBmSIMAOhCpSc+hOaIYyC0btLl9nzyJnSiWaqGwFo88kTyhnzrV3mIzDypf1DjXDHJ
+	 TpYpGs2hcA6nJMD67A68mbnJs3hid6gFTYZBqfpiHdrYft43tG9s/Ny18EGcuO9+Bls68
+	 3/BZxCtsv0x1/v1yGc0Q3ztqLT5IKaIq88B08EWlNKNX4MVhMlO1y5Y85CdfobZ0Hli8Z
+	 iA5uf/Im+QdVhk7CKmVpdtBGUB4cuHfkQ/d21mGt8MNMfm/th1djJGPYWbiOig5fqvFG/
+	 S1WOYeu4n62jyJrpVQHaEvV4zYr/KnpfFgRnJhGqhhpzKikqbLnhPyJCmpi7AJ+VNSw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.qualcomm.com;
-	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=PWrhjmw6;
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b="g53d/L4+";
-	arc=none smtp.remote-ip=205.220.168.131
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="WA/vHAqI";
+	arc=none smtp.remote-ip=209.85.128.54
+Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7267C606A327
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 04:24:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7267C606A327
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 003D7606A321
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 06:32:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 003D7606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=PWrhjmw6;
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=g53d/L4+
-Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AB1t25S898399
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 04:24:35 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	vWUrzMN8nC3qw9C+l9CmsKFKxbiwV/1FiCWDbdTG840=; b=PWrhjmw6cWiAIUOR
-	nBxnNT8cuBsNpQspycxSw3FhkVArCWOtiHpP+9QEaHqPVqHRw70dmX8aqaQBfAU0
-	iSZxnMb8TrjLC/4nDBbKGnK3AuWxMYxp/htIhqnJ0WPfiVKtiQmOeqdKPVdVIiG/
-	xXFBynvSMycO/H+NV76X1knr0B/Z/bOoj5VbzxoDPswFl86HCta+EBWmnWRjdhFp
-	5jbZ11CqvfgCOHpaScsXW1LiLxTyGMltVDkk0Z9uvbT3XvGaT2FhyhoroHACNgTP
-	K19gk9CdvMLJ7fBQp7lQdwxkgTgoj1+MXoxYqPw8gxcaOxGxLbwI1+qxXcmwZoWF
-	94PuSA==
-Received: from mail-pf1-f197.google.com (mail-pf1-f197.google.com [209.85.210.197])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4huyufv94w-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 04:24:35 +0000 (GMT)
-Received: by mail-pf1-f197.google.com with SMTP id d2e1a72fcca58-8a05b68f851so2184700b3a.1
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 20:24:35 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=WA/vHAqI
+Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-4a5720b0a57so16696695e9.0
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 22:32:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1794371075; x=1794975875; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=vWUrzMN8nC3qw9C+l9CmsKFKxbiwV/1FiCWDbdTG840=;
-        b=g53d/L4+RGl2Wb2GgCTc/4kf6IH79alfY7m7YcSOmGU/12MMQnQCZG8abz+p+IHPLd
-         ZN+wph10O8FB97tlScX8BPIiUDBxA+4w8T50DINoRR3riumt147KmOZbHBcPvEcwSXEo
-         KxJviEGhhLGgbkiOvoDE0HQOIkNSbOZGn2LIS7Yd0yp8ZvfS5MYV8qwzPBGWHylSrsqk
-         ukek0/KNJtykyETChz/MFfFnpoyis5FI757ZMW3ZzLtvLNLeAf/evKlaeOfPlreos+de
-         Bg9OqLUNp8acrCUumyBI/+GmzVFYi2730RnTBu594psuwRDMcRq/au2dRhnFghDSai34
-         pxeg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794371075; x=1794975875;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20260707; t=1794378747; x=1794983547; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=vWUrzMN8nC3qw9C+l9CmsKFKxbiwV/1FiCWDbdTG840=;
-        b=s6buqA7316GlhXZicjBub/tl6fDA5VuIODXv+E2jAX1xqTRug1/87zUadHMWGKQFXJ
-         mV27Fj+6HDxWcdISvX7d+Tiq7X/XUQ3iichoDjP/30w90g9Bnuz/k3zZ3dTD9hnpybCk
-         SEtlBn9DjzqlxwJEuDa6BXIHCNEQDF/tTK06UHOKJ25XZPpG9LIjI6ulVPq5ai3DCWzo
-         bUd9ORJgI2Li4BQ2vRaFK+fC5HTY6VHatakxT/mu+9SYoY6Xq+vyKSABTM+aY7/J9Zze
-         z/aCQ1IQFz1V2MVn8goLiZ2qxhjRh2tNK8O2c7tK5r7re4ksI+b/hYXyWoAIPVegTXS1
-         Ty7Q==
-X-Forwarded-Encrypted: i=1; AL+hErEucpJNAjzIfYHuTPlxZcMNZi0Gfloc1crqQHm34aO6ET9NbeTug/eTI2ZYlgJiNhvo5YfbNRB9Plyr@vger.kernel.org
-X-Gm-Message-State: APuU4Z/ZuzRlPtzhl1s1J5M/x2VTZuntVNYp2RUiTlErRnDeIn0QM+iO
-	qPq5COuS7ZXFDon0ykkgKDczwKIo4Fz4l5Db/GOmjs3q99tmf7ql5TI9M2ZkzmkInKb+/3S2ni6
-	Zt1T8zULWs9lz2N0nKbMdeiD2kA4v/h7bNW1RX3+0Q7CcMB4gGghYLQ4E3kUWGUkZfWVItw27+O
-	E=
-X-Gm-Gg: AYBFou1aWZr6OJf1BvCRXTXTgpSGeJG5izyqqA4Pzl0XHU11j/q+EALB2RoksDlBFTD
-	9m8FlCc2Av5lStXfbygIa+1eIAJjnmIg2OIW8OOFZvPoam8LV7ayG+chscvGSnSGsivjpLjIyoY
-	Yy5i5m0eQ0FXtBQdSL0Hp2gzvcFqFHJXNFBFwou1XCwTUVd1nyp/KIO9sQVG2c3jHHNnrW7WEnB
-	cQn7xpPZJJA2YxdTEU6eZo4B9cOJKcJc4+9k9doaUzC+/wW2wqzuSjO7VPml8Ikto3KWrgYlRm5
-	5bp1839nqkuPdhSZnx2t/P34aOErX3l1JPdii4laYIq0WTZs+hmYjiBTi/y1izP0ok5nkUAM5FG
-	XVpNswY2D0bD09pYNyOFycbh5qJ/gdEVMFpH9nzNu0uooY0/MWtafLKy5C5R5JIg1DJqMZ8Im34
-	41ZuuKYgGLZwj8+UrK9xPvAFJbp+6C+cqA
-X-Received: by 2002:a05:6a21:7010:b0:3e2:3392:53f4 with SMTP id adf61e73a8af0-3f2fda98bb2mr939333637.18.1794371074773;
-        Tue, 10 Nov 2026 20:24:34 -0800 (PST)
-X-Received: by 2002:a05:6a21:7010:b0:3e2:3392:53f4 with SMTP id adf61e73a8af0-3f2fda98bb2mr939310637.18.1794371074260;
-        Tue, 10 Nov 2026 20:24:34 -0800 (PST)
-Received: from [10.133.33.220] (tpe-colo-wan-fw-bordernet.qualcomm.com. [103.229.16.4])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8baaad41578sm1712051b3a.32.2026.11.10.20.24.31
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 10 Nov 2026 20:24:33 -0800 (PST)
-Message-ID: <cbd2aee7-95ae-4d30-8458-b7da2910867f@oss.qualcomm.com>
-Date: Wed, 11 Nov 2026 12:24:29 +0800
+        bh=NjW1KmGU+DS1ERJ9U4i8KV9Kn21Cgrdw5EW3c2f8mCk=;
+        b=WA/vHAqIEHnJh6ZcLBcb+qvcB0j8M5spp1r2VAFx0pXQ1dc/VjhnstrlbE5O6eY5nN
+         5p4b2/79jrj4YjBrYwChPdDBPokn787ElHJlbWCYJ0mqS0/OFjtKybOa1pr8PZzpT7gV
+         UgfFWzInBd4BaB0vNGH5kzbevq52AwvbzS6itn1E4FyZodDxMQXyDVhT1xEi4fuI2Cqr
+         FazBxdcZxshv8vyuSKtTeOnAFWUPMTf2zbvCFWIb2eAcNzM5cUPCPCK0Cnb+MAhZp8tG
+         3CZVSW4XhW1NEOI8mM0Bnr2DPGIqwridDqSr+tUQVUWZwzBGGolKw7M0HXdxHI5QFyH8
+         PHUQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794378747; x=1794983547;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=NjW1KmGU+DS1ERJ9U4i8KV9Kn21Cgrdw5EW3c2f8mCk=;
+        b=xIC2Msaw1HfOzVhlveIQFr3QkguX8AmgkdjHH++54MKSN0+VPAxhl5KF5rJKQ1qcGC
+         5qb4vsr7ZLtYmc4pzx2YCwArb02TJwyxNPrH15hoNRQ+33x8ZufWKxTPco3tbo9hQ0x7
+         sM7f/8rL5tNFb/7MoLEGwszzqLgZYgq9nCkJI14zDwzB7IMhireu/fMcTOgEydl6QYZf
+         Vu9MjkO+VUYAFckaBdIn82WOxvkWSd4wjI4Nd9EoOHl/AcAwD+C5LjwB2XRm27J/JAcz
+         AKfvI7tf99yLDjh2MvZKx5lydLnZNC6Rb18+dQciUgsl5BZvITq2SCZ0jRccVM/sOrPe
+         dlgw==
+X-Forwarded-Encrypted: i=1; AL+hErEUmrs3ayulPBwy2yew/OADs28eHkyLyq40SGXwMb93LlzsbQGYWvdBMOvE0fK14tLLR454+CjAPygJ@vger.kernel.org
+X-Gm-Message-State: APuU4Z/vZ5At/U9r+Ggeb88OYHfeMkrCvpnG4HKTfzY4wLwNV4JhaD2j
+	2IvmWRNTt/4I+LXPJDWnbc+xlzqoiTIDXZWQUwGghHpzNM5gN6yZSMvQ
+X-Gm-Gg: AYBFou02uOcJ9LEZu1b1Ia0ACOhVMlkvnvcHDOh0A/WwjSQWCKHyRdZNNKL4bVaAKTA
+	S+VS3AN3gACS7X8gauDTycd4Ygxs5SLyvkKV6ZmBqKDXGBDt7JDHBoVUXAPfypIul34FIH1WL0p
+	PJv1YaqbnypRvBenfexbRSQdP3rfUSAtE7svlqWrD7sJUkD6BjbMv5VJM0klacyFPeydNvugPea
+	pcysSlM/IXmpP1FzLOyNDKoCAVcrSQQXrKyESp28eP4yL0w7lKTDopYc9vSLIBFfKn2tgzDJUsL
+	KNhINxz5OHaWLohKABRzIT1WcN6TaMmaqr5+F/rSvH4cHZQEt47mzbXEGxGPF5BdlGJLoeA4vuF
+	qhG/yOf61766263lY+m9jkP8iJ5+rWm2r+216KM1KwxPlHIN0ALZspNq78ZjsiTTW5XqIrYWOdB
+	t+lPO7Xh6AVs5aX9723U+GqfJDnUSp9ovuDnYYOOh4qGbBh5fhWpSszWGvQb4nmlRnyZiz87f4H
+	+CyWiNCNhuBUs6CNCwyQt4sK/0VO4uXKp33NaB2jELUZlVinTYhY8OZfW1yHVSPD+b18rWxGsx2
+	d6hwzXsN7Ff0WG27EoHJPWhD5M/E9QMOijWz2cYz7mMVWx5cVv4J
+X-Received: by 2002:a05:600c:4883:b0:4a1:d45a:3ae9 with SMTP id 5b1f17b1804b1-4ba08e1775cmr17291825e9.15.1794378746896;
+        Tue, 10 Nov 2026 22:32:26 -0800 (PST)
+Received: from Sheldon ([185.4.35.110])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4983585c5b9sm8823674f8f.9.2026.11.10.22.32.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 10 Nov 2026 22:32:26 -0800 (PST)
+From: Victor Carreras <vicajilau@gmail.com>
+To: rafael@kernel.org,
+	hdegoede@redhat.com,
+	bhelgaas@google.com,
+	lukas@wunner.de
+Cc: mika.westerberg@linux.intel.com,
+	lenb@kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH v3] ACPI: x86: Disable wakeup on MSI MS-1592 and MS-1594 dGPU root port
+Date: Wed, 11 Nov 2026 07:32:21 +0100
+Message-ID: <20261111063221.14478-1-vicajilau@gmail.com>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20261024054711.21587-1-vicajilau@gmail.com>
+References: <20261024054711.21587-1-vicajilau@gmail.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -117,145 +104,142 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [rafael-pm:bleeding-edge 9/22]
- drivers/platform/x86/acer-wmi-battery.c:292:16: error: implicit declaration
- of function 'devm_battery_hook_register'; did you mean
- 'acpi_battery_hook_register'?
-To: kernel test robot <lkp@intel.com>,
-        "Rafael J. Wysocki"
- <rjw@rjwysocki.net>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: oe-kbuild-all@lists.linux.dev, linux-acpi@vger.kernel.org,
-        linux-pm@vger.kernel.org, Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>,
-        jelle@vdwaa.nl,
-        =?UTF-8?Q?Ilpo_J=C3=A4rvinen?=
- <ilpo.jarvinen@linux.intel.com>
-References: <202611111027.YYwIlIDB-lkp@intel.com>
-Content-Language: en-US
-From: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
-In-Reply-To: <202611111027.YYwIlIDB-lkp@intel.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Proofpoint-GUID: Z8lfjje-sxd2pCooCGZHjrACXPoqveLa
-X-Authority-Analysis: v=2.4 cv=S6lMU4sP c=1 sm=1 tr=0 ts=6af3ee03 cx=c_pps
- a=rEQLjTOiSrHUhVqRoksmgQ==:117 a=nuhDOHQX5FNHPW3J6Bj6AA==:17
- a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=yOCtJkima9RkubShWh1s:22
- a=VwQbUJbxAAAA:8 a=i3X5FwGiAAAA:8 a=QyXUC8HyAAAA:8 a=NEAV23lmAAAA:8
- a=Q1K4HTE4AAAA:8 a=O2upucybYjXuBVFjdQwA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
- a=2VI0MkxyNR6bbpdq8BZq:22 a=mmqRlSCDY2ywfjPLJ4af:22 a=v8M4KpxsNpHYtUgu9mhN:22
-X-Proofpoint-ORIG-GUID: Z8lfjje-sxd2pCooCGZHjrACXPoqveLa
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTExMDAxNyBTYWx0ZWRfX/Y9hH/kD3+1H
- LYkRhJAcTLOU1DBjYDD6HJ6qtUsBi91Ulhy0Wng8tsnQmNU5qmrzS6XllRThj15HVw8puh/AMUN
- Bgk33Vb7BPHbKZ8cietXU2C/JVVRZ44=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTExMDAxNyBTYWx0ZWRfX6wZS/auMERg+
- 9vo1Y7m6yZ679NdQyKYKmPYdA98xlE0Esxso9VswE1Hl8cjT0SOfsJLcu/MNRrCcSBlL38s3f2j
- rfa/FB7VP4lDkhKt39PFga+hfS4WmJAYkuicJswqitnV0G+LyMXZPVUwF+NVPGl6qOJEa3M6/so
- as+fXKML2Hwp9XM4OX7hTHb8O2iS8/rqbSfjIRn/6l5OSgyaAhF+9FdjQDJPoqRVX9vyHHEGiIT
- S7wYdoYE2WPlfibfPS0CXfbXnv6FiddXDyW2/qXqa5XDwcLgcYeA7MFh3WCHiu04y2bFAQo/lZc
- ruL7phnL2Qb19Q/WiNakKX1KmDCVu+XaZQHhoG0vsEjQ98v4zkmL1o94HpiIHlz+pzM1WncXDkm
- D1CBjyoZOXUPXT39t2419lj+nKtR2Kk5ATdmyVIKtyFRo7TiyWDMcSpX2DvvOAZ7ntUNZxIHiol
- a6PF1JKHVc8kbEh0Bfg==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-11_01,2026-11-06_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- phishscore=0 lowpriorityscore=0 priorityscore=1501 impostorscore=0
- spamscore=0 clxscore=1015 malwarescore=0 bulkscore=0 adultscore=0
- suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2611040001
- definitions=main-2611110017
 
-On 11/11/2026 10:33 AM, kernel test robot wrote:
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-> head:   51bafe2e7302403a43ba45415bf9a268a7fcaa05
-> commit: fafe4f5166bc3d43e28967efb9ea82b1f456b798 [9/22] Merge branch 'acpi-battery' into bleeding-edge
-> config: x86_64-randconfig-1011-20261111 (https://download.01.org/0day-ci/archive/20261111/202611111027.YYwIlIDB-lkp@intel.com/config)
-> compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
-> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261111/202611111027.YYwIlIDB-lkp@intel.com/reproduce)
-> 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/oe-kbuild-all/202611111027.YYwIlIDB-lkp@intel.com/
-> 
-> All errors (new ones prefixed by >>):
-> 
->     drivers/platform/x86/acer-wmi-battery.c: In function 'acer_wmi_battery_probe':
->>> drivers/platform/x86/acer-wmi-battery.c:292:16: error: implicit declaration of function 'devm_battery_hook_register'; did you mean 'acpi_battery_hook_register'? [-Wimplicit-function-declaration]
->       292 |         return devm_battery_hook_register(&data->wdev->dev, &data->hook);
->           |                ^~~~~~~~~~~~~~~~~~~~~~~~~~
->           |                acpi_battery_hook_register
+On MSI Summit E16 Flip A12UCT (motherboard MS-1592, BIOS E1592IMS.111)
+and MSI Prestige 16 Studio A13VE / Summit E16 Flip A13VET (motherboard
+MS-1594, BIOS E1594IMS.115), the I2C touchpad (ELAN0305:00, 04F3:31FD)
+permanently stops generating interrupts as soon as the discrete NVIDIA
+GPU (0000:01:00.0) and its parent PCIe Root Port (0000:00:06.0,
+\_SB.PC00.PEG0) enter D3cold.
 
+In the platform's SSDT (MSI_NB / AdlP_Rvp), \_SB.PC00.PEG0 sets its wake
+GPIO (WAKG) from the BIOS NVS variable P1WP, which erroneously points to
+GPP_A20 (INTC1055:00 pin 62) -- the GPIO interrupt line wired to the
+touchpad.
 
-I took a quick look at this merge-ordering problem:
+During boot, \_SB.PC00.PEG0.PON() calls \_SB.SHPO(WAKG, One), setting
+PAD_CFG0_GPP_A20.GPIROUTSCI = 0 and HostSwOwn = 1 so the OS GPIO driver
+owns the pin. However, when the root port runtime-suspends to D3cold,
+Linux enables ACPI wakeup via \_SB.PC00.PEG0._DSW(1, 0, 3), which sets
+WKEN = 1. Subsequent evaluation of \_SB.PC00.PEG0.PXP._OFF -> POFF()
+executes:
 
-devm_battery_hook_register() gained two new callers in v7.4-rc1 while
-the rename was still pending:
+  If (CondRefOf (WAKG))
+  {
+      If (((WAKG != Zero) && WKEN))
+      {
+          \_SB.SHPO (WAKG, Zero)
+      }
+  }
 
-Old API (devm_battery_hook_register) users:
+This switches GPP_A20 ownership to ACPI GPE mode (HostSwOwn = 0,
+GPIROUTSCI = 1), silencing the touchpad interrupt until the dGPU wakes
+back up to D0. Under Windows, _DSW is not armed for S0 D3cold on this
+root port, leaving WKEN = 0 so POFF() powers off the dGPU (\PIN.OFF(PWRG))
+without touching GPP_A20.
 
-   c72dd9994952 ("platform/x86: add Acer battery control driver")
-     committed:  2026-09-18
-     file:       drivers/platform/x86/acer-wmi-battery.c
-     branch:     platform-drivers-x86 -> mainline v7.4-rc1
+_DSW on the root port is reached through two paths: acpi_pci_wakeup()
+on the root port itself, and acpi_pci_propagate_wakeup() when the dGPU
+below it runtime-suspends. Both only check acpi_pm_device_can_wakeup(),
+i.e. adev->wakeup.flags.valid, so clearing the device's wakeup
+capability is not enough (the PCIe PME service sets it again anyway).
 
-   929433336e0a ("platform/x86: hp-wmi: add charge_behaviour support for 
-Spectre 8C15/8C17")
-     committed:  2026-10-14
-     file:       drivers/platform/x86/hp/hp-wmi.c
-     branch:     platform-drivers-x86 -> mainline v7.4-rc1
+Add an early PCI fixup in drivers/acpi/x86/utils.c for boards MS-1592
+and MS-1594 on root port 0000:00:06.0 (8086:464d on 12th Gen Alder
+Lake-P and 8086:a74d on 13th Gen Raptor Lake-P/H) that clears
+adev->wakeup.flags.valid on its ACPI companion. Early fixups run from
+pci_setup_device() after pci_set_acpi_fwnode() and before
+pci_device_add() calls device_add(), so pci_acpi_setup() never sees the
+port as ACPI wakeup capable and stays balanced with pci_acpi_cleanup().
+The root port and dGPU still reach D3cold normally, while GPP_A20 stays
+owned by the GPIO driver.
 
-New API (devm_acpi_battery_hook_register):
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=220725
+Cc: stable@vger.kernel.org
+Signed-off-by: Victor Carreras <vicajilau@gmail.com>
+---
+Changes in v3:
+- Clear adev->wakeup.flags.valid from a DECLARE_PCI_FIXUP_EARLY quirk
+  instead of clearing the device wakeup flags in a final fixup. In v2,
+  pcie_pme_mark_devices() set can_wakeup back to true, and
+  acpi_pci_wakeup() / acpi_pci_propagate_wakeup() only check
+  adev->wakeup.flags.valid, so _DSW was still evaluated (sashiko-bot).
+  Running before pci_acpi_setup() keeps setup and cleanup balanced.
+- Tested on MS-1594 without the SSDT override: PEG0 no longer shows up
+  in /proc/acpi/wakeup, the root port and dGPU reach D3cold and the
+  touchpad keeps generating interrupts across repeated D3cold cycles.
+- Link to v2: https://lore.kernel.org/r/20261024054711.21587-1-vicajilau@gmail.com
 
-   c27a6fd6b403 ("ACPI: battery: add acpi_ prefix to the battery hook
-API")
-     committed:  2026-11-10
-     branch:     linux-pm bleeding-edge (via the acpi-battery branch,
-                 based on v7.3-rc2)
+Changes in v2:
+- Move the quirk from drivers/pci/quirks.c to drivers/acpi/x86/utils.c
+  as it is x86-specific (Lukas Wunner).
+- Link to v1: https://lore.kernel.org/r/179272791966.20251.3697951431087014523@gmail.com
 
-(Please note that the robot only reported acer-wmi-battery. The hp-wmi
-should fail the same way when CONFIG_HP_WMI is enabled)
+ drivers/acpi/x86/utils.c | 53 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
 
-
-> 
-> 
-> vim +292 drivers/platform/x86/acer-wmi-battery.c
-> 
-> c72dd9994952eb Jelle van der Waa 2026-09-13  275
-> c72dd9994952eb Jelle van der Waa 2026-09-13  276  static int acer_wmi_battery_probe(struct wmi_device *wdev, const void *context)
-> c72dd9994952eb Jelle van der Waa 2026-09-13  277  {
-> c72dd9994952eb Jelle van der Waa 2026-09-13  278  	struct acer_wmi_battery_data *data;
-> c72dd9994952eb Jelle van der Waa 2026-09-13  279
-> 4dd10fbbeb9c33 Kees Cook         2026-10-28  280  	data = devm_kzalloc_obj(&wdev->dev, *data);
-> c72dd9994952eb Jelle van der Waa 2026-09-13  281  	if (!data)
-> c72dd9994952eb Jelle van der Waa 2026-09-13  282  		return -ENOMEM;
-> c72dd9994952eb Jelle van der Waa 2026-09-13  283
-> c72dd9994952eb Jelle van der Waa 2026-09-13  284  	dev_set_drvdata(&wdev->dev, data);
-> c72dd9994952eb Jelle van der Waa 2026-09-13  285  	data->wdev = wdev;
-> c72dd9994952eb Jelle van der Waa 2026-09-13  286  	data->battery_ext = health_mode ? &acer_wmi_battery_extension_v2
-> c72dd9994952eb Jelle van der Waa 2026-09-13  287  					: &acer_wmi_battery_extension_v1;
-> c72dd9994952eb Jelle van der Waa 2026-09-13  288  	data->hook.name = "Acer Battery Extension";
-> c72dd9994952eb Jelle van der Waa 2026-09-13  289  	data->hook.add_battery = acer_battery_add;
-> c72dd9994952eb Jelle van der Waa 2026-09-13  290  	data->hook.remove_battery = acer_battery_remove;
-> c72dd9994952eb Jelle van der Waa 2026-09-13  291
-> c72dd9994952eb Jelle van der Waa 2026-09-13 @292  	return devm_battery_hook_register(&data->wdev->dev, &data->hook);
-> c72dd9994952eb Jelle van der Waa 2026-09-13  293  }
-> c72dd9994952eb Jelle van der Waa 2026-09-13  294
-> 
-> :::::: The code at line 292 was first introduced by commit
-> :::::: c72dd9994952eb09442827caecb945474ae3072b platform/x86: add Acer battery control driver
-> 
-> :::::: TO: Jelle van der Waa <jelle@vdwaa.nl>
-> :::::: CC: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
-> 
-> --
-> 0-DAY CI Kernel Test Service
-> https://github.com/intel/lkp-tests/wiki
-> 
-
-
+diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
+index 418951639..11a5d51be 100644
+--- a/drivers/acpi/x86/utils.c
++++ b/drivers/acpi/x86/utils.c
+@@ -665,3 +665,56 @@ void __init acpi_proc_quirk_mwait_check(void)
+ 	 */
+ 	dmi_check_system(acpi_proc_quirk_mwait_dmi_table);
+ }
++
++/*
++ * On MSI Summit E16 Flip A12UCT (board MS-1592) and MSI Prestige 16 Studio
++ * A13VE / Summit E16 Flip A13VET (board MS-1594), the BIOS SSDT (MSI_NB /
++ * AdlP_Rvp) assigns the touchpad's GPIO interrupt pin (GPP_A20) as the PCIe
++ * wake GPIO (WAKG / P1WP) for the dGPU root port (\_SB.PC00.PEG0, 0000:00:06.0).
++ *
++ * When ACPI wakeup is armed on this root port via _DSW (setting WKEN = 1),
++ * subsequent D3cold transitions (\_SB.PC00.PEG0.PXP._OFF -> POFF) call
++ * \_SB.SHPO(WAKG, Zero), switching GPP_A20 ownership from GPIO driver mode
++ * to ACPI GPE mode and freezing the I2C touchpad (ELAN0305:00).
++ *
++ * Mark the root port's ACPI wakeup as invalid so that _DSW is never evaluated
++ * for it, neither directly nor when wakeup is propagated from the dGPU below
++ * it. This has to happen before pci_acpi_setup() runs from device_add(), so
++ * that pci_acpi_setup() and pci_acpi_cleanup() see the same state.
++ */
++static const struct dmi_system_id msi_peg0_no_wakeup_dmi_table[] = {
++	{
++		.ident = "MSI MS-1592",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "Micro-Star International Co., Ltd."),
++			DMI_MATCH(DMI_BOARD_NAME, "MS-1592"),
++		},
++	},
++	{
++		.ident = "MSI MS-1594",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "Micro-Star International Co., Ltd."),
++			DMI_MATCH(DMI_BOARD_NAME, "MS-1594"),
++		},
++	},
++	{}
++};
++
++static void quirk_msi_peg0_no_wakeup(struct pci_dev *dev)
++{
++	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
++
++	if (!adev || !adev->wakeup.flags.valid)
++		return;
++
++	if (pci_dev_id(dev) != PCI_DEVID(0, PCI_DEVFN(6, 0)))
++		return;
++
++	if (!dmi_check_system(msi_peg0_no_wakeup_dmi_table))
++		return;
++
++	pci_info(dev, FW_BUG "Disabling ACPI wakeup to avoid touchpad GPIO (GPP_A20) takeover in D3cold\n");
++	adev->wakeup.flags.valid = 0;
++}
++DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, 0x464d, quirk_msi_peg0_no_wakeup);
++DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, 0xa74d, quirk_msi_peg0_no_wakeup);
 -- 
-Thx and BRs,
-Zhongqiu Han
+2.55.0
+
