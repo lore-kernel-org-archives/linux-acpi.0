@@ -1,81 +1,81 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.11
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.12
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794383975;
-	b=5Qo1PT4ZEkMi0KhR7AFSRJ14sEUPVm/CXb6vC8ZIFQUhULpXET+OpBtb7COLiQ5tKED9
-	 SCIpeHmnVvQaj/GWXZQ4meGTWcQo3B0N8Wan6kqA/vCWoHWPjpnXox2MV7uKd8XzOd1K6
-	 lhpgLBfBURljOEaF+Vy+fz79bYmIPOb8zXggr2tl53T7PfoB9OHEswsv53uE2h2tgff0M
-	 oRZ2Gj2n2iaxP0cwGMHPH51vSfxcpANDqzawN7DvOW8GxQUstl4VYVnbrITeZQ8cVQyoj
-	 NPYDaP1bNf8kKyUenwmb7DFq4pTYka3+KcYww3PyzJ88h8Jecw9pJ9PhoCo2OFGXQbQ==
+	t=1794385901;
+	b=ULEMAWb/yPoON4ZiNgIld617MNdwTdhAnO93qP6/xyJhC7pXerHCNKgmpMJQew23tcrv
+	 asoYbse4EBtnSlAGK2m+ONK+A0IbIVxYAOP8RxKOlLjpz6aYLIQITa6wizaLUbk4k41j2
+	 6GZAGHekcnat8fkcuEaw9TP3vGe3pPiSz62DkJzsgUmEP1+68d/tzDqhei+4c2G2uTDtg
+	 fuFZpAas2SS0lA1gpuY92utBgpiKZJkZetzKn4+7PcUAA/W02GKQrvfDucfMQX09fe57z
+	 wvmBTvmfH8CUSksOe5Yk48clfpm7yV+5soNwvr9sOfhMUH3wr4VSmxhXI2Pq7OpjQ5A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794383975;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794385901;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:Content-Transfer-Encoding:In-Reply-To;
-	bh=ujZ/L43l1G/pn0XQs3mcwG6EM/wMWs7ELw5OGxD+Nro=;
-	b=g2ahTtKOq3wVdeHZRFkXL7TkfYHtof7SBCaNbhXaXoSg/kkHDXLbK1p1milWNYAyIWBT
-	 o1g43OrldxU4Qhb4IOk+ulM4pf95NDgZ4eP1WK1kXDw6tJGAStMkhDEbNzF+3FmfmXjqb
-	 Ytq0MzDPbBjq0UfV3f8h2ED0WSG6WSDmtnkATnHcWFMW8Hucgj74MB0Xjyhe4zK3lvsMw
-	 8z+IiyEdt0a7uZ7ggkGY2usTjmOgOTOM2lWXXTGJDwTBEKhXo7TuImeZeNLgA4lSpSwE8
-	 oafNS5n36bAyvlOSX0CIZw1Tl41iZsKM5KCyI2u1zVWzMxVSbVT8plgpuOH9rGXKO3Q==
+	 Cc:Subject:Message-ID:User-Agent:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=fnpg8++pCSHxAySt0By1k1tE0/H2x/Ojwwrq0p+nEA0=;
+	b=vL5uFoWPhjKUdVdlLrHFEmUGWyDFvW/Vpq7+TtURsMVUYkjp89sb9z10br1xsooAK03a
+	 zSB5owXNHfCcDSEkFDFyGACIU/dCIOey1RsOeIf/kaEYrtusC6FIxtXiGKKexqnFXEPM/
+	 pG9BiHChKHO8LOXqDqO2+4Qy69QBTzzBMKZwJHumn+ZFgZC1fG08ZWaIJWQT3/t5Isus+
+	 rQF/AaBCy6q2b+nGMfwnznMRVR2rKlSHUzSu4PORtSL4Nz29F3F0NNCh62EaRSWz42nHi
+	 y52EWXrwYAEpyv0xiQlS9tujZ36QJYAjmztu7qwLLl7fBEXdWORbTok5F4bF9UNH30Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=cnRuqdLp;
-	arc=none smtp.remote-ip=198.175.65.11
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=AN7nsDIt;
+	arc=none smtp.remote-ip=198.175.65.12
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67D2F606A31C;
-	Wed, 11 Nov 2026 07:59:34 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 67D2F606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4D1E606A324;
+	Wed, 11 Nov 2026 08:31:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C4D1E606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=cnRuqdLp
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=AN7nsDIt
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794383975; x=1825919975;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=j3j1x9sW1Hw6+0d46gWFWLVkQrt+ag5byaO7M00vo98=;
-  b=cnRuqdLpfC2/BcoPwfvYGij2N0ECR6NhAfV5cTIR1CxHOfXbIpMLM6Wz
-   jiNLsMjWMGprxZRH00LkSna4GsoeH7sLAtjji7aZE6WrHIJgL4dhdf4zM
-   CHWhqRO0+aPZvqaHkXXDe538SzH4taI05C7xCtAATti+1s78jZXwE40nR
-   6NWLv4o44+lyS5wCG7ivRMil+FI+0mKukTyt5K/OtbVKviuwGcq7GERIM
-   8WCr14+IZ9jhpYPuoi8tyXXkc4JF9mmIc8tCFsiqLoD3Ultvj6BsQkmTH
-   lACJIIa6DKGA0aE0tGzDtnRtep3KEQup385k27spjVteLRwly2cyt7La+
-   w==;
-X-CSE-ConnectionGUID: B41LpGIeRR6LRt1gOzPcJQ==
-X-CSE-MsgGUID: mQ8sidgERQu2Higrj3vUug==
-X-IronPort-AV: E=McAfee;i="6800,10657,11962"; a="3044419"
+  t=1794385900; x=1825921900;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=LuCmyYom3oMHL4Y2LbIgsHBortL/481HciQGfC98Plc=;
+  b=AN7nsDItdX0WfIfaGhZiivGHT4AZJC3ERzqRlzhOj43daOarfgSUjfne
+   JT0AfNlE3nVGOfERvcMgbDnKkV0Kq+hkuoLttdvHfmhOOAoZ1qZ+t2FQe
+   qGxo17kNyZX9/aV+yXwwU+i9lroFfUpH+ESKkO5l45J4GT2XgZvixrTDJ
+   x+fxLMGVisN9u+dCNqrNtOqNVfxNiWSfm8xeNngaT9qlTtTysuxiYpBlZ
+   mF9/4/EL37NvQV88FR7qrRg6v7uNf9ZsuaC2Q/hvXc3fUw6FgdZiMFYET
+   ae+IJmlvOnKgcHMw+wOsWHfU6fX4AydZ7qAGR3InxLhDXLYKMSwfK7Bpc
+   Q==;
+X-CSE-ConnectionGUID: IZ5WuyB0RAWa0p/F5pS9Xw==
+X-CSE-MsgGUID: Ihlr/lMBQkSAXe5erjGXcQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11962"; a="3036646"
 X-IronPort-AV: E=Sophos;i="6.27,207,1787036400"; 
-   d="scan'208";a="3044419"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Nov 2026 23:59:34 -0800
-X-CSE-ConnectionGUID: CROJImUgQ6m7WF8ccSRE7Q==
-X-CSE-MsgGUID: t+vpCYCDQ5yraRjJvSvCUw==
+   d="scan'208";a="3036646"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Nov 2026 00:31:40 -0800
+X-CSE-ConnectionGUID: pRAqIq2NR/GTWPqaWdxA4Q==
+X-CSE-MsgGUID: 9jk+JpjORiylE+j6NeYJPw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,207,1787036400"; 
-   d="scan'208";a="8527675"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by fmviesa003.fm.intel.com with ESMTP; 10 Nov 2026 23:59:32 -0800
-Received: by black.igk.intel.com (Postfix, from userid 1001)
-	id 744BC99; Wed, 11 Nov 2026 08:59:31 +0100 (CET)
-Date: Wed, 11 Nov 2026 08:59:31 +0100
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-To: penhouse24@proton.me
-Cc: "westeri@kernel.org" <westeri@kernel.org>,
-	"andi.shyti@kernel.org" <andi.shyti@kernel.org>,
-	"linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Subject: Re: [BUG] i2c: acpi: Dell XPS 17 9720 ELAN 04F3:311C touchpad
- (VEN_04F3) needs 100 kHz like DLL0945
-Message-ID: <20261111075931.GG259790@black.igk.intel.com>
-References: <CYQ1dYF3ZUj0L_VRzN490SfuHRaulkT_y5NWcIEIl8OtpIgWgXyOlwEyUqZD_uz9bmVBXM2uLOo8bkyzcR-qCxNObstCqFUlK6lUYXK5euE=@proton.me>
- <20261109104542.GL176724@black.igk.intel.com>
- <lGd7ChJVtwyvhMVkRinryqLG3Lx32U7xoSjT4_inKH1pBNoAd4dvBKV1A4i9MOIVLKmgx8sVg98gfK-iUwb5Uoy0wX1CM2_c7I1vdTr2tYU=@proton.me>
+   d="scan'208";a="8250021"
+Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
+  by orviesa004.jf.intel.com with ESMTP; 11 Nov 2026 00:31:39 -0800
+Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xR3k0-00000000yR3-1jHi;
+	Wed, 11 Nov 2026 08:31:36 +0000
+Date: Wed, 11 Nov 2026 16:31:14 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+ linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge 9/22]
+ drivers/platform/x86/acer-wmi-battery.c:292:9: error: call to undeclared
+ function 'devm_battery_hook_register'; ISO C99 and later do not support
+ implicit function declarations
+Message-ID: <202611111639.D9pOcfbe-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -86,88 +86,85 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <lGd7ChJVtwyvhMVkRinryqLG3Lx32U7xoSjT4_inKH1pBNoAd4dvBKV1A4i9MOIVLKmgx8sVg98gfK-iUwb5Uoy0wX1CM2_c7I1vdTr2tYU=@proton.me>
+Content-Transfer-Encoding: quoted-printable
 
-Hi,
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git=
+ bleeding-edge
+head:   51bafe2e7302403a43ba45415bf9a268a7fcaa05
+commit: fafe4f5166bc3d43e28967efb9ea82b1f456b798 [9/22] Merge branch 'acpi-=
+battery' into bleeding-edge
+config: x86_64-randconfig-1000-20261111 (https://download.01.org/0day-ci/ar=
+chive/20261111/202611111639.D9pOcfbe-lkp@intel.com/config)
+compiler: clang version 22.1.8 (https://github.com/llvm/llvm-project ca7933=
+e47d3a3451d81e72ac174dcb5aa28b59d1)
+reproduce (this is a W=3D1 build): (https://download.01.org/0day-ci/archive=
+/20261111/202611111639.D9pOcfbe-lkp@intel.com/reproduce)
 
-On Mon, Nov 09, 2026 at 08:57:13PM +0000, penhouse24@proton.me wrote:
-> Hi Mika, 
-> 
-> Thank you for the response (I honestly wasn't expecting anyone to respond for this niche issue---so a welcome surprise). 
-> 
-> Yes my BIOS version (v1.41.0) is up to date. Currently, there are no updates available through Windows or from fwupd. I have received BIOS updates many times via Windows since purchasing this computer in 2022 and have had 0 change to this problem. 
-> 
-> For what it’s worth, the DSDT has a valid default ID. TPD0 starts with Name (ITPN, “DELL0AFF”), and _INI then overwrites it from the BIOS-provided TPHD variable, which yields “VEN_04F3”.
-> 
-> Please find attached the output of 'sudo dmidecode'. 
-> 
-> Thank you for helping me fix this. 
+If you fix the issue in a separate patch/commit (i.e. not just a new versio=
+n of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202611111639.D9pOcfbe-lkp@i=
+ntel.com/
 
-Can you try the below patch?
+All errors (new ones prefixed by >>):
 
-diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index 84841ed13487..bed9260056b3 100644
---- a/drivers/i2c/i2c-core-acpi.c
-+++ b/drivers/i2c/i2c-core-acpi.c
-@@ -7,6 +7,7 @@
- 
- #include <linux/acpi.h>
- #include <linux/device.h>
-+#include <linux/dmi.h>
- #include <linux/err.h>
- #include <linux/i2c.h>
- #include <linux/list.h>
-@@ -356,6 +357,17 @@ static const struct acpi_device_id i2c_acpi_force_400khz_device_ids[] = {
- 	{ }
- };
- 
-+static const struct dmi_system_id i2c_acpi_dell_xps_17_9720_dmi_ids[] = {
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "XPS 17 9720"),
-+			DMI_MATCH(DMI_BIOS_VERSION, "1.41.0"),
-+		},
-+	},
-+	{ }
-+};
-+
- static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
- 	/*
- 	 * When a 400KHz freq is used on this model of ELAN touchpad in Linux,
-@@ -377,6 +389,14 @@ static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
- 	{ .id = "ELAN0678" },
- 	{ .id = "ELAN06FA" },
- 	{ .id = "ELAN1300" },
-+	{
-+		/*
-+		 * Some Dell XPS 17 9720 is not using standard ACPI IDs
-+		 * so we need to match also via DMI strings.
-+		 */
-+		.id = "VEN_04F3",
-+		.driver_data = (kernel_ulong_t)i2c_acpi_dell_xps_17_9720_dmi_ids,
-+	},
- 	{ }
- };
- 
-@@ -385,6 +405,7 @@ static acpi_status i2c_acpi_lookup_speed(acpi_handle handle, u32 level,
- {
- 	struct i2c_acpi_lookup *lookup = data;
- 	struct acpi_device *adev = acpi_fetch_acpi_dev(handle);
-+	const struct acpi_device_id *id;
- 
- 	if (!adev || i2c_acpi_do_lookup(adev, lookup))
- 		return AE_OK;
-@@ -398,7 +419,9 @@ static acpi_status i2c_acpi_lookup_speed(acpi_handle handle, u32 level,
- 	if (acpi_match_device_ids(adev, i2c_acpi_force_400khz_device_ids) == 0)
- 		lookup->force_speed = I2C_MAX_FAST_MODE_FREQ;
- 
--	if (acpi_match_device_ids(adev, i2c_acpi_force_100khz_device_ids) == 0)
-+	id = acpi_match_acpi_device(i2c_acpi_force_100khz_device_ids, adev);
-+	if (id && (!id->driver_data ||
-+		   dmi_check_system((const struct dmi_system_id *)id->driver_data)))
- 		lookup->force_speed = I2C_MAX_STANDARD_MODE_FREQ;
- 
- 	return AE_OK;
+>> drivers/platform/x86/acer-wmi-battery.c:292:9: error: call to undeclared=
+ function 'devm_battery_hook_register'; ISO C99 and later do not support im=
+plicit function declarations [-Wimplicit-function-declaration]
+     292 |         return devm_battery_hook_register(&data->wdev->dev, &dat=
+a->hook);
+         |                ^
+   drivers/platform/x86/acer-wmi-battery.c:292:9: note: did you mean 'acpi_=
+battery_hook_register'?
+   include/acpi/battery.h:26:6: note: 'acpi_battery_hook_register' declared=
+ here
+      26 | void acpi_battery_hook_register(struct acpi_battery_hook *hook);
+         |      ^
+   1 error generated.
+
+
+vim +/devm_battery_hook_register +292 drivers/platform/x86/acer-wmi-battery=
+.c
+
+c72dd9994952eb Jelle van der Waa 2026-09-13  275 =20
+c72dd9994952eb Jelle van der Waa 2026-09-13  276  static int acer_wmi_batte=
+ry_probe(struct wmi_device *wdev, const void *context)
+c72dd9994952eb Jelle van der Waa 2026-09-13  277  {
+c72dd9994952eb Jelle van der Waa 2026-09-13  278  	struct acer_wmi_battery_=
+data *data;
+c72dd9994952eb Jelle van der Waa 2026-09-13  279 =20
+4dd10fbbeb9c33 Kees Cook         2026-10-28  280  	data =3D devm_kzalloc_ob=
+j(&wdev->dev, *data);
+c72dd9994952eb Jelle van der Waa 2026-09-13  281  	if (!data)
+c72dd9994952eb Jelle van der Waa 2026-09-13  282  		return -ENOMEM;
+c72dd9994952eb Jelle van der Waa 2026-09-13  283 =20
+c72dd9994952eb Jelle van der Waa 2026-09-13  284  	dev_set_drvdata(&wdev->d=
+ev, data);
+c72dd9994952eb Jelle van der Waa 2026-09-13  285  	data->wdev =3D wdev;
+c72dd9994952eb Jelle van der Waa 2026-09-13  286  	data->battery_ext =3D he=
+alth_mode ? &acer_wmi_battery_extension_v2
+c72dd9994952eb Jelle van der Waa 2026-09-13  287  					: &acer_wmi_battery_=
+extension_v1;
+c72dd9994952eb Jelle van der Waa 2026-09-13  288  	data->hook.name =3D "Ace=
+r Battery Extension";
+c72dd9994952eb Jelle van der Waa 2026-09-13  289  	data->hook.add_battery =
+=3D acer_battery_add;
+c72dd9994952eb Jelle van der Waa 2026-09-13  290  	data->hook.remove_batter=
+y =3D acer_battery_remove;
+c72dd9994952eb Jelle van der Waa 2026-09-13  291 =20
+c72dd9994952eb Jelle van der Waa 2026-09-13 @292  	return devm_battery_hook=
+_register(&data->wdev->dev, &data->hook);
+c72dd9994952eb Jelle van der Waa 2026-09-13  293  }
+c72dd9994952eb Jelle van der Waa 2026-09-13  294 =20
+
+:::::: The code at line 292 was first introduced by commit
+:::::: c72dd9994952eb09442827caecb945474ae3072b platform/x86: add Acer batt=
+ery control driver
+
+:::::: TO: Jelle van der Waa <jelle@vdwaa.nl>
+:::::: CC: Ilpo J=C3=A4rvinen <ilpo.jarvinen@linux.intel.com>
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
