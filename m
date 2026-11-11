@@ -1,65 +1,111 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.50
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794391674;
-	b=X2oU9VAMQTdrKTGEMmzoY5wmWUYsLCql2PyIpxfxZY59s1wwfX+a0tcBRvI2pmJCKM5N
-	 /iGXCuEFYp8ZwXuICHhkfqc0Wg5miTpRIhQVgu4CsoR5GgXCWL6/97wBhflnETnuqnQJG
-	 enhNqS+Y93f2Z/lCmpYJ2t6S45NwXpkZ9JQMPdDA9SYXBWhS4z3/3q8KS9guW/e2KFQa1
-	 e4DhH+RNfJ8p2VY4+Yd291081W9BNOOnN134hFR1Um/x8DSQZPNtHCDG5pzeoR/KZJsCO
-	 NqSIIxp7Br6QeGv7Y0YZDXZKk/fZ4fk157ej3kiwg/DxygvGGIcnitrqJz5TSLrERXQ==
+	t=1794392740;
+	b=jI2gTR/8WhPEnJ2JfmLvSr1B6KcgNDJv000kIHoa9VUBh1QEn0Hk0TkSVc0dRTw9ujc3
+	 5gKfqBfavwxhOanEGOqMQ9VZpgOEDbNOaQIsKHhh/oW2tU1huzGZzeOUe5Yi/E9nuQCt+
+	 EtxdPgOgylTbHSNuHWjeglo2tGVG8d6tnwA4PLqQgGU7xO+jkSYxiuyLM02gS18ugiwLe
+	 XwzXxFPD3hOK/DUyjQCkNbLETsH0J4MAEqG4TH7IAS3y+mGVan6/XvEU1kLumro8EFq32
+	 MTjIUEre/oIRc5e5SNB3HflykvpmVtPBhfFG9Xo/BbFUvagIuhxMVzHobB5aOTSA/aA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794391674;
-	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:From:To:Cc:
-	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding:X-Last-TLS-Session-Version;
-	bh=zFxZ30Yd6+cASw+ho8AgTjmy6X4iO+1Xfo3Xj4WmfaA=;
-	b=nAErsdFIrZe/XZJs2qAsI0BRMpGfUPK/wT5XYQFxrROxVe7cCnGEjV+nxJBgAzCabyec
-	 8Nz68EyU1TzmM09WNyj7Tg5e0iZXTbVR+nwztBrQQkaGcKEm2i7pzSKziYbDZDDiqseAF
-	 YA7h87V4Iujh5Ou3w26vhgQ2gZt9WKDu19wQeUs/JBtr47IsbcTLv5aeribI8ALpNDBxJ
-	 11v3DasfvcdmD9HqjwjAakAV19Y+xVMlObzgDE4vtnWjnEK+aV3sozqMzxJYW6Oo3tc4L
-	 Ap3jAyaJDS3M8MqUlDuUHA3bFweTRrB+n5r7Ffo3sAfHKjxDSND9Y1QO8qO04bXe5/Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794392740;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:X-Mailer:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=WCGh2v7nU1b/qpgNrVkksi8LEcAJjTlz9SScJQHog1U=;
+	b=M7eUYcgDsEINYnPZeq+MfmjRsQBqpJ9uNaJIDOs/mOj4iK1AUGohNcz5am93nwZ4Zna2
+	 KCZuaaJPZCx0dQWXexselUJDBUtNOvgsrlPyGV2KBqjiCRLVEHHSD1UaN+ZQeyuAqgLKI
+	 2C7TMtey/Q9bxEcPrLHog9XcevbDeF4trrR/Zp/vTVMJfD58hA9rhjBfIBFAWxv7SfEAI
+	 AAE+iHyFYGA9DrnD3UWlhXk3Ke1N8gIAVgXN0Ik4Be2JUI5tVJfHGYTPqRXGZmSujBnGb
+	 tvLjKL/L7XlBkObIYCXypBLm1ksLOQr1ZJsNzFOhbnJSccWj+bDZjzmHAU8dXNASJDQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=bootlin.com;
-	spf=pass smtp.mailfrom=bootlin.com;
-	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=iVe5YcxN;
-	arc=none smtp.remote-ip=185.246.84.56
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Mb3uhiUC;
+	arc=none smtp.remote-ip=209.85.128.50
+Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D9FD606A321;
-	Wed, 11 Nov 2026 10:07:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0D9FD606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E8B5606A321
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 10:25:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6E8B5606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=iVe5YcxN
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 78FB21A1609;
-	Wed, 11 Nov 2026 10:07:52 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 3F61B6017E;
-	Wed, 11 Nov 2026 10:07:52 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 6D00711BC126B;
-	Wed, 11 Nov 2026 11:07:50 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1794391671; h=from:subject:date:message-id:to:cc:mime-version:
-	 content-transfer-encoding; bh=zFxZ30Yd6+cASw+ho8AgTjmy6X4iO+1Xfo3Xj4WmfaA=;
-	b=iVe5YcxN6iMcNdy7ct5ge10LPW/BDSJLHEzidAyzNx+mVg4ZP0bpAGhYu/2b1yDeGePLHd
-	skMnkdvrs8K3lWj+U8df0uJQqbyX/5QxVohWtK/sCCy+5NzpC1Lf21gG7DaePyODqnHLig
-	fkVO86dEsndYrFRHVO3hCsIdgI/lDt9b4qzhbs7lBPEAokzzFFSR7SGTKIMKHV6SNINgnN
-	5nNcjabsKk1bxgtDZy5f5UNrJps/WmnE+bx5Ykk4Yl3LPEM14fhQDsB7drmHuSH/FIVAUa
-	rgqnrYXNvc4GBEMJVNzQm74AoCOBZwHzHx6Q5+yBOEWai/HUW3MyavZDQBrKgA==
-From: Paul Cercueil <paul.cercueil@bootlin.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-	Paul Cercueil <paul.cercueil@bootlin.com>
-Subject: [PATCH v2] ACPI: platform: Add basic support for ACPI 6.5 fixed clock resources
-Date: Wed, 11 Nov 2026 11:07:36 +0100
-Message-ID: <20261111100736.98364-1-paul.cercueil@bootlin.com>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Mb3uhiUC
+Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-4a210470b49so24528975e9.2
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 02:25:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794392738; x=1794997538; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=WCGh2v7nU1b/qpgNrVkksi8LEcAJjTlz9SScJQHog1U=;
+        b=Mb3uhiUCOo+9OL8nkk0DPqlbHMU+U3YfPJtQRGohaqBLQ8OevIfv8dsETu4ueSqwRn
+         NFUTwQnpCyUxKUDcsxzqJiYueO55nV4pkpQgYg9LUK5WPus9n/ERdDgHae8RQ7j2Dw+4
+         fM3ibr2Y6ts1e/OTqbgJiTQW3L8WDSaeJuxScEHyWMzPN+bGBiq2tlQqZ+g6LQEpKD58
+         mnmah5jGdWJ/FHCGptkaUokAM2nmjVjDMlQqXY1Y0+QNVEBolaI9RZeQ+wAs3afJIVDJ
+         0j7wdyVZa4FS6RKopL2kvM92RArS1Tu/5W/MXYkBtd4iocmh7ndrHYxmSyr8Mi6yyFzr
+         +H+g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794392738; x=1794997538;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=WCGh2v7nU1b/qpgNrVkksi8LEcAJjTlz9SScJQHog1U=;
+        b=vle69WYLdFPF/NcTHeI/b211wuPTDeDohkndzPHUhFsaLx7WUtdYyXuBQt4EIlVG6U
+         cplLtB34n2f5G3gcggM3qODfzEYsPGopxY9rykAJDoNyjikPPpaYGuCJ+iIailaGyBYk
+         EdBIla1dgxMlns6IjbpLqlAKB702DCRQ8pGH5ptX5MXXmPxgC+ClPVJ9pTFmgm4ebUtF
+         Ry4exo6IRtI4Eqlyew9QImxEG6Tt8win0mkaBLV/R8R6KwmlMYwQaNuxZ7g2RM3e+ZE1
+         cHjIsVNB24l00YXebdf63u6rrHsumzdmF1Igg/znocFUJI12qHQyRerqMwutKk1gYmq3
+         k0jw==
+X-Forwarded-Encrypted: i=1; AL+hErFaVD9mYquou25BzYniq1DWv+WKbtgGXAVdGz0MOSNLdvxsH7UKaR+E1a9p6OIH3EsM2NKyR3gY4Bcm@vger.kernel.org
+X-Gm-Message-State: APuU4Z8vUji+41hvZLM9blUrCH41VqsdLn0b0TP0H4/5KrcLy2p4jkDK
+	+GpAximlMlpA1V4Ui/QCwEsEn1hdk355s2HAdqLyguUQczV7v8gOEGc9
+X-Gm-Gg: AYBFou0eSEuRsEkgydmmQF1qbqzNtj00Mtih0DFgoCa7qxiVon4vffFv/DbW2xM+OZQ
+	OMbOZ0KqsCWakZisaMXBOCo3QJqSDvESV0Z5jeGP0zTWGPxl2U8AP5okEVcFkQsxlrKDH+8ZKPZ
+	pCGJgQYtVXvSFRDV+5nUpMHBMEZa60fJ3mgp1gLXIML50Gs2+jE3Asjmaa+0Wm7ZQOOmZJEgSqg
+	03vJL7ffLXCZdjhO3vMRcUUgzP0cG41/jOjo2I2nBL5StvlKcSIucQaqFG8MMZiIZH4Nm+JhYUm
+	BCkCQRGI8Xv1MMrKL8hRdfEd0v8t8pfEXOMupN8gshoyjroCjOpCq1XPlFZ1QGdUE37eZcO9PpG
+	XI3nFU526YyFL5gjkxDPQjTjBe1hQ9GltrAovbkA/g2nlgFrcQLI5O/lQOCYYMx3/tmjBAd1BnU
+	nLg503uakzGoijBlzrp7Ewrc/m+7b2yotR7Q+/CX6QkaBCY6qjrRdaBhodXeoUL5RRn7hIXnr56
+	SHYkxDO1CYladSMcDk7AJKY6u/P5oMZPDvm/GLxj9PGTik1FfRxObldD2HkBfHEmJSQ8pIUxeCP
+	/vEoHC7rqpWDRRyw2oT50iVsqqtWKmMnZGvATpZyo7ZmCl59wUxkhFIPRDcdDU6csms=
+X-Received: by 2002:a05:600c:4f14:b0:4a6:44b:2593 with SMTP id 5b1f17b1804b1-4ba093b5ec4mr41235955e9.29.1794392737707;
+        Wed, 11 Nov 2026 02:25:37 -0800 (PST)
+Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4988f5b1ce3sm8610917f8f.14.2026.11.11.02.25.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 11 Nov 2026 02:25:37 -0800 (PST)
+Date: Wed, 11 Nov 2026 10:25:35 +0000
+From: David Laight <david.laight.linux@gmail.com>
+To: Alejandro Colomar <alx@kernel.org>
+Cc: linux-hardening@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+ "Maciej W. Rozycki" <macro@orcam.me.uk>, Geert Uytterhoeven
+ <geert@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, Andy
+ Shevchenko <andy@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, Daniel
+ Scally <djrscally@gmail.com>, Danilo Krummrich <dakr@kernel.org>, Greg
+ Kroah-Hartman <gregkh@linuxfoundation.org>, Hans Verkuil
+ <hverkuil-cisco@xs4all.nl>, Heikki Krogerus
+ <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, Johan
+ Hovold <johan@kernel.org>, Kees Cook <kees@kernel.org>, Laurent Pinchart
+ <laurent.pinchart@ideasonboard.com>, Len Brown <lenb@kernel.org>, Linus
+ Torvalds <torvalds@linux-foundation.org>, Linus Walleij
+ <linusw@kernel.org>, Namhyung Kim <namhyung@kernel.org>, "Rafael J.
+ Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, Sakari Ailus
+ <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>,
+ Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>,
+ linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
+ linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+ linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v3 3/5] stddef: Add const_cast()
+Message-ID: <20261111102535.434c2eee@pumpkin>
+In-Reply-To: <2bf5cf7baad87b5b7b7f833df390596a033fd6f6.1794323750.git.alx@kernel.org>
+References: <cover.1794323750.git.alx@kernel.org>
+	<2bf5cf7baad87b5b7b7f833df390596a033fd6f6.1794323750.git.alx@kernel.org>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -69,140 +115,52 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-ACPI 6.5 introduced a clock input resource descriptor, which allows to
-specify in the ACPI tables what clocks are connected to a given device.
+On Tue, 10 Nov 2026 16:33:40 +0100
+Alejandro Colomar <alx@kernel.org> wrote:
 
-This patch adds support for the most basic clock resource, which is the
-one that represents a fixed clock. The new code will then create a
-clk_hw for each fixed clock resource, which is then made available to
-the device drivers, that can obtain it through a regular call to
-clk_get(NULL).
+> This macro serves to cast const away without risking unwanted
+> conversions due to mistakes in the cast.
+> 
+> It's similar to C++'s const_cast(), but it is more restrictive: it can
+> only cast away 'const', and not arbitrary qualifiers.
+> 
+> Signed-off-by: Alejandro Colomar <alx@kernel.org>
+> ---
+>  include/linux/stddef.h | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/include/linux/stddef.h b/include/linux/stddef.h
+> index e1851c50c89b..d79a81406b78 100644
+> --- a/include/linux/stddef.h
+> +++ b/include/linux/stddef.h
+> @@ -194,4 +194,16 @@ enum {
+>  #define TRAILING_OVERLAP(TYPE, NAME, FAM, MEMBERS)				\
+>  	__TRAILING_OVERLAP(TYPE, NAME, FAM, /* no attrs */, MEMBERS)
+>  
+> +/**
+> + * const_cast() - Drop const in the left-most derivation of a pointer
+> + *
+> + * @T: Type for the cast.
+> + * @p: Pointer to be casted.
+> + *
+> + * If @p is of type const @T, then it is casted to @T.
+> + * Otherwise, @p is returned without any casts.
+> + * This avoids mistakes that change anything other than 'const' in a cast.
+> + */
+> +#define const_cast(T, p)  _Generic(p, const T: (T) (p), default: (p))
 
-Signed-off-by: Paul Cercueil <paul.cercueil@bootlin.com>
+Should it be de_const_cast(), or just de_const().
+It is a shame you need to specify the type, but why not:
+	_Generic(p, T: p, const T: (T)(p))
+so that you get a compile time error from the _Generic() if the type
+is wrong.
 
----
+David
 
-Related:
-https://lore.kernel.org/linux-arm-kernel/20261103084915.8405-1-paul.cercueil@bootlin.com/T/
 
-v2:
-- Use the calculated clock name in devm_clk_hw_register_fixed_rate()
-  instead of the device name
-- Make sure clkres->scale is <= 2. The field is 2 bits but the value
-  clkres->scale == 3 is not defined in the spec.
-- Compute the fraction numerator using 64-bit math, to make sure it
-  won't overflow on 32-bit systems.
-- Initialize clocks only when the device_type matches
-  ACPI_BUS_TYPE_DEVICE.
-- Use a shorter name for clocks as the hard limit is 16 characters
-  including the terminator.
----
- drivers/acpi/acpi_platform.c | 64 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
-
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 80ea7121744d..71322cdcf0dd 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -10,17 +10,27 @@
- 
- #include <linux/acpi.h>
- #include <linux/bits.h>
-+#include <linux/clk-provider.h>
-+#include <linux/clkdev.h>
- #include <linux/device.h>
- #include <linux/err.h>
- #include <linux/ioport.h>
-+#include <linux/kconfig.h>
- #include <linux/kernel.h>
-+#include <linux/list.h>
- #include <linux/module.h>
- #include <linux/dma-mapping.h>
- #include <linux/pci.h>
- #include <linux/platform_device.h>
-+#include <linux/units.h>
- 
- #include "internal.h"
- 
-+struct acpi_clk_data {
-+	struct device *dev;
-+	unsigned int idx;
-+};
-+
- /* Exclude devices that have no _CRS resources provided */
- #define ACPI_ALLOW_WO_RESOURCES		BIT(0)
- 
-@@ -130,6 +140,57 @@ static unsigned int acpi_platform_resource_count(struct acpi_resource *ares, voi
- 	return AE_CTRL_TERMINATE;
- }
- 
-+static int acpi_add_fixed_clock(struct acpi_resource *res, void *d)
-+{
-+	static const unsigned long clk_scale[] = { 1, HZ_PER_KHZ, HZ_PER_MHZ };
-+	struct acpi_resource_clock_input *clkres;
-+	struct acpi_clk_data *data = d;
-+	struct device *dev = data->dev;
-+	struct clk_hw *clk;
-+	unsigned long rate;
-+	char name[64];
-+	int err;
-+
-+	if (res->type == ACPI_RESOURCE_TYPE_CLOCK_INPUT) {
-+		clkres = &res->data.clock_input;
-+
-+		if (clkres->mode) {
-+			dev_warn(dev, "Only fixed rate clocks supported for now.\n");
-+			return 1; /* keep going */
-+		}
-+
-+		if (clkres->frequency_divisor == 0 || clkres->scale > 2)
-+			return -EINVAL;
-+
-+		rate = DIV_ROUND_UP_ULL((u64)clkres->frequency_numerator * clk_scale[clkres->scale],
-+					clkres->frequency_divisor);
-+
-+		snprintf(name, sizeof(name), "%s-%u", dev_name(dev), data->idx++);
-+
-+		clk = devm_clk_hw_register_fixed_rate(dev, name, NULL, 0, rate);
-+		if (IS_ERR(clk))
-+			return PTR_ERR(clk);
-+
-+		err = devm_clk_hw_register_clkdev(dev, clk, name, dev_name(dev));
-+		if (err)
-+			return err;
-+	}
-+
-+	return 1;
-+}
-+
-+static void acpi_platform_init_clocks(struct acpi_device *adev)
-+{
-+	struct device *dev = &adev->dev;
-+	struct acpi_clk_data data = { .dev = dev };
-+	LIST_HEAD(list);
-+	int ret;
-+
-+	ret = acpi_dev_get_resources(adev, &list, acpi_add_fixed_clock, &data);
-+	if (ret < 0)
-+		dev_err(dev, "Failed to add clock resources: %d\n", ret);
-+}
-+
- /**
-  * acpi_create_platform_device - Create platform device for ACPI device node
-  * @adev: ACPI device node to create a platform device for.
-@@ -196,6 +257,9 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
- 			}
- 			acpi_dev_free_resource_list(&resource_list);
- 		}
-+
-+		if (IS_ENABLED(CONFIG_COMMON_CLK))
-+			acpi_platform_init_clocks(adev);
- 	}
- 
- 	memset(&pdevinfo, 0, sizeof(pdevinfo));
--- 
-2.47.3
+> +
+>  #endif
 
