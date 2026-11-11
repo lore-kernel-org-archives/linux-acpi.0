@@ -1,67 +1,74 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.231.39
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794396503;
-	b=ZTelH6QMWJWytzNQqavo+vYAHFDY9ymH19tcOmUfLiiIoLC4SNP4TjkSm7HO+rkoehVc
-	 FhPU07JTRaUydHfiqad0GfydXZIJ2bwEXpbTBQ7CdnMpFtDcSCERypYqVxGH7//AJOZBn
-	 J9kJHVfkxVCw+Zvg5Kt3OeS1xVwUwIBc7JRX0Lo3jlUiVN4kVBo8SSG7beKKD236ugBzi
-	 KM+niKBetmt+QSGClsK95Oj0Yw/Zwe01RNoGUbd+Zg085Pz5Tz+Zhnvu3+fanNjHrVprd
-	 kBSx1NCwMKAViBb9ypC35hGZOph3DxTq9YKjJ/QNusKBrWm/W16Da4NDtjcbslmHCBQ==
+	t=1794397267;
+	b=xBXwuNuj45AycQaQ6DSlIhmVsSsymZOXSUA75yoZTTLb+a1mfXZE4XPQ7xt2MDRssJj9
+	 DhdU32IRRDTgeWbmTwkCjSgArGbkEw/0g1OYFP2U4czZkf6cckQ3m+SL6qwABHUiwlk+P
+	 XseDveoZ6v3hcjawnOMW0t5UtIMy438eWaMkIwYfVhuWGfeFgJd60t55O+pIyf7XyHRL9
+	 C6ko4YlfWCMrfTAbN6Vm8olfusz2d8g9KfFGE5dPHUWyzKjrB5Gx3oodOEXilmLtqwEyZ
+	 HQp6LSNiGasNwYM3jvi1eFz8jv9PqJEikwITvTB9ZNKEeLssrBopAzf83YVaan5LGmQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794396503;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=clef96KdjZtZB+RQYxzzZuV2jPu47KF1xnUT/nBcCUg=;
-	b=BfxgPTyOD9pbPaNOEKjseD2ifDodqPwJjfQQuyMoEDPbE7Pq5+fe/ADXrVySDS0+qt4W
-	 HmYeW1+LTHBqRxDIiHAwrtm0CNT6n5m/951YuQc1KbDWNljdEjEgd1dAKTN2kSCxH/pxr
-	 Kdbx9lrKcERkURS0u5BU6hltj3lmTPkZhJEk8+VKnJnYA/5axBaEUbUv6wn+qBLulqOPr
-	 1twVYk6OuMh70sDYjE8RzVUqSzZBEJTw3mvi9APNaMdEImRLjJKmE0qf470NLSvXSYR3/
-	 G7FU5pEpNXdKFqitCKHJ3UUWbaf2DSqxR48cHTgRsHG+ppfdUBDFQcIb81zU0X45bBA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794397267;
+	h=DMARC-Filter:DKIM-Signature:Date:Content-Type:Cc:Subject:Message-Id:
+	 Content-Language:X-Original-From:To:From:References:Mime-Version:
+	 User-Agent:In-Reply-To:Received:X-Lms-Return-Path:
+	 Content-Transfer-Encoding;
+	bh=zVvZBV6suQrnzsiHL0fsmvRL+1EnY1VOLR3pQOW7cuk=;
+	b=3Esss7C0Ya3R5PdKCw/XJIXozr9pTOxjehXqfRvB+jSlNDFMzpPp8O9JMKJA1j2NTOim
+	 7OEMNPRr+xuYzi9kr8qEuNp3IktfRUr2dbiVMlYcSG2jMj5VeZ5Rq+ouRJ3s7Qjf16vy4
+	 lxoKCuTP/7qnnZbp+yWaBVhONxZ/jyKD+SyH4Chn+1avqWIlr9obi4YmL7XANRQbsDgxZ
+	 keOd7YX6HiRULn836VVL5/eF86cODqIH+svnL/UrtUd09fN9XQ6drUM0en9Gr0Z5GbOuX
+	 6pDK32OZyLXIoJuYFL6w8wBmxjS1cuajXD7FCwslC61DtA/UIsXEsPNzWJ3CESM/aIw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ayqxgo59;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=picoheart.com;
+	spf=pass smtp.mailfrom=picoheart.com;
+	dkim=pass header.d=picoheart.com header.i=@picoheart.com header.a=rsa-sha256 header.s=feishu2604151535 header.b=QGBSj5SW;
+	arc=none smtp.remote-ip=209.127.231.39
+Received: from va-2-39.ptr.blmpb.com (va-2-39.ptr.blmpb.com [209.127.231.39])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6369606A321;
-	Wed, 11 Nov 2026 11:28:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44A1C606A326
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 11:41:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 44A1C606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=picoheart.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=picoheart.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ayqxgo59
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 393661F00A05;
-	Wed, 11 Nov 2026 11:28:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794396503;
-	bh=clef96KdjZtZB+RQYxzzZuV2jPu47KF1xnUT/nBcCUg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Ayqxgo59eQ+nGKS/KTdfCsu+dMa/H8G1aehKwxPZyzLU7hiJqpdhteuph0QlvGVar
-	 KThM/cQMx+yC/8FhudvKzGGSjuTORv/dw/KZrSfd1QdzN/JBaF3dBnBgxRmnuFdfqp
-	 n1FPOZ16vGTb4zwDZbm/h/rSsit0DXrRQqbnVHsyyFQx7Yrics0Ki0FMLRhV9cgXbB
-	 2eQKV8/9MmvQdJDho+7xXgjGczcNXaE8iKOxuwg807er8Hc9a7Vi0PoB0KkbwZlRWj
-	 L+OoRFmxDM5wjOCx6lk/7VkLFZPB7zXnl35kahUakxg14Wwuf7k0YSYXTI45UoQIPQ
-	 6wRvbic8PMXAA==
-Date: Wed, 11 Nov 2026 12:28:15 +0100
-From: Alejandro Colomar <alx+linux-hardening@kernel.org>
-To: David Laight <david.laight.linux@gmail.com>
-Cc: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org, 
-	Krzysztof Kozlowski <krzk@kernel.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, 
-	Andy Shevchenko <andy@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
-	Daniel Scally <djrscally@gmail.com>, Danilo Krummrich <dakr@kernel.org>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans Verkuil <hverkuil-cisco@xs4all.nl>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>, 
-	Kees Cook <kees@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
-	Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, 
-	Linus Walleij <linusw@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>, 
-	Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v3 5/5] string: Make strprefix() const-qualifier-generic
-Message-ID: <avRQgOTnRtfec9fQ@devuan>
-References: <cover.1794323750.git.alx@kernel.org>
- <35bf6672f84f07de3f40e8db9e7fcfd643894fec.1794323750.git.alx@kernel.org>
- <20261111103438.2f822202@pumpkin>
+	dkim=pass (2048-bit key, unprotected) header.d=picoheart.com header.i=@picoheart.com header.a=rsa-sha256 header.s=feishu2604151535 header.b=QGBSj5SW
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+ s=feishu2604151535; d=picoheart.com; t=1794397260; h=from:subject:
+ mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
+ mime-version:in-reply-to:message-id;
+ bh=zVvZBV6suQrnzsiHL0fsmvRL+1EnY1VOLR3pQOW7cuk=;
+ b=QGBSj5SWW/tNmQGgEVryANpsNR7fxnlSkJ0jMqrnww6f8/65uQub60tFUdOqVqUU7Rx4ai
+ 1u59gmjC+EZq7ctngGnHTsST3aCVaEuFhy0jQw+CvoU7MAZSJ+LG7HZ+GjVk+exJhoteaH
+ yXnI5MCNR4Yf+w3z3+9I+XQ+VkMu60Wyc2VucAVELwKGCpwRgaoRDxosIksEhGlLbo6Rmm
+ k+lcgKQ3vDbWI2i3jD1CtKKEfi62TkZts1a2Wn2j7a+mocWKtGPbCf6Fc8E8vmAbCM23s9
+ 34VKoZAsGmzDcb6TPvWeq+5O8D1PX5rYAox/8mObW13TXKlLB0uPXbmxKHYaqA==
+Date: Wed, 11 Nov 2026 19:40:55 +0800
+Content-Type: text/plain; charset=UTF-8
+Cc: <yang.yicong@picoheart.com>, "Palmer Dabbelt" <palmer@dabbelt.com>, 
+	"Paul Walmsley" <paul.walmsley@sifive.com>, 
+	"Alexandre Ghiti" <alex@ghiti.fr>, "Len Brown" <lenb@kernel.org>, 
+	"Atish Patra" <atish.patra@linux.dev>, 
+	"Anup Patel" <anup@brainfault.org>, "Will Deacon" <will@kernel.org>, 
+	"Mark Rutland" <mark.rutland@arm.com>, <linux-acpi@vger.kernel.org>, 
+	<linux-riscv@lists.infradead.org>, <linux-kernel@vger.kernel.org>, 
+	"Anup Patel" <apatel@ventanamicro.com>, 
+	"Sunil V L" <sunilvl@ventanamicro.com>, 
+	"Andrew Jones" <ajones@ventanamicro.com>, 
+	"Atish Patra" <atishp@rivosinc.com>, "Nutty Liu" <nutty.liu@hotmail.com>, 
+	"Yunhui Cui" <cuiyunhui@bytedance.com>, 
+	"Yuanzhu" <yuanzhu@bytedance.com>
+Subject: Re: [PATCH v7 1/1] RISC-V: Add common csr_read_num() and csr_write_num() functions
+Message-Id: <a767f8c1-a568-42bf-8dd2-0b05d32686ec@picoheart.com>
+Content-Language: en-US
+X-Original-From: Yicong Yang <yang.yicong@picoheart.com>
+To: "Zhanpeng Zhang" <zhangzhanpeng.jasper@bytedance.com>, 
+	"Anup Patel" <anup.patel@oss.qualcomm.com>, 
+	"Sunil V L" <sunilvl@oss.qualcomm.com>, 
+	"Rafael J . Wysocki" <rafael@kernel.org>
+From: "Yicong Yang" <yang.yicong@picoheart.com>
+References: <20261104161512.883885-1-anup.patel@oss.qualcomm.com> <20261104161512.883885-2-anup.patel@oss.qualcomm.com> <CACnXVnfFWF8h+o0=nSb9JESOxYsdVMO+BJKMT7t=K=XVgVwx2g@mail.gmail.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -70,89 +77,85 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="emb45eljbrwlkh5i"
-Content-Disposition: inline
-In-Reply-To: <20261111103438.2f822202@pumpkin>
+Mime-Version: 1.0
+User-Agent: Mozilla Thunderbird
+In-Reply-To: <CACnXVnfFWF8h+o0=nSb9JESOxYsdVMO+BJKMT7t=K=XVgVwx2g@mail.gmail.com>
+Received: from [100.86.214.79] ([58.250.106.117]) by smtp.feishu.cn with ESMTPS; Wed, 11 Nov 2026 19:40:57 +0800
+X-Lms-Return-Path: <lba+26af4544a+338c87+vger.kernel.org+yang.yicong@picoheart.com>
+Content-Transfer-Encoding: 7bit
 
+On 11/11/26 5:15 PM, Zhanpeng Zhang wrote:
+> Hi Anup,
+> 
+> On 11/5/26 12:15 AM, Anup Patel wrote:
+>> From: Anup Patel <apatel@ventanamicro.com>
+>>
+>> In RISC-V, there is no CSR read/write instruction which takes CSR
+>> number via register so add common csr_read_num() and csr_write_num()
+>> functions which allow accessing certain CSRs by passing CSR number
+>> as parameter. These common functions will be first used by the
+>> ACPI CPPC driver and RISC-V PMU driver.
+>>
+>> Also, the RISC-V ACPI FFH specification allows arbitrary CSR number
+>> as CPPC register and the RISC-V SBI specification allows arbitrary
+>> CSR number as PMU hardware counter. This means ACPI CPPC driver and
+>> RISC-V PMU driver no longer need to do sanity checks on CSR number
+>> which are now done by the common csr_read_num() and csr_write_num()
+>> functions.
+>>
+>> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+>> Reviewed-by: Sunil V L <sunilvl@ventanamicro.com>
+>> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+>> Reviewed-by: Atish Patra <atishp@rivosinc.com>
+>> Reviewed-by: Nutty Liu <nutty.liu@hotmail.com>
+>> ---
+>>   arch/riscv/include/asm/csr.h |   3 +
+>>   arch/riscv/kernel/Makefile   |   1 +
+>>   arch/riscv/kernel/csr.c      | 165 +++++++++++++++++++++++++++++++++++
+>>   drivers/acpi/riscv/cppc.c    |  17 ++--
+>>   drivers/perf/riscv_pmu.c     |  54 ++----------
+>>   5 files changed, 184 insertions(+), 56 deletions(-)
+>>   create mode 100644 arch/riscv/kernel/csr.c
+>>
+>> diff --git a/arch/riscv/include/asm/csr.h b/arch/riscv/include/asm/csr.h
+>> index 621f84d1898f..ebd82043430b 100644
+>> --- a/arch/riscv/include/asm/csr.h
+>> +++ b/arch/riscv/include/asm/csr.h
+>>
+>> [...]
+>>   /*
+>>    * Read the CSR of a corresponding counter.
+>>    */
+>>   unsigned long riscv_pmu_ctr_read_csr(unsigned long csr)
+>>   {
+>> -	if (csr < CSR_CYCLE || csr > CSR_HPMCOUNTER31H ||
+>> -	   (csr > CSR_HPMCOUNTER31 && csr < CSR_CYCLEH)) {
+> 
+> 
+> Could we keep the existing CSR range check in riscv_pmu_ctr_read_csr()
+> when switching it to csr_read_num()?
+> 
+> The SBI PMU driver still assumes the architectural counter layout. For
+> example, if SBI assigns an event to a custom counter at CSR 0x800,
+> pmu_sbi_csr_index() truncates 0x800 - CSR_CYCLE to zero. The perf mmap
+> page then advertises index 1, so userspace reads cycle while the kernel
+> reads 0x800. The same index is used to set and clear scounteren.
 
---emb45eljbrwlkh5i
-Content-Type: text/plain; protected-headers=v1; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-From: Alejandro Colomar <alx+linux-hardening@kernel.org>
-To: David Laight <david.laight.linux@gmail.com>
-Cc: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org, 
-	Krzysztof Kozlowski <krzk@kernel.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, 
-	Andy Shevchenko <andy@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
-	Daniel Scally <djrscally@gmail.com>, Danilo Krummrich <dakr@kernel.org>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans Verkuil <hverkuil-cisco@xs4all.nl>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>, 
-	Kees Cook <kees@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
-	Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, 
-	Linus Walleij <linusw@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>, 
-	Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v3 5/5] string: Make strprefix() const-qualifier-generic
-Message-ID: <avRQgOTnRtfec9fQ@devuan>
-References: <cover.1794323750.git.alx@kernel.org>
- <35bf6672f84f07de3f40e8db9e7fcfd643894fec.1794323750.git.alx@kernel.org>
- <20261111103438.2f822202@pumpkin>
-MIME-Version: 1.0
-In-Reply-To: <20261111103438.2f822202@pumpkin>
+I think it's an existing problem that current SBI PMU doesn't support
+custom counters, but only rejects the custom counters in riscv_pmu_ctr_read_csr().
+the index truncation and scounteren issue should still exist even if we
+add back the check in riscv_pmu_ctr_read_csr().
 
-Hi David,
+but you're right that remove the check here changes the existing
+behaviour and should be retained.
 
-> Date: 2026-11-11 10:34:38+0000
-> From: David Laight <david.laight.linux@gmail.com>
->
-[...]
-> > -static inline char *strprefix(const char *s, const char *prefix)
-> > +#define strprefix(s, pfx)  const_cast(CQChar_of(s) *, strprefix(s, pfx=
-))
->=20
-> Isn't in enough to do:
-> #define strprefix(s, pfx) ((typeof(s))strprefix(s, pfx))
->=20
-> which correctly preserves all qualifiers.
+thanks.
 
-This would return a const void* if you pass a const void*.  In general,
-we shouldn't be passing a void* to a string function, but C allows this.
-With CQChar_of(), you coerce a 'const void *' into a 'const char *'.
-
-See also: <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3998.pdf#subse=
-ction.0.7.28.5>
-
-
-Cheers,
-Alex
-
---=20
-<https://www.alejandro-colomar.es>
-
---emb45eljbrwlkh5i
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmr0UU4ACgkQ64mZXMKQ
-wqntIA/8CnvRBh0GWiV0pEkB8CsI4Ei5vpzo05YozhZPx/C1LqQ1TJF36UF6GtZ1
-+MjZVOShNf6prPOICad/7qSz/Uay+Q/H14G5O4ErzKZbKCyqC4osWoLsTIeskIFO
-ptOZSr/EQF3GM+fKSrowiVbw+FkPOT6CetmSbrvUNOhXo0Sd62SOyM3QorRW/QfA
-EbInkrMvvBUiivyqITSgmCFAKynJvncUQeoobTjAnxe14KnWKwXAYMiES5UEnxlt
-egShlBDaCgDbKYgtawdjj5iMZM25YQuYHFzj9N163MJwZSusKK81kzBHxkpdtIHj
-TZq0SKiUUar7nC2hI3YQNIT6yVMhNdnvCE4dkfgDuNqDaPuq2geHWuNNLd4LGFh6
-u4g10Ncbqm9g1xdyESjXUYLuBfebPrHsQ4F6T3cx09GE+6GzxGET3466rQs0qTlA
-Hm26LNi/ZT8Y4Up/V8EWgWweE0yji+i1Kcm8Z3y1U6KfYFIsnT5lms9lLz6h04IQ
-cf5UH3vSVZgzbvZg2IcAwevjodfrdHDMFUYLO0Gz572B2ztMTpC1MJW6QiXogLbz
-JIc8+VKrfb4HxP3Gt00HTz85/Ug502kAFe3NmpW62Uxsn6bmQi/up6X2IjgoIWOQ
-kbhH92N6QFMGkKgBS+LhFS7TXmhDzDNVh5yJbbCb3yL8Dg1VpMA=
-=TVMp
------END PGP SIGNATURE-----
-
---emb45eljbrwlkh5i--
+> 
+> Non-snapshot overflow handling and RV32 high-half reads also assume the
+> architectural layout. Could we keep the PMU conversion
+> behavior-preserving and handle custom counters separately?
+> 
+>> [...]
+> Thanks,
+> Zhanpeng
