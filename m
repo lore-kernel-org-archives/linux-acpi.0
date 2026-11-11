@@ -1,71 +1,73 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=216.40.44.17
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794386180;
-	b=jeY2CUjucLvVWB6Ax1wcuX6ht8PhIvN/MuQOvIp8DPjARRYUJ81PrT/WiJ5XGJgUaPAY
-	 foKwiOwGXXNL2ZRbXUBS3dtdD+w9u2pStuOjojcrdIitUOaXmFrj+WVFO0NH1vlyI92Rn
-	 9mmhokqioFsYqPhmjkWYkSRZPgED/iVtMLuFquY+MbKy1kW+4UkHsuAWx6u1T6bMLhi1r
-	 G6yRhU49kq6F32V9aUcCPshOOUsuJn/+7QdKKuIZu+ECH/jbR/02ny+QRZ7mtcO4Q9fza
-	 YTZwjYPh21b3bWnQ7YicQAEUABt5hSyR1w5n9+Yo+TKsD7Ij3W2IdS3IfmdAIjtNHpg==
+	t=1794386658;
+	b=KG9rQKCoaGbpXB1JzGgppaWItPYZRSWY9dbxJUHhl6qZxojErsX+KvDeELUC4LyE+Dd+
+	 W4yrnI5zZ3ixQfSZAYJvOHzkZ2+U/0Hh/l5/EHRVjm9B+3/uQCw0yvcD1HZzdvCM/9hEK
+	 FJ+0UpuhI1jQN5Bc1G6DE2EmdPMs15ExwDZLlhISgqssZoiXaKeUX1CpBNNVFYRYN9AMB
+	 J7uokswprQDljLWrFyHiHFbpPvN8R+R4zPXiAiMoJrkvVKPShLcGRXyHYwBzaSQA1LN3a
+	 Pcws2s3QePOIysrMzw247V2sBdU4sN7k8Edd+1fdhvqkS3qCn6gOFvlZSEqbFJJyGPQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794386180;
-	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:Message-ID:
-	 Subject:From:To:Cc:Date:In-Reply-To:References:Content-Type:
-	 Content-Transfer-Encoding:User-Agent:MIME-Version:
-	 X-Last-TLS-Session-Version;
-	bh=J6vgNgexmAGCflop8Dr6cxDGpAbjn2YbUEFkgo+OR6w=;
-	b=ftWuQiNX8wgmXcnt0Y5LMqOsPk85nA8otwmRtc1ynwgtyCNcdkk9UAWprFulDR1b8y4R
-	 JHF1qvYSdAbJ3I4LqnqvWY1A+IrGNrNAu5nMU8qVEQYtJ2vjNDU4YyTB3C8Rl84eyamlg
-	 BR1pJ8Gl7U/vj2VFC93v9ACnglnvVKp1OcNL/TxyvISTmaFFbRURQH7UW5ixyusp8710R
-	 gjeoQeUm4IjIOZJiCBFazJYO9RKIfj8Qp0WvGtJTxevXCbaxwk+gqND/vpcqRhh0T4cbG
-	 gJjW86tNmr/gkFrbUaeUjGNSsPQIakBF9U8YIwdXOpQ9AjGxWujvnvzpRK2xx72XYlA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794386658;
+	h=DMARC-Filter:Received:Received:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:X-Stat-Signature:X-Rspamd-Server:
+	 X-Rspamd-Queue-Id:X-Spam-Status:X-Session-Marker:X-Session-ID:
+	 DKIM-Signature:X-HE-Tag:X-HE-Meta;
+	bh=kj4d2juRbTUyjRObk5lhKiw8KbvGP7+NJHQ2SToNLJA=;
+	b=1F8LlE8nwcnkne5BLHvQDqmv0ePyNEN0/Ua2befT7JSQNjZIOvFBIXZ1OvTkik1Ww7ot
+	 qYfhaORAmR6G7TET9NQD0RIsm4jFtI2ZInCB7dn/8ps8TmWdP6qiaMYft/pRjGDOwfWiV
+	 u2GTDRWCCzMpJVLsYNtVgw/dRsi+5AO3du5uNg7Y8XbpXTsX6I4zCuc4BeEjnutNczITW
+	 P0YRajegbzf44DtAB87oXDReuK3r6K4in0yBOhmyx+WulNgB3uFpoB9t1ZzK6gBF9sWg7
+	 oS6BS+A9Pu9QbKuitgMGGJYYBtFAgZG4bGGHKrGzpgc6ppb+qg7Dl1e2uuHlIU6t9Tw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=bootlin.com;
-	spf=pass smtp.mailfrom=bootlin.com;
-	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=xXWGrUfj;
-	arc=none smtp.remote-ip=185.246.84.56
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+	dmarc=pass header.from=goodmis.org;
+	spf=pass smtp.mailfrom=goodmis.org;
+	dkim=pass header.d=goodmis.org header.i=@goodmis.org header.a=rsa-sha256 header.s=dkim1 header.b="4q/KfQgV";
+	arc=none smtp.remote-ip=216.40.44.17
+Received: from relay.hostedemail.com (smtprelay0017.hostedemail.com [216.40.44.17])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C5D3606A31C;
-	Wed, 11 Nov 2026 08:36:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5C5D3606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D691606A320;
+	Wed, 11 Nov 2026 08:44:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9D691606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=goodmis.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goodmis.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=xXWGrUfj
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id A29201A161E;
-	Wed, 11 Nov 2026 08:36:18 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 78B676017E;
-	Wed, 11 Nov 2026 08:36:18 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id E6CBD11BC126B;
-	Wed, 11 Nov 2026 09:36:16 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1794386177; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=J6vgNgexmAGCflop8Dr6cxDGpAbjn2YbUEFkgo+OR6w=;
-	b=xXWGrUfjTJmIaIrru4Wde++hJUmk0DOYBSIw0RAG4GFFQR7oEMu/bWYFbaxXQVJuYiyOqZ
-	0tOfEsQfhUU3SJML6Y+8GDoiFLSv4/fS4vPxkzSNukEmGlw0saKESiSq7MqT8U5MX9bwRc
-	6zKI9JKXtDARfxicxc7t0P4u15XuEpN+OxbB0eP9sJPmEacvn9zYFrm959BVwMG2rZCPV1
-	sA1aFcYnIfwzPA4LZRgg9hRM8pXEY/OHaF8ExHhiTVXDWZ9AgaNiNRo3kznMLGKds8Xa7E
-	V0ddxCSjJxD3IhYXnkKCuMNVCnMSlS8wapKhGN5gRj4GgCnk8DoZ21QWKuXInA==
-Message-ID: <a4ed9e2914eff93e77842890bfaa72581d58c440.camel@bootlin.com>
-Subject: Re: [PATCH] ACPI: platform: Add basic support for ACPI 6.5 fixed
- clock resources
-From: Paul Cercueil <paul.cercueil@bootlin.com>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Thomas Petazzoni
- <thomas.petazzoni@bootlin.com>
-Date: Wed, 11 Nov 2026 09:36:14 +0100
-In-Reply-To: <CAJZ5v0hi_+FCGCXqV71GwgPDpymNZsUv9jRwjLK2BFJV3sqmiA@mail.gmail.com>
-References: <20261103084718.8222-1-paul.cercueil@bootlin.com>
-	 <CAJZ5v0hi_+FCGCXqV71GwgPDpymNZsUv9jRwjLK2BFJV3sqmiA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
-User-Agent: Evolution 3.56.2-0+deb13u1 
+	dkim=pass (1024-bit key, unprotected) header.d=goodmis.org header.i=@goodmis.org header.a=rsa-sha256 header.s=dkim1 header.b=4q/KfQgV
+Received: from omf07.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay06.hostedemail.com (Postfix) with ESMTP id B1896A794B;
+	Wed, 11 Nov 2026 08:44:13 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: rostedt@goodmis.org) by omf07.hostedemail.com (Postfix) with ESMTPA id AF7D02002D;
+	Wed, 11 Nov 2026 08:43:59 +0000 (UTC)
+Date: Wed, 11 Nov 2026 03:43:52 -0500
+From: Steven Rostedt <rostedt@goodmis.org>
+To: Alejandro Colomar <alx@kernel.org>
+Cc: linux-hardening@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+ "Maciej W. Rozycki" <macro@orcam.me.uk>, Geert Uytterhoeven
+ <geert@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, Andy
+ Shevchenko <andy@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, Daniel
+ Scally <djrscally@gmail.com>, Danilo Krummrich <dakr@kernel.org>, Greg
+ Kroah-Hartman <gregkh@linuxfoundation.org>, Hans Verkuil
+ <hverkuil-cisco@xs4all.nl>, Heikki Krogerus
+ <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, Johan
+ Hovold <johan@kernel.org>, Kees Cook <kees@kernel.org>, Laurent Pinchart
+ <laurent.pinchart@ideasonboard.com>, Len Brown <lenb@kernel.org>, Linus
+ Torvalds <torvalds@linux-foundation.org>, Linus Walleij
+ <linusw@kernel.org>, Namhyung Kim <namhyung@kernel.org>, "Rafael J.
+ Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, Sakari Ailus
+ <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>, Tom
+ Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org,
+ driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+ devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, Bartosz Golaszewski
+ <bartosz.golaszewski@oss.qualcomm.com>
+Subject: Re: [PATCH v3 1/5] string: Add strprefix(), and deprecate
+ str_has_prefix()
+Message-ID: <20261111034352.5c45e30f@fedora>
+In-Reply-To: <556766412884389a7cecfe6affcc9fa3a78f9807.1794323750.git.alx@kernel.org>
+References: <cover.1794323750.git.alx@kernel.org>
+	<556766412884389a7cecfe6affcc9fa3a78f9807.1794323750.git.alx@kernel.org>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -75,101 +77,36 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Stat-Signature: 9reopibxfacub77xym1aj6ezurap8jk8
+X-Rspamd-Server: rspamout04
+X-Rspamd-Queue-Id: AF7D02002D
+X-Session-Marker: 726F737465647440676F6F646D69732E6F7267
+X-Session-ID: U2FsdGVkX1/dz/mQgZDwHS78NvaXBjDCWjyDcEshuPI=
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=goodmis.org; h=date:from:to:cc:subject:message-id:in-reply-to:references:mime-version:content-type:content-transfer-encoding; s=dkim1; bh=kj4d2juRbTUyjRObk5lhKiw8KbvGP7+NJHQ2SToNLJA=; b=4q/KfQgVhXoeg8xxMeWFbqjrWg46MH1GvbRkZIHunPPEhGE2FUz3n26rVbQKu7mQEd3oLUVEREy1FX2Z7IQPxf5GoltXzV/840+Y6haIl3aFDHw3C1e6iwsAhmkyrsa0rV6Ud+cjmoPNFR4DjsrldCCabHIkWJ2YSuSlxaffT/k=
+X-HE-Tag: 1794386639-904136
+X-HE-Meta: U2FsdGVkX1/C781zNDqzzzHmIbqsmLh06ijPMbUYTNeFmEftFAzWFbEeoukyycUuSbCaZii994t1DsdsTGSfeaDSTYrLJIKWL0NXbWbZyZRqYcTZtA8hOGedLXB25zjW0dUgWN8qmnqKDkOX1Sa+103QOaHyhExVRadf5Ttml/P5URtJEB+pEyGY56v/iWfRffSuoBC69xXt0ioMcQUxW3ka6yhxD7p0Hfg2UVzA87r1+YwE0GTPH4nQCr6t5z4DBNkHW7EAKQli0TZEiqo8Bq+Bdd73SWVl5pWGGlU/u6CSuuEuopC9IQKy8y0kS4BKyg7ajHjxBP9sI1/eA9aMLuoKckNRCBTB
 
-SGkgUmFmYWVsLAoKTGUgbWFyZGkgMTAgbm92ZW1icmUgMjAyNiDDoCAxODoxOCArMDEwMCwgUmFm
-YWVsIEouIFd5c29ja2kgKEludGVsKSBhIMOpY3JpdMKgOgo+IE9uIFR1ZSwgTm92IDMsIDIwMjYg
-YXQgOTo0N+KAr0FNIFBhdWwgQ2VyY3VlaWwgPHBhdWwuY2VyY3VlaWxAYm9vdGxpbi5jb20+Cj4g
-d3JvdGU6Cj4gPiAKPiA+IEFDUEkgNi41IGludHJvZHVjZWQgYSBjbG9jayBpbnB1dCByZXNvdXJj
-ZSBkZXNjcmlwdG9yLCB3aGljaCBhbGxvd3MgdG8KPiA+IHNwZWNpZnkgaW4gdGhlIEFDUEkgdGFi
-bGVzIHdoYXQgY2xvY2tzIGFyZSBjb25uZWN0ZWQgdG8gYSBnaXZlbiBkZXZpY2UuCj4gPiAKPiA+
-IFRoaXMgcGF0Y2ggYWRkcyBzdXBwb3J0IGZvciB0aGUgbW9zdCBiYXNpYyBjbG9jayByZXNvdXJj
-ZSwgd2hpY2ggaXMgdGhlCj4gPiBvbmUgdGhhdCByZXByZXNlbnRzIGEgZml4ZWQgY2xvY2suIFRo
-ZSBuZXcgY29kZSB3aWxsIHRoZW4gY3JlYXRlIGEKPiA+IGNsa19odyBmb3IgZWFjaCBmaXhlZCBj
-bG9jayByZXNvdXJjZSwgd2hpY2ggaXMgdGhlbiBtYWRlIGF2YWlsYWJsZSB0bwo+ID4gdGhlIGRl
-dmljZSBkcml2ZXJzLCB0aGF0IGNhbiBvYnRhaW4gaXQgdGhyb3VnaCBhIHJlZ3VsYXIgY2FsbCB0
-bwo+ID4gY2xrX2dldChOVUxMKS4KPiA+IAo+ID4gU2lnbmVkLW9mZi1ieTogUGF1bCBDZXJjdWVp
-bCA8cGF1bC5jZXJjdWVpbEBib290bGluLmNvbT4KPiAKPiBZb3UgbmVlZCB0byBsb29rIGF0IFNh
-c2hpa28ncyBmZWVkYmFjayBvbiB0aGlzOgo+IAo+IGh0dHBzOi8vc2FzaGlrby5kZXYvIy9wYXRj
-aHNldC8yMDI2MTEwMzA4NDcxOC44MjIyLTEtcGF1bC5jZXJjdWVpbCU0MGJvb3RsaW4uY29tCgpJ
-IHdhcyBleHBlY3RpbmcgU2FzaGlrbyB0byBzZW5kIG1lIGFuIGVtYWlsLCBidXQgaXQgZGlkbid0
-PwoKSSdsbCB2MiB3aXRoIHRoZSBmZWVkYmFjayBhZGRyZXNzZWQuCgpDaGVlcnMsCi1QYXVsCgo+
-ID4gLS0tCj4gPiDCoGRyaXZlcnMvYWNwaS9hY3BpX3BsYXRmb3JtLmMgfCA2NCArKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysKPiA+IMKgMSBmaWxlIGNoYW5nZWQsIDY0IGluc2Vy
-dGlvbnMoKykKPiA+IAo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpX3BsYXRmb3Jt
-LmMgYi9kcml2ZXJzL2FjcGkvYWNwaV9wbGF0Zm9ybS5jCj4gPiBpbmRleCA4MGVhNzEyMTc0NGQu
-LmJhZTZhMmVhY2Q3MSAxMDA2NDQKPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpX3BsYXRmb3Jt
-LmMKPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9hY3BpX3BsYXRmb3JtLmMKPiA+IEBAIC0xMCwxNyAr
-MTAsMjcgQEAKPiA+IAo+ID4gwqAjaW5jbHVkZSA8bGludXgvYWNwaS5oPgo+ID4gwqAjaW5jbHVk
-ZSA8bGludXgvYml0cy5oPgo+ID4gKyNpbmNsdWRlIDxsaW51eC9jbGstcHJvdmlkZXIuaD4KPiA+
-ICsjaW5jbHVkZSA8bGludXgvY2xrZGV2Lmg+Cj4gPiDCoCNpbmNsdWRlIDxsaW51eC9kZXZpY2Uu
-aD4KPiA+IMKgI2luY2x1ZGUgPGxpbnV4L2Vyci5oPgo+ID4gwqAjaW5jbHVkZSA8bGludXgvaW9w
-b3J0Lmg+Cj4gPiArI2luY2x1ZGUgPGxpbnV4L2tjb25maWcuaD4KPiA+IMKgI2luY2x1ZGUgPGxp
-bnV4L2tlcm5lbC5oPgo+ID4gKyNpbmNsdWRlIDxsaW51eC9saXN0Lmg+Cj4gPiDCoCNpbmNsdWRl
-IDxsaW51eC9tb2R1bGUuaD4KPiA+IMKgI2luY2x1ZGUgPGxpbnV4L2RtYS1tYXBwaW5nLmg+Cj4g
-PiDCoCNpbmNsdWRlIDxsaW51eC9wY2kuaD4KPiA+IMKgI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3Jt
-X2RldmljZS5oPgo+ID4gKyNpbmNsdWRlIDxsaW51eC91bml0cy5oPgo+ID4gCj4gPiDCoCNpbmNs
-dWRlICJpbnRlcm5hbC5oIgo+ID4gCj4gPiArc3RydWN0IGFjcGlfY2xrX2RhdGEgewo+ID4gK8Kg
-wqDCoMKgwqDCoCBzdHJ1Y3QgZGV2aWNlICpkZXY7Cj4gPiArwqDCoMKgwqDCoMKgIHVuc2lnbmVk
-IGludCBpZHg7Cj4gPiArfTsKPiA+ICsKPiA+IMKgLyogRXhjbHVkZSBkZXZpY2VzIHRoYXQgaGF2
-ZSBubyBfQ1JTIHJlc291cmNlcyBwcm92aWRlZCAqLwo+ID4gwqAjZGVmaW5lIEFDUElfQUxMT1df
-V09fUkVTT1VSQ0VTwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIEJJVCgwKQo+ID4gCj4g
-PiBAQCAtMTMwLDYgKzE0MCw1NyBAQCBzdGF0aWMgdW5zaWduZWQgaW50IGFjcGlfcGxhdGZvcm1f
-cmVzb3VyY2VfY291bnQoc3RydWN0Cj4gPiBhY3BpX3Jlc291cmNlICphcmVzLCB2b2kKPiA+IMKg
-wqDCoMKgwqDCoMKgIHJldHVybiBBRV9DVFJMX1RFUk1JTkFURTsKPiA+IMKgfQo+ID4gCj4gPiAr
-c3RhdGljIGludCBhY3BpX2FkZF9maXhlZF9jbG9jayhzdHJ1Y3QgYWNwaV9yZXNvdXJjZSAqcmVz
-LCB2b2lkICpkKQo+ID4gK3sKPiA+ICvCoMKgwqDCoMKgwqAgc3RhdGljIGNvbnN0IHVuc2lnbmVk
-IGxvbmcgY2xrX3NjYWxlW10gPSB7IDEsIEhaX1BFUl9LSFosIEhaX1BFUl9NSFoKPiA+IH07Cj4g
-PiArwqDCoMKgwqDCoMKgIHN0cnVjdCBhY3BpX3Jlc291cmNlX2Nsb2NrX2lucHV0ICpjbGtyZXM7
-Cj4gPiArwqDCoMKgwqDCoMKgIHN0cnVjdCBhY3BpX2Nsa19kYXRhICpkYXRhID0gZDsKPiA+ICvC
-oMKgwqDCoMKgwqAgc3RydWN0IGRldmljZSAqZGV2ID0gZGF0YS0+ZGV2Owo+ID4gK8KgwqDCoMKg
-wqDCoCBzdHJ1Y3QgY2xrX2h3ICpjbGs7Cj4gPiArwqDCoMKgwqDCoMKgIHVuc2lnbmVkIGxvbmcg
-cmF0ZTsKPiA+ICvCoMKgwqDCoMKgwqAgY2hhciBuYW1lWzY0XTsKPiA+ICvCoMKgwqDCoMKgwqAg
-aW50IGVycjsKPiA+ICsKPiA+ICvCoMKgwqDCoMKgwqAgaWYgKHJlcy0+dHlwZSA9PSBBQ1BJX1JF
-U09VUkNFX1RZUEVfQ0xPQ0tfSU5QVVQpIHsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgIGNsa3JlcyA9ICZyZXMtPmRhdGEuY2xvY2tfaW5wdXQ7Cj4gPiArCj4gPiArwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoCBpZiAoY2xrcmVzLT5tb2RlKSB7Cj4gPiArwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgZGV2X3dhcm4oZGV2LCAiT25seSBmaXhl
-ZCByYXRlIGNsb2NrcyBzdXBwb3J0ZWQgZm9yCj4gPiBub3cuXG4iKTsKPiA+ICvCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXR1cm4gMTsgLyoga2VlcCBnb2lu
-ZyAqLwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgfQo+ID4gKwo+ID4gK8KgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaWYgKGNsa3Jlcy0+ZnJlcXVlbmN5X2Rpdmlzb3IgPT0g
-MCkKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXR1
-cm4gLUVJTlZBTDsKPiA+ICsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJhdGUg
-PSBESVZfUk9VTkRfVVAoY2xrcmVzLT5mcmVxdWVuY3lfbnVtZXJhdG9yICoKPiA+IGNsa19zY2Fs
-ZVtjbGtyZXMtPnNjYWxlXSwKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBjbGtyZXMtPmZyZXF1ZW5jeV9kaXZp
-c29yKTsKPiA+ICsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGNsayA9IGRldm1f
-Y2xrX2h3X3JlZ2lzdGVyX2ZpeGVkX3JhdGUoZGV2LCBkZXZfbmFtZShkZXYpLAo+ID4gTlVMTCwg
-MCwgcmF0ZSk7Cj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBpZiAoSVNfRVJSKGNs
-aykpCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0
-dXJuIFBUUl9FUlIoY2xrKTsKPiA+ICsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-IHNucHJpbnRmKG5hbWUsIHNpemVvZihuYW1lKSwgIiVzLWNsayV1IiwgZGV2X25hbWUoZGV2KSwK
-PiA+IGRhdGEtPmlkeCsrKTsKPiA+ICsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-IGVyciA9IGRldm1fY2xrX2h3X3JlZ2lzdGVyX2Nsa2RldihkZXYsIGNsaywgbmFtZSwKPiA+IGRl
-dl9uYW1lKGRldikpOwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaWYgKGVycikK
-PiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXR1cm4g
-ZXJyOwo+ID4gK8KgwqDCoMKgwqDCoCB9Cj4gPiArCj4gPiArwqDCoMKgwqDCoMKgIHJldHVybiAx
-Owo+ID4gK30KPiA+ICsKPiA+ICtzdGF0aWMgdm9pZCBhY3BpX3BsYXRmb3JtX2luaXRfY2xvY2tz
-KHN0cnVjdCBhY3BpX2RldmljZSAqYWRldikKPiA+ICt7Cj4gPiArwqDCoMKgwqDCoMKgIHN0cnVj
-dCBkZXZpY2UgKmRldiA9ICZhZGV2LT5kZXY7Cj4gPiArwqDCoMKgwqDCoMKgIHN0cnVjdCBhY3Bp
-X2Nsa19kYXRhIGRhdGEgPSB7IC5kZXYgPSBkZXYgfTsKPiA+ICvCoMKgwqDCoMKgwqAgTElTVF9I
-RUFEKGxpc3QpOwo+ID4gK8KgwqDCoMKgwqDCoCBpbnQgcmV0Owo+ID4gKwo+ID4gK8KgwqDCoMKg
-wqDCoCByZXQgPSBhY3BpX2Rldl9nZXRfcmVzb3VyY2VzKGFkZXYsICZsaXN0LCBhY3BpX2FkZF9m
-aXhlZF9jbG9jaywKPiA+ICZkYXRhKTsKPiA+ICvCoMKgwqDCoMKgwqAgaWYgKHJldCA8IDApCj4g
-PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBkZXZfZXJyKGRldiwgIkZhaWxlZCB0byBh
-ZGQgY2xvY2sgcmVzb3VyY2VzOiAlZFxuIiwgcmV0KTsKPiA+ICt9Cj4gPiArCj4gPiDCoC8qKgo+
-ID4gwqAgKiBhY3BpX2NyZWF0ZV9wbGF0Zm9ybV9kZXZpY2UgLSBDcmVhdGUgcGxhdGZvcm0gZGV2
-aWNlIGZvciBBQ1BJIGRldmljZQo+ID4gbm9kZQo+ID4gwqAgKiBAYWRldjogQUNQSSBkZXZpY2Ug
-bm9kZSB0byBjcmVhdGUgYSBwbGF0Zm9ybSBkZXZpY2UgZm9yLgo+ID4gQEAgLTIxNyw2ICsyNzgs
-OSBAQCBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlCj4gPiAqYWNwaV9jcmVhdGVfcGxhdGZvcm1fZGV2
-aWNlKHN0cnVjdCBhY3BpX2RldmljZSAqYWRldiwKPiA+IMKgwqDCoMKgwqDCoMKgIGVsc2UKPiA+
-IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBwZGV2aW5mby5kbWFfbWFzayA9IDA7Cj4g
-PiAKPiA+ICvCoMKgwqDCoMKgwqAgaWYgKElTX0VOQUJMRUQoQ09ORklHX0NPTU1PTl9DTEspKQo+
-ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgYWNwaV9wbGF0Zm9ybV9pbml0X2Nsb2Nr
-cyhhZGV2KTsKPiA+ICsKPiA+IMKgwqDCoMKgwqDCoMKgIHBkZXYgPSBwbGF0Zm9ybV9kZXZpY2Vf
-cmVnaXN0ZXJfZnVsbCgmcGRldmluZm8pOwo+ID4gwqDCoMKgwqDCoMKgwqAgaWYgKElTX0VSUihw
-ZGV2KSkKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBkZXZfZXJyKCZhZGV2LT5k
-ZXYsICJwbGF0Zm9ybSBkZXZpY2UgY3JlYXRpb24gZmFpbGVkOgo+ID4gJWxkXG4iLAo+ID4gLS0K
+On Tue, 10 Nov 2026 16:33:23 +0100
+Alejandro Colomar <alx@kernel.org> wrote:
+
+> +/**
+> + * str_has_prefix - Test if a string has a given prefix
+> + * @str: The string to test
+> + * @prefix: The string to see if @str starts with
+> + *
+> + * DEPRECATED: Use strprefix()
+
+I'm still not convinced, so NAK on this part.
+
+-- Steve
 
 
+> + *
+> + * A common way to test a prefix of a string is to do:
+> + *  strncmp(str, prefix, sizeof(prefix) - 1)
+> + *
+> + * But this can lead to bugs due to typos, or if prefix is a pointer
+> + * and not a constant. Instead use strprefix().
+>   *
