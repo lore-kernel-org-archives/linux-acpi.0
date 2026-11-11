@@ -1,68 +1,68 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.227.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.227.134
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794387067;
-	b=yGqTqV1PrUKNNy9zUuKou2jZdr1xdmPq69jHxNfDaRoGmivB0QwRSSlZyF/nAaNEXQgw
-	 /EGTOVAFbhnfEFx9cCskjXgGnucxsyrs+SwY6tIkkWFpbz1sVh79/Dydv3vkRAeiBOSCj
-	 lDigUa/NnBzfwhQqNcuAe57j+gJgZpa55fVgE242wyXSgB2PEbsR3U1mIIP1rN1ZRDBAK
-	 ILLi3C2aBPObUDcLuF31B2wrFOhsmKDJMD+MI7Bs0iGtqH0gDV7Y8NFLxCNDFK8pmsue1
-	 VOR7ozZwO66VM19LH3IHOs7qeIJcPQX4lhkAigmdlnHV6+O8O3/QWjGZx6rHaETTsvQ==
+	t=1794387080;
+	b=YppGL/j1OoDiuLDCc3qXIdk2XRiS3AyX1N2Tu2c4/z6JxzBnY6lg+fS9ldyQZgTfzjhf
+	 SESddBaf+hoZwH7w+x514+FIU9QPE2+a1ykJF0Va4SYThJ38j/KcBksTJkDc7hE3DGz2L
+	 Tph4wnItVb7uBv+WJPpNgDKPp4gL4O9cB5iuiFakYN1/uKLy/lLZjYWdRC0ywdSLlXE74
+	 LBIRG8IWl5YzH8wHEPOWfOTnHNVZPyUoNOAl+9WfNmXyJxAUUQJV4O+qT46+vSJNdW648
+	 WCYe6EnEbmiN2vgXc8ukjsbqykq5sDB/WwtY0ln0ZjD+EydhvrT6bbWAg2awDsfBdfA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794387067;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794387080;
 	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=v3JRXipHaQsA2dpbPLLRBQxHUpuSS4w/ATARj/qhSxk=;
-	b=gdncJz85cF8/bugpxdzAuSeTmdmd+lqpQJ6m5JBW+kUj5ZkhQ0b+pnpTL9hcNQaJvwv5
-	 xaDAgAb/sg/fS1q8hWBcFWKzron9LkwxAE3iCZRHYSXtcIXPB0bADXFg0JNGxYzd5Bcan
-	 MYweI36msQ0k5jlm2mzSALfsWhzNJs8RJAF1ALyRR4PQyh2FutEkz7CLo2JsllvzTMGDQ
-	 54mpsxJ2yEH1UYS/4hrfl472DF5bLKcTazMp8ymXD71X8Gm2spsc06EU6rmri8bMEcHKu
-	 B43KkXIyX9IqgZmis00RQLFDVzTiw2szUqGdtVKl4CJ2zQZ0FQA1hYjs1kK0TOzJxPw==
+	bh=4FR4MYwSIUv0E3HeQxkRuXJTHYwYwGW3jDUR0WOXudI=;
+	b=4sLOF++zpF0UIGJxCdZVLbsAb7ZrIQvm+TFaqoubZicQBDkuMRG6hV6TkV/ycOteC1J8
+	 oosxFKrbELDV759cVwlt9sNzB0M15J8I6Z93lx1rnspMn5bR7ZKH9KM+K60k7shCt1rkQ
+	 vhW7Nrqp6NCuthhdUzyhxvqWAKuyaisRwEWolnoNJsQg2yFejxgSXNCCcS5q5Zyiv6Nem
+	 OSqNS7U/FjFSD+i4+44M6z2HfcsSM2EB40BKUm56G0KqmIjWl3RE0VNOLhej7bqjd8W+5
+	 UIbiV/WFEFXqZPiU9oGhL+M2hSB0KT+7o+FGU/67yOKvFa+TqJgl9vOaUjj2yHWJ0fg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=kylinos.cn;
 	spf=pass smtp.mailfrom=gmail.com;
-	arc=none smtp.remote-ip=74.125.227.131
-Received: from mail-pj2-f3.google.com (mail-pj2-f3.google.com [74.125.227.131])
+	arc=none smtp.remote-ip=74.125.227.134
+Received: from mail-pj2-f6.google.com (mail-pj2-f6.google.com [74.125.227.134])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F9D8606A326
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 08:51:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1F9D8606A326
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6916C606A327
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 08:51:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6916C606A327
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-pj2-f3.google.com with SMTP id 98e67ed59e1d1-3adc0ac3564so859288a91.1
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 00:51:05 -0800 (PST)
+Received: by mail-pj2-f6.google.com with SMTP id 98e67ed59e1d1-3ad211ad92bso1057375a91.1
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 00:51:19 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794387065; x=1794991865;
+        d=1e100.net; s=20260707; t=1794387079; x=1794991879;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=v3JRXipHaQsA2dpbPLLRBQxHUpuSS4w/ATARj/qhSxk=;
-        b=So1To2EBX4YqERkvE9juReXiFJkRIC+3IcmknbbRyRv6XgqADJyHCyUz4SRUD6uZy0
-         aiOEY4cUrKDAYZB8fYChMmsqiDzpOimS2zJ2+ZPo37+QOM9jp7noA6/UH83E1JVswXc6
-         4omdFLFY4NE2iLM33MoD2DT3+Y2QHFPebOO9LhqNpPEEdOEoDpoyEyXtXA7R7r8JzPjc
-         GfHwY9cb3RtH0sPpYeTEBGXoZiRQq/TaIa/0hu6vBVMjutVwlS/gkvwCH60Hj04R8I02
-         V1fR2R9Jzni4F7qyXGinhBtdwNnVpieaN7WEYirtL5baoxuAClRoOjjfiTYuUOkp9Dk9
-         jq8Q==
-X-Forwarded-Encrypted: i=1; AL+hErEi8EE99W6eTMZ96/XRU4DU7UrAZR0CK+QsWeG5+mB9A6ZD/rO6Y6ZXu+r69kHf3fXm3AStQ3LYvyww@vger.kernel.org
-X-Gm-Message-State: APuU4Z+n4HzBdji86JV2eCZuCJzO18rrJI880Muz81P8ZcibVxYAT6nc
-	Cf0lmSHgEXb0sygFJw0dI7T1As29RbSMIPQoD0TWj1f4ooMzfL205lHWx2apDe42
-X-Gm-Gg: AYBFou2pTrGT2TtiDiXL4TGTRHsyTm+eLW1yuXO8gpACkoyrKc2N9TvDmXSo4B7OLXZ
-	v4P8Mqrec6WnVjCt7TkkTnR4VpFmFrEEAN5lX7HnQv3aT2lrFTo4+7BxvPIA59v8Mwux3jyvFaJ
-	lIjSOF2ieHsJgU/NpeqI0IId8pd0/gu+se48XkmYpuT4yv6LzVXOLb190pInWltps2jCzCBxuOe
-	mj0fAXmVcGgE8Cl4eeqm5ClnaOCTiccgaMpzbK/l+TLRcwUjCcBqfG+LwfPGio127FRsTF6KGD4
-	gCm/mGrGPVxoxOXdZek4NJb9+6tt7TfUPyAJaC3wCJMkUCZcla1FdJGVMNWbIY+viTq15lByU+u
-	/av7bt7suKsTu9QD2cb4Do8MbqGRnpX6tXZY0+uzUQKR4mKWwE1mMsSXHxXHxspg4k/BBJiApiD
-	oj9FQf+wElSdruARoskZ5sYHl8u2IzcWf/awxPvLG48RJnkKePb5X05t2WZunrQkrytCvFkwGAr
-	X3vR0s9ORq1fZ23trvdci4XHbLdkrYj9QWxztFGEhbSz5SfBWCcFPx9M+hgHKvU/EzWkHCsCplw
-	X64CUIcionzPhvOZEy/nR8K3ZuAIzdSkxRR5acEeApzJpbI1/LM=
-X-Received: by 2002:a17:90b:4c4c:b0:3ab:be66:ddb6 with SMTP id 98e67ed59e1d1-3b182eec040mr1437917a91.20.1794387065472;
-        Wed, 11 Nov 2026 00:51:05 -0800 (PST)
+        bh=4FR4MYwSIUv0E3HeQxkRuXJTHYwYwGW3jDUR0WOXudI=;
+        b=24CDsFt4KUeZOfXbHEWj7U3pAh1bK/z2bx1tS4Mu7MXI9+ZaPVV3cnGf+s2+OD/3Hn
+         gb+kV9JJqUDYsXGqHSNLO1vF4+W+GZBSdTeM02ohid4oe8zjDcq4V7m489dMKfCTIewe
+         yCN94nsYWzT/mkE7mPbJCJdJNZl13gzUzY1vzMrt2qSXBCgpRVpsNNhf06mqR5O+wQF6
+         bvKYvpcvf/1I1IUm2TXoB6lQ9+AV09JfGQM1d/UgAPb+fr4Cq7OSuK+BrgAOovn0ZJJB
+         Qu7uG7YGa4PbDmvm80wmFMv7i+A9d65+CNoJrvApkkpYZJIMvnt6SSNLz9H/UT4NILDY
+         Nt+A==
+X-Forwarded-Encrypted: i=1; AL+hErGzMkxDhiSv+Ch/D+2b2gfCMW8bvda2hYl/hWqmaJhno5m2tQjm72Ygks21Kvaz4YTx13WTXaBuhtbx@vger.kernel.org
+X-Gm-Message-State: APuU4Z9Ukb7mcp8RvAJC7+OgU0geQ/fd+cUlyBrPpwtgQGE4Ua7MfmQD
+	gvTjP7R1jBQjU01hAQH9e0IFqb3NEWMv6HtajtBQag50SvxvPjqaVM6A
+X-Gm-Gg: AYBFou1BzcvG1CyQzqq3hXzSof0Z8YLR6H9LOkBNqUXH72O6xLA+Q0Nt95qVxcBgeLI
+	PeYDOmZufW64Z4EZY0PCPem0unG1qdVAJPE+AgCY/0CxeQlyroXJsREE544cguHKZWBXrsgZEZL
+	zENamCd11vTBOfu+UvzTcwc36ok2V3alK72+yOD31aBh9K+SX4kCYEXBxCX0F3tbkPg64zlgOdj
+	0UVAMZbHObsG6emZbpsGDkHgHbh2D7dgRgWgJSeLCRCCFE8vyTl702FHNBbyrRO+ROzB5202Puf
+	seOjyBxBby26LHRKhwOm0ggdVG+2oVqYT50/XZcqkLdBPIMpihx2luu4mv98dUkwajktmXo9udT
+	oupPH4rVNQxpegi06XjoUXGQpf6dn+Qj08QzbucDc/I2KBdyw3SsHwrAPLBJeKQruAtGrW6TEgg
+	0mN1NOToOGLMa+LZY5RTBXnySxviMEXACJG9+hDrUTpkLGQ4jgLkcKcuIqiYRXmyIxzpU5Hrm+u
+	+u7ySSCIemkaX1dksEGUsfhAeH/hQZYlU9saWCRbEsEHCLaz/vp1Dt88ikgbjpgoanR2hED18SF
+	UpHWpJdukvGi50/dY+lUZIrxXK9vpKtvIUSvxHN+hhVpqdg3tyI=
+X-Received: by 2002:a17:90b:5107:b0:3ab:c80:936f with SMTP id 98e67ed59e1d1-3b182e6a221mr1613865a91.16.1794387078688;
+        Wed, 11 Nov 2026 00:51:18 -0800 (PST)
 Received: from kylin-XiaoXinPro-16-AHP9.. ([116.128.244.169])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b1838e616dsm2396406a91.4.2026.11.11.00.50.56
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b1838e616dsm2396406a91.4.2026.11.11.00.51.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 Nov 2026 00:51:05 -0800 (PST)
+        Wed, 11 Nov 2026 00:51:18 -0800 (PST)
 From: Xueqin Luo <luoxueqin@kylinos.cn>
 To: rafael@kernel.org,
 	viresh.kumar@linaro.org,
@@ -85,9 +85,9 @@ Cc: zhanjie9@hisilicon.com,
 	acpica-devel@lists.linux.dev,
 	driver-core@lists.linux.dev,
 	Xueqin Luo <luoxueqin@kylinos.cn>
-Subject: [PATCH v6 2/3] cpufreq: cppc: Refactor autonomous perf bounds into helper
-Date: Wed, 11 Nov 2026 16:50:21 +0800
-Message-ID: <20261111085022.1229866-3-luoxueqin@kylinos.cn>
+Subject: [PATCH v6 3/3] arch_topology: Add topology_update_cpu_capacity() for runtime updates
+Date: Wed, 11 Nov 2026 16:50:22 +0800
+Message-ID: <20261111085022.1229866-4-luoxueqin@kylinos.cn>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261111085022.1229866-1-luoxueqin@kylinos.cn>
 References: <20261111085022.1229866-1-luoxueqin@kylinos.cn>
@@ -102,96 +102,182 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Extract the autonomous selection performance bounds programming from
-store_auto_select() into a reusable cppc_cpufreq_set_autonomous_perf()
-helper. The helper saves and restores MIN/MAX performance on failure,
-keeping the rollback logic co-located with the programming sequence.
+When the CPPC Highest Performance register changes at runtime
+(e.g. via ACPI Notify(0x85)), the scheduler's view of CPU capacity
+and the frequency invariance engine's reference values become stale,
+as topology_init_cpu_capacity_cppc() is only called once during boot.
 
-Reuse the helper in cppc_cpufreq_update_limits() so that when
-Highest Performance changes at runtime, the autonomous MIN/MAX
-envelope is re-programmed against the updated capability. Add a
-pr_debug message on failure for diagnostics.
+Keep raw_capacity allocated after CPPC init instead of freeing it,
+and introduce topology_update_cpu_capacity() to update per-CPU
+raw_capacity, capacity_freq_ref, and the normalized CPU capacity
+scale at runtime. Skip updates when the value is unchanged and
+reject a zero capacity_scale to avoid division by zero.
+
+Call this from cppc_cpufreq_update_limits() for every CPU in the
+policy so shared-policy Notify(0x85) targeting a non-policy CPU
+still refreshes the correct topology capacity.
 
 Signed-off-by: Xueqin Luo <luoxueqin@kylinos.cn>
 ---
- drivers/cpufreq/cppc_cpufreq.c | 49 +++++++++++++++++++++++++---------
- 1 file changed, 36 insertions(+), 13 deletions(-)
+ drivers/base/arch_topology.c   | 77 ++++++++++++++++++++++++++++++++++
+ drivers/cpufreq/cppc_cpufreq.c | 10 ++++-
+ include/linux/arch_topology.h  | 13 ++++++
+ 3 files changed, 99 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-index 3bca30f5c0d5..7dab6e046b9f 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -868,6 +868,29 @@ static int cppc_cpufreq_set_boost(struct cpufreq_policy *policy, int state)
- 	return 0;
+diff --git a/drivers/base/arch_topology.c b/drivers/base/arch_topology.c
+index e51fc9f5e976..f64f8e61f210 100644
+--- a/drivers/base/arch_topology.c
++++ b/drivers/base/arch_topology.c
+@@ -229,6 +229,7 @@ static void update_topology_flags_workfn(struct work_struct *work)
  }
  
-+/*
-+ * Program the autonomous MIN/MAX_PERF bounds from the current policy
-+ * limits, restoring the previous bounds if the write fails.
+ static u32 *raw_capacity;
++static DEFINE_MUTEX(raw_capacity_lock);
+ 
+ static int free_raw_capacity(void)
+ {
+@@ -370,13 +371,89 @@ static inline void topology_init_cpu_capacity_cppc(void)
+ 	schedule_work(&update_topology_flags_work);
+ 	pr_debug("cpu_capacity: cpu_capacity initialization done\n");
+ 
++	/*
++	 * Keep raw_capacity for runtime updates via
++	 * topology_update_cpu_capacity().
++	 */
++	return;
++
+ exit:
+ 	free_raw_capacity();
+ }
++
+ void acpi_processor_init_invariance_cppc(void)
+ {
+ 	topology_init_cpu_capacity_cppc();
+ }
++
++/**
++ * topology_update_cpu_capacity - Update CPU capacity after highest_perf change
++ * @cpu: CPU whose highest performance changed
++ * @perf_caps: Updated CPPC performance capabilities for @cpu
++ *
++ * When the CPPC Highest Performance register changes at runtime
++ * (e.g. via Notify(0x85)), the scheduler's view of CPU capacity
++ * and the frequency invariance engine's reference values become
++ * stale. This function updates the per-CPU raw_capacity,
++ * capacity_freq_ref and freq_inv max ratio, then re-normalizes the
++ * CPU capacity scale for all possible CPUs and triggers a sched
++ * domain rebuild. If the value is unchanged, everything is skipped.
 + */
-+static int cppc_cpufreq_set_autonomous_perf(struct cpufreq_policy *policy)
++void topology_update_cpu_capacity(unsigned int cpu,
++				  struct cppc_perf_caps *perf_caps)
 +{
-+	struct cppc_cpudata *cpu_data = policy->driver_data;
-+	u32 old_min_perf = cpu_data->perf_ctrls.min_perf;
-+	u32 old_max_perf = cpu_data->perf_ctrls.max_perf;
-+	int ret;
++	u32 highest_perf = perf_caps->highest_perf;
++	u64 capacity, capacity_scale = 0;
++	int c;
 +
-+	cppc_cpufreq_update_perf_limits(cpu_data, policy);
++	guard(mutex)(&raw_capacity_lock);
 +
-+	ret = cppc_set_perf(policy->cpu, &cpu_data->perf_ctrls);
-+	if (ret) {
-+		cpu_data->perf_ctrls.min_perf = old_min_perf;
-+		cpu_data->perf_ctrls.max_perf = old_max_perf;
-+		return ret;
++	if (!raw_capacity || cpu >= num_possible_cpus())
++		return;
++
++	/*
++	 * Validate: highest_perf must be >= nominal_perf and >= lowest_perf,
++	 * consistent with the boot-time check in topology_init_cpu_capacity_cppc().
++	 */
++	if (highest_perf < perf_caps->nominal_perf ||
++	    highest_perf < perf_caps->lowest_perf) {
++		pr_warn("cpu_capacity: CPU%d invalid highest_perf=%u (nominal=%u, lowest=%u), skipping\n",
++			cpu, highest_perf, perf_caps->nominal_perf,
++			perf_caps->lowest_perf);
++		return;
 +	}
 +
-+	return 0;
-+}
++	if (raw_capacity[cpu] == highest_perf)
++		return;
 +
- /*
-  * Boost being off is enforced through the boost_freq_req QoS request
-  * (capping policy->max) rather than by hiding the hardware maximum in
-@@ -961,6 +984,18 @@ static void cppc_cpufreq_update_limits(struct cpufreq_policy *policy)
++	pr_debug("cpu_capacity: CPU%d cpu_capacity=%u -> %u (raw)\n",
++		 cpu, raw_capacity[cpu], highest_perf);
++
++	raw_capacity[cpu] = highest_perf;
++	per_cpu(capacity_freq_ref, cpu) =
++		cppc_perf_to_khz(perf_caps, highest_perf);
++	freq_inv_set_max_ratio(cpu,
++			       per_cpu(capacity_freq_ref, cpu) * HZ_PER_KHZ);
++
++	/* Re-normalize all CPUs: capacity is relative. */
++	for_each_possible_cpu(c)
++		capacity_scale = max_t(u64, capacity_scale, raw_capacity[c]);
++
++	if (!capacity_scale)
++		return;
++
++	for_each_possible_cpu(c) {
++		capacity = raw_capacity[c];
++		capacity = div64_u64(capacity << SCHED_CAPACITY_SHIFT,
++				     capacity_scale);
++		topology_set_cpu_scale(c, capacity);
++		pr_debug("cpu_capacity: CPU%d cpu_capacity=%lu\n",
++			 c, topology_get_cpu_scale(c));
++	}
++
++	schedule_work(&update_topology_flags_work);
++}
++EXPORT_SYMBOL_GPL(topology_update_cpu_capacity);
+ #endif
+ 
+ #ifdef CONFIG_CPU_FREQ
+diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+index 7dab6e046b9f..a693ef611caa 100644
+--- a/drivers/cpufreq/cppc_cpufreq.c
++++ b/drivers/cpufreq/cppc_cpufreq.c
+@@ -935,7 +935,7 @@ static void cppc_cpufreq_update_limits(struct cpufreq_policy *policy)
+ 	struct cppc_perf_caps *caps;
+ 	u64 prev_highest_perf;
+ 	u64 highest_perf;
+-	int ret;
++	int cpu, ret;
+ 
+ 	guard(cpufreq_policy_write)(policy);
+ 
+@@ -984,6 +984,14 @@ static void cppc_cpufreq_update_limits(struct cpufreq_policy *policy)
  
  	refresh_frequency_limits(policy);
  
 +	/*
-+	 * Autonomous selection mode uses MIN/MAX performance as runtime
-+	 * hardware control bounds. Re-program them when highest_perf
-+	 * changes so that the platform uses the updated bounds.
++	 * All CPUs of the policy share perf_caps, and Notify(0x85) may
++	 * target any CPU of a shared policy, so refresh the topology
++	 * capacity for every CPU of the policy, including offline ones.
 +	 */
-+	if (cpu_data->perf_ctrls.auto_sel) {
-+		ret = cppc_cpufreq_set_autonomous_perf(policy);
-+		if (ret)
-+			pr_debug("CPU%d: failed to update autonomous perf: %d\n",
-+				 policy->cpu, ret);
-+	}
++	for_each_cpu(cpu, policy->related_cpus)
++		topology_update_cpu_capacity(cpu, caps);
 +
- 	pr_debug("CPU%d: highest_perf updated %llu -> %llu\n",
- 		 policy->cpu, prev_highest_perf, highest_perf);
- }
-@@ -1008,20 +1043,8 @@ static ssize_t store_auto_select(struct cpufreq_policy *policy,
- 	cpu_data->perf_ctrls.auto_sel = val;
+ 	/*
+ 	 * Autonomous selection mode uses MIN/MAX performance as runtime
+ 	 * hardware control bounds. Re-program them when highest_perf
+diff --git a/include/linux/arch_topology.h b/include/linux/arch_topology.h
+index ebd7f8935f96..9415cb6a6c2b 100644
+--- a/include/linux/arch_topology.h
++++ b/include/linux/arch_topology.h
+@@ -11,6 +11,19 @@
+ void topology_normalize_cpu_scale(void);
+ int topology_update_cpu_topology(void);
  
- 	if (val) {
--		u32 old_min_perf = cpu_data->perf_ctrls.min_perf;
--		u32 old_max_perf = cpu_data->perf_ctrls.max_perf;
--
--		/*
--		 * When enabling autonomous selection, program MIN_PERF and
--		 * MAX_PERF from current policy limits so that the platform
--		 * uses the correct performance bounds immediately.
--		 */
--		cppc_cpufreq_update_perf_limits(cpu_data, policy);
--
--		ret = cppc_set_perf(policy->cpu, &cpu_data->perf_ctrls);
-+		ret = cppc_cpufreq_set_autonomous_perf(policy);
- 		if (ret) {
--			cpu_data->perf_ctrls.min_perf = old_min_perf;
--			cpu_data->perf_ctrls.max_perf = old_max_perf;
- 			cppc_set_auto_sel(policy->cpu, old_auto_sel);
- 			cpu_data->perf_ctrls.auto_sel = old_auto_sel;
- 			return ret;
++#ifdef CONFIG_ACPI_CPPC_LIB
++struct cppc_perf_caps;
++#ifdef CONFIG_GENERIC_ARCH_TOPOLOGY
++void topology_update_cpu_capacity(unsigned int cpu,
++				  struct cppc_perf_caps *perf_caps);
++#else
++static inline void
++topology_update_cpu_capacity(unsigned int cpu, struct cppc_perf_caps *perf_caps)
++{
++}
++#endif
++#endif
++
+ struct device_node;
+ bool topology_parse_cpu_capacity(struct device_node *cpu_node, int cpu);
+ 
 -- 
 2.43.0
 
