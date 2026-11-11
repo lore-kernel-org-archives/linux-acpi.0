@@ -1,13 +1,13 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794403078;
-	b=uAgZueYNeIH3hTQ3Zu2WIVZ0OIu1mppkFf81UaWhEqStL64/+VaNTf0twDPC0dw8j35F
-	 0kbYLJ4JvEWq0cFvWpyILb5PlYyDnL9Tu8Y8nTrWzoUkbOxgx6eCrllUVL79r92F/3vzg
-	 tCUifZQt9C813oZIRPGteX/SLTNF+rhEX2siJwgRv3MZABJ8DMvnQyBwttJql3dJoWGWp
-	 uBUUiOam34YZU+xKtxAXR72fz7OnZPOEKxXqFsDM5POTarBLAhQtiNVd/E3n8SLtGE7a9
-	 7z7Qe+jwUpAxTsTlWT1S8IJ8uTaIhAfnOjjUNK9q0E2K4SPavMt6zfhaNes/fCbPHlA==
+	t=1794403151;
+	b=BVYhWROi9aDg9JLRP11MxP1BLJTpCqgjW/uaiJhSTOrJEodBgBT97nAtaC+n3ts0khMN
+	 SKlWxmIj4DuRBFQ5w4L0AaprJ+4SJ4SXU1g/j1TM31oSzuHkq3tFKNuCt8QiRRZFVAvl2
+	 7pUldPYKTcFhqTLoeX+QzRDOdB9RCV2hwROEeGsoxIoSlMnyy8cnd6TFe8MAlTCaAScYF
+	 IgcUKpSXNBm14tz2My9it9Gf6m6CReFnFq1quzRAyeikr2b+Qsuq+fsIPS/aawwEO5gw1
+	 dJlGBu8WFwAmh43ME5iEkHNZSFpNv2YLg6ABWdRnfQyCdEalXYW56edSVDmqqJwKHPg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794403078;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794403151;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
 	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Message-ID:
@@ -16,96 +16,96 @@ ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	 X-Proofpoint-GUID:X-Proofpoint-Spam-Details-Enc:
 	 X-Proofpoint-ORIG-GUID:X-Authority-Analysis:X-Proofpoint-Spam-Info:
 	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
-	bh=NGj0HJYwMLzByuwZ1s2H4bizl1YIeJb7PxkqCWE/g0Q=;
-	b=BIfAvuAxidCHSP71nFJhzEk0LhVci6TZKdj3+qQX1hyiazb2XbyejmrW3dkdVSH3opvr
-	 HqQJCNMVfkJpD6FiDcHs9P72lXtNFKPqxyz/Gvj9m7fkPqSko3bNmCtl/B8Ir60drOkdi
-	 DJuTHPU9XnQd/2GLlBUclQHiHRCJH1DgEWnay6H7rFpZGkhyxkZktdxMIMUibV9Hudmgj
-	 SGVNdrnM/3qT/bn4tmSKgGylknWxf+WJ90ELoK4uUWv8ZYYUMBBrYWAqj5rFM84+Bk99R
-	 nHMvCgLXeIeFTgZk/HKd92S0BvaghEfcscvYx8SgedSLGxLS0NdhZ8D33bz7tHUS8PQ==
+	bh=Wq0x5a4mY8xB9yKVASur7KflnAB98WTg4FjBdau/vd4=;
+	b=mDaE/cXFqW6KwM+fliKOd+3B5FjZcGJEIWzeM9x7MjffbRot1F6axiYIL5DRYNolPJ7c
+	 CHwGE4ekR0NS4wRQnKWfZI7SBE6HnqW6uazduNnyv94Cj8p6IznfTZncZB3E6n1f+4EGv
+	 z8xQhx8lZ71/AcAtqY8why0VkXRy6toJYg95dzsYzXdXiArnTxqpg0N1bDdWtaTHlBR2R
+	 gp2tnHMHzIbX3i8UiLDiRmxXy3kWzV3DfYbHlM7Y+RzrFhbib3jVosRfaKEOMcTt5lQNq
+	 acqjD6iFUaorAHNj68q+wk2M/wUjT3MD8g6an280pqVjOfqFVqU4hC1UmJXEnDQGm+w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=oss.qualcomm.com;
 	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b="coB/S3nB";
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=YoBNj24i;
+	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=mQpqHWPm;
+	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=HAA7ldxD;
 	arc=none smtp.remote-ip=205.220.168.131
 Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 727E2606A324
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 13:17:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 727E2606A324
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A07D2606A324
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 13:19:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A07D2606A324
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=coB/S3nB;
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=YoBNj24i
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=mQpqHWPm;
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=HAA7ldxD
 Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6ABCZBRA2288020
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 13:17:57 GMT
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6ABCYqmQ2286472
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 13:19:09 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	NGj0HJYwMLzByuwZ1s2H4bizl1YIeJb7PxkqCWE/g0Q=; b=coB/S3nBGSl4q2Kk
-	3wr8HinWmENbWSkl+ktWvEokd0uaXOHZD5r1L4pdmrD9RqOIboijjSGs2RrhBz0g
-	k0Yy3AdesaWLHSV9WZ2S8/XT6kVK+7zo/29ILGUm+cGoLkKESh4oG5LicBSgUepG
-	gOuGhzT4s+3+UxbmSZxl2J465UjQl5cYVqEA305oYDzxtIgqFOcbKds1lri7KQ5x
-	CLjRdMIag+g81XJUgxcHX3h/IBxEKIRzhelxzPdNn9GANkql9BUhuQ6a+5XYgi6M
-	rIKRHlWY4d84E6nG8niLy4VIJgJdCNKMMXOtT6wK2Mqo1/1yHXZKgZjEIqr3GHZF
-	5yQaMw==
-Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com [209.85.222.199])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hvksm9aga-1
+	Wq0x5a4mY8xB9yKVASur7KflnAB98WTg4FjBdau/vd4=; b=mQpqHWPmMGcnsiWf
+	hpO1cKg+Jtxp/uwmr3icseUD75KSQGBoZgTj+xRXcYgJjR9yrckym1UxN1U767Rz
+	Y0cjFwgFiJj7RnFB/zhSiI0OsZZn6rsMxWcUFDLYrMlmmSX3sq+nvZhrHf5G9Sq2
+	ivV+L+8RA5D5qCptz8SAyO+Jm04QZwE9HE2Gh2myiEWRxTPy/hTOc09Hry7LqCLf
+	Go/4nhCBvtSSe0LfKZ83Y+eRuKaWYad5aiaKOTx3yFtDIv0AAZ/DoWt5Da+qb3Zn
+	Aq7xTfxQEC1qT0LtzsoCnaiNCiIY7Pjt7yz9tQ51dHfpp/tjCRLG8Ug0uAkQgptf
+	OK/bTw==
+Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com [209.85.222.200])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hvksm9amb-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 13:17:56 +0000 (GMT)
-Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-93f62934ef6so724008585a.3
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 05:17:56 -0800 (PST)
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 13:19:09 +0000 (GMT)
+Received: by mail-qk1-f200.google.com with SMTP id af79cd13be357-93f26dd2165so805875985a.3
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 05:19:09 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1794403076; x=1795007876; darn=vger.kernel.org;
+        d=oss.qualcomm.com; s=google; t=1794403149; x=1795007949; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:in-reply-to:content-language
          :references:cc:to:subject:from:user-agent:mime-version:date
          :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=NGj0HJYwMLzByuwZ1s2H4bizl1YIeJb7PxkqCWE/g0Q=;
-        b=YoBNj24iwlNIwzqqcvk39mijS8IzmWURrwX9hjuxeg3MgfhbJEYaj+KzMJkvIg48A1
-         nPzmJSotf3uJfCj5Qtt3Ii1u4+CQpd4Pko0Akv7L0ib5sNVMmQGJtSlGnRenxeG4g3eB
-         D9CgUG5MYyNij5jHQlH1doWichvNPEupDRNGoaJstWSfYxNLBQ0nsnsaLUI9RmlIMA+5
-         rQvFD5BBy5xL5/PPtiCSQfpgjCY7mQ1b8bSBjvviC+Pv9A2R3x03zm4YVVy4bKoCmq7U
-         mzI/GLBc1o15DocaOR+qcZ7jdgoHhbS7Hf+GgVqTVCcpHVC5eVBamU7iar4jBFULUPCp
-         dA6g==
+        bh=Wq0x5a4mY8xB9yKVASur7KflnAB98WTg4FjBdau/vd4=;
+        b=HAA7ldxDaAof0ShezcR7fGz2sJQjVpywtFtxwqRDX6dsmrcfn6lPDuAt1ZKqM8qy0e
+         TfeJ60XxN0JEKjV+gO4uqXc9PLSBx0k8Kjbegtk0QILSNjEoPSQdN6PHi9RIlf+nL/dn
+         foAvOXoTaeNWQ4awothtI6FgnDmlVDpYeAbRqs6HcjBmlv3QKxr7XfULX8Yj/TLWqit/
+         NeAIKz+R0NMEMcknIniezAeNqpbtllTa5gwh+RfaOqjupRONlKc3qO24IYDUmKIzMpei
+         /w9Lffz4KijxpGVnvGO6ex7u6XlRGA8a4ipuBZUKRIX8pWc8VM5gfmtL9mTqHxw9ZRae
+         an0Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794403076; x=1795007876;
+        d=1e100.net; s=20260707; t=1794403149; x=1795007949;
         h=content-transfer-encoding:content-type:in-reply-to:content-language
          :references:cc:to:subject:from:user-agent:mime-version:date
          :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=NGj0HJYwMLzByuwZ1s2H4bizl1YIeJb7PxkqCWE/g0Q=;
-        b=u6Y1+ElaV/lQrPhQxrsj2/6A+MOM7rCEmdHgkIl/tL8mflulgn3uDPyvXvlkJbbqvh
-         VstyPk38EJw2aLQ9mBhvNFYH3Z0xucH68ZDw3ibbzns/0YU6Fx0NyxDnruy6huHl22Tn
-         xZ+h894aawfjVAEl+q4tm/97KpLTEwiu36pUfeGppRUr1YeGcG1tWnWvKKInVE1Wi7Mh
-         bCpPRmhxFBFAkXzUz+77OxyqUmdfNUVv2aD2q6Wl7WdKwYBE41+YMrjEKXBPZqvWcjr5
-         KTkG2kw0Xahe9JtPdUoHBhGmlH6TZ+8nDmjvOUek5knidLdYI+h7MHYLhL3ZRe9Xoh82
-         iUDw==
-X-Forwarded-Encrypted: i=1; AL+hErFGypEwIyJb+xdG/Bv8tFFNjXivhV7OnK40kJRrFBe/nDFic8eXfuu39HxF3ETNDjrCTNM3jobRebis@vger.kernel.org
-X-Gm-Message-State: APuU4Z8kgGxdqDraA+Owie4qL5UFLuqzIPiyoVeVg1kpi0WjHjd4vp3Z
-	LvB2FK7tGu4VhpUheMmXepB/UfTycrdnjCGaVygli2ErzjyA6k2ezRdGFYZRCqQJoYnGhentdij
-	3mB7TknMRl38GorZ/XJ5hYBiLHCjTmQX6kSvCcniViHhypY0oNnxaXnuIRq39Qk4J
-X-Gm-Gg: AYBFou1GJW0crqVKEJuEC931FtGOYdNGejFZjBmxc9+oO/q1F44HV0P2YA2P3Xgimwp
-	0PFkmco6jwY8tXzasZM4xlupbhZTOA22zyxR3VFw3wytc99m0hm4hYC9QdPMpZ2tpvi5WXCggo1
-	P7oLv7G5uR9B/SwaJr0MXK7wZ/HUDJIwjkRpMM4FuCpDni2nSzIbB0HwkDJ24fAVISvUG7w6TMP
-	u78dT82ILXSHVlmO/2GXYCUbulZ7ZRj5dR5nFAsl9xs9umLgsp+5RRhEQpI7BnsqMRghyJRftIN
-	IN+S1hf2acVTlARIb63PO4ZG2aRwnaoV99sAxfgzB2rf9zwBrg+86fBImpJLtkWFH0XEuQcHlU2
-	oBgi7SkL77Tcrmsb/4Jl5d1yPKW0k9LDS2zZQw1oB1RV0SDpXd1MECWg1qY2XNeorpepCtftHbZ
-	1MU4zvUNptcNtCJQ7Y1wA5csPlrYxXh8JIWcNEGEEzoCHsxky/5Ag8j9j0XEmlJMP8q8haXtR5O
-	G8gNThAXPljiXmgdUwNcECiflK1BJfj6dVWPq1Uojm4
-X-Received: by 2002:a05:620a:2796:b0:93c:a40d:e3cf with SMTP id af79cd13be357-947afcd6115mr362251085a.1.1794403075696;
-        Wed, 11 Nov 2026 05:17:55 -0800 (PST)
-X-Received: by 2002:a05:620a:2796:b0:93c:a40d:e3cf with SMTP id af79cd13be357-947afcd6115mr362244685a.1.1794403075158;
-        Wed, 11 Nov 2026 05:17:55 -0800 (PST)
+        bh=Wq0x5a4mY8xB9yKVASur7KflnAB98WTg4FjBdau/vd4=;
+        b=WqHljIkipt573yu/8qsBBt+offmjdXzoSY7mPV92LgFanuzfC/HrSZAIKXHQPpLTxe
+         PRgl5nBRyebXRLPHLGMLA9jz9dmls56BSs5RM65LVf4KkOfs5q/9rUU6nCycQjVif0NQ
+         J2jD754b4KVn10ysk1SA+B59TDJX2ctpP92n66mDTW4GDP6F7NO+dOhkQljgQaL5x/HF
+         dYsPvxuIyQL1m7WssTRqXnuBkUDycPmAkpeymbinAusO/ApTHg+R++tP39RPJzQM1+CM
+         XClJfFMItKsYZYOn/uiymlOhc+PBhRs3LPN1JjmF5VNSwr4o08NCcI+Q1woUcGqSowAw
+         ZbKg==
+X-Forwarded-Encrypted: i=1; AL+hErFq868eBDEcSnze48IsGBM1jJoXu+Skz4VwMLYtAozoVXEHOfTjfZLV6YJCpm7DjdOdofSEmt0Q43WC@vger.kernel.org
+X-Gm-Message-State: APuU4Z+kOqci9mrDryZ3PX40Ddonc5ShTJ4yJARtuPkaNbesYpaYDVUZ
+	3CaU79RBrWdk00z+4xhVXWlF/sE0tjjZ4DqpEVxPEZryM86AtexiKMpZWvlyDC3mWM2telhX4Py
+	4L7zNiX4NdUacS/dLzGlPUksgFVoPksZPuY0pG75CppZTo1t12Ppkm3KMsOny/JOf
+X-Gm-Gg: AYBFou19Qv9Zz4BeTGBOa2WIiBVz7V8b0NHVsSffGy28DSLAZ0HLNMc5QGE9oHP6BsQ
+	D6/NDfUnJx72mUdubo+9jzlHNXGbg+xFeSJcqkvSpaaQYGzGdGlF59C0N5Vb2IIlvQIIt+XXHD0
+	/1IDqym6za7zuMNoNPpGZDYfff/IZzJqZrrrKEwMfnCmQAvRL09RLo/159vscR70ekv8hwUr3DW
+	E6DpghEdQv4XSyYsSHE1nvySCYh3sVLlL7v7ty8JQnLWYzBOVdu+pXRkfaWjR8dD5sJpUY2qCpe
+	XiG044pIJC8uH4894v3rFECawQ5O54RYGnbpjC4cT6dNlN7tbsyMt5ITWOPfxBM2sgj+22An/3/
+	CJCLvTqAzWUKHYrXEa892QryN0mUqqchgulUCdnl2AJoiEk2lLdru0BjX0vp3uGKi88uopKlrGV
+	gaSXaXKBiyJWs71IAhbTZpPz7TABf7ENMLu05yqhUfftz7nADdv4AVQi8yoTvcZbnE9kefGBRvp
+	vgiDbpEjoO7GAkTfjpKCqhbnFEeW7hNOuMuG7VU9gNX
+X-Received: by 2002:a05:620a:294c:b0:93e:c12c:fbb7 with SMTP id af79cd13be357-947b0051f3emr367305685a.68.1794403148783;
+        Wed, 11 Nov 2026 05:19:08 -0800 (PST)
+X-Received: by 2002:a05:620a:294c:b0:93e:c12c:fbb7 with SMTP id af79cd13be357-947b0051f3emr367299885a.68.1794403148297;
+        Wed, 11 Nov 2026 05:19:08 -0800 (PST)
 Received: from ?IPV6:2001:1c00:c32:7800:5bfa:a036:83f0:f9ec? (2001-1c00-0c32-7800-5bfa-a036-83f0-f9ec.cable.dynamic.v6.ziggo.nl. [2001:1c00:c32:7800:5bfa:a036:83f0:f9ec])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c504a57085fsm233201266b.22.2026.11.11.05.17.53
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b757823caasm2343467a12.1.2026.11.11.05.19.05
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 11 Nov 2026 05:17:53 -0800 (PST)
-Message-ID: <38b7e73d-71a8-49dd-85c7-7cc496c57c8c@oss.qualcomm.com>
-Date: Wed, 11 Nov 2026 14:17:52 +0100
+        Wed, 11 Nov 2026 05:19:06 -0800 (PST)
+Message-ID: <c55d221b-4c1a-4b7c-b91e-dd89a12e0675@oss.qualcomm.com>
+Date: Wed, 11 Nov 2026 14:19:04 +0100
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -116,39 +116,40 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-From: johannes.goede@oss.qualcomm.com
-Subject: Re: [PATCH] platform/wmi: Allow consumers to load without ACPI
-To: Armin Wolf <W_Armin@gmx.de>, Han Gao <gaohan@iscas.ac.cn>,
-        =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-        Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org,
-        linux-riscv@lists.infradead.org, Han Gao <rabenda.cn@gmail.com>,
-        platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261110-wmi-no-acpi-v1-1-eebea07db551@iscas.ac.cn>
- <c9a078c9-3b95-47ce-86b1-feefe65a6eaf@gmx.de>
+From: Hans de Goede <johannes.goede@oss.qualcomm.com>
+Subject: Re: [PATCH] platform/wmi: Allow wmi module to load when acpi_disabled
+ is set
+To: Armin Wolf <W_Armin@gmx.de>,
+        Patrik Jakobsson <patrik.r.jakobsson@gmail.com>,
+        Han Gao
+ <gaohan@iscas.ac.cn>, Han Gao <rabenda.cn@gmail.com>,
+        =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>,
+        platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-riscv@lists.infradead.org
+References: <20261111131613.6290-1-johannes.goede@oss.qualcomm.com>
 Content-Language: en-US, nl
-In-Reply-To: <c9a078c9-3b95-47ce-86b1-feefe65a6eaf@gmx.de>
+In-Reply-To: <20261111131613.6290-1-johannes.goede@oss.qualcomm.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-GUID: LLGF4SR9qn-dIg2kjJhS8GNcRLXWB5xT
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTExMDA1MiBTYWx0ZWRfX9Cm6I7Afq9CK
- v1ZjDOzC6GvuqQkbw15Y5GNqOeG6+UDBHwit71m5B1hF+RPmA2tViiOPk2psbWt+7vtg8NJmWZs
- e6k+14oyMCoqOrDwBekid+k0+rV+N9WmO+O3/Vz0VqFyXNl3HbLqHgilREUp1Ah8pJ04qtchu06
- 8vwqhgUCvHbeQ5XahTw8PNKEISbLJFGwofk3gijsGQ73pm8sFW7nXKKT2qI2ov7vsVpZiptHua9
- eE1M0C7KfV/NCmyRWKfJVKOWRuXxPcw1aLFORpTgWf/nB9qLPbrLvwtAzwI51KlcRK4Gv1zxRXM
- b8aVOAjgapmUapHJXplt2uLGtv9VgZiYrUDFrO5DQi8t8M2mGWixBvHxJCrkeTNIf5eFjlALqea
- JNbJ/ykptBM/Fk5GXDm1wNX3gAI3c66IQ0csR4lwYrLs+z5P5giYxKaUstuHUz/dbfIPJ445Wyx
- X+b0c0ZzUmbJI9bR0Og==
-X-Proofpoint-ORIG-GUID: LLGF4SR9qn-dIg2kjJhS8GNcRLXWB5xT
-X-Authority-Analysis: v=2.4 cv=O9isLx9W c=1 sm=1 tr=0 ts=6af46b04 cx=c_pps
- a=HLyN3IcIa5EE8TELMZ618Q==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-GUID: FI2zEZLAOhKbiRuvD_m4jNjRJ3fJQgxm
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTExMDA1MiBTYWx0ZWRfX8QRHQx1EIlSp
+ DfpT5SGYhd/8voYoa2I4eNoV42uCFoiflsBS9O1C/VmC0qVhbYbfnzyAycSbGamY+lGjPDMl6BL
+ N3+dNIvpXrfa0HioUmY7A/KxKoBqlA/+vetfhwF6OXRMGqxPUB469Dzsk0sUE5F0cI22//CeRdJ
+ VfRdsfVUvVgu8jbWk405Mul2sHJACxTNzLeQ/hFUNOSzwIn1oiUGPj62/gXm9oSJZj90FMyiGn0
+ 2d9x2c5IDPu9gvhgEuRANc461SnNPLKWugqBqfH78o4WZxGiy/PA0kwknxu9uE/x/Z3qgUGEUjn
+ TFreuyaR6sVpx3i2IrVkgjWh4sA9npAWPAp3KJXtHSOZ4h8hpl/nAKlyQ5nqhogbaW2PBiRBBbC
+ 3MuGmAuKBWmavtuSOcJH5T97hRllpCENfSTnSzjzr6khJU+eM1ewtxFeg3w600zp76P7GWFUc2n
+ gDXF77uHLSKjShLf+7w==
+X-Proofpoint-ORIG-GUID: FI2zEZLAOhKbiRuvD_m4jNjRJ3fJQgxm
+X-Authority-Analysis: v=2.4 cv=O9isLx9W c=1 sm=1 tr=0 ts=6af46b4d cx=c_pps
+ a=hnmNkyzTK/kJ09Xio7VxxA==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
  a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=yOCtJkima9RkubShWh1s:22 a=VwQbUJbxAAAA:8
- a=EUspDBNiAAAA:8 a=9ttZ_nxh5X5bo92EjBUA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
- a=bTQJ7kPSJx9SKPbeHEYW:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTExMDA1MiBTYWx0ZWRfX77fJPov/aXi1
- C2hugS/T/b10z9MQnCLkUVRw8lXSBK0Q5OhJwuBqbirQfVFKGFvp6VEu3/S7FxJQxpwhbwJtF19
- a/l7qA7Db4vufBeKEDNbiCsXS1suopo=
+ a=u7WPNUs3qKkmUXheDGA7:22 a=yOCtJkima9RkubShWh1s:22 a=EUspDBNiAAAA:8
+ a=gDy9M4QhnISp6OFiptMA:9 a=QEXdDO2ut3YA:10 a=PEH46H7Ffwr30OY-TuGO:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTExMDA1MiBTYWx0ZWRfXzfnIKqF52Ofd
+ r6nq8e9/bu3BhPZAyUsG3sCf2vO3mqoWSqGYHZVsOPaQ95K+VVVUZ6CJ50mWWHz7c2xNv+zMTZl
+ Gq0E84S/jPMe7qMeZbmW3oJI1lSYWL8=
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-11-11_02,2026-11-11_02,2025-10-01_01
@@ -160,78 +161,65 @@ X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
 
 Hi,
 
-On 10-Nov-26 14:57, Armin Wolf wrote:
-> Am 10.11.26 um 14:43 schrieb Han Gao:
->> Since commit 4ea18e604272 ("ACPI: video: Remove CONFIG_X86 handling from
->> nvidia_wmi_ec_supported()"), the ACPI video module uses WMI on all
->> architectures. When ACPI is disabled, e.g. on a devicetree boot,
->> acpi_wmi_init() returns -ENODEV, so the wmi module fails to load and so
->> do video, amdgpu and radeon, which depend on it.
->>
->> Return 0 without registering the WMI bus instead. The exported helpers
->> then report that no WMI device exists. Skip the teardown on module exit
->> accordingly.
+On 11-Nov-26 14:16, Hans de Goede wrote:
+> The core wmi module provides symbols which may be used by other modules.
+> These other modules may still function when acpi_disabled is set, but
+> the current behavior of acpi_wmi_init() returning -ENODEV when it is set
+> causes loading these modules to fail because the wmi module these depend
+> on fails to load with -ENODEV.
 > 
-> AFAIK wmi_find_device_by_guid() requires that the WMI bus type is initialized, so we should not skip bus_register(). I wonder whether we really need to check acpi_disabled after all, because the platform driver will not bind anyway if ACPI support is disabled.
-
-I developed the same patch in parallel to the original submitter, but did
-not get around to submitting this upstream yet.
-
-I just submitted my version, which does keep the bus registration here:
-
-https://lore.kernel.org/platform-driver-x86/20261111131613.6290-1-johannes.goede@oss.qualcomm.com/
-
-Regards,
-
-Hans
-
-
-
-
-
-
+> One example of this is booting a kernel with both DT and ACPI/WMI support
+> on an arm64 systems with devicetree which will lead to acpi_disabled being
+> set. Trying to load the amdgpu module will fail in this case because it
+> uses symbols from the drivers/acpi/video module which in turn uses symbols
+> from the wmi module. Note the video module itself already contains handling
+> to still load when acpi_disables is set for similar reasons.
 > 
-> Thanks,
-> Armin Wolf
+> Fix this by allowing the wmi module to still load and also register
+> the class and bus instances since some exported functions like
+> wmi_driver_register() rely on these being valid.
 > 
->> Fixes: 4ea18e604272 ("ACPI: video: Remove CONFIG_X86 handling from nvidia_wmi_ec_supported()")
->> Signed-off-by: Han Gao <gaohan@iscas.ac.cn>
->> ---
->> Tested on a HiFive Premier P550 booted with devicetree and an RX550,
->> with ACPI_WMI, ACPI_VIDEO and DRM_AMDGPU built as modules. Without
->> this patch, wmi fails to load and so do video and amdgpu. With it,
->> wmi, video and amdgpu load and the RX550 is initialized.
->> ---
->>   drivers/platform/wmi/core.c | 6 +++++-
->>   1 file changed, 5 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/platform/wmi/core.c b/drivers/platform/wmi/core.c
->> index a99da9b7039d787ce3c1e0ece74ffbd79fafd3f7..6668789904a903c8d4e7810976f4e485d7a1b32a 100644
->> --- a/drivers/platform/wmi/core.c
->> +++ b/drivers/platform/wmi/core.c
->> @@ -1598,8 +1598,9 @@ static int __init acpi_wmi_init(void)
->>   {
->>       int error;
->>   +    /* ACPI video still needs the exported helpers when ACPI is disabled. */
->>       if (acpi_disabled)
->> -        return -ENODEV;
->> +        return 0;
->>         error = class_register(&wmi_bus_class);
->>       if (error)
->> @@ -1628,6 +1629,9 @@ static int __init acpi_wmi_init(void)
->>     static void __exit acpi_wmi_exit(void)
->>   {
->> +    if (acpi_disabled)
->> +        return;
->> +
->>       platform_driver_unregister(&acpi_wmi_driver);
->>       bus_unregister(&wmi_bus_type);
->>       class_unregister(&wmi_bus_class);
->>
->> ---
->> base-commit: 7475ea8b58616b33c04afb976cf0fbaad9dd63fb
->> change-id: 20261110-wmi-no-acpi-159a4cf19580
->>
->> Best regards,
+> Signed-off-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
+
+Note there is an earlier submitted version of a similar patch here:
+
+
+> ---
+>  drivers/platform/wmi/core.c | 9 +++++----
+>  1 file changed, 5 insertions(+), 4 deletions(-)
 > 
+> diff --git a/drivers/platform/wmi/core.c b/drivers/platform/wmi/core.c
+> index 529825dcfbfe..412f2e23b01d 100644
+> --- a/drivers/platform/wmi/core.c
+> +++ b/drivers/platform/wmi/core.c
+> @@ -1573,9 +1573,6 @@ static int __init acpi_wmi_init(void)
+>  {
+>  	int error;
+>  
+> -	if (acpi_disabled)
+> -		return -ENODEV;
+> -
+>  	error = class_register(&wmi_bus_class);
+>  	if (error)
+>  		return error;
+> @@ -1584,6 +1581,9 @@ static int __init acpi_wmi_init(void)
+>  	if (error)
+>  		goto err_unreg_class;
+>  
+> +	if (acpi_disabled)
+> +		return 0;
+> +
+>  	error = platform_driver_register(&acpi_wmi_driver);
+>  	if (error) {
+>  		pr_err("Error loading mapper\n");
+> @@ -1603,7 +1603,8 @@ static int __init acpi_wmi_init(void)
+>  
+>  static void __exit acpi_wmi_exit(void)
+>  {
+> -	platform_driver_unregister(&acpi_wmi_driver);
+> +	if (!acpi_disabled)
+> +		platform_driver_unregister(&acpi_wmi_driver);
+>  	bus_unregister(&wmi_bus_type);
+>  	class_unregister(&wmi_bus_class);
+>  }
 
