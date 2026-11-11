@@ -1,111 +1,81 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.41
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.14
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794393284;
-	b=yDIJXvCjfnbr95wUVUc7yhl+APYqrL2+wXPPKfCdEotKLe2cU/hRIfx5uSUKQqLI+4wk
-	 /+qg0ePx964rNCiN7vVcUplQkNYOKkOVkzP2jg2Uz0t8tMdAa/2JVYZbksUUbC5NXB/F/
-	 WVOIeMNpo/fNTgP94iq52T48yax0h/viuGk3TM/BqMJ8cddneSX0DsoZ79tEXWvp8njdL
-	 Tfakjnla6kwDQG8AY20Q3ZeXB4kc1lgkx4oWRmi97z3U3PQLTNTLz2B6dmpgLYdyEXKTf
-	 fPGrkv2kPe2O1FsNc2iah8V1m6A3A1vJgWTvYZEUkw3ByIL8W9B6qxR3LIgWBlZVU2g==
+	t=1794393999;
+	b=17BuIl/BJ3Whj0Nr46Cd/9N2Kklisgm9tSCWRJKP/SqMg+qTYuPtj0hWFsiBhxVMPzDC
+	 8i4JuhXrkA5c398h6PyKsB03xJoFJIB3FKBLpCJ/IUCIlPmuW43CiNfFbpOE7f6mBbFF0
+	 yMXgMgt2q0Iyenf5ZES7QTeHcy/FYI+ybJGijUsy4AZVVjk8mIOA+q+FpAafIJBhZeZKm
+	 RBry9pZ69W7CEVTo4lfCvDw22qWa6UOhff2HM3oDPl+eEObzFn9suHkFa8Ep5VLdoA1Ft
+	 PqXhYmSKsHHBmgn1QVnO2Y1FpSFyFYtwQBTYK5OTqoTBLRaCruyQUKRTLkm4+MvzzFA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794393284;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:X-Mailer:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=B0BstBB2s+mXG455PQXyfJhRhSXomdgOjXb5/JFNaGE=;
-	b=2f9oz9ll9SN7qNc/k3yBDa8DIOpd3tk1C7Nex1ue9eCiW2fjjkgnetM6LyMVp5Jchyf0
-	 tsUTjvk7BUo2Lytx26/n0EOFbmyCKtqGQaVI7uPqW82bzFUj/aIq7SODUTlHrEErE5fd3
-	 OYXh87aI+OtMjs0MBwIJ7ZEi2AanUm3Gq+mTJMHXBHe9Wt15ylUHwlqM6IkbklTmeSHu9
-	 xoXt9VakyaUYA8yq1XJ03SRj+HMCeyBYeN3yB3m0+SvOWJQlg3MEXLJMke4kHmjjdQ6g6
-	 4KQ7LcZ9/nsJTs7+0tTTclQ0N3fYbRpD8QuxFNQ9Tze7f0H2BvkLg1l2NMJCdyTiY5g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794393999;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:User-Agent:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=ZS416nY8ExP39YQ01I5vRj/eYSpgEwqrVtZE/+h8ulw=;
+	b=XErwhQTLEGxFzzB7Un0qeXJoRN7ky608DIsdC0t6ze9ggWB9EShfli3nRiFTflI6up3T
+	 o1ALrzBgf6JCxMsRLa+XAoj/TJv+n9PbxpwIGPVE93eCHrIgLj5Y32TNom7IxhSgB3hZj
+	 /96Qpj81SP4VQumkAYG1RVfG5kTLTkR0GespEAZt9qDDbDCoFpxbAQrPlmSuPR6Ki40/J
+	 c5rX3uUCeLfep9vjXLmEgKrOmp+0s1QynQIbZzUxYJrHSo2C/CBk17EfnEvfZKPPmycpK
+	 QCUVY51W2xsk+IODp06zP05Vh26aDr+94X/329Z2EgOpPha/6kwpz3X41+RFPyzw1wQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Wo4+YNlr;
-	arc=none smtp.remote-ip=209.85.128.41
-Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=INpYfB4S;
+	arc=none smtp.remote-ip=192.198.163.14
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B838606A32A
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 10:34:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1B838606A32A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E509606A321;
+	Wed, 11 Nov 2026 10:46:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8E509606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Wo4+YNlr
-Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-4afe2d546f9so38256525e9.3
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 02:34:42 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794393281; x=1794998081; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=B0BstBB2s+mXG455PQXyfJhRhSXomdgOjXb5/JFNaGE=;
-        b=Wo4+YNlrKrnltc3dTrFhFyp8o565rovrnVKvkcx3eVzs7mE3qiNP4os9f3zKzIUO7q
-         Mo/E6HxBENrz/Twy6Hr0jn0S9RD9and66fqE4mLAn/XVoQ9oGhz/5FprThWZmcB1lSHC
-         Xw3GiW0FU0e05EIYsy/TOTtxkzFOG4Rc7Et1sma46iXKPmLCVl1BoEbBdP3bAJIvboW5
-         RDrss8nRI9XAY9vaYK8uPgGc9tmFypYAcAnxtmeiIEQdKL+6MGcergbBBIDQPsOYUs9v
-         8reLcEbCJIqvaqTXvPspIf7k32+QOuydWVQAkHaiFp6OoRWnSK1pNXkuh2Jp185lV3Xr
-         MWcQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794393281; x=1794998081;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=B0BstBB2s+mXG455PQXyfJhRhSXomdgOjXb5/JFNaGE=;
-        b=eotke4pqMsGbeCkP77/qPV9TcBRygklI9tomMqj1VlT6cuao6V3/vbREHGq/De4EMi
-         vsMNQCRanO3PHEXsbvNm4moj0AoOZwm6HQ/qiyaOUIcuGbmnhyS3w2J1S/Vedr8MQXjN
-         CkFL7XEumvwh0gQt2rBTx7SuNjCn+AKgqCSQFG8VCsUqJijGPInielgKO0uNYsboaQoK
-         +lDiYz5U+FJFApyi2lA4KsrG1a+AR/3zr883Bbm8Lxywz/K30/twxnv0z89JGdNoZaHO
-         ikAmTECC86QPJ4es5AszQ5z0Ok/wtdhOPhhpo9SnvUyu4OaKvKMnbpT/hecI091442h3
-         wXdA==
-X-Forwarded-Encrypted: i=1; AL+hErHOmichS7bZrLzYGU+X+38NewmDqsfv/Xvn0ZZ/B5GAJ85xNI+bRm4nGpXDdruSdMhKrwxWkH6mCa8x@vger.kernel.org
-X-Gm-Message-State: APuU4Z8F/qilO8NVbM1vv5kSCAUoBByfRBxKzIGYvZJGGNXupI2kyFL8
-	Bi0fL5WEMz2bWlICQ3ACIa9DYlLjjpXMdQl5Hl7NSZPehty8tQ+ZiQ9s
-X-Gm-Gg: AYBFou0NSdn6aZPSLNSvmPyjulT8S8cFzy8pQ3LS1Mq5muDnPjdi+Aoh85stG8w+/kc
-	tXE7FVzxkZ9l+yxX6M87uib+9LQVO1Z5T41tm6bnlY+JPA2e9rbrLhPlBATi3+YNtjWZbyEcE0J
-	x6DRJYp7m0KZGJw1OHmNIk1NP7FAcu4uuYBwDYu74FWrYCipbfTmEaffJd78Gxtmvb2ntJd+4pJ
-	E/1LquPnF3PNUdNEX/PNCcyrrtPAfriN3GOxByBVmuEz5y53Xe2y0JM88KNfjgvpgb2kfow6lI8
-	uzl+puHp/y/aJlqXvPImKvDPk8yOFxyn65Aju2BtiiZPLj5WQJconM2Qj7sl0P0RYilKLEGo4L2
-	k9tBdKK2AJDgMqLZ+6Uvcf2JjERC+8Cp6uPcNBlsEPDvUivFUZ3a8DOx8LIpS98bkh7CIDNzhx1
-	7fpif3rQzpaR1LpcY9aY4NQlOIxABAQ+OMYfTUCFxpLzytUORXvLfzh2QifWX0ypacfQZyidO0Z
-	lFvLX4czm7xnGzg3ggxeF1ybJK/00d8/90U1OBRuPyDLCZIftRLAw6vzQP3AJ4ARiQGt4+bxwbr
-	7bEhXRcj1KE3Mbd92ve+xrh1ov+cZS0HJZSRQmWxXTNDbxWCyStTQr+TrWdnYrlRNPQ=
-X-Received: by 2002:a05:600c:b86:b0:4a3:2f35:38b4 with SMTP id 5b1f17b1804b1-4ba09377b2amr30972055e9.10.1794393281331;
-        Wed, 11 Nov 2026 02:34:41 -0800 (PST)
-Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4ba01fba476sm157078915e9.2.2026.11.11.02.34.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 Nov 2026 02:34:40 -0800 (PST)
-Date: Wed, 11 Nov 2026 10:34:38 +0000
-From: David Laight <david.laight.linux@gmail.com>
-To: Alejandro Colomar <alx@kernel.org>
-Cc: linux-hardening@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
- "Maciej W. Rozycki" <macro@orcam.me.uk>, Geert Uytterhoeven
- <geert@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, Andy
- Shevchenko <andy@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, Daniel
- Scally <djrscally@gmail.com>, Danilo Krummrich <dakr@kernel.org>, Greg
- Kroah-Hartman <gregkh@linuxfoundation.org>, Hans Verkuil
- <hverkuil-cisco@xs4all.nl>, Heikki Krogerus
- <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, Johan
- Hovold <johan@kernel.org>, Kees Cook <kees@kernel.org>, Laurent Pinchart
- <laurent.pinchart@ideasonboard.com>, Len Brown <lenb@kernel.org>, Linus
- Torvalds <torvalds@linux-foundation.org>, Linus Walleij
- <linusw@kernel.org>, Namhyung Kim <namhyung@kernel.org>, "Rafael J.
- Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, Sakari Ailus
- <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>,
- Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>,
- linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
- linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
- linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v3 5/5] string: Make strprefix() const-qualifier-generic
-Message-ID: <20261111103438.2f822202@pumpkin>
-In-Reply-To: <35bf6672f84f07de3f40e8db9e7fcfd643894fec.1794323750.git.alx@kernel.org>
-References: <cover.1794323750.git.alx@kernel.org>
-	<35bf6672f84f07de3f40e8db9e7fcfd643894fec.1794323750.git.alx@kernel.org>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=INpYfB4S
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794393999; x=1825929999;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=YoP1oiZhXdLsMGk4xqxz+pquVXQMtRV9gUudtX59dYo=;
+  b=INpYfB4S1gjHyJUtm4jY6BWTO7yi8ortQL1RRXlVx64SyxfHsuM6jAbL
+   XbZBAsk6Xjs/houAEycdsN9dVuYvxEbpBw7dahZCbJycPjamiAxjTgQMX
+   R9fskUBs4lQmtximxkz33BahTO6+jMSfmUHHYegkJe++OcMU/uSz0pd1D
+   bA+UPRomggh/lzyqAdEAlI3dpH+rsCEYGkGoezyOS5BYGOfiE59+weeBh
+   Re8cYscqXL3kTWRuxufQVNNSINlcR8rEPrgCv3x3+6pGOF5xNKZIeUZ8s
+   s3uGKqJ77zW/l0FhQd6k2VSw4ptxVvlufub5Lo/DQdSAFu4ot6n29aWjY
+   Q==;
+X-CSE-ConnectionGUID: PJgcahXbQYO0sCuFpu63Zw==
+X-CSE-MsgGUID: Z4+sLm2OR+OQbJrx1FbmSg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11962"; a="3196716"
+X-IronPort-AV: E=Sophos;i="6.27,207,1787036400"; 
+   d="scan'208";a="3196716"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Nov 2026 02:46:38 -0800
+X-CSE-ConnectionGUID: IUTHcJ0dSwCzeGQxiw1KUQ==
+X-CSE-MsgGUID: y29INZLbSl+4RRe+xKlFdg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,207,1787036400"; 
+   d="scan'208";a="8220207"
+Received: from igk-lkp-server01.igk.intel.com (HELO 1073a420ae3a) ([10.211.93.152])
+  by orviesa008.jf.intel.com with ESMTP; 11 Nov 2026 02:46:36 -0800
+Received: from kbuild by 1073a420ae3a with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xR5qb-000000000Yt-2AHk;
+	Wed, 11 Nov 2026 10:46:33 +0000
+Date: Wed, 11 Nov 2026 11:46:22 +0100
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: oe-kbuild-all@lists.linux.dev, linux-acpi@vger.kernel.org,
+ linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge 9/22]
+ drivers/platform/x86/hp/hp-wmi.c:1057:16: error: implicit declaration of
+ function 'devm_battery_hook_register'; did you mean
+ 'acpi_battery_hook_register'?
+Message-ID: <202611111143.CWKE7ewK-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -115,39 +85,93 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 10 Nov 2026 16:33:56 +0100
-Alejandro Colomar <alx@kernel.org> wrote:
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git=
+ bleeding-edge
+head:   51bafe2e7302403a43ba45415bf9a268a7fcaa05
+commit: fafe4f5166bc3d43e28967efb9ea82b1f456b798 [9/22] Merge branch 'acpi-=
+battery' into bleeding-edge
+config: x86_64-randconfig-2003-20261111 (https://download.01.org/0day-ci/ar=
+chive/20261111/202611111143.CWKE7ewK-lkp@intel.com/config)
+compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
+reproduce (this is a W=3D1 build): (https://download.01.org/0day-ci/archive=
+/20261111/202611111143.CWKE7ewK-lkp@intel.com/reproduce)
 
-> Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Signed-off-by: Alejandro Colomar <alx@kernel.org>
-> ---
->  include/linux/string.h | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/linux/string.h b/include/linux/string.h
-> index 9e59f9697c9e..55ca4cb5122c 100644
-> --- a/include/linux/string.h
-> +++ b/include/linux/string.h
-> @@ -590,7 +590,9 @@ void memcpy_and_pad(void *dest, size_t dest_len, const void *src, size_t count,
->   * *  @s+strlen(@prefix) if @s starts with @prefix
->   * *  NULL if @s does not start with @prefix
->   */
-> -static inline char *strprefix(const char *s, const char *prefix)
-> +#define strprefix(s, pfx)  const_cast(CQChar_of(s) *, strprefix(s, pfx))
+If you fix the issue in a separate patch/commit (i.e. not just a new versio=
+n of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202611111143.CWKE7ewK-lkp@i=
+ntel.com/
 
-Isn't in enough to do:
-#define strprefix(s, pfx) ((typeof(s))strprefix(s, pfx))
+All errors (new ones prefixed by >>):
 
-which correctly preserves all qualifiers.
+   drivers/platform/x86/hp/hp-wmi.c: In function 'hp_wmi_charge_control_set=
+up':
+>> drivers/platform/x86/hp/hp-wmi.c:1057:16: error: implicit declaration of=
+ function 'devm_battery_hook_register'; did you mean 'acpi_battery_hook_reg=
+ister'? [-Wimplicit-function-declaration]
+    1057 |         return devm_battery_hook_register(dev, &hp_wmi_charge_ba=
+ttery_hook);
+         |                ^~~~~~~~~~~~~~~~~~~~~~~~~~
+         |                acpi_battery_hook_register
 
-David
 
-> +
-> +static inline char *(strprefix)(const char *s, const char *prefix)
->  {
->  	size_t len = strlen(prefix);
->  	return strncmp(s, prefix, len) == 0 ? (char *) s + len : NULL;
+vim +1057 drivers/platform/x86/hp/hp-wmi.c
 
+929433336e0a6e Shang En Sim 2026-09-30  1033 =20
+929433336e0a6e Shang En Sim 2026-09-30  1034  static int __init hp_wmi_char=
+ge_control_setup(struct device *dev)
+929433336e0a6e Shang En Sim 2026-09-30  1035  {
+929433336e0a6e Shang En Sim 2026-09-30  1036  	enum power_supply_charge_beh=
+aviour behaviour;
+929433336e0a6e Shang En Sim 2026-09-30  1037  	int ret;
+929433336e0a6e Shang En Sim 2026-09-30  1038 =20
+929433336e0a6e Shang En Sim 2026-09-30  1039  	if (!dmi_check_system(hp_wmi=
+_charge_control_quirks))
+929433336e0a6e Shang En Sim 2026-09-30  1040  		return 0;
+929433336e0a6e Shang En Sim 2026-09-30  1041 =20
+929433336e0a6e Shang En Sim 2026-09-30  1042  	/*
+929433336e0a6e Shang En Sim 2026-09-30  1043  	 * Firmware retains inhibit =
+across reboot, so seed from GBCO rather
+929433336e0a6e Shang En Sim 2026-09-30  1044  	 * than assuming auto.
+929433336e0a6e Shang En Sim 2026-09-30  1045  	 */
+929433336e0a6e Shang En Sim 2026-09-30  1046  	ret =3D hp_wmi_charge_mode_r=
+ead();
+929433336e0a6e Shang En Sim 2026-09-30  1047  	if (ret < 0)
+929433336e0a6e Shang En Sim 2026-09-30  1048  		return 0;
+929433336e0a6e Shang En Sim 2026-09-30  1049 =20
+929433336e0a6e Shang En Sim 2026-09-30  1050  	ret =3D hp_wmi_charge_mode_t=
+o_behaviour(ret, &behaviour);
+929433336e0a6e Shang En Sim 2026-09-30  1051  	if (ret)
+929433336e0a6e Shang En Sim 2026-09-30  1052  		return 0;
+929433336e0a6e Shang En Sim 2026-09-30  1053 =20
+929433336e0a6e Shang En Sim 2026-09-30  1054  	scoped_guard(mutex, &hp_wmi_=
+charge_lock)
+929433336e0a6e Shang En Sim 2026-09-30  1055  		hp_wmi_charge_behaviour =3D =
+behaviour;
+929433336e0a6e Shang En Sim 2026-09-30  1056 =20
+929433336e0a6e Shang En Sim 2026-09-30 @1057  	return devm_battery_hook_reg=
+ister(dev, &hp_wmi_charge_battery_hook);
+929433336e0a6e Shang En Sim 2026-09-30  1058  }
+929433336e0a6e Shang En Sim 2026-09-30  1059  #else
+929433336e0a6e Shang En Sim 2026-09-30  1060  static int __init hp_wmi_char=
+ge_control_setup(struct device *dev)
+929433336e0a6e Shang En Sim 2026-09-30  1061  {
+929433336e0a6e Shang En Sim 2026-09-30  1062  	return 0;
+929433336e0a6e Shang En Sim 2026-09-30  1063  }
+929433336e0a6e Shang En Sim 2026-09-30  1064  #endif
+929433336e0a6e Shang En Sim 2026-09-30  1065 =20
+
+:::::: The code at line 1057 was first introduced by commit
+:::::: 929433336e0a6e5014af7b8849f369712d2c8964 platform/x86: hp-wmi: add c=
+harge_behaviour support for Spectre 8C15/8C17
+
+:::::: TO: Shang En Sim <sim@shangen.org>
+:::::: CC: Ilpo J=C3=A4rvinen <ilpo.jarvinen@linux.intel.com>
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
