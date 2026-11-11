@@ -1,96 +1,106 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.227.134
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794387080;
-	b=YppGL/j1OoDiuLDCc3qXIdk2XRiS3AyX1N2Tu2c4/z6JxzBnY6lg+fS9ldyQZgTfzjhf
-	 SESddBaf+hoZwH7w+x514+FIU9QPE2+a1ykJF0Va4SYThJ38j/KcBksTJkDc7hE3DGz2L
-	 Tph4wnItVb7uBv+WJPpNgDKPp4gL4O9cB5iuiFakYN1/uKLy/lLZjYWdRC0ywdSLlXE74
-	 LBIRG8IWl5YzH8wHEPOWfOTnHNVZPyUoNOAl+9WfNmXyJxAUUQJV4O+qT46+vSJNdW648
-	 WCYe6EnEbmiN2vgXc8ukjsbqykq5sDB/WwtY0ln0ZjD+EydhvrT6bbWAg2awDsfBdfA==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794387080;
-	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=4FR4MYwSIUv0E3HeQxkRuXJTHYwYwGW3jDUR0WOXudI=;
-	b=4sLOF++zpF0UIGJxCdZVLbsAb7ZrIQvm+TFaqoubZicQBDkuMRG6hV6TkV/ycOteC1J8
-	 oosxFKrbELDV759cVwlt9sNzB0M15J8I6Z93lx1rnspMn5bR7ZKH9KM+K60k7shCt1rkQ
-	 vhW7Nrqp6NCuthhdUzyhxvqWAKuyaisRwEWolnoNJsQg2yFejxgSXNCCcS5q5Zyiv6Nem
-	 OSqNS7U/FjFSD+i4+44M6z2HfcsSM2EB40BKUm56G0KqmIjWl3RE0VNOLhej7bqjd8W+5
-	 UIbiV/WFEFXqZPiU9oGhL+M2hSB0KT+7o+FGU/67yOKvFa+TqJgl9vOaUjj2yHWJ0fg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=kylinos.cn;
-	spf=pass smtp.mailfrom=gmail.com;
-	arc=none smtp.remote-ip=74.125.227.134
-Received: from mail-pj2-f6.google.com (mail-pj2-f6.google.com [74.125.227.134])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.128.173
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794388532;
+	b=QCj+bhIR7ml+CRASjd0qFYLX2KUfwsMnVQk6eW2FJNdzN0bicRWyPicgBbgAo6yc25zT
+	 rZZMC6EI3q3ZhPiAE5tLeK1d1m9cVmKq0JEZWU1VA0a2uUDXcY7FhXZx+sZF5slPBOZAT
+	 40dt5PKnhM3CSwsonuhiRi05m5781EE97077X0Xtl8R6nttu7vXdFIMgG4hZ75JYWFJyX
+	 sSHxKvlXcOhlWgq4Pb/SEs4RnURxOSM8RObBOjzl3IwpILS2rLTfU8k+FtrsTZhJVTwlH
+	 Uc/XTlCX5EbkBm+oDQdr9CHKVLBgRbCD8w4whzJrwUvi+dF6NG1x7aua1bnWI6epGfA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794388532;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:X-Original-From:In-Reply-To:User-Agent:References:Mime-Version:
+	 Date:X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type;
+	bh=5QBZ8GiNGrJnUI6N35dRz2cDj8jF0y9M+l9Eb/FSxrI=;
+	b=JaevXwanCChOQZha7IhgTb/FhqAdn8Qp2NVlBlF8TMsIEx/vnwtnpq/5Cy9KLYJtj32V
+	 pmYmLVzllors4r3KD+InEPz1zk3XZLiZNomMhpiQDZzHXxMqcB2ua/wiitvBAZPe4Dyem
+	 R4n6I6BrP28vAipagpuVtpaVcJIl74rTj4c/PctHStzmBIa/N2xen1EETvoGvTzUI+rXQ
+	 249hQfxvWM00t+1DsIfpbsZ6WOkL/KlYgBwSbzwLBjSkHF8L1ho+H5hl/2AZXNumxJVVM
+	 7NKAJqqG7eagCJ58WPIB7050GS5sLVe/JWJk2JYSluX685ARNzABd1UIQyxVPuOPeIw==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=bytedance.com;
+	spf=pass smtp.mailfrom=bytedance.com;
+	dkim=pass header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=google header.b=HzNtIOeW;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.128.173
+Received: from mail-yw1-f173.google.com (mail-yw1-f173.google.com [209.85.128.173])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6916C606A327
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 08:51:19 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6916C606A327
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-pj2-f6.google.com with SMTP id 98e67ed59e1d1-3ad211ad92bso1057375a91.1
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 00:51:19 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9503606A32A
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 09:15:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A9503606A32A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=google header.b=HzNtIOeW
+Received: by mail-yw1-f173.google.com with SMTP id 00721157ae682-8b31fc13124so23190187b3.3
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 01:15:31 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794388530; cv=none;
+        d=google.com; s=arc-20260327;
+        b=nyBnOGRhUeq0PdTjCHDpkiqSqJXlFLOiZaDnE6Ono+p5mDcNXS6ZhP5TjGFE3Xo0aJ
+         fQ0MjYDw5Xj8hZ20YmzKIymZ3xtSL7sYgKX+0hAjh0DZ+JWBma9KGQsdtEqEgaQrnvuL
+         EjzyAFnoqrFKAIEYpUpXsrv7m1dVhflzIQBDPenWxHhLGR38sE7aGKIOmJs7tASBkLy4
+         UBsgHmH9kdHaG+lYmGFySlIiL8v99W8p8ESf5FRNKBF9Zd8AuPA1FQcWko3zXHIpLTaG
+         +V9uLEJIuZyeFyLUh2yaYL8xMEYtnyxqBOihiP8yrvW6/0F1VJsW8jmmfW2Hjs7X1xQs
+         7Y9Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:mime-version:references:user-agent
+         :in-reply-to:from:dkim-signature;
+        bh=5QBZ8GiNGrJnUI6N35dRz2cDj8jF0y9M+l9Eb/FSxrI=;
+        fh=Y2b3LBh5+Nr57w8h9H+oNbdG7NrMoGv0lpwz68Y5r5Q=;
+        b=WqX11fyivogJJ9/5OvlJP1Cz3DYrY13h+HO8/A+k4ePwjxWeU1wemOGp4fsBGECL6w
+         VMvn/G24L5GIgXvLcube/zDriJ4YcR42xQvzrjK4HJjKK45VtrxCTTTNCcqEpd7+0sfa
+         ETxgS7kc8oI6RGOjhnMelTtUhWUaPDeBiKLy4Wc6ipbrdRUJ8crtHfWI1b02iqO3fdne
+         js+oUakaZhBcnOvXjfYN98FZ8lKODHaOZojdXwzfrwvj2La0DA2KjNNcWPGQ4WPC4J82
+         MR0cZM8pYP7Sz4QZJJY12MT6TpUEpzFJR7y1WuNgfTlCh9kqx4zPenI82AsYtLMLFwpF
+         YPAA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1794388530; x=1794993330; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:mime-version:references
+         :user-agent:in-reply-to:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=5QBZ8GiNGrJnUI6N35dRz2cDj8jF0y9M+l9Eb/FSxrI=;
+        b=HzNtIOeWviucvigYcA46hEnjuXrW/gc3E10595qDDFPFeCLhBappFbDB9jS6CtsKKt
+         MkenEp+0fCDizDhWi3ULEjpMx5fEkM9evaaYQ1+b72DHc64YOnTcdZAS0zLdy08kLVAf
+         tX0XYpx3jbeju02S7Tlez1urW4fP5FXcKqkZZJsMdSBPkOb3fVUmHLo/P1UXs4ts1OQ1
+         jwTZ6WaaWll3BlCgs4iQGaEvcn5eX/8xI7GObzD0LLpQjLBFelv+09SRI+mrIzyWTZ71
+         /Z6/cffgmQ1/8eGqUWiO53+b05sd2lOG1WINxJBprjj9Wc51N2/HWWtN7MaS4gYKnw9d
+         f4lA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794387079; x=1794991879;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=4FR4MYwSIUv0E3HeQxkRuXJTHYwYwGW3jDUR0WOXudI=;
-        b=24CDsFt4KUeZOfXbHEWj7U3pAh1bK/z2bx1tS4Mu7MXI9+ZaPVV3cnGf+s2+OD/3Hn
-         gb+kV9JJqUDYsXGqHSNLO1vF4+W+GZBSdTeM02ohid4oe8zjDcq4V7m489dMKfCTIewe
-         yCN94nsYWzT/mkE7mPbJCJdJNZl13gzUzY1vzMrt2qSXBCgpRVpsNNhf06mqR5O+wQF6
-         bvKYvpcvf/1I1IUm2TXoB6lQ9+AV09JfGQM1d/UgAPb+fr4Cq7OSuK+BrgAOovn0ZJJB
-         Qu7uG7YGa4PbDmvm80wmFMv7i+A9d65+CNoJrvApkkpYZJIMvnt6SSNLz9H/UT4NILDY
-         Nt+A==
-X-Forwarded-Encrypted: i=1; AL+hErGzMkxDhiSv+Ch/D+2b2gfCMW8bvda2hYl/hWqmaJhno5m2tQjm72Ygks21Kvaz4YTx13WTXaBuhtbx@vger.kernel.org
-X-Gm-Message-State: APuU4Z9Ukb7mcp8RvAJC7+OgU0geQ/fd+cUlyBrPpwtgQGE4Ua7MfmQD
-	gvTjP7R1jBQjU01hAQH9e0IFqb3NEWMv6HtajtBQag50SvxvPjqaVM6A
-X-Gm-Gg: AYBFou1BzcvG1CyQzqq3hXzSof0Z8YLR6H9LOkBNqUXH72O6xLA+Q0Nt95qVxcBgeLI
-	PeYDOmZufW64Z4EZY0PCPem0unG1qdVAJPE+AgCY/0CxeQlyroXJsREE544cguHKZWBXrsgZEZL
-	zENamCd11vTBOfu+UvzTcwc36ok2V3alK72+yOD31aBh9K+SX4kCYEXBxCX0F3tbkPg64zlgOdj
-	0UVAMZbHObsG6emZbpsGDkHgHbh2D7dgRgWgJSeLCRCCFE8vyTl702FHNBbyrRO+ROzB5202Puf
-	seOjyBxBby26LHRKhwOm0ggdVG+2oVqYT50/XZcqkLdBPIMpihx2luu4mv98dUkwajktmXo9udT
-	oupPH4rVNQxpegi06XjoUXGQpf6dn+Qj08QzbucDc/I2KBdyw3SsHwrAPLBJeKQruAtGrW6TEgg
-	0mN1NOToOGLMa+LZY5RTBXnySxviMEXACJG9+hDrUTpkLGQ4jgLkcKcuIqiYRXmyIxzpU5Hrm+u
-	+u7ySSCIemkaX1dksEGUsfhAeH/hQZYlU9saWCRbEsEHCLaz/vp1Dt88ikgbjpgoanR2hED18SF
-	UpHWpJdukvGi50/dY+lUZIrxXK9vpKtvIUSvxHN+hhVpqdg3tyI=
-X-Received: by 2002:a17:90b:5107:b0:3ab:c80:936f with SMTP id 98e67ed59e1d1-3b182e6a221mr1613865a91.16.1794387078688;
-        Wed, 11 Nov 2026 00:51:18 -0800 (PST)
-Received: from kylin-XiaoXinPro-16-AHP9.. ([116.128.244.169])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b1838e616dsm2396406a91.4.2026.11.11.00.51.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 Nov 2026 00:51:18 -0800 (PST)
-From: Xueqin Luo <luoxueqin@kylinos.cn>
-To: rafael@kernel.org,
-	viresh.kumar@linaro.org,
-	sudeep.holla@kernel.org
-Cc: zhanjie9@hisilicon.com,
-	christian.loehle@arm.com,
-	zhenglifeng1@huawei.com,
-	sumitg@nvidia.com,
-	lenb@kernel.org,
-	maciej.wieczor-retman@intel.com,
-	pawel.chmielewski@intel.com,
-	gregkh@linuxfoundation.org,
-	dakr@kernel.org,
-	johan@kernel.org,
-	ionela.voinescu@arm.com,
-	pierre.gondois@arm.com,
-	linux-pm@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	acpica-devel@lists.linux.dev,
-	driver-core@lists.linux.dev,
-	Xueqin Luo <luoxueqin@kylinos.cn>
-Subject: [PATCH v6 3/3] arch_topology: Add topology_update_cpu_capacity() for runtime updates
-Date: Wed, 11 Nov 2026 16:50:22 +0800
-Message-ID: <20261111085022.1229866-4-luoxueqin@kylinos.cn>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261111085022.1229866-1-luoxueqin@kylinos.cn>
-References: <20261111085022.1229866-1-luoxueqin@kylinos.cn>
+        d=1e100.net; s=20260707; t=1794388530; x=1794993330;
+        h=content-type:cc:to:subject:message-id:date:mime-version:references
+         :user-agent:in-reply-to:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=5QBZ8GiNGrJnUI6N35dRz2cDj8jF0y9M+l9Eb/FSxrI=;
+        b=Eox1Nlwl6ywlQzSJovFeN26VZq+EXmU1hjeMm8QsTV+4O9xSoxidglHaFo1KU2VqMg
+         z/xFR4M+k2zpzpUfdx/SC3D/C4OLOZD/2lAxaDHo3RL36DUsmkc7uowPrELz7kbVlSTS
+         0Rr2wTtPGOnRhaZb2eZwnVd49jgME34lLTvwUO+lJFB3FN4A364t4HBC0A8epk1dZ7Z5
+         Qg+TVuVN8cbb25h0Pnnf9pXA9TjwHTNtett9sfkmVJ8DSMFy3wpSZgceNUFHR40cvIQT
+         dSciyGKfOwF0XgQ0EbMFNbTSP1nZquvDage1WX1ZIH6ROdyDuo6zzVhTlo/aZMD3M/Cl
+         6SUA==
+X-Forwarded-Encrypted: i=1; AL+hErGh1u0t6iDCyDOczRWYY99OWpvzAPXN4Wc9VGuTY1/G7fvrm3WadSRE5wxLYal7LVwvA7Z4sSO+qvPG@vger.kernel.org
+X-Gm-Message-State: APuU4Z9qB98fPA34lMOt+Gq+aslDxUYoTN7jxtxJot2mucPwcS1N1YD3
+	DYAxylPHw8fc+HYCF72z2z88egfiFuPowH04HCGWHZFnxqtIyUUbhC5qCaWPCntyGkDUKBL2Rxj
+	hOTdTZLfVPma0UyjLhsZmvof5PEjYxREaCKzyA6FszA==
+X-Gm-Gg: AYBFou2o7M68EmWUlYugBGiWHMlq2qe8T9f1OpzID7ud9/fHTq9KvnxovNtYwdciT2B
+	n+jtJeXwAGkg5DTEUjgMnmxcAPqotwogmIL7Dm1e4SBhJDQWvdAMU8qZ0/Cms4e/1xkr4kdbW8/
+	QNfBbNR8khdm+9PJIMYGINJTfthq1G1He5ZZHs6DAevAaSCBI8ihcsclc76RQB/HKbSLSq0lzQO
+	8xlCKcFbU8osiP8rqdHWvlhY0kYQ3QJC1eEJKZjstLSVFAjgueXDYRhWyPC0hPR1v6sex+8rm8Z
+	EGKEH5Epgm8czprijLijrAvaimrkE6yR1CKUw2yVgXT4WdyzJKnQ86/Cqgo0wGIsQoAvuACLRi9
+	BGcHRi0ih7BrPV2w9Nsjf7ugVxhb0B+HoxwMQKQ==
+X-Received: by 2002:a05:690c:e3cc:b0:8b3:47fd:a020 with SMTP id
+ 00721157ae682-8b3a81b0dd7mr18772977b3.35.1794388530362; Wed, 11 Nov 2026
+ 01:15:30 -0800 (PST)
+Received: from 44278815321 named unknown by gmailapi.google.com with HTTPREST;
+ Wed, 11 Nov 2026 03:15:29 -0600
+From: Zhanpeng Zhang <zhangzhanpeng.jasper@bytedance.com>
+X-Original-From: Zhanpeng Zhang <zhangzhanpeng.jasper@bytedance.com>
+In-Reply-To: <20261104161512.883885-2-anup.patel@oss.qualcomm.com>
+User-Agent: Mozilla Thunderbird
+References: <20261104161512.883885-1-anup.patel@oss.qualcomm.com> <20261104161512.883885-2-anup.patel@oss.qualcomm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -99,185 +109,85 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+Date: Wed, 11 Nov 2026 03:15:29 -0600
+X-Gm-Features: AclHuK9OnoLWMiiTkLADqyRKwVWpH6udmKoKB5NUgD5BSW6Guh7fRvex4qoZ3-g
+Message-ID: <CACnXVnfFWF8h+o0=nSb9JESOxYsdVMO+BJKMT7t=K=XVgVwx2g@mail.gmail.com>
+Subject: Re: [PATCH v7 1/1] RISC-V: Add common csr_read_num() and
+ csr_write_num() functions
+To: Anup Patel <anup.patel@oss.qualcomm.com>, Sunil V L <sunilvl@oss.qualcomm.com>, 
+	"Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, 
+	Alexandre Ghiti <alex@ghiti.fr>, Len Brown <lenb@kernel.org>, Atish Patra <atish.patra@linux.dev>, 
+	Anup Patel <anup@brainfault.org>, Will Deacon <will@kernel.org>, 
+	Mark Rutland <mark.rutland@arm.com>, linux-acpi@vger.kernel.org, 
+	linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	Anup Patel <apatel@ventanamicro.com>, Sunil V L <sunilvl@ventanamicro.com>, 
+	Andrew Jones <ajones@ventanamicro.com>, Atish Patra <atishp@rivosinc.com>, 
+	Nutty Liu <nutty.liu@hotmail.com>, Yunhui Cui <cuiyunhui@bytedance.com>, 
+	Yuanzhu <yuanzhu@bytedance.com>, Yicong Yang <yang.yicong@picoheart.com>
+Content-Type: text/plain; charset="UTF-8"
 
-When the CPPC Highest Performance register changes at runtime
-(e.g. via ACPI Notify(0x85)), the scheduler's view of CPU capacity
-and the frequency invariance engine's reference values become stale,
-as topology_init_cpu_capacity_cppc() is only called once during boot.
+Hi Anup,
 
-Keep raw_capacity allocated after CPPC init instead of freeing it,
-and introduce topology_update_cpu_capacity() to update per-CPU
-raw_capacity, capacity_freq_ref, and the normalized CPU capacity
-scale at runtime. Skip updates when the value is unchanged and
-reject a zero capacity_scale to avoid division by zero.
+On 11/5/26 12:15 AM, Anup Patel wrote:
+> From: Anup Patel <apatel@ventanamicro.com>
+>
+> In RISC-V, there is no CSR read/write instruction which takes CSR
+> number via register so add common csr_read_num() and csr_write_num()
+> functions which allow accessing certain CSRs by passing CSR number
+> as parameter. These common functions will be first used by the
+> ACPI CPPC driver and RISC-V PMU driver.
+>
+> Also, the RISC-V ACPI FFH specification allows arbitrary CSR number
+> as CPPC register and the RISC-V SBI specification allows arbitrary
+> CSR number as PMU hardware counter. This means ACPI CPPC driver and
+> RISC-V PMU driver no longer need to do sanity checks on CSR number
+> which are now done by the common csr_read_num() and csr_write_num()
+> functions.
+>
+> Signed-off-by: Anup Patel <apatel@ventanamicro.com>
+> Reviewed-by: Sunil V L <sunilvl@ventanamicro.com>
+> Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+> Reviewed-by: Atish Patra <atishp@rivosinc.com>
+> Reviewed-by: Nutty Liu <nutty.liu@hotmail.com>
+> ---
+>   arch/riscv/include/asm/csr.h |   3 +
+>   arch/riscv/kernel/Makefile   |   1 +
+>   arch/riscv/kernel/csr.c      | 165 +++++++++++++++++++++++++++++++++++
+>   drivers/acpi/riscv/cppc.c    |  17 ++--
+>   drivers/perf/riscv_pmu.c     |  54 ++----------
+>   5 files changed, 184 insertions(+), 56 deletions(-)
+>   create mode 100644 arch/riscv/kernel/csr.c
+>
+> diff --git a/arch/riscv/include/asm/csr.h b/arch/riscv/include/asm/csr.h
+> index 621f84d1898f..ebd82043430b 100644
+> --- a/arch/riscv/include/asm/csr.h
+> +++ b/arch/riscv/include/asm/csr.h
+>
+> [...]
+>   /*
+>    * Read the CSR of a corresponding counter.
+>    */
+>   unsigned long riscv_pmu_ctr_read_csr(unsigned long csr)
+>   {
+> -	if (csr < CSR_CYCLE || csr > CSR_HPMCOUNTER31H ||
+> -	   (csr > CSR_HPMCOUNTER31 && csr < CSR_CYCLEH)) {
 
-Call this from cppc_cpufreq_update_limits() for every CPU in the
-policy so shared-policy Notify(0x85) targeting a non-policy CPU
-still refreshes the correct topology capacity.
 
-Signed-off-by: Xueqin Luo <luoxueqin@kylinos.cn>
----
- drivers/base/arch_topology.c   | 77 ++++++++++++++++++++++++++++++++++
- drivers/cpufreq/cppc_cpufreq.c | 10 ++++-
- include/linux/arch_topology.h  | 13 ++++++
- 3 files changed, 99 insertions(+), 1 deletion(-)
+Could we keep the existing CSR range check in riscv_pmu_ctr_read_csr()
+when switching it to csr_read_num()?
 
-diff --git a/drivers/base/arch_topology.c b/drivers/base/arch_topology.c
-index e51fc9f5e976..f64f8e61f210 100644
---- a/drivers/base/arch_topology.c
-+++ b/drivers/base/arch_topology.c
-@@ -229,6 +229,7 @@ static void update_topology_flags_workfn(struct work_struct *work)
- }
- 
- static u32 *raw_capacity;
-+static DEFINE_MUTEX(raw_capacity_lock);
- 
- static int free_raw_capacity(void)
- {
-@@ -370,13 +371,89 @@ static inline void topology_init_cpu_capacity_cppc(void)
- 	schedule_work(&update_topology_flags_work);
- 	pr_debug("cpu_capacity: cpu_capacity initialization done\n");
- 
-+	/*
-+	 * Keep raw_capacity for runtime updates via
-+	 * topology_update_cpu_capacity().
-+	 */
-+	return;
-+
- exit:
- 	free_raw_capacity();
- }
-+
- void acpi_processor_init_invariance_cppc(void)
- {
- 	topology_init_cpu_capacity_cppc();
- }
-+
-+/**
-+ * topology_update_cpu_capacity - Update CPU capacity after highest_perf change
-+ * @cpu: CPU whose highest performance changed
-+ * @perf_caps: Updated CPPC performance capabilities for @cpu
-+ *
-+ * When the CPPC Highest Performance register changes at runtime
-+ * (e.g. via Notify(0x85)), the scheduler's view of CPU capacity
-+ * and the frequency invariance engine's reference values become
-+ * stale. This function updates the per-CPU raw_capacity,
-+ * capacity_freq_ref and freq_inv max ratio, then re-normalizes the
-+ * CPU capacity scale for all possible CPUs and triggers a sched
-+ * domain rebuild. If the value is unchanged, everything is skipped.
-+ */
-+void topology_update_cpu_capacity(unsigned int cpu,
-+				  struct cppc_perf_caps *perf_caps)
-+{
-+	u32 highest_perf = perf_caps->highest_perf;
-+	u64 capacity, capacity_scale = 0;
-+	int c;
-+
-+	guard(mutex)(&raw_capacity_lock);
-+
-+	if (!raw_capacity || cpu >= num_possible_cpus())
-+		return;
-+
-+	/*
-+	 * Validate: highest_perf must be >= nominal_perf and >= lowest_perf,
-+	 * consistent with the boot-time check in topology_init_cpu_capacity_cppc().
-+	 */
-+	if (highest_perf < perf_caps->nominal_perf ||
-+	    highest_perf < perf_caps->lowest_perf) {
-+		pr_warn("cpu_capacity: CPU%d invalid highest_perf=%u (nominal=%u, lowest=%u), skipping\n",
-+			cpu, highest_perf, perf_caps->nominal_perf,
-+			perf_caps->lowest_perf);
-+		return;
-+	}
-+
-+	if (raw_capacity[cpu] == highest_perf)
-+		return;
-+
-+	pr_debug("cpu_capacity: CPU%d cpu_capacity=%u -> %u (raw)\n",
-+		 cpu, raw_capacity[cpu], highest_perf);
-+
-+	raw_capacity[cpu] = highest_perf;
-+	per_cpu(capacity_freq_ref, cpu) =
-+		cppc_perf_to_khz(perf_caps, highest_perf);
-+	freq_inv_set_max_ratio(cpu,
-+			       per_cpu(capacity_freq_ref, cpu) * HZ_PER_KHZ);
-+
-+	/* Re-normalize all CPUs: capacity is relative. */
-+	for_each_possible_cpu(c)
-+		capacity_scale = max_t(u64, capacity_scale, raw_capacity[c]);
-+
-+	if (!capacity_scale)
-+		return;
-+
-+	for_each_possible_cpu(c) {
-+		capacity = raw_capacity[c];
-+		capacity = div64_u64(capacity << SCHED_CAPACITY_SHIFT,
-+				     capacity_scale);
-+		topology_set_cpu_scale(c, capacity);
-+		pr_debug("cpu_capacity: CPU%d cpu_capacity=%lu\n",
-+			 c, topology_get_cpu_scale(c));
-+	}
-+
-+	schedule_work(&update_topology_flags_work);
-+}
-+EXPORT_SYMBOL_GPL(topology_update_cpu_capacity);
- #endif
- 
- #ifdef CONFIG_CPU_FREQ
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-index 7dab6e046b9f..a693ef611caa 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -935,7 +935,7 @@ static void cppc_cpufreq_update_limits(struct cpufreq_policy *policy)
- 	struct cppc_perf_caps *caps;
- 	u64 prev_highest_perf;
- 	u64 highest_perf;
--	int ret;
-+	int cpu, ret;
- 
- 	guard(cpufreq_policy_write)(policy);
- 
-@@ -984,6 +984,14 @@ static void cppc_cpufreq_update_limits(struct cpufreq_policy *policy)
- 
- 	refresh_frequency_limits(policy);
- 
-+	/*
-+	 * All CPUs of the policy share perf_caps, and Notify(0x85) may
-+	 * target any CPU of a shared policy, so refresh the topology
-+	 * capacity for every CPU of the policy, including offline ones.
-+	 */
-+	for_each_cpu(cpu, policy->related_cpus)
-+		topology_update_cpu_capacity(cpu, caps);
-+
- 	/*
- 	 * Autonomous selection mode uses MIN/MAX performance as runtime
- 	 * hardware control bounds. Re-program them when highest_perf
-diff --git a/include/linux/arch_topology.h b/include/linux/arch_topology.h
-index ebd7f8935f96..9415cb6a6c2b 100644
---- a/include/linux/arch_topology.h
-+++ b/include/linux/arch_topology.h
-@@ -11,6 +11,19 @@
- void topology_normalize_cpu_scale(void);
- int topology_update_cpu_topology(void);
- 
-+#ifdef CONFIG_ACPI_CPPC_LIB
-+struct cppc_perf_caps;
-+#ifdef CONFIG_GENERIC_ARCH_TOPOLOGY
-+void topology_update_cpu_capacity(unsigned int cpu,
-+				  struct cppc_perf_caps *perf_caps);
-+#else
-+static inline void
-+topology_update_cpu_capacity(unsigned int cpu, struct cppc_perf_caps *perf_caps)
-+{
-+}
-+#endif
-+#endif
-+
- struct device_node;
- bool topology_parse_cpu_capacity(struct device_node *cpu_node, int cpu);
- 
--- 
-2.43.0
+The SBI PMU driver still assumes the architectural counter layout. For
+example, if SBI assigns an event to a custom counter at CSR 0x800,
+pmu_sbi_csr_index() truncates 0x800 - CSR_CYCLE to zero. The perf mmap
+page then advertises index 1, so userspace reads cycle while the kernel
+reads 0x800. The same index is used to set and clear scounteren.
 
+Non-snapshot overflow handling and RV32 high-half reads also assume the
+architectural layout. Could we keep the PMU conversion
+behavior-preserving and handle custom counters separately?
+
+> [...]
+Thanks,
+Zhanpeng
