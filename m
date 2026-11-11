@@ -1,81 +1,67 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.14
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794393999;
-	b=17BuIl/BJ3Whj0Nr46Cd/9N2Kklisgm9tSCWRJKP/SqMg+qTYuPtj0hWFsiBhxVMPzDC
-	 8i4JuhXrkA5c398h6PyKsB03xJoFJIB3FKBLpCJ/IUCIlPmuW43CiNfFbpOE7f6mBbFF0
-	 yMXgMgt2q0Iyenf5ZES7QTeHcy/FYI+ybJGijUsy4AZVVjk8mIOA+q+FpAafIJBhZeZKm
-	 RBry9pZ69W7CEVTo4lfCvDw22qWa6UOhff2HM3oDPl+eEObzFn9suHkFa8Ep5VLdoA1Ft
-	 PqXhYmSKsHHBmgn1QVnO2Y1FpSFyFYtwQBTYK5OTqoTBLRaCruyQUKRTLkm4+MvzzFA==
+	t=1794394298;
+	b=uKNdJ36+FbZ9/uj3pvubXi2jWSVChK3eOIbmpAzse0pc+qGK9RgRARl4XE1xcaEe09Dc
+	 6SbwawCu9KaZ7BgtU0YBeQ2YyBLaWUa6W6kWyMLcZCKgqGXotpmOsyL43ru9YVNoZoubX
+	 iep01mRNl54eXCU5tj7vUo0GbCIZJVurWuFTxb9nsWdElS+Uf8k3NC3c+qWTDy8U28fHT
+	 5yf8e8q0ri3E5VzxTDinLA3HG8drit/z2v9D5JxEdwinGMhYLI0DQeH04xCn86UBRGTLU
+	 67W6SLIcZCrbCH/e3VLxYPRS4AA3GKOdKDepO5/1n6mp1WDEfhFomiuoqP9gVrlItOA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794393999;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:User-Agent:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=ZS416nY8ExP39YQ01I5vRj/eYSpgEwqrVtZE/+h8ulw=;
-	b=XErwhQTLEGxFzzB7Un0qeXJoRN7ky608DIsdC0t6ze9ggWB9EShfli3nRiFTflI6up3T
-	 o1ALrzBgf6JCxMsRLa+XAoj/TJv+n9PbxpwIGPVE93eCHrIgLj5Y32TNom7IxhSgB3hZj
-	 /96Qpj81SP4VQumkAYG1RVfG5kTLTkR0GespEAZt9qDDbDCoFpxbAQrPlmSuPR6Ki40/J
-	 c5rX3uUCeLfep9vjXLmEgKrOmp+0s1QynQIbZzUxYJrHSo2C/CBk17EfnEvfZKPPmycpK
-	 QCUVY51W2xsk+IODp06zP05Vh26aDr+94X/329Z2EgOpPha/6kwpz3X41+RFPyzw1wQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794394298;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=rjS78XqnLRkcuOiyknQtcMbtEegSaHf+eCvs3lFWAlg=;
+	b=WfWLJ09nLPh8YpYMWRsupzulZ1w76oeDawNhySTsvTGP+NQNf0erpuDRqas19WZxCmWQ
+	 dkyMiD0Ap3RfsvSGrZ0Iynhx8mM58KxX51ts3TMTFZM7lFYzW0cgoXdSmXYdeAGPUD1wD
+	 LuD7b/kk3ye51kmaA8CzLIhpkSjodr+/1312fHUoXuqy2njjkiYD4OPOQvNgPGcXAk26h
+	 xRHJvOZlj0EhOy8Tn22UoZiL2t9NGUXrR7ol3biRG23QaIaFYDpuPLItFu24PLHy/Hup3
+	 iJoukLsa9dqt3yH3oxLovVkDmln1gXwgxOyrOtVPsykQiRhL7JTYQ/gSA/KVLbMXhBg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=INpYfB4S;
-	arc=none smtp.remote-ip=192.198.163.14
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iK7QsGrs;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E509606A321;
-	Wed, 11 Nov 2026 10:46:38 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8E509606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C0FA606A31C;
+	Wed, 11 Nov 2026 10:51:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=INpYfB4S
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794393999; x=1825929999;
-  h=date:from:to:cc:subject:message-id:mime-version:
-   content-transfer-encoding;
-  bh=YoP1oiZhXdLsMGk4xqxz+pquVXQMtRV9gUudtX59dYo=;
-  b=INpYfB4S1gjHyJUtm4jY6BWTO7yi8ortQL1RRXlVx64SyxfHsuM6jAbL
-   XbZBAsk6Xjs/houAEycdsN9dVuYvxEbpBw7dahZCbJycPjamiAxjTgQMX
-   R9fskUBs4lQmtximxkz33BahTO6+jMSfmUHHYegkJe++OcMU/uSz0pd1D
-   bA+UPRomggh/lzyqAdEAlI3dpH+rsCEYGkGoezyOS5BYGOfiE59+weeBh
-   Re8cYscqXL3kTWRuxufQVNNSINlcR8rEPrgCv3x3+6pGOF5xNKZIeUZ8s
-   s3uGKqJ77zW/l0FhQd6k2VSw4ptxVvlufub5Lo/DQdSAFu4ot6n29aWjY
-   Q==;
-X-CSE-ConnectionGUID: PJgcahXbQYO0sCuFpu63Zw==
-X-CSE-MsgGUID: Z4+sLm2OR+OQbJrx1FbmSg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11962"; a="3196716"
-X-IronPort-AV: E=Sophos;i="6.27,207,1787036400"; 
-   d="scan'208";a="3196716"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Nov 2026 02:46:38 -0800
-X-CSE-ConnectionGUID: IUTHcJ0dSwCzeGQxiw1KUQ==
-X-CSE-MsgGUID: y29INZLbSl+4RRe+xKlFdg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,207,1787036400"; 
-   d="scan'208";a="8220207"
-Received: from igk-lkp-server01.igk.intel.com (HELO 1073a420ae3a) ([10.211.93.152])
-  by orviesa008.jf.intel.com with ESMTP; 11 Nov 2026 02:46:36 -0800
-Received: from kbuild by 1073a420ae3a with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xR5qb-000000000Yt-2AHk;
-	Wed, 11 Nov 2026 10:46:33 +0000
-Date: Wed, 11 Nov 2026 11:46:22 +0100
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: oe-kbuild-all@lists.linux.dev, linux-acpi@vger.kernel.org,
- linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge 9/22]
- drivers/platform/x86/hp/hp-wmi.c:1057:16: error: implicit declaration of
- function 'devm_battery_hook_register'; did you mean
- 'acpi_battery_hook_register'?
-Message-ID: <202611111143.CWKE7ewK-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iK7QsGrs
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 237181F00A05;
+	Wed, 11 Nov 2026 10:51:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794394298;
+	bh=rjS78XqnLRkcuOiyknQtcMbtEegSaHf+eCvs3lFWAlg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=iK7QsGrsjq4AlHhkK3Z05yAvRe+MbBLWRl7ZxSr0u6NRz2n1mzILNIczCStRFSkdM
+	 C0EKKx6aSEeQcwF1AM94ShQrypQYxXn2LS526gMzSkED139sMFZ+pesBij2lq4JSod
+	 wdEOuY88REcRf6NkPKeR2N/iv4783+Th8xDgcpC9i0t/5HrnXQrPJzFOpjmqbP+Ypm
+	 pLaRsiy/idrGvdxlcE3frA7wMtuSEun6ths7NVMNuq8LDVMY4WiYFWaF7+NF9+w/P4
+	 xGaGrhlRbqDqbh0zhLuftnXHp5NnGCajbO/2EEAzLkmSLIl62PkQcSC5HVCBo+xxHC
+	 7RSoYUs66fN/Q==
+Date: Wed, 11 Nov 2026 11:51:29 +0100
+From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+To: David Laight <david.laight.linux@gmail.com>
+Cc: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org, 
+	Krzysztof Kozlowski <krzk@kernel.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, 
+	Andy Shevchenko <andy@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
+	Daniel Scally <djrscally@gmail.com>, Danilo Krummrich <dakr@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans Verkuil <hverkuil-cisco@xs4all.nl>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+	Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, 
+	Linus Walleij <linusw@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>, 
+	Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v3 3/5] stddef: Add const_cast()
+Message-ID: <avRGnEBOpKhK8BMz@devuan>
+References: <cover.1794323750.git.alx@kernel.org>
+ <2bf5cf7baad87b5b7b7f833df390596a033fd6f6.1794323750.git.alx@kernel.org>
+ <20261111102535.434c2eee@pumpkin>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -85,93 +71,137 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="btplz6fw3gpwuxwj"
+Content-Disposition: inline
+In-Reply-To: <20261111102535.434c2eee@pumpkin>
+
+
+--btplz6fw3gpwuxwj
+Content-Type: text/plain; protected-headers=v1; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
+From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+To: David Laight <david.laight.linux@gmail.com>
+Cc: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org, 
+	Krzysztof Kozlowski <krzk@kernel.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, 
+	Andy Shevchenko <andy@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
+	Daniel Scally <djrscally@gmail.com>, Danilo Krummrich <dakr@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans Verkuil <hverkuil-cisco@xs4all.nl>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+	Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, 
+	Linus Walleij <linusw@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>, 
+	Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v3 3/5] stddef: Add const_cast()
+Message-ID: <avRGnEBOpKhK8BMz@devuan>
+References: <cover.1794323750.git.alx@kernel.org>
+ <2bf5cf7baad87b5b7b7f833df390596a033fd6f6.1794323750.git.alx@kernel.org>
+ <20261111102535.434c2eee@pumpkin>
+MIME-Version: 1.0
+In-Reply-To: <20261111102535.434c2eee@pumpkin>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git=
- bleeding-edge
-head:   51bafe2e7302403a43ba45415bf9a268a7fcaa05
-commit: fafe4f5166bc3d43e28967efb9ea82b1f456b798 [9/22] Merge branch 'acpi-=
-battery' into bleeding-edge
-config: x86_64-randconfig-2003-20261111 (https://download.01.org/0day-ci/ar=
-chive/20261111/202611111143.CWKE7ewK-lkp@intel.com/config)
-compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
-reproduce (this is a W=3D1 build): (https://download.01.org/0day-ci/archive=
-/20261111/202611111143.CWKE7ewK-lkp@intel.com/reproduce)
+Hi David,
 
-If you fix the issue in a separate patch/commit (i.e. not just a new versio=
-n of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202611111143.CWKE7ewK-lkp@i=
-ntel.com/
+> Date: 2026-11-11 10:25:35+0000
+> From: David Laight <david.laight.linux@gmail.com>
+>
+> On Tue, 10 Nov 2026 16:33:40 +0100
+> Alejandro Colomar <alx@kernel.org> wrote:
+>=20
+> > This macro serves to cast const away without risking unwanted
+> > conversions due to mistakes in the cast.
+> >=20
+> > It's similar to C++'s const_cast(), but it is more restrictive: it can
+> > only cast away 'const', and not arbitrary qualifiers.
+> >=20
+> > Signed-off-by: Alejandro Colomar <alx@kernel.org>
+> > ---
+> >  include/linux/stddef.h | 12 ++++++++++++
+> >  1 file changed, 12 insertions(+)
+> >=20
+> > diff --git a/include/linux/stddef.h b/include/linux/stddef.h
+> > index e1851c50c89b..d79a81406b78 100644
+> > --- a/include/linux/stddef.h
+> > +++ b/include/linux/stddef.h
+> > @@ -194,4 +194,16 @@ enum {
+> >  #define TRAILING_OVERLAP(TYPE, NAME, FAM, MEMBERS)				\
+> >  	__TRAILING_OVERLAP(TYPE, NAME, FAM, /* no attrs */, MEMBERS)
+> > =20
+> > +/**
+> > + * const_cast() - Drop const in the left-most derivation of a pointer
+> > + *
+> > + * @T: Type for the cast.
+> > + * @p: Pointer to be casted.
+> > + *
+> > + * If @p is of type const @T, then it is casted to @T.
+> > + * Otherwise, @p is returned without any casts.
+> > + * This avoids mistakes that change anything other than 'const' in a c=
+ast.
+> > + */
+> > +#define const_cast(T, p)  _Generic(p, const T: (T) (p), default: (p))
+>=20
+> Should it be de_const_cast(), or just de_const().
 
-All errors (new ones prefixed by >>):
+If we want to be explicit about it being for dropping, perhaps
+drop_const() or cast_drop_const() feels more readable to me than
+de_const().  I had been calling this const_cast() for following C++'s
+name.
 
-   drivers/platform/x86/hp/hp-wmi.c: In function 'hp_wmi_charge_control_set=
-up':
->> drivers/platform/x86/hp/hp-wmi.c:1057:16: error: implicit declaration of=
- function 'devm_battery_hook_register'; did you mean 'acpi_battery_hook_reg=
-ister'? [-Wimplicit-function-declaration]
-    1057 |         return devm_battery_hook_register(dev, &hp_wmi_charge_ba=
-ttery_hook);
-         |                ^~~~~~~~~~~~~~~~~~~~~~~~~~
-         |                acpi_battery_hook_register
+> It is a shame you need to specify the type,
+
+In some cases we don't want to drop const; it's a "maybe drop const",
+actually.  Perhaps for this reason, cast_drop_const() might be
+misleading, in that it tells you that it dropped const, but sometimes
+it didn't.  On the other hand, if you thougt you had dropped const and
+haven't, you'll get build errors, so it's not a big problem.
+
+The reason why we may want to not drop const is that since we do:
+
+	const_cast(CQChar_of(s) *, strprefix(s, pfx))
+
+'CQChar_of() *' expands to either 'const char *' or 'char *', depending
+on the qualification of 's'.  In case it expands to 'const char *', we
+want to retain const, and not drop it.  The most accurate name would be
+cast_at_most_drop_const_but_maybe_not().  :)
+
+> but why not:
+> 	_Generic(p, T: p, const T: (T)(p))
+> so that you get a compile time error from the _Generic() if the type
+> is wrong.
+
+Thanks!  I like that being more robust.
 
 
-vim +1057 drivers/platform/x86/hp/hp-wmi.c
+Have a lovely day!
+Alex
 
-929433336e0a6e Shang En Sim 2026-09-30  1033 =20
-929433336e0a6e Shang En Sim 2026-09-30  1034  static int __init hp_wmi_char=
-ge_control_setup(struct device *dev)
-929433336e0a6e Shang En Sim 2026-09-30  1035  {
-929433336e0a6e Shang En Sim 2026-09-30  1036  	enum power_supply_charge_beh=
-aviour behaviour;
-929433336e0a6e Shang En Sim 2026-09-30  1037  	int ret;
-929433336e0a6e Shang En Sim 2026-09-30  1038 =20
-929433336e0a6e Shang En Sim 2026-09-30  1039  	if (!dmi_check_system(hp_wmi=
-_charge_control_quirks))
-929433336e0a6e Shang En Sim 2026-09-30  1040  		return 0;
-929433336e0a6e Shang En Sim 2026-09-30  1041 =20
-929433336e0a6e Shang En Sim 2026-09-30  1042  	/*
-929433336e0a6e Shang En Sim 2026-09-30  1043  	 * Firmware retains inhibit =
-across reboot, so seed from GBCO rather
-929433336e0a6e Shang En Sim 2026-09-30  1044  	 * than assuming auto.
-929433336e0a6e Shang En Sim 2026-09-30  1045  	 */
-929433336e0a6e Shang En Sim 2026-09-30  1046  	ret =3D hp_wmi_charge_mode_r=
-ead();
-929433336e0a6e Shang En Sim 2026-09-30  1047  	if (ret < 0)
-929433336e0a6e Shang En Sim 2026-09-30  1048  		return 0;
-929433336e0a6e Shang En Sim 2026-09-30  1049 =20
-929433336e0a6e Shang En Sim 2026-09-30  1050  	ret =3D hp_wmi_charge_mode_t=
-o_behaviour(ret, &behaviour);
-929433336e0a6e Shang En Sim 2026-09-30  1051  	if (ret)
-929433336e0a6e Shang En Sim 2026-09-30  1052  		return 0;
-929433336e0a6e Shang En Sim 2026-09-30  1053 =20
-929433336e0a6e Shang En Sim 2026-09-30  1054  	scoped_guard(mutex, &hp_wmi_=
-charge_lock)
-929433336e0a6e Shang En Sim 2026-09-30  1055  		hp_wmi_charge_behaviour =3D =
-behaviour;
-929433336e0a6e Shang En Sim 2026-09-30  1056 =20
-929433336e0a6e Shang En Sim 2026-09-30 @1057  	return devm_battery_hook_reg=
-ister(dev, &hp_wmi_charge_battery_hook);
-929433336e0a6e Shang En Sim 2026-09-30  1058  }
-929433336e0a6e Shang En Sim 2026-09-30  1059  #else
-929433336e0a6e Shang En Sim 2026-09-30  1060  static int __init hp_wmi_char=
-ge_control_setup(struct device *dev)
-929433336e0a6e Shang En Sim 2026-09-30  1061  {
-929433336e0a6e Shang En Sim 2026-09-30  1062  	return 0;
-929433336e0a6e Shang En Sim 2026-09-30  1063  }
-929433336e0a6e Shang En Sim 2026-09-30  1064  #endif
-929433336e0a6e Shang En Sim 2026-09-30  1065 =20
+--=20
+<https://www.alejandro-colomar.es>
 
-:::::: The code at line 1057 was first introduced by commit
-:::::: 929433336e0a6e5014af7b8849f369712d2c8964 platform/x86: hp-wmi: add c=
-harge_behaviour support for Spectre 8C15/8C17
+--btplz6fw3gpwuxwj
+Content-Type: application/pgp-signature; name="signature.asc"
 
-:::::: TO: Shang En Sim <sim@shangen.org>
-:::::: CC: Ilpo J=C3=A4rvinen <ilpo.jarvinen@linux.intel.com>
+-----BEGIN PGP SIGNATURE-----
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmr0SKwACgkQ64mZXMKQ
+wqlkrw/+IO0ydpOzz1GwpDbDPEn62YIboIVlzzJZw9hARy4+BkgGCvu54LrKCmdd
+5gqMP/Q9O+UTMhdyu9MULP2LJi+lwCiaf+w82JrsNE8BlcvdFLIRJhePbMRAnBqW
+eYNF+Rn/Bl6IqlR0ouYo7m4rRBUGH3vIMjGMeXBzssKZ1pdok+hNUv50I187agZf
+y2d3377FI0saE/zdf3HlQYCL07vkbMHsTvznB5aEzRkQDJoUXfol+I7gMo1N4A3F
+5YKII+lCC9zOOn3ne/kyQSlFwZ8BZ4aSNd5WJL53fjI8QrQC/r4yNx4il1+KjzzL
+Gx6XwSG9g6I4H4xX6E0FrZ0ymk/JrC1tm7KPvmvBCLipPm47pI59aNhJb2U5TPp3
+7w0WJs3+mQsomF//SOtS+LJgKbf+dQhgAz+AiOPjgK9oedfkizCs/zuvOKygu2TX
+VMVqpKmfKYGHTPPmYKGTPUhj5PZZoH66YNsnpmPXvzKN/vJebT8Laz3u1pqQg7Tc
+9ENwHWQ8wLaiXLyZRaLUvqPwcj8Qgo1IxZcIhhdjPLlDyMJ2X2XT7fC47FbU/LnT
+i8qweKHzZyj41TPUZg2vy5WF78hXDf+N+rClI+NZANA7MuWTw1MC5v20OZZ6fzvt
+U8fbg+wgaw9yu0cU9PE2/rh+rF4dXWOZUiecw813sqQYo43cdPQ=
+=yVph
+-----END PGP SIGNATURE-----
+
+--btplz6fw3gpwuxwj--
