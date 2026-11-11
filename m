@@ -1,83 +1,84 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.54
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.45
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794378749;
-	b=HDu0cGO7I6/Z+eRw22zbcpRBVtGLLhaK8tk+++mQ6wfNeUQQPr3FiCZ3S6nf/MFnFN9a
-	 Ypbl/n5oB9bxIFf7idvlKPRQYEWfWSCCCT86R52XOwxxcRnghEeA9PePrOqM3rT5czFYC
-	 DKyo5K5B1jGb7dshGQKU7DWwJzlwlwAYmADc8NVRpBTSnlXIzPSs/v5G07ZE2Zu0pvZdK
-	 TqwgVwIIqSEB6zZF7i9CqeSau1jLZBAeznMDM1qh34N6+6tT0YdNwYnPe1j5zbK1yeWdY
-	 FytfPehXGKSmCR5SF+c6sC5h8yHZZJJNu8mcwGqGicLmEDW++BVPIFP6id8HH37M44w==
+	t=1794378756;
+	b=lEhNmb1OOKYxU0rzXlEjWKVKfDGhskzS0W8ttghH8Z4VvCAqx5lWxCTqRiecn0+7XfVN
+	 GpEeUfnV6u5VumFVcP+TQQhPXv1l+r2tFWp0RsMOXFUhyhHABqM+rzz3CPZTjQsvw+htU
+	 SNYt+xkw/CdvDRvH+nY9GpNo+VSEMOtcGNp0uS0+GovfXCEETGNtA4iNWY5ljj7rOXHtz
+	 UPhh87sST18g+aQOKksu98MXwJf6K9zaIR66CtW0aH/sXif01wlZvEyrETBy1cxoTU9Rl
+	 QIgcjk0QC+IUcVjblFxJx5jIbkyFwHTRMDsQ30KTxNhYTCzEvX3L/pMrm5hUZGsn14Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794378749;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794378756;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding;
-	bh=NjW1KmGU+DS1ERJ9U4i8KV9Kn21Cgrdw5EW3c2f8mCk=;
-	b=q4DBmSIMAOhCpSc+hOaIYyC0btLl9nzyJnSiWaqGwFo88kTyhnzrV3mIzDypf1DjXDHJ
-	 TpYpGs2hcA6nJMD67A68mbnJs3hid6gFTYZBqfpiHdrYft43tG9s/Ny18EGcuO9+Bls68
-	 3/BZxCtsv0x1/v1yGc0Q3ztqLT5IKaIq88B08EWlNKNX4MVhMlO1y5Y85CdfobZ0Hli8Z
-	 iA5uf/Im+QdVhk7CKmVpdtBGUB4cuHfkQ/d21mGt8MNMfm/th1djJGPYWbiOig5fqvFG/
-	 S1WOYeu4n62jyJrpVQHaEvV4zYr/KnpfFgRnJhGqhhpzKikqbLnhPyJCmpi7AJ+VNSw==
+	bh=iG+inULdiX/9F1jgHvoIofo1nPKwdx5Mas8WwwOmeh8=;
+	b=pjbnPQm2XuD+oq1kUSk6vF+rAcqv6wr74oWoNyE+9+83Ov4UtYfKxvXuVBNQr/G9QaU/
+	 l2q2EMNftCCmvhQOud8/+Ijg7i5NP2K7PO4gFSmEqnr5Z6+dWOkIqJOKZfvw7NhoVo1gq
+	 9VYMcwGPhRxiDmkxoO235ZBkB6ZGS7qEr4uz5rGKgt1jDnA/o/B3+a3XcWCmRHeZKHQYX
+	 B1CpAGJQDhL7iXhw/7SK1GHYQI+//Wl9Hmq65xoq7gPJRtn6uSh6bndbefOWLY+ZftmfN
+	 NbmGsXynDtKZnG4sxere6xHBksZBKcvADJ565Z7Td1YmDYCKqV4wBjMDIl0J5w6z4og==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="WA/vHAqI";
-	arc=none smtp.remote-ip=209.85.128.54
-Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=tHlREPoq;
+	arc=none smtp.remote-ip=209.85.221.45
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 003D7606A321
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 06:32:28 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 003D7606A321
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 158FD606A321
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 06:32:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 158FD606A321
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=WA/vHAqI
-Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-4a5720b0a57so16696695e9.0
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 22:32:28 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=tHlREPoq
+Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-48dee593f18so2050679f8f.3
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2026 22:32:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794378747; x=1794983547; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1794378754; x=1794983554; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=NjW1KmGU+DS1ERJ9U4i8KV9Kn21Cgrdw5EW3c2f8mCk=;
-        b=WA/vHAqIEHnJh6ZcLBcb+qvcB0j8M5spp1r2VAFx0pXQ1dc/VjhnstrlbE5O6eY5nN
-         5p4b2/79jrj4YjBrYwChPdDBPokn787ElHJlbWCYJ0mqS0/OFjtKybOa1pr8PZzpT7gV
-         UgfFWzInBd4BaB0vNGH5kzbevq52AwvbzS6itn1E4FyZodDxMQXyDVhT1xEi4fuI2Cqr
-         FazBxdcZxshv8vyuSKtTeOnAFWUPMTf2zbvCFWIb2eAcNzM5cUPCPCK0Cnb+MAhZp8tG
-         3CZVSW4XhW1NEOI8mM0Bnr2DPGIqwridDqSr+tUQVUWZwzBGGolKw7M0HXdxHI5QFyH8
-         PHUQ==
+        bh=iG+inULdiX/9F1jgHvoIofo1nPKwdx5Mas8WwwOmeh8=;
+        b=tHlREPoqa3VREtd/3FqXEUOQP7wEvLpOjRoM9iujAcGnu2x208KdouZARqXfWc8LUp
+         xQPFMmdwxe0xffIOTCemDQi04ZE3O+U7kC7Az5oHwzwHT0Kb/PNDdI8MkPRuIC165xZi
+         J9LjxfJQyt7jUVlixwSoVo4Au61L8iJDi0e7wUe4P5RENdlkHX28QizsvyhSScqj7GLA
+         9uTuUbaAnv7tzNWvwEHBoa9OD9fTDDsYS71kqMeeJ5Z3BL5Sq6qoectk/JdgJLn9+rnC
+         iiHX7XhC2ap7sdO9RGcsPVuCZ+FTEamoYDxeG8NQ80Ij2fqXLNBF/mvJnCFJybSK73Rb
+         FWgg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794378747; x=1794983547;
+        d=1e100.net; s=20260707; t=1794378754; x=1794983554;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=NjW1KmGU+DS1ERJ9U4i8KV9Kn21Cgrdw5EW3c2f8mCk=;
-        b=xIC2Msaw1HfOzVhlveIQFr3QkguX8AmgkdjHH++54MKSN0+VPAxhl5KF5rJKQ1qcGC
-         5qb4vsr7ZLtYmc4pzx2YCwArb02TJwyxNPrH15hoNRQ+33x8ZufWKxTPco3tbo9hQ0x7
-         sM7f/8rL5tNFb/7MoLEGwszzqLgZYgq9nCkJI14zDwzB7IMhireu/fMcTOgEydl6QYZf
-         Vu9MjkO+VUYAFckaBdIn82WOxvkWSd4wjI4Nd9EoOHl/AcAwD+C5LjwB2XRm27J/JAcz
-         AKfvI7tf99yLDjh2MvZKx5lydLnZNC6Rb18+dQciUgsl5BZvITq2SCZ0jRccVM/sOrPe
-         dlgw==
-X-Forwarded-Encrypted: i=1; AL+hErEUmrs3ayulPBwy2yew/OADs28eHkyLyq40SGXwMb93LlzsbQGYWvdBMOvE0fK14tLLR454+CjAPygJ@vger.kernel.org
-X-Gm-Message-State: APuU4Z/vZ5At/U9r+Ggeb88OYHfeMkrCvpnG4HKTfzY4wLwNV4JhaD2j
-	2IvmWRNTt/4I+LXPJDWnbc+xlzqoiTIDXZWQUwGghHpzNM5gN6yZSMvQ
-X-Gm-Gg: AYBFou02uOcJ9LEZu1b1Ia0ACOhVMlkvnvcHDOh0A/WwjSQWCKHyRdZNNKL4bVaAKTA
-	S+VS3AN3gACS7X8gauDTycd4Ygxs5SLyvkKV6ZmBqKDXGBDt7JDHBoVUXAPfypIul34FIH1WL0p
-	PJv1YaqbnypRvBenfexbRSQdP3rfUSAtE7svlqWrD7sJUkD6BjbMv5VJM0klacyFPeydNvugPea
-	pcysSlM/IXmpP1FzLOyNDKoCAVcrSQQXrKyESp28eP4yL0w7lKTDopYc9vSLIBFfKn2tgzDJUsL
-	KNhINxz5OHaWLohKABRzIT1WcN6TaMmaqr5+F/rSvH4cHZQEt47mzbXEGxGPF5BdlGJLoeA4vuF
-	qhG/yOf61766263lY+m9jkP8iJ5+rWm2r+216KM1KwxPlHIN0ALZspNq78ZjsiTTW5XqIrYWOdB
-	t+lPO7Xh6AVs5aX9723U+GqfJDnUSp9ovuDnYYOOh4qGbBh5fhWpSszWGvQb4nmlRnyZiz87f4H
-	+CyWiNCNhuBUs6CNCwyQt4sK/0VO4uXKp33NaB2jELUZlVinTYhY8OZfW1yHVSPD+b18rWxGsx2
-	d6hwzXsN7Ff0WG27EoHJPWhD5M/E9QMOijWz2cYz7mMVWx5cVv4J
-X-Received: by 2002:a05:600c:4883:b0:4a1:d45a:3ae9 with SMTP id 5b1f17b1804b1-4ba08e1775cmr17291825e9.15.1794378746896;
-        Tue, 10 Nov 2026 22:32:26 -0800 (PST)
+        bh=iG+inULdiX/9F1jgHvoIofo1nPKwdx5Mas8WwwOmeh8=;
+        b=MC8nFcF2WfkCD2ua+F/ly1p941Px7cSF8D3PWYya5Z6HC2uLJKlRJtrpUWcKLMjWD6
+         Mvo24MIyIUIrWzt23E6iX+KmFuUHuQICHBwuG3Y0Y4F2fNdIO9QrT6wqU/9tLNbVHJjC
+         /pG+gbN46bOxHv+YKH59MmtIdCPsyEfkyd4KtL0rOJ1bp5AhQZ6tfoXWookX93d/xzcX
+         8oRREnq2UFAkymB3RhLu1XEvPgeUr7fqMVS58wHYLRPZ1fN1kRDRlKee7/yrP6Sr8dJh
+         pQ6nxoc2ghYPvCvwQ2Drrm6qUKq3OBIAAO2B8lJB+8lYd+a8fnLXywgYsiemJ3rp2ipd
+         h5ow==
+X-Forwarded-Encrypted: i=1; AL+hErHhJN5A3KyPHAudgdN/OrJmG/02H6aAAkwenbPpyR3+EMmHTs+FNcb685oQJoM6QXaNeWJak2y6YD16@vger.kernel.org
+X-Gm-Message-State: APuU4Z/CGUt9QHTLVPam6NYn/3Q9gSrboviyd4om9V0HEtm+L16LhyEH
+	nu/p22FHZb0yf8+KdpFVaxPgmA5GiI+Z0ks76m+794RHJ8ItRt/yHE3B
+X-Gm-Gg: AYBFou1TQBw08S432/5wiqqMgTtpgr9f4R7cmN2cf/0CS7cbhZW1EgYQ21F5ZhRLRN7
+	VL12fEdvvnJSOVPKtm0Cwp/5PbBdGE7sAFL0FpHVthaspSrKBpgoQWEk6E3pYcrbtoZWyPKhrft
+	Q6FPFAqGKi/GazcqpD2YUBt9IsiXMcesW3mdlu6tjXDYtJq57td/xeI3NBu1VOx/in4YwxFMn1/
+	Ys5joM6tAKuiNHSEF0xJ6GrDF6DG2Ql9B9kNJe3CdepQXQfqYJ9i7bvKnL2gSkKU7rZLidNKURm
+	Sp2c+zDCn8hwbNeLF4DUzRGeBXk+zjMsjkPGscSpUe33bymJyyAlOreLxhpU3UtupiD+WcVyKvP
+	jXCIQQX8SiE14IU4LNJNvVgduYhkJ/gCcI8gMxvxwLvi6/GtDqdt/9SO07UkcI05+At3+beXSp0
+	frvlR8sA0/TyJWeOnxfxBoubY7NvzjzH5QJCse74ebHD8sc1oqoMAR97bY7hx1u/NKqUTItujlx
+	i96Y+RWiqwu9y1qfBlv5u7/ShpPuDAkfPDTap31qpkLIU+U5aqjq+52aGl5pplLKbXpn/2sHD0+
+	1nK+UWSGnFhLXRqmBL+G6RBV1eiIjKuKyHFs18VK0inc/Rhr+D6ukF48sPoq1VCWJHc0rQMRAw=
+	=
+X-Received: by 2002:a5d:64e3:0:b0:48d:ff71:dd9d with SMTP id ffacd0b85a97d-499c903d741mr1957954f8f.23.1794378754237;
+        Tue, 10 Nov 2026 22:32:34 -0800 (PST)
 Received: from Sheldon ([185.4.35.110])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4983585c5b9sm8823674f8f.9.2026.11.10.22.32.25
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-49835d2c027sm8981259f8f.24.2026.11.10.22.32.33
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Nov 2026 22:32:26 -0800 (PST)
+        Tue, 10 Nov 2026 22:32:33 -0800 (PST)
 From: Victor Carreras <vicajilau@gmail.com>
 To: rafael@kernel.org,
 	hdegoede@redhat.com,
@@ -89,12 +90,12 @@ Cc: mika.westerberg@linux.intel.com,
 	linux-pci@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH v3] ACPI: x86: Disable wakeup on MSI MS-1592 and MS-1594 dGPU root port
-Date: Wed, 11 Nov 2026 07:32:21 +0100
-Message-ID: <20261111063221.14478-1-vicajilau@gmail.com>
+Subject: Re: [PATCH v2] ACPI: x86: Disable wakeup on MSI MS-1592 and MS-1594 dGPU root port
+Date: Wed, 11 Nov 2026 07:32:27 +0100
+Message-ID: <20261111063227.14511-1-vicajilau@gmail.com>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20261024054711.21587-1-vicajilau@gmail.com>
-References: <20261024054711.21587-1-vicajilau@gmail.com>
+In-Reply-To: <CAJZ5v0iqOoS8t-5PFeLPuaJrpeByx2Yr-dnpYU2fT6yTb6-7=A@mail.gmail.com>
+References: <CAJZ5v0iqOoS8t-5PFeLPuaJrpeByx2Yr-dnpYU2fT6yTb6-7=A@mail.gmail.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -106,140 +107,26 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-On MSI Summit E16 Flip A12UCT (motherboard MS-1592, BIOS E1592IMS.111)
-and MSI Prestige 16 Studio A13VE / Summit E16 Flip A13VET (motherboard
-MS-1594, BIOS E1594IMS.115), the I2C touchpad (ELAN0305:00, 04F3:31FD)
-permanently stops generating interrupts as soon as the discrete NVIDIA
-GPU (0000:01:00.0) and its parent PCIe Root Port (0000:00:06.0,
-\_SB.PC00.PEG0) enter D3cold.
+On Mon, Nov 9, 2026 at 8:32 PM Rafael J. Wysocki wrote:
+> Please see Sashiko's feedback on this one and let me know what you
+> think about it:
 
-In the platform's SSDT (MSI_NB / AdlP_Rvp), \_SB.PC00.PEG0 sets its wake
-GPIO (WAKG) from the BIOS NVS variable P1WP, which erroneously points to
-GPP_A20 (INTC1055:00 pin 62) -- the GPIO interrupt line wired to the
-touchpad.
+Hi Rafael,
 
-During boot, \_SB.PC00.PEG0.PON() calls \_SB.SHPO(WAKG, One), setting
-PAD_CFG0_GPP_A20.GPIROUTSCI = 0 and HostSwOwn = 1 so the OS GPIO driver
-owns the pin. However, when the root port runtime-suspends to D3cold,
-Linux enables ACPI wakeup via \_SB.PC00.PEG0._DSW(1, 0, 3), which sets
-WKEN = 1. Subsequent evaluation of \_SB.PC00.PEG0.PXP._OFF -> POFF()
-executes:
+Sashiko is right, v2 does not work as intended. Clearing can_wakeup in a
+final fixup is undone by pcie_pme_can_wakeup() when the PME service
+binds, and in any case acpi_pci_wakeup() and acpi_pci_propagate_wakeup()
+only look at adev->wakeup.flags.valid, so _DSW on PEG0 still gets
+evaluated, both for the root port itself and when wakeup is propagated
+from the dGPU below it.
 
-  If (CondRefOf (WAKG))
-  {
-      If (((WAKG != Zero) && WKEN))
-      {
-          \_SB.SHPO (WAKG, Zero)
-      }
-  }
+v3 follows the suggestion: it clears adev->wakeup.flags.valid from a
+DECLARE_PCI_FIXUP_EARLY quirk, which runs in pci_setup_device() after
+pci_set_acpi_fwnode() and before device_add() calls pci_acpi_setup(),
+so pci_acpi_setup() and pci_acpi_cleanup() stay balanced and both
+paths skip PEG0. With v3 and the SSDT workaround removed, the root port
+and the dGPU reach D3cold on my MS-1594 and the touchpad keeps working
+across repeated D3cold cycles. I'm sending it as a reply to this thread.
 
-This switches GPP_A20 ownership to ACPI GPE mode (HostSwOwn = 0,
-GPIROUTSCI = 1), silencing the touchpad interrupt until the dGPU wakes
-back up to D0. Under Windows, _DSW is not armed for S0 D3cold on this
-root port, leaving WKEN = 0 so POFF() powers off the dGPU (\PIN.OFF(PWRG))
-without touching GPP_A20.
-
-_DSW on the root port is reached through two paths: acpi_pci_wakeup()
-on the root port itself, and acpi_pci_propagate_wakeup() when the dGPU
-below it runtime-suspends. Both only check acpi_pm_device_can_wakeup(),
-i.e. adev->wakeup.flags.valid, so clearing the device's wakeup
-capability is not enough (the PCIe PME service sets it again anyway).
-
-Add an early PCI fixup in drivers/acpi/x86/utils.c for boards MS-1592
-and MS-1594 on root port 0000:00:06.0 (8086:464d on 12th Gen Alder
-Lake-P and 8086:a74d on 13th Gen Raptor Lake-P/H) that clears
-adev->wakeup.flags.valid on its ACPI companion. Early fixups run from
-pci_setup_device() after pci_set_acpi_fwnode() and before
-pci_device_add() calls device_add(), so pci_acpi_setup() never sees the
-port as ACPI wakeup capable and stays balanced with pci_acpi_cleanup().
-The root port and dGPU still reach D3cold normally, while GPP_A20 stays
-owned by the GPIO driver.
-
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=220725
-Cc: stable@vger.kernel.org
-Signed-off-by: Victor Carreras <vicajilau@gmail.com>
----
-Changes in v3:
-- Clear adev->wakeup.flags.valid from a DECLARE_PCI_FIXUP_EARLY quirk
-  instead of clearing the device wakeup flags in a final fixup. In v2,
-  pcie_pme_mark_devices() set can_wakeup back to true, and
-  acpi_pci_wakeup() / acpi_pci_propagate_wakeup() only check
-  adev->wakeup.flags.valid, so _DSW was still evaluated (sashiko-bot).
-  Running before pci_acpi_setup() keeps setup and cleanup balanced.
-- Tested on MS-1594 without the SSDT override: PEG0 no longer shows up
-  in /proc/acpi/wakeup, the root port and dGPU reach D3cold and the
-  touchpad keeps generating interrupts across repeated D3cold cycles.
-- Link to v2: https://lore.kernel.org/r/20261024054711.21587-1-vicajilau@gmail.com
-
-Changes in v2:
-- Move the quirk from drivers/pci/quirks.c to drivers/acpi/x86/utils.c
-  as it is x86-specific (Lukas Wunner).
-- Link to v1: https://lore.kernel.org/r/179272791966.20251.3697951431087014523@gmail.com
-
- drivers/acpi/x86/utils.c | 53 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 53 insertions(+)
-
-diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
-index 418951639..11a5d51be 100644
---- a/drivers/acpi/x86/utils.c
-+++ b/drivers/acpi/x86/utils.c
-@@ -665,3 +665,56 @@ void __init acpi_proc_quirk_mwait_check(void)
- 	 */
- 	dmi_check_system(acpi_proc_quirk_mwait_dmi_table);
- }
-+
-+/*
-+ * On MSI Summit E16 Flip A12UCT (board MS-1592) and MSI Prestige 16 Studio
-+ * A13VE / Summit E16 Flip A13VET (board MS-1594), the BIOS SSDT (MSI_NB /
-+ * AdlP_Rvp) assigns the touchpad's GPIO interrupt pin (GPP_A20) as the PCIe
-+ * wake GPIO (WAKG / P1WP) for the dGPU root port (\_SB.PC00.PEG0, 0000:00:06.0).
-+ *
-+ * When ACPI wakeup is armed on this root port via _DSW (setting WKEN = 1),
-+ * subsequent D3cold transitions (\_SB.PC00.PEG0.PXP._OFF -> POFF) call
-+ * \_SB.SHPO(WAKG, Zero), switching GPP_A20 ownership from GPIO driver mode
-+ * to ACPI GPE mode and freezing the I2C touchpad (ELAN0305:00).
-+ *
-+ * Mark the root port's ACPI wakeup as invalid so that _DSW is never evaluated
-+ * for it, neither directly nor when wakeup is propagated from the dGPU below
-+ * it. This has to happen before pci_acpi_setup() runs from device_add(), so
-+ * that pci_acpi_setup() and pci_acpi_cleanup() see the same state.
-+ */
-+static const struct dmi_system_id msi_peg0_no_wakeup_dmi_table[] = {
-+	{
-+		.ident = "MSI MS-1592",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_VENDOR, "Micro-Star International Co., Ltd."),
-+			DMI_MATCH(DMI_BOARD_NAME, "MS-1592"),
-+		},
-+	},
-+	{
-+		.ident = "MSI MS-1594",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_VENDOR, "Micro-Star International Co., Ltd."),
-+			DMI_MATCH(DMI_BOARD_NAME, "MS-1594"),
-+		},
-+	},
-+	{}
-+};
-+
-+static void quirk_msi_peg0_no_wakeup(struct pci_dev *dev)
-+{
-+	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
-+
-+	if (!adev || !adev->wakeup.flags.valid)
-+		return;
-+
-+	if (pci_dev_id(dev) != PCI_DEVID(0, PCI_DEVFN(6, 0)))
-+		return;
-+
-+	if (!dmi_check_system(msi_peg0_no_wakeup_dmi_table))
-+		return;
-+
-+	pci_info(dev, FW_BUG "Disabling ACPI wakeup to avoid touchpad GPIO (GPP_A20) takeover in D3cold\n");
-+	adev->wakeup.flags.valid = 0;
-+}
-+DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, 0x464d, quirk_msi_peg0_no_wakeup);
-+DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, 0xa74d, quirk_msi_peg0_no_wakeup);
--- 
-2.55.0
-
+Thanks,
+Victor
