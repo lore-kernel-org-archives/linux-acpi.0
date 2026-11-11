@@ -1,116 +1,107 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.201.11
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794434934;
-	b=WdwuORoxsVmgWZDVxudjJFXDqgqPif+6sGf7snIB31hgO8QC3HiZzOUTmnb87TnOGbZk
-	 70r5Il78hs1OhzsUEXNCZtQNpMKgB2HXlTEbSNUTkOhwte+MNtK3U543b68t+QoH70buU
-	 lnfNxbQxjM14zaK6XyEIMR8f1b80B297k1kVoRNN0Dfb8o390klnObjjH1emOayhJTDPR
-	 kh8sEUnualCda1mSB72dTMFrw3cCzW9iFtuqpwZUl5cn/B14DIViCEkc5nh51Gxf0ajVQ
-	 F4cz/Ti40Gf6jsLd6NaK8Jwx9dABCeoF+K+3NS/Xc4Dxtj++Yi9zdDWXJZCpC32Worw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794434934;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:
-	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
-	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:X-NVConfidentiality:Content-Transfer-Encoding:
-	 Content-Type:X-NV-OnPremToCloud:X-EOPAttributedMessage:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=DZrDaT88E7rxQE6CFTvx0rUumxlFGk0WC20F/8OkLFQ=;
-	b=BqsuEiOpdAxAIKKnApZBPzFXiExfIP4gSjD4fzzSbwFliYeZ0Mbr+/UQvL5DdPK7x4/a
-	 ngjzKJveUEorwJSJBZMoUT3lIrjD/jn6FPAlyCTk03GHtAjLlE85BOxJGUYEQ6YgmOSlQ
-	 ysd9Kr677eMtqtDI04QflACp+YmpbKr1xKi51binUfVhdcppAzfpWb5zR4/hIiLVnALXB
-	 hiZ1VhJ9isq+TqKX6t5EBbmx3CHmRM1v3KBKgLeGu2dgSvWdGNEf/cj2FIhi2EvnQ4sCV
-	 t8a9n1JPxBuGJrfFEXCjlPq+k+3eTaC84dvoy3a9OPxiyWcfXRdpnM2OSFrXq6cUn7w==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=gy0G6FeT;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.201.11
-Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010011.outbound.protection.outlook.com [52.101.201.11])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.15
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794440906;
+	b=e4qmqC59oyBEpiQNfwsXY3bFhHOY0gbhLKOjGWvlNrCRogxDH7w4FlWVTTyyPNHsQzYF
+	 skS1aWmTTj+UwDMJmrTn4Z2S8mOH/gzt1Mk+5YdqMnfTHC7k8EHm6pNneXhHb8BhS5TuV
+	 +uUzWNkSorbwm8UVxKPYU6KgNAS1EZhXzSf4e9EMkmHWq9JfbzaVVu8n7pfFkZWnQm1tl
+	 zBvlYhRnA4DXcFYUkZzbzaMdc9/htiN4NPmnNdExQFXzZS0e64NqOV1Q4cVweVHqFvPSO
+	 5mexJmqq1nxBm+zcjvB0BgLkaQi88JMuNgkq0VbaQq1oxNYrNAySOEQQggU1sA9lcNA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794440906;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=o13O8owmD+D7aAocojuQlucbQ1j1UddkBba8uNnH+YQ=;
+	b=CKAq7eBdGz/RCTSWyZX0lfJOG3B+K4Wu6A2pCouWWhmrNk8Dg5WdVjSAnuLN7j2tAbvz
+	 pCdbrAxSevCdkVX1FYUTKr6lnswdH5ug8iNZY6CJLNdEv5ptnXENMS2TD7yawJ5SmNk6S
+	 TAWSAmnLBj68PbnKoOQfO7vKgbAz60wA79LvP8Ry1kTqQHtFEP14UQM+i6KEluagthR+e
+	 57nFxJgAOFmScve9sa+St+kCjwt3AJ/FwGLECJPP/RsbbX/xYNR3OsvrZe3EEFULCra39
+	 ppr39DhXS8ZKBYC+drnk0HuUIPpfRFJRmOdkVAXYd42i/0PBOXJIiXF+pG6FSskv7Vg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=YKkCWlIq;
+	arc=none smtp.remote-ip=192.198.163.15
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0C0D606A31C;
-	Wed, 11 Nov 2026 22:08:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A0C0D606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8128F606A8A5;
+	Wed, 11 Nov 2026 23:48:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8128F606A8A5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=gy0G6FeT
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=qWe3sRhPg59fqFCUSzz9TH9RbVNfWJ5t/OPa3IN9qJ5pLDXEzmPr82eNP6p9YjS48r1bZ8GbgvsPDc36KgZZLOkggU5jJkXWLpbqfZZl9+HsFrUDdRDndpsGvsJs2Z42TXd11K4d4OzPBwV7fevKec3pCss9s1sK3xVzpLP2sOuEVC9Zq+E7iZ0wGzUvquDjqsj8iLXfG/inJFJ6uCkOYxZeh1vVs9hGCQvAcJ5Kb0lpEDALPEI7th0LANGsSSQyXLZifGIEWeBxqsQaJhtpdaYsVoQc5qdHSOy90V2OEnFCIeHTSZieWzlVtD7BJ3+TGVrVTKC+buWvn0RcXl660w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=DZrDaT88E7rxQE6CFTvx0rUumxlFGk0WC20F/8OkLFQ=;
- b=iYQwQk/MCqZOgpOmtWN/yjW2NtSZNdB0fRt72uuFIPfoD7gY4xILoxBKchBxK5gN8oK5clHs1Ccho2lvu7l2wfDnTYWv6H1YkvXXsIUCQK+rb4/NvfBhUh3of/geMOIm42Bs26XecceL6mHWtax8AiCt6FyKBw5DgsOCRgveEy0yYIeG2QO+ixDtusRUB4jvtQy7WzABBRv5OdjXXOIMGLdwGpjCFO093sZ2A2XNacBRTVHx2fbjtFHyk6aE5E2Pf8AsbKi+losS8fK2yBEKstjlzx7peu7HQRlR1aAHbHY+4B8XatEKiclzHC4x6jUrKEsSCJzL0ZhsfhtLS5hULA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=DZrDaT88E7rxQE6CFTvx0rUumxlFGk0WC20F/8OkLFQ=;
- b=gy0G6FeTMsyemL0A36ULsD/7UDVMhOwPz3EGtbc2o/y4GMUHNh012fAplPdbNTrvaCJPnOICRPka7zhb87slAm5lq9KBqYd8WaGjVHeol9xBuG8I57JjFlsdW05eDmnFVd+EAUcayrNcG5zGX170q7LWCJ4/A/yj8G/1Vg3LXKDAEGqtdG4CUuzL05aacp2zu497z9AOqbqIpd3KjMJBQ78QJ5dRpdBKnF+zqikB6WlvMOd3XzwHiW7N9kUag6r04x3n487B+L8V0nTlYiDMzLB7rg4pJnivhV8jJx/u9QExUW+ym0bwdkqk7HmZ3X19bXc/Rxu6WvdJS5OO1WSE9A==
-Received: from CH0PR03CA0199.namprd03.prod.outlook.com (2603:10b6:610:e4::24)
- by SA3PR12MB7877.namprd12.prod.outlook.com (2603:10b6:806:31b::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.9; Wed, 11 Nov
- 2026 22:08:46 +0000
-Received: from DM3PEPF000265BA.namprd04.prod.outlook.com
- (2603:10b6:610:e4:cafe::36) by CH0PR03CA0199.outlook.office365.com
- (2603:10b6:610:e4::24) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.9 via Frontend Transport; Wed, 11
- Nov 2026 22:08:46 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.117.160) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- DM3PEPF000265BA.mail.protection.outlook.com (10.167.23.247) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Wed, 11 Nov 2026 22:08:46 +0000
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Wed, 11 Nov
- 2026 14:08:34 -0800
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail204.nvidia.com
- (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Wed, 11 Nov
- 2026 14:08:34 -0800
-Received: from sumitg-l4t.nvidia.com (10.127.8.14) by mail.nvidia.com
- (10.129.68.6) with Microsoft SMTP Server id 15.2.2562.56 via Frontend
- Transport; Wed, 11 Nov 2026 14:08:27 -0800
-From: Sumit Gupta <sumitg@nvidia.com>
-To: <rafael@kernel.org>, <viresh.kumar@linaro.org>, <zhanjie9@hisilicon.com>,
-	<zhenglifeng1@huawei.com>, <christian.loehle@arm.com>,
-	<maciej.wieczor-retman@intel.com>, <pawel.chmielewski@intel.com>,
-	<lenb@kernel.org>, <corbet@lwn.net>, <skhan@linuxfoundation.org>,
-	<rdunlap@infradead.org>, <linux-pm@vger.kernel.org>,
-	<linux-acpi@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
-	<linux-tegra@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>
-CC: <treding@nvidia.com>, <jonathanh@nvidia.com>, <vsethi@nvidia.com>,
-	<ksitaraman@nvidia.com>, <sanjayc@nvidia.com>, <mochs@nvidia.com>,
-	<bbasu@nvidia.com>, <sumitg@nvidia.com>
-Subject: [PATCH v6] cpufreq: CPPC: Add autonomous mode boot parameter support
-Date: Thu, 12 Nov 2026 03:38:03 +0530
-Message-ID: <20261111220803.3953790-1-sumitg@nvidia.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=YKkCWlIq
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794440905; x=1825976905;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=9Cuegc/MuoDCo4oN8xNnf/pcpxsFdQP4keN2fSB0lfE=;
+  b=YKkCWlIqbv+MntrVW1kAk69u3zKeJW/GD1CSSwTDnD0Ob5D5SSbeHTyk
+   sn4s6B0i5m3smTrzwoOWuw267qBIEuwr6p478RQ98VMyz4jaTZMRqa8OI
+   Mp21r62yVLog0SEOLH8g9oiiS+XJw8tIDfKJLWcW1+WPpeAw7Cp5eQZYK
+   VUs4fCT9XSPPNw8Gz3Q+/XOcj+Zu8+5r8UpZ/bTqN71fy78UofwJ3iQkr
+   kIUQnTrIexfFu5g6wwamCCXnSwSedS8eioqwBWo9afJjbK3YH1HEW9vGu
+   ncLWDOk5VcDaCWPjN3+VQ7Q1bvv0OXHnM/7WRmlUPz3VLUvNTmBaQVuq2
+   g==;
+X-CSE-ConnectionGUID: CoDb8OI1Tyi/PFsg04QF8w==
+X-CSE-MsgGUID: 5vdL11maS5+oamVRHcg31w==
+X-IronPort-AV: E=McAfee;i="6800,10657,11963"; a="3226550"
+X-IronPort-AV: E=Sophos;i="6.27,208,1787036400"; 
+   d="scan'208";a="3226550"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Nov 2026 15:48:24 -0800
+X-CSE-ConnectionGUID: OBrl5lPZQVGsO4ZZ0YyItw==
+X-CSE-MsgGUID: Wdq4BZXQSVqd2thien9rrw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,208,1787036400"; 
+   d="scan'208";a="8512350"
+Received: from pavel-dev.sc.intel.com (HELO pepopov-mobl2.intel.com) ([10.3.206.11])
+  by orviesa002.jf.intel.com with ESMTP; 11 Nov 2026 15:48:21 -0800
+From: Pavel Popov <pavel.e.popov@intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Viresh Kumar <viresh.kumar@linaro.org>,
+	Jani Nikula <jani.nikula@linux.intel.com>,
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+	Rodrigo Vivi <rodrigo.vivi@intel.com>,
+	Tvrtko Ursulin <tursulin@ursulin.net>,
+	Alex Deucher <alexander.deucher@amd.com>,
+	=?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
+	Hans de Goede <hansg@kernel.org>,
+	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Peter Huewe <peterhuewe@gmx.de>,
+	Jarkko Sakkinen <jarkko@kernel.org>,
+	Tom Lendacky <thomas.lendacky@amd.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Pavel Popov <pavel.e.popov@intel.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Len Brown <lenb@kernel.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	David Airlie <airlied@gmail.com>,
+	Simona Vetter <simona@ffwll.ch>,
+	"David S . Miller" <davem@davemloft.net>,
+	x86@kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-pm@vger.kernel.org,
+	intel-gfx@lists.freedesktop.org,
+	amd-gfx@lists.freedesktop.org,
+	dri-devel@lists.freedesktop.org,
+	platform-driver-x86@vger.kernel.org,
+	linux-integrity@vger.kernel.org,
+	linux-crypto@vger.kernel.org,
+	linux-arch@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 0/7] Include <asm/cpu_device_id.h> without #ifdef CONFIG_X86
+Date: Wed, 11 Nov 2026 16:48:13 -0700
+Message-ID: <20261111234821.4814-1-pavel.e.popov@intel.com>
+X-Mailer: git-send-email 2.54.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -120,296 +111,52 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-NVConfidentiality: public
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM3PEPF000265BA:EE_|SA3PR12MB7877:EE_
-X-MS-Office365-Filtering-Correlation-Id: fea823f7-335f-458a-61a2-08df40405b51
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|36860700016|7416014|1800799024|23010399003|82310400026|921020|11063799006|261026121527099003|261022113327099003|261022105027099003|261026140227099003|261022075727099003|261028144727099003|261021121427099003|56012099006|261102123227099003|10067099003|261009223027099003|18002099003|6133799003|13003099007|3023799007;
-X-Microsoft-Antispam-Message-Info:
-	RfeTXsHYqaBS9OE5LAGtQpSXAK3APu7inG6HYEnvW8sWmEFgtkJ+bMKoHCC9uYlGga20hDvar90aSgkecSa5S06O8N3r+mhJlBBJHLOrLk6T//8eLjiEpr5laBSsuNhZUHiTji9CwI+8qh+0kf0srrxjHRncmuj4+YeCIzWYlf9QtfPYM9Fos3JxFB/woTTXKF3wHzZPzbckIlUHqfFtHHKTeqPclrXXCNouFRDVHS2Eoq8lZRQzjMGchN2vrOcWtUBajphUA5MkIRvIUxOjPsf9pjVO5E7EpSf64YduX4YwHK6CcMC/pSALLaNF3p4tjxpdnEbFKk7vkZ1zrAQwpXagSsr+P7y7B0Gdep9ADBqCJ9VViEsz6xzgi9YAxHftCRYJ6TMSZvY4jk6BvY6DjXKQKaE4kHKESmlmTl1vRALGklpuuTQ8ICekPSU9UDlE+T939g7As0OG4GMkyveh9XrUpTmAY3008P1qomYTFMB5pEMldzG1N5TR439nKZi1OhOcY0971X7lAUbjcg7oWWA5DrO0cb/QMnY1T4ZApvxbRC0R4dHpDlkhiVXwrmoQnNZA8jqyEyDPU8/Lg7LWKzg6h1Gk16D3lM6qsyxgaTmhj45U5MHGXVw22bmMGh2LHDJpKfgGQfFht+NKlDyYxgNyuvwFdTnsVmSuLXXF9fwnzAbSfOH+vz08XOXNxshZkt7rzUaZ0c8fURiAhQq9mC0QzAz4M15HTGSo9YEFSXMdhCzwJ67haq1xzoAvqvj9
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(36860700016)(7416014)(1800799024)(23010399003)(82310400026)(921020)(11063799006)(261026121527099003)(261022113327099003)(261022105027099003)(261026140227099003)(261022075727099003)(261028144727099003)(261021121427099003)(56012099006)(261102123227099003)(10067099003)(261009223027099003)(18002099003)(6133799003)(13003099007)(3023799007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	w0zAKeuN2j7syc6ErX5oEeRDH3piNpQEw539AS7q6oeZmsyLM9aRowyXUvg0v9K51APtkj/0amY6QRf3S1+1gSAoPQVQkClqUDH+0i5pVWfxleORP49+GYuzAv2aFJiIUyrdZMK/tuL8yOxUJWF2yfOaLlDeODiQh687Ur2A3o3KEwpL8vBFgBmme8q8EtweOH+L4kB0Gto0Vc5hePGM0pm+Ss4fqDKyTuK9IjtR2hAiGCnWVHHaq8xdmaQDLthmw34Pyc3tpgHQ9yBXvuidBwMhog2TkBhjzIygAX50ERTI6EWDzHsEEbXJpqzS/D5QRG6bEBvk3FljYwRBHK4yYJ0TZsKk35Fkp8yR6spDJiL9xeYTtWqRQ6NknK0wZz6m7L7At1O0C8kj0gLYkjYaBGoCyCsjhNzADsS6hrerQL0XPx4uHDh7dxAt6nwho+XY
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Nov 2026 22:08:46.2752
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: fea823f7-335f-458a-61a2-08df40405b51
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	DM3PEPF000265BA.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR12MB7877
 
-Configuring autonomous selection and Energy Performance Preference (EPP)
-at every boot currently requires per-policy sysfs writes.
+<asm/cpu_device_id.h> exists only on x86, so generic code that uses it
+wraps the include in #ifdef CONFIG_X86. The P2PDMA series [1] adds a
+generic version of the header, so the include can be unconditional.
 
-Add the 'cppc_cpufreq.auto_sel_mode' boot parameter to enable autonomous
-selection during policy initialization and optionally set EPP. In
-autonomous mode, the platform selects the performance level within the
-MIN and MAX limits, which the driver sets from the policy limits. The EPP
-hint guides that selection.
+This series drops the #ifdef around the include in the remaining
+users, and in ccp, which does not use the header, the include itself.
+Some of them also include <asm/intel-family.h>, which has no
+generic version. That include is removed: on x86 it is already pulled
+in by <asm/cpu_device_id.h>, and on other architectures the INTEL_*
+model defines are not used. The #ifdef stays around code that needs
+x86 for other reasons: CPU match tables using the INTEL_* model
+defines and boot_cpu_data accesses.
 
-The parameter accepts:
-- performance: enable autonomous selection and set EPP to 0x00
-- balance_performance: enable it and set EPP to 0x80
-- balance_power: enable it and set EPP to 0xc0
-- power: enable it and set EPP to 0xff
-- default_epp: enable it and preserve firmware EPP
-- disabled: preserve the firmware configuration (default)
+Patches 1-6 are independent of each other and can go through the
+respective trees once [1] has landed. Patch 7 does not depend on [1].
 
-Warn about unrecognized values and ignore them.
+Based on mainline (7.4-rc2+) plus [1]. Built with x86_64 and arm64
+allmodconfig, each patch separately.
 
-Skip policies without autonomous-selection support. The driver enables
-autonomous selection before writing EPP, as the platform may ignore EPP
-while autonomous selection is disabled.
+[1] https://lore.kernel.org/r/20261111234439.4098-1-pavel.e.popov@intel.com
 
-Record successful writes so the existing online and resume paths reapply
-the requested values. The offline and suspend paths restore the saved
-firmware values, including during driver unload.
+Pavel Popov (7):
+  ACPI: mipi-disco-img: Include <asm/cpu_device_id.h> unconditionally
+  drm/i915: Include <asm/cpu_device_id.h> unconditionally
+  drm/amdgpu: Include <asm/cpu_device_id.h> unconditionally
+  cpufreq: ondemand: Include <asm/cpu_device_id.h> unconditionally
+  platform/x86: Include <asm/cpu_device_id.h> unconditionally in soc.h
+  tpm: Include <asm/cpu_device_id.h> unconditionally
+  crypto: ccp - Drop unused <asm/cpu_device_id.h> include
 
-Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
----
-This is based on the "Preserve OSPM-set registers" [1] and
-"ospm_nominal_perf" [2] series, which are applied for 7.5.
+ drivers/acpi/mipi-disco-img.c              | 5 ++---
+ drivers/char/tpm/tpm.h                     | 2 --
+ drivers/cpufreq/cpufreq_ondemand.h         | 4 ++--
+ drivers/crypto/ccp/ccp-dev.c               | 3 ---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_device.c | 3 ---
+ drivers/gpu/drm/i915/intel_cpu_info.c      | 5 ++---
+ include/linux/platform_data/x86/soc.h      | 5 ++---
+ 7 files changed, 8 insertions(+), 19 deletions(-)
 
-v5 -> v6:
-- Split "Set CPPC Enable register in cpu_init" into a separate fix [3].
-- Accept strings only (Pierre [4]).
-- Move the setup into cppc_cpufreq_setup_auto_sel_mode() and check
-  autonomous selection support first (Pierre [4]).
-- Drop the last_governor check, as init() now runs only for a new
-  policy (Pierre [4]).
-- Drop the MIN/MAX seeding, Desired hint and policy->min/max override,
-  as init() and the governor already set valid values (Pierre [4]).
-- Apply the parameter at the end of init(), after the usual
-  performance controls write.
-- Save auto_sel and EPP through the saved-register code from [1]
-  (Sashiko [5]).
-- Drop the cppc_cpufreq_exit() loop that cleared auto_sel on all
-  present CPUs (Pierre [4], Sashiko [5]).
-- Enable autonomous selection before writing EPP.
-- Set EPP also when firmware has already enabled autonomous selection.
-- Add the balance_power (0xc0) and power (0xff) modes.
-- Ignore an unrecognized value instead of treating it as disabled.
 
-v5: https://lore.kernel.org/lkml/20260623080652.3353386-1-sumitg@nvidia.com/
-[1] https://lore.kernel.org/lkml/20261106193304.3347374-1-sumitg@nvidia.com/
-[2] https://lore.kernel.org/lkml/20261109195400.3600561-1-sumitg@nvidia.com/
-[3] https://lore.kernel.org/lkml/20261110101246.3665797-1-sumitg@nvidia.com/
-[4] https://lore.kernel.org/lkml/f61f592a-bc9c-4a83-bde1-e999c8101c36@nvidia.com/
-[5] https://sashiko.dev/#/patchset/20260623080652.3353386-1-sumitg@nvidia.com
-
- .../admin-guide/kernel-parameters.txt         |  26 ++++
- drivers/cpufreq/cppc_cpufreq.c                | 120 ++++++++++++++++++
- include/acpi/cppc_acpi.h                      |   2 +
- 3 files changed, 148 insertions(+)
-
-diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 0b3c140babd9..5714c0d30fce 100644
---- a/Documentation/admin-guide/kernel-parameters.txt
-+++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -1015,6 +1015,32 @@ Kernel parameters
- 			Format:
- 			<first_slot>,<last_slot>,<port>,<enum_bit>[,<debug>]
- 
-+	cppc_cpufreq.auto_sel_mode=
-+			[ACPI,CPU_FREQ] Enable ACPI CPPC autonomous performance
-+			selection on all CPUs at boot. In autonomous mode, the
-+			platform selects the performance level within the CPPC
-+			Minimum and Maximum Performance limits. The driver sets
-+			these limits from scaling_min_freq and scaling_max_freq.
-+			The Energy Performance Preference (EPP) hint guides the
-+			platform toward performance (0x00) or energy efficiency
-+			(0xff).
-+			Requires the ACPI CPPC Autonomous Selection Enable
-+			register. EPP is set only if the platform implements it.
-+			Format: <string>
-+			  performance:
-+				  enable autonomous selection, set EPP to 0x00
-+			  balance_performance:
-+				  enable autonomous selection, set EPP to 0x80
-+			  balance_power:
-+				  enable autonomous selection, set EPP to 0xc0
-+			  power:
-+				  enable autonomous selection, set EPP to 0xff
-+			  default_epp:
-+				  enable autonomous selection, keep firmware EPP
-+			  disabled:
-+				  keep the firmware configuration (default)
-+			An unrecognized value is ignored with a warning.
-+
- 	cpuidle.off=1	[CPU_IDLE]
- 			disable the cpuidle sub-system
- 
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-index a62589c0674f..c9bed93cf0c9 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -238,6 +238,58 @@ static void cppc_cpufreq_apply_saved_regs(struct cpufreq_policy *policy,
- 					     saved_type);
- }
- 
-+/* Autonomous Selection boot parameter modes */
-+enum {
-+	AUTO_SEL_MODE_DISABLED,
-+	AUTO_SEL_MODE_PERFORMANCE,
-+	AUTO_SEL_MODE_BALANCE_PERFORMANCE,
-+	AUTO_SEL_MODE_BALANCE_POWER,
-+	AUTO_SEL_MODE_POWER,
-+	AUTO_SEL_MODE_DEFAULT_EPP,
-+};
-+
-+static const char * const auto_sel_mode_names[] = {
-+	[AUTO_SEL_MODE_DISABLED]		= "disabled",
-+	[AUTO_SEL_MODE_PERFORMANCE]		= "performance",
-+	[AUTO_SEL_MODE_BALANCE_PERFORMANCE]	= "balance_performance",
-+	[AUTO_SEL_MODE_BALANCE_POWER]		= "balance_power",
-+	[AUTO_SEL_MODE_POWER]			= "power",
-+	[AUTO_SEL_MODE_DEFAULT_EPP]		= "default_epp",
-+};
-+
-+static int auto_sel_mode;
-+
-+static int auto_sel_mode_set(const char *val, const struct kernel_param *kp)
-+{
-+	int *mode = kp->arg;
-+	int ret;
-+
-+	ret = sysfs_match_string(auto_sel_mode_names, val);
-+	if (ret < 0) {
-+		pr_warn("Invalid auto_sel_mode \"%s\", ignoring it\n", val);
-+		return 0;
-+	}
-+
-+	*mode = ret;
-+	return 0;
-+}
-+
-+static int auto_sel_mode_get(char *buffer, const struct kernel_param *kp)
-+{
-+	int *mode = kp->arg;
-+
-+	return sysfs_emit(buffer, "%s\n", auto_sel_mode_names[*mode]);
-+}
-+
-+static const struct kernel_param_ops auto_sel_mode_ops = {
-+	.set = auto_sel_mode_set,
-+	.get = auto_sel_mode_get,
-+};
-+
-+module_param_cb(auto_sel_mode, &auto_sel_mode_ops, &auto_sel_mode, 0444);
-+MODULE_PARM_DESC(auto_sel_mode,
-+		 "Autonomous selection mode: performance, balance_performance, balance_power, power, default_epp, disabled");
-+
- #ifdef CONFIG_ACPI_CPPC_CPUFREQ_FIE
- static enum {
- 	FIE_UNSET = -1,
-@@ -938,6 +990,72 @@ static u32 cppc_cpufreq_effective_nominal(struct cpufreq_policy *policy)
- 	return (u32)ospm_nominal;
- }
- 
-+/*
-+ * Apply the auto_sel_mode boot parameter in init(). Enable autonomous
-+ * selection unless it is already enabled. Then set EPP for the selected mode.
-+ *
-+ * Enable auto_sel before writing EPP, as the platform may ignore EPP while
-+ * autonomous selection is disabled. Save each value written, so that online()
-+ * and resume() write it again.
-+ */
-+static void cppc_cpufreq_setup_auto_sel_mode(struct cpufreq_policy *policy)
-+{
-+	struct cppc_policy_state *st = cppc_cpufreq_policy_state(policy);
-+	struct cppc_cpudata *cpu_data = policy->driver_data;
-+	unsigned int cpu = policy->cpu;
-+	u64 auto_sel, epp;
-+	int ret;
-+
-+	if (auto_sel_mode == AUTO_SEL_MODE_DISABLED)
-+		return;
-+
-+	/* U64_MAX means the platform does not implement the register. */
-+	auto_sel = st->regs[CPPC_SAVED_AUTO_SEL][CPPC_SAVED_FIRMWARE];
-+	if (auto_sel == U64_MAX) {
-+		pr_info_once("Autonomous selection is not supported, ignoring auto_sel_mode\n");
-+		return;
-+	}
-+
-+	if (!auto_sel) {
-+		ret = cppc_set_auto_sel(cpu, true);
-+		if (ret) {
-+			pr_warn("Failed to enable auto_sel for CPU%u (%d)\n",
-+				cpu, ret);
-+			return;
-+		}
-+		cppc_cpufreq_save_requested(policy, CPPC_SAVED_AUTO_SEL, true);
-+	}
-+	cpu_data->perf_ctrls.auto_sel = true;
-+
-+	switch (auto_sel_mode) {
-+	case AUTO_SEL_MODE_PERFORMANCE:
-+		epp = CPPC_EPP_PERFORMANCE_PREF;
-+		break;
-+	case AUTO_SEL_MODE_BALANCE_PERFORMANCE:
-+		epp = CPPC_EPP_BALANCE_PERFORMANCE_PREF;
-+		break;
-+	case AUTO_SEL_MODE_BALANCE_POWER:
-+		epp = CPPC_EPP_BALANCE_POWER_PREF;
-+		break;
-+	case AUTO_SEL_MODE_POWER:
-+		epp = CPPC_EPP_ENERGY_EFFICIENCY_PREF;
-+		break;
-+	default:
-+		/* default_epp keeps the EPP value set by firmware. */
-+		return;
-+	}
-+
-+	/* EPP is optional. */
-+	ret = cppc_set_epp(cpu, epp);
-+	if (ret) {
-+		if (ret != -EOPNOTSUPP)
-+			pr_warn("Failed to set EPP for CPU%u (%d)\n", cpu, ret);
-+		return;
-+	}
-+	cpu_data->perf_ctrls.energy_perf = epp;
-+	cppc_cpufreq_save_requested(policy, CPPC_SAVED_EPP, epp);
-+}
-+
- static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
- {
- 	unsigned int cpu = policy->cpu;
-@@ -1058,6 +1176,8 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
- 	}
- 	cpu_data->perf_limits_valid = true;
- 
-+	cppc_cpufreq_setup_auto_sel_mode(policy);
-+
- 	cppc_cpufreq_cpu_fie_init(policy);
- 	return 0;
- 
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 2cec54b4d2e2..3d47c07f494b 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -42,6 +42,8 @@
- #define CPPC_AUTO_ACT_WINDOW_SIG_CARRY_THRESH 129
- 
- #define CPPC_EPP_PERFORMANCE_PREF		0x00
-+#define CPPC_EPP_BALANCE_PERFORMANCE_PREF	0x80
-+#define CPPC_EPP_BALANCE_POWER_PREF		0xC0
- #define CPPC_EPP_ENERGY_EFFICIENCY_PREF		0xFF
- 
- #define CPPC_PERF_LIMITED_DESIRED_EXCURSION	BIT(0)
+base-commit: 067c5c24cef23d913b67eaaf71ae67e7169a6620
+prerequisite-patch-id: 2a8952c8b8b6b019585a8bc449db628f458658cb
+prerequisite-patch-id: 6b1715c7e4f230fedfcadf38303ce5966922caff
+prerequisite-patch-id: 88872ad297c6b8ec80cb4ec4057ab281e10c148d
 -- 
-2.34.1
+2.54.0
 
