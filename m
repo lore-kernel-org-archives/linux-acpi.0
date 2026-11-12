@@ -1,60 +1,112 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.70.43.16
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794449924;
-	b=F6xRFOUj3/4owZPtvsheqs24kJn/dXB1pa7wH7DZ+Y0ltX2cTpecoyXMQ5kPsWpsiNnR
-	 sFB7iwv9f3RuGvsmFuKbAatqeR92NTP/b00hK6ndBQLl2xwoSUbS7GHytW5rFNnLt2yzU
-	 2QGdGE1zIkSqpf0AMCXMPr9Qfxk0kNZ4qDXraDVrb7MBSOOSjmnNdrB8BtBxk7rWiPKVM
-	 hHWGIHtXVQ+cbLWjPNLYqNL2Zw4u8ma7B814uJv9Ldv+zJCLDlPUk1WH3bymvUf7G899E
-	 xvnFgzi+PJuKUlzs/XKC9xR/0dSqZLPVGJaCYsCNhG5zDWTzdgPOD6dpkcS4LUMPdrg==
+	t=1794453753;
+	b=GuQH84g4hBs36Md5slAGG37wbN0i8Ee7GuXWc2uDwo1STaNNyRLjFkvE0fkDsC81cO0g
+	 8sqpj7RWe9igy/GxICZtsVWx1XkDsjZQrk4aAto04Zg6JYc9UbiaRPY34uorZ7UB3szo8
+	 Ll258JhfRATeXJ9idEHlSNaAYw2NbIh0GrOZHyLqu8LrePBcEDHdxQJJPA7QX1l+qo4OI
+	 jJrZO+vdxsMYgz81xKpTOxc2MzpRm3IVs4X+YS11LU5VLhmFlnWE+TplYy4jJXKTU+5J0
+	 wOM2Azpln65N76o6SVCghbkzHxm1N8yjDuURc2aQLxp/E20RHxYJs1El0iL0Y94o+6Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794449924;
-	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
-	 In-Reply-To:References:Feedback-ID:X-Pm-Message-ID:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=VOYcCcAR5BaO17AihNTISMUFMiS2g+MRrRsWRCv0bFQ=;
-	b=NKO2swN8B7XuG7l/5/Q4W9wcrFfzYDXO88Gu6sU8fA2MrLDtHZqkW8iCUUHRarwrzCsJ
-	 tclXeln08XqKkBXCTYcvSBw1lX1NfwrYHPIHHV9llXiTRuReMwvYpUrw5g8yQA23Q6iZL
-	 SJemd0DL4Xzt01+VyOIPmkcgf8yDBgZYsn0c/w6dr7mCvBOO473v/eiijrDpOrdpQu2Ob
-	 XHFd5zZRh7a9mUb/pfctI6W8pme4/dcInSCH6TyyL+4xW2rG7D1uXtVzEEr5gBT+mrROD
-	 CLIhbP7wmMiU5peH6cdyjnQvktSV7hj+f96EQZenzFPMholIw89WzLX8hZI8iLJOaZA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794453753;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
+	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Message-ID:
+	 Date:MIME-Version:User-Agent:Subject:To:Cc:References:
+	 Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:X-Proofpoint-Spam-Info:
+	 X-Proofpoint-ORIG-GUID:X-Proofpoint-GUID:
+	 X-Proofpoint-Spam-Details-Enc:X-Authority-Analysis:
+	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
+	bh=Nia/3Fejzq/8pwGFpOYXDtAfbAIiNtIbDIVtuujz/Q0=;
+	b=i1gdN30Xl6BcOIoIs+iiDpVwBu8WwLHHSms27C83hvheu1Kboob8XIWOqqZ7ktpN56Dh
+	 5W0/9/fsgvZUVQdxIgup9Zq19Mc1qhAFLgzFYOumz2wE6FXpgISClIC1VhQUHb7VHkMAS
+	 vXHvqOBobVzM/9sRoJ+U+DCZ7jHeFHy9rxrXwpYcSQxUICw+qRxcceqHYdgY9lgo4mH39
+	 hQmuG7YMtl5jkmzpL9maKyRWHbJTOfafEvolnRdwVjeTu+oQo0jKP3s+8hiVz4l6Og3le
+	 TP8cJKuFPxEwl84a8l44zAYLlepVd6oOuDfkg7OUvrN5Nfj8Ew58VQeksYfYohuIIfA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=proton.me;
-	spf=pass smtp.mailfrom=proton.me;
-	dkim=pass header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=xhkicw7qovbovaejxwtcxvp22q.protonmail2 header.b=YiZ4hAOa;
-	arc=none smtp.remote-ip=185.70.43.16
-Received: from mail-4316.protonmail.ch (mail-4316.protonmail.ch [185.70.43.16])
+	dmarc=pass header.from=oss.qualcomm.com;
+	spf=pass smtp.mailfrom=oss.qualcomm.com;
+	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=LOpIkJFk;
+	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=YfcOO+8b;
+	arc=none smtp.remote-ip=205.220.168.131
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFFBA606A330
-	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 02:18:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DFFBA606A330
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 207CA606A321
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 03:22:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 207CA606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=xhkicw7qovbovaejxwtcxvp22q.protonmail2 header.b=YiZ4hAOa
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
-	s=xhkicw7qovbovaejxwtcxvp22q.protonmail2; t=1794449919;
-	x=1794709119; bh=VOYcCcAR5BaO17AihNTISMUFMiS2g+MRrRsWRCv0bFQ=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
-	 Message-ID:BIMI-Selector;
-	b=YiZ4hAOavOrw9A3dspvgcbGZZ0xrEzbPu5UwU77kV+cx8xK1k8ke0jA1/5YOzMzT3
-	 uNIo60oD/EzUiepWM7kLpqGjWk5JI4D4I2TA8Vz938g7k67iWtsHYL5ezXHwHjBB3f
-	 OacH1wTsVjg6KFq4vV14fzC5y/zk52aKtLC0sRi+R9JOU8Dwl+OXldQpKgyZDkCWs1
-	 pLEOd/YE6O676tKLzB07UduNM7OTFlGxM5X9IRIVdPoJJ3xufUTbQ5LruG9FBZBUJA
-	 n2RWvSv1hSJR7r4/hvLa+ABg4ThLV+DkxjJxNvKwFLFpf8vZwHlVVfv+gZq9gPtr8y
-	 F5g83S7FKxo7A==
-Date: Thu, 12 Nov 2026 02:18:35 +0000
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-From: penhouse24@proton.me
-Cc: "westeri@kernel.org" <westeri@kernel.org>, "andi.shyti@kernel.org" <andi.shyti@kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Subject: Re: [BUG] i2c: acpi: Dell XPS 17 9720 ELAN 04F3:311C touchpad (VEN_04F3) needs 100 kHz like DLL0945
-Message-ID: <iZI_luLf6KPDE7sZSzG-aRF3V1fJFh7moD99YLp6nXVGLKgHTGMY_fnseRx1glU4YXGKNN3zKxSkitJW1MxfxR8WWGb1fegxZnOmq4VArTo=@proton.me>
-In-Reply-To: <20261111075931.GG259790@black.igk.intel.com>
-References: <CYQ1dYF3ZUj0L_VRzN490SfuHRaulkT_y5NWcIEIl8OtpIgWgXyOlwEyUqZD_uz9bmVBXM2uLOo8bkyzcR-qCxNObstCqFUlK6lUYXK5euE=@proton.me> <20261109104542.GL176724@black.igk.intel.com> <lGd7ChJVtwyvhMVkRinryqLG3Lx32U7xoSjT4_inKH1pBNoAd4dvBKV1A4i9MOIVLKmgx8sVg98gfK-iUwb5Uoy0wX1CM2_c7I1vdTr2tYU=@proton.me> <20261111075931.GG259790@black.igk.intel.com>
-Feedback-ID: 217801480:user:proton
-X-Pm-Message-ID: fca8eeead4ee04356d57caeb6ca1968a1c244614
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=LOpIkJFk;
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=YfcOO+8b
+Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AC2ZWvE3607573
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 03:22:31 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	Nia/3Fejzq/8pwGFpOYXDtAfbAIiNtIbDIVtuujz/Q0=; b=LOpIkJFk1qcw9dNR
+	IGn4sA5UCOtmAyOLiqsLJomBSihf4tRG/wVsCktehqAKlkuNZgtYphQhJjW6Y110
+	kTG5YWTTru2Y4kr1/8Qaz2fJNsQUA5m5Ka/oMwTdFZcaTTHwgtDbyWShJX3YM2kD
+	EmjFp/er0dKt0SxCLGtWua47LlVvaLI2blykILXXkO3UwS+VXzUWZRxAMyr0kUAL
+	D2ZraxIHHVBA5T54djHiEvNFaJ4a29MejhkgHnvgHbDKd2hHf1ktkpCFc9c1JW8w
+	HlSYTbk1ggYxW2ytlV2rCexQSaEEvjbUKJ7IAbCnqhsZMIW4j1I8fuadDWk7094Z
+	MUoEtQ==
+Received: from mail-pl1-f197.google.com (mail-pl1-f197.google.com [209.85.214.197])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hvfawn718-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 03:22:31 +0000 (GMT)
+Received: by mail-pl1-f197.google.com with SMTP id d9443c01a7336-2eb5375cd68so34538515ad.0
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Nov 2026 19:22:31 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1794453750; x=1795058550; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Nia/3Fejzq/8pwGFpOYXDtAfbAIiNtIbDIVtuujz/Q0=;
+        b=YfcOO+8b58GCURpz5PXBLv24Uv1uH24sUAtfEyQOlUc9OwlPaHxRxUSu2Wb/xdKsDw
+         9nNqgW7xq0qxgqaMr2Wbnrv2lxWwKO4qCJVKmNAeaWhLXOGKsyLr2FO3tqwiyEMcAKtF
+         eopnhJ2XDhlR/ff9EIlREaT/fP6MarfDEOyZpQsDkJyCbP5b5QTm1G2QanAcyDn6yL7u
+         0qFRl5AhkJ0RAI9Wh563lPvd12X53SiZRpjEphQr471LwLTDeEKjlyJMstJfqPSTjrJF
+         KTU8mWBvJpuhlrCtzB3cY0UePYFekSC+EjfzsbCf/ghfk3y3qXlpZsicnvGR3fXBghZJ
+         RL0Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794453750; x=1795058550;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Nia/3Fejzq/8pwGFpOYXDtAfbAIiNtIbDIVtuujz/Q0=;
+        b=fq/l67TsrQ2L2RRmNGliJYZifwu2f/XlJiu5xuSrPq171EK+g2oY9UxzQrzM8YcHTy
+         C9pdodCbsD02dE+EMaxsbnMRfgLiaMPbxJ4LeDWhbgMwKDTZ8NWhEK8Vfp7OG8XRsQQ6
+         BTWIz7fYWpJSNky0Tkzxm0Ngcaei6VhPCVL9oxe6+6mF/iJurQ3+qxeSCVU1a0FehRJv
+         i/W9afOUg2j5MF8MuviDQTtVa8a4MDO3Li9t+76Jnt+B/9JZcFflMekxiiP/mBGs0zsh
+         ENnJ2CkIFiz0W0Gblw0ZooFDYZpX4IHXOS0f9XnYgX43Lyqk7n+Ut4KCrwmvOgu66k4t
+         eN1A==
+X-Forwarded-Encrypted: i=1; AL+hErE9cqtHfsQwk/gdfIFMxllIftSVai+hGaBHPUHzMVaJGe44OoTalQjMV5dQYyphMyhgKMN4MXqHCRta@vger.kernel.org
+X-Gm-Message-State: APuU4Z/EN9hPOqQ3DEH/BBMpM+bTjBu91LWymv6RsN/e1Ly4tMyMsHT/
+	C8yIf77j2IGAPHaf7XIyxklrlsOH3Rsdwm9iZkPUkmi08znPkW0pJX02Ix7TZrYluzJpjXhn8Md
+	rW3H5d91pjFyGJ81VCN72K3TrQebZvEKD28pPfcn5XtbEMA6sNfxpMALlx381Gw9V
+X-Gm-Gg: AYBFou3vLwBec2E2uF51LPgAdILcoSU7SBJi6KfmkMAKeBUfdKRCSlbp5LHQdrGsibt
+	tX2oEGBbg1hpmtW4sSlqB5Hymc7HQD61BkjG83Aa0oH5TInnb1heKGbgy6jd6X55tAtdWXGZob3
+	fr4lPot7jx8c1f+VgIL0KdSwr+OIEyXzZjQDPXQaEMSYsBcjGWJPAsiSuzKk1Q+zR0nmNpoI0RM
+	embA11vMxUO8l2tegK9X6DPUNazGB0O4MtlmveT7domEHsU2rgg5OiYNdT7EzvKEN6Ho9qBnUvm
+	pmzB3MRl8q+4z24A4DvgpUZmynewGnKuS33QDAhvsXAszrIo1rZrTYWlYH0pTFaXA0sm6JtQmO3
+	rG7ACjkEnB8AyPVytptE4YcDSOlCod940L2levHA/O47mS0pVnzpB4Sf8n4lcuniivu+bjzNi3C
+	DNlVjc8DaJq7xhtf6PWGM8d1frbESE5wx/wYp1uX8+GsXP3w==
+X-Received: by 2002:a17:903:2ad0:b0:2e9:58c5:8c68 with SMTP id d9443c01a7336-2edd7acfcd0mr38209005ad.54.1794453750547;
+        Wed, 11 Nov 2026 19:22:30 -0800 (PST)
+X-Received: by 2002:a17:903:2ad0:b0:2e9:58c5:8c68 with SMTP id d9443c01a7336-2edd7acfcd0mr38208695ad.54.1794453750048;
+        Wed, 11 Nov 2026 19:22:30 -0800 (PST)
+Received: from [10.133.33.220] (tpe-colo-wan-fw-bordernet.qualcomm.com. [103.229.16.4])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2edb6dfb58dsm26134275ad.66.2026.11.11.19.22.21
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 11 Nov 2026 19:22:29 -0800 (PST)
+Message-ID: <acd476e0-fb24-4f11-b917-c4e86f86171a@oss.qualcomm.com>
+Date: Thu, 12 Nov 2026 11:22:16 +0800
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -64,142 +116,120 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 4/7] cpufreq: ondemand: Include <asm/cpu_device_id.h>
+ unconditionally
+To: Pavel Popov <pavel.e.popov@intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Tvrtko Ursulin
+ <tursulin@ursulin.net>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        Hans de Goede <hansg@kernel.org>,
+        =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        Peter Huewe <peterhuewe@gmx.de>, Jarkko Sakkinen <jarkko@kernel.org>,
+        Tom Lendacky <thomas.lendacky@amd.com>,
+        Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Leon Romanovsky <leon@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
+        Logan Gunthorpe <logang@deltatee.com>, Arnd Bergmann <arnd@arndb.de>,
+        Len Brown <lenb@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, David Airlie <airlied@gmail.com>,
+        Simona Vetter <simona@ffwll.ch>,
+        "David S . Miller" <davem@davemloft.net>, x86@kernel.org,
+        linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org,
+        linux-integrity@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
+References: <20261111234821.4814-1-pavel.e.popov@intel.com>
+ <20261111234821.4814-5-pavel.e.popov@intel.com>
+Content-Language: en-US
+From: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
+In-Reply-To: <20261111234821.4814-5-pavel.e.popov@intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTEyMDAxMyBTYWx0ZWRfXwXGcFejUAMM4
+ ZClw9BWIvHGMrsqOjuQTqPgzdOgKrKppM+jwwGmsHyO45v+z0iqsx/DoQ/g+w5g4AIbq7XFLOAx
+ ikPtfj5mI+LdpnWU1HTKxz7WiZQ/bB8=
+X-Proofpoint-ORIG-GUID: I_PGI-xgljlI2INf5_JNSS-m_O9BMrZk
+X-Proofpoint-GUID: I_PGI-xgljlI2INf5_JNSS-m_O9BMrZk
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTEyMDAxMyBTYWx0ZWRfXx6W1+CQCPIuB
+ qLA6GpiYXERDodlxxA1afJ2ALwpOM6Z7ZSrtr2zEAAPDUSlFTx/CdyyBS22DM+sMr1d6hbx3JmR
+ JNQnRaTqLfBIN34UjnLAnvWNH52Cl0pcEQ4Y0QH2M2aJ9XSSVqbrjmFjMMxhcwNgi1uzrIQreSA
+ tPNRbSZH8XUk5LyMXE1x5BbjUfBt/P3OxyOSpGNWvL7woQh6PBAAV1ZQcSfLB6VshiMRMCcOWfK
+ plTDNZkkQ9qvSvNNA7F1Z3teUwF4WbclhpGrdXPbS/0Sgw3P+F8V9jIkIO/rPM+LKPkv3VPY/nt
+ Oo3XtMhht/sURzRprF0vr1Sntkyr46ZJWeON74dg6Tt+10p5s8g62212DUH3dZp1/ghehgbd4/u
+ VJOIVFlCI8UvhIYGLyEn9Bab7zHOEWayjqm+b1u4X2J9onTtwxX5ylNIqiSDt+Jm7BY7lQD6u7I
+ 2GYaxgvm3MR5CT8fH3w==
+X-Authority-Analysis: v=2.4 cv=CZadd7rl c=1 sm=1 tr=0 ts=6af530f7 cx=c_pps
+ a=cmESyDAEBpBGqyK7t0alAg==:117 a=nuhDOHQX5FNHPW3J6Bj6AA==:17
+ a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=_K5XuSEh1TEqbUxoQ0s3:22
+ a=VwQbUJbxAAAA:8 a=QyXUC8HyAAAA:8 a=EUspDBNiAAAA:8 a=L27Nr_72VT4YvYD4_PkA:9
+ a=QEXdDO2ut3YA:10 a=1OuFwYUASf3TG4hYMiVC:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-11-12_01,2026-11-11_03,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ spamscore=0 impostorscore=0 suspectscore=0 bulkscore=0 lowpriorityscore=0
+ phishscore=0 adultscore=0 priorityscore=1501 malwarescore=0 clxscore=1015
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611120013
 
-Hi Mika,=20
-
-
-Tested on top of v7.4-rc2 (067c5c24cef2) on a Dell XPS 17 9720, BIOS 1.41.0=
-, without the SSDT override.
-
-The quirk is applied at boot.
-
-I've been using my laptop all day and the touchpad lag has not come back so=
- far including on AC power. On the unpatched kernel it returns as before.
-
-Interestingly enough, I did use an off-brand AC charger for my laptop and t=
-he touchpad lag returned on the patched and unpatched Linux kernels AND Win=
-dows. When I used the Dell AC charger, the lag was gone on the patched kern=
-el and Windows, but remained on the unpatched kernel. Perhaps the root caus=
-e of this problem, on Linux relative to Windows is that Windows aggressivel=
-y filters noise without smoothing? Not sure, just a thought
-
-One question about the DMI match: does it need DMI_BIOS_VERSION? The VEN_04=
-F3 ID check already makes the quirk stop applying if a future BIOS switches=
- to a proper ACPI ID. The 400 kHz problem also seems to be in the touchpad =
-itself, since the same 04F3:311C part is affected on the Precision 5560. Ma=
-tching only on sys_vendor and product_name would also cover users on older =
-BIOS versions, and any newer BIOS that still reports VEN_04F3.
-
-Dell also ships the same BIOS image for the Precision 5770, so it likely ex=
-poses the same ID, though I can't test that model.
-
-Thanks for the quick patch!
-
-
-
-On Wednesday, November 11th, 2026 at 2:59 AM, Mika Westerberg <mika.westerb=
-erg@linux.intel.com> wrote:
-
-> Hi,
->=20
-> On Mon, Nov 09, 2026 at 08:57:13PM +0000, penhouse24@proton.me wrote:
-> > Hi Mika,
-> >
-> > Thank you for the response (I honestly wasn't expecting anyone to respo=
-nd for this niche issue---so a welcome surprise).
-> >
-> > Yes my BIOS version (v1.41.0) is up to date. Currently, there are no up=
-dates available through Windows or from fwupd. I have received BIOS updates=
- many times via Windows since purchasing this computer in 2022 and have had=
- 0 change to this problem.
-> >
-> > For what it=E2=80=99s worth, the DSDT has a valid default ID. TPD0 star=
-ts with Name (ITPN, =E2=80=9CDELL0AFF=E2=80=9D), and _INI then overwrites i=
-t from the BIOS-provided TPHD variable, which yields =E2=80=9CVEN_04F3=
-=E2=80=9D.
-> >
-> > Please find attached the output of 'sudo dmidecode'.
-> >
-> > Thank you for helping me fix this.
->=20
-> Can you try the below patch?
->=20
-> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-> index 84841ed13487..bed9260056b3 100644
-> --- a/drivers/i2c/i2c-core-acpi.c
-> +++ b/drivers/i2c/i2c-core-acpi.c
-> @@ -7,6 +7,7 @@
->=20
->  #include <linux/acpi.h>
->  #include <linux/device.h>
-> +#include <linux/dmi.h>
->  #include <linux/err.h>
->  #include <linux/i2c.h>
->  #include <linux/list.h>
-> @@ -356,6 +357,17 @@ static const struct acpi_device_id i2c_acpi_force_40=
-0khz_device_ids[] =3D {
->  =09{ }
->  };
->=20
-> +static const struct dmi_system_id i2c_acpi_dell_xps_17_9720_dmi_ids[] =
-=3D {
-> +=09{
-> +=09=09.matches =3D {
-> +=09=09=09DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> +=09=09=09DMI_MATCH(DMI_PRODUCT_NAME, "XPS 17 9720"),
-> +=09=09=09DMI_MATCH(DMI_BIOS_VERSION, "1.41.0"),
-> +=09=09},
-> +=09},
-> +=09{ }
-> +};
-> +
->  static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] =
-=3D {
->  =09/*
->  =09 * When a 400KHz freq is used on this model of ELAN touchpad in Linux=
-,
-> @@ -377,6 +389,14 @@ static const struct acpi_device_id i2c_acpi_force_10=
-0khz_device_ids[] =3D {
->  =09{ .id =3D "ELAN0678" },
->  =09{ .id =3D "ELAN06FA" },
->  =09{ .id =3D "ELAN1300" },
-> +=09{
-> +=09=09/*
-> +=09=09 * Some Dell XPS 17 9720 is not using standard ACPI IDs
-> +=09=09 * so we need to match also via DMI strings.
-> +=09=09 */
-> +=09=09.id =3D "VEN_04F3",
-> +=09=09.driver_data =3D (kernel_ulong_t)i2c_acpi_dell_xps_17_9720_dmi_ids=
-,
-> +=09},
->  =09{ }
->  };
->=20
-> @@ -385,6 +405,7 @@ static acpi_status i2c_acpi_lookup_speed(acpi_handle =
-handle, u32 level,
->  {
->  =09struct i2c_acpi_lookup *lookup =3D data;
->  =09struct acpi_device *adev =3D acpi_fetch_acpi_dev(handle);
-> +=09const struct acpi_device_id *id;
->=20
->  =09if (!adev || i2c_acpi_do_lookup(adev, lookup))
->  =09=09return AE_OK;
-> @@ -398,7 +419,9 @@ static acpi_status i2c_acpi_lookup_speed(acpi_handle =
-handle, u32 level,
->  =09if (acpi_match_device_ids(adev, i2c_acpi_force_400khz_device_ids) =3D=
-=3D 0)
->  =09=09lookup->force_speed =3D I2C_MAX_FAST_MODE_FREQ;
->=20
-> -=09if (acpi_match_device_ids(adev, i2c_acpi_force_100khz_device_ids) =3D=
-=3D 0)
-> +=09id =3D acpi_match_acpi_device(i2c_acpi_force_100khz_device_ids, adev)=
-;
-> +=09if (id && (!id->driver_data ||
-> +=09=09   dmi_check_system((const struct dmi_system_id *)id->driver_data)=
-))
->  =09=09lookup->force_speed =3D I2C_MAX_STANDARD_MODE_FREQ;
->=20
->  =09return AE_OK;
+On 11/12/2026 7:48 AM, Pavel Popov wrote:
+> <asm/cpu_device_id.h> now has a generic version, so the #ifdef
+> CONFIG_X86 around the include is no longer needed.
 > 
+> od_should_io_be_busy() still needs CONFIG_X86 for boot_cpu_data.
+> 
+> Signed-off-by: Pavel Popov <pavel.e.popov@intel.com>
+> ---
+> Depends on <asm-generic/cpu_device_id.h> from [1]; please apply after
+> it is in mainline.
+
+
+Yeah, this patch strictly depends on [1] (series patch 1/3) being in
+mainline first; otherwise non-x86 builds break.
+
+Reviewed-by: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
+
+> 
+> [1] https://lore.kernel.org/r/20261111234439.4098-1-pavel.e.popov@intel.com
+> 
+>   drivers/cpufreq/cpufreq_ondemand.h | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/cpufreq/cpufreq_ondemand.h b/drivers/cpufreq/cpufreq_ondemand.h
+> index 2ca8f1aaf2e..0e33865f9d3 100644
+> --- a/drivers/cpufreq/cpufreq_ondemand.h
+> +++ b/drivers/cpufreq/cpufreq_ondemand.h
+> @@ -6,6 +6,8 @@
+>    * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>    */
+>   
+> +#include <asm/cpu_device_id.h>
+> +
+>   #include "cpufreq_governor.h"
+>   
+>   struct od_policy_dbs_info {
+> @@ -26,8 +28,6 @@ struct od_dbs_tuners {
+>   };
+>   
+>   #ifdef CONFIG_X86
+> -#include <asm/cpu_device_id.h>
+> -
+>   /*
+>    * Not all CPUs want IO time to be accounted as busy; this depends on
+>    * how efficient idling at a higher frequency/voltage is.
+
+
+-- 
+Thx and BRs,
+Zhongqiu Han
