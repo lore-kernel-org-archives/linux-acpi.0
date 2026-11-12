@@ -1,102 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.70.43.16
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794446962;
-	b=IydhJoJvq6Bg+rGjpgAim8nX1l7uMD08kx87P9zR2fhrsiaTc4MkRbwetx0146BNBYDS
-	 HNhtxDfnHXDSW3+M/7dxQIAs6OLlOg6os/lfDWpnlDuXEAmNzk6rYvQ5cNPtK1p7F7qlE
-	 LMBP4gQaefcsZkCwFb+08TUsJCEqNYYmYAB4WyVnYAcL1EKGkduXdo6ocXTDWOjvWWULH
-	 QrzQk0I94wunJcRuqV3t6DymvSNbJcqstO8OEN7a4JU1agqutPSdrWh4xj4gKNiJ/ZyY2
-	 bXLNa2U644c7pbIvTmi7ch38eMFCsZ+ZD+rH5OHgRqP4aeL6i6h11G9qU+ou6ubr+dA==
+	t=1794449924;
+	b=F6xRFOUj3/4owZPtvsheqs24kJn/dXB1pa7wH7DZ+Y0ltX2cTpecoyXMQ5kPsWpsiNnR
+	 sFB7iwv9f3RuGvsmFuKbAatqeR92NTP/b00hK6ndBQLl2xwoSUbS7GHytW5rFNnLt2yzU
+	 2QGdGE1zIkSqpf0AMCXMPr9Qfxk0kNZ4qDXraDVrb7MBSOOSjmnNdrB8BtBxk7rWiPKVM
+	 hHWGIHtXVQ+cbLWjPNLYqNL2Zw4u8ma7B814uJv9Ldv+zJCLDlPUk1WH3bymvUf7G899E
+	 xvnFgzi+PJuKUlzs/XKC9xR/0dSqZLPVGJaCYsCNhG5zDWTzdgPOD6dpkcS4LUMPdrg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794446962;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To;
-	bh=naeHT3lsD43WVFFXOIg9/UkqxmnGM41dLQc0bv16TWs=;
-	b=gRv5iFoGWI3xHznqkrdlmSdG6eX8JZ5hkDuOILogqEZZYGacn3kYs0qGX+//eONGCO/T
-	 Ifjnpw/bd3hKbtm2xsUE7JNdxd+ohe/lVYvCVSAM7HiaKmHaooMFQYyeQPVO4NbGkjLYP
-	 iqckuUehxg6BpSy8FeICOAIvW71z4TSBl0PRy1iT2dsGXARxmIULquYnkVN+8R0lLBbuv
-	 ruiRYmShMHRN0UcrRn9847Q29dxHqJNju5B2iKC8hCTJdrZZ7gpJ8xLyBTAelOQ3UKh9z
-	 TJ+frvLotA8LCn3riC+hNPkA4JG43iw8h86h5oHO614Tg9OykX6KOskOvQgsJnJ9nfA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794449924;
+	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
+	 In-Reply-To:References:Feedback-ID:X-Pm-Message-ID:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=VOYcCcAR5BaO17AihNTISMUFMiS2g+MRrRsWRCv0bFQ=;
+	b=NKO2swN8B7XuG7l/5/Q4W9wcrFfzYDXO88Gu6sU8fA2MrLDtHZqkW8iCUUHRarwrzCsJ
+	 tclXeln08XqKkBXCTYcvSBw1lX1NfwrYHPIHHV9llXiTRuReMwvYpUrw5g8yQA23Q6iZL
+	 SJemd0DL4Xzt01+VyOIPmkcgf8yDBgZYsn0c/w6dr7mCvBOO473v/eiijrDpOrdpQu2Ob
+	 XHFd5zZRh7a9mUb/pfctI6W8pme4/dcInSCH6TyyL+4xW2rG7D1uXtVzEEr5gBT+mrROD
+	 CLIhbP7wmMiU5peH6cdyjnQvktSV7hj+f96EQZenzFPMholIw89WzLX8hZI8iLJOaZA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=dR+4nUqB;
-	arc=none smtp.remote-ip=198.175.65.21
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=proton.me;
+	spf=pass smtp.mailfrom=proton.me;
+	dkim=pass header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=xhkicw7qovbovaejxwtcxvp22q.protonmail2 header.b=YiZ4hAOa;
+	arc=none smtp.remote-ip=185.70.43.16
+Received: from mail-4316.protonmail.ch (mail-4316.protonmail.ch [185.70.43.16])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 588666070228;
-	Thu, 12 Nov 2026 01:29:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 588666070228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFFBA606A330
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 02:18:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DFFBA606A330
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=dR+4nUqB
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794446961; x=1825982961;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=drwpAsrOFw4B/qCkDMxl8Rzegtt/n6DW8SOYJld6ACA=;
-  b=dR+4nUqBg1xP5hLwWGCi48LPh3R4Z1e+9HVF2DiAxa7vIuqzFzs5+cEK
-   dANeswCa4jq/MwJLiRYwr/0HCp1iV3EQPYPalLgNQ3Iv2YEeCmQnvqq6F
-   SLoiLNo3H9LawT65jaCBZGLOUMPHJWgUMYN/17xSY7H3O2uldga4R2MRu
-   1MrHAn+n6djSYIwAEYYc6Y1jLHw6i/1oiBpDToboA7+lcAR3ejJPNMQME
-   XhjJQcDFxBsS5y3JOKfz532lZFemDySb0t4xxJa+7Oq8o4wJ2Msg0RrqW
-   aQcKL22n6RuXXJ8fEPgf4G+deuSx+LUJZt83aZ7gxWLJYXx7OXGGKqSyz
-   w==;
-X-CSE-ConnectionGUID: z6iaWYs6Sdyk7hKAW7KkjQ==
-X-CSE-MsgGUID: uYM3Prp+RXKTG44qjaS7BQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11963"; a="3306724"
-X-IronPort-AV: E=Sophos;i="6.27,208,1787036400"; 
-   d="scan'208";a="3306724"
-Received: from fmviesa013.fm.intel.com ([10.60.135.153])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Nov 2026 17:29:20 -0800
-X-CSE-ConnectionGUID: wXIAkD9OSb+cGo57KrKyqA==
-X-CSE-MsgGUID: KnBwmaLHRL28S7SM9UOKBg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,208,1787036400"; 
-   d="scan'208";a="10415943"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by fmviesa013.fm.intel.com with ESMTP; 11 Nov 2026 17:29:14 -0800
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xRJcl-000000010BX-15iQ;
-	Thu, 12 Nov 2026 01:29:11 +0000
-Date: Thu, 12 Nov 2026 09:28:40 +0800
-From: kernel test robot <lkp@intel.com>
-To: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-	Alejandro Colomar <alx@kernel.org>,
-	Krzysztof Kozlowski <krzk@kernel.org>,
-	"Maciej W. Rozycki" <macro@orcam.me.uk>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Andreas Schwab <schwab@linux-m68k.org>,
-	Andy Shevchenko <andy@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hverkuil@kernel.org>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>,
-	Kees Cook <kees@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Len Brown <lenb@kernel.org>, Linus Walleij <linusw@kernel.org>,
-	Namhyung Kim <namhyung@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 2/6] string: Warn if the prefix is the empty string
-Message-ID: <202611120922.GqXZB0lH-lkp@intel.com>
-References: <cd09427148a0c4718b46029c9e806f9dc1622f9b.1794425425.git.alx@kernel.org>
+	dkim=pass (2048-bit key, unprotected) header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=xhkicw7qovbovaejxwtcxvp22q.protonmail2 header.b=YiZ4hAOa
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=xhkicw7qovbovaejxwtcxvp22q.protonmail2; t=1794449919;
+	x=1794709119; bh=VOYcCcAR5BaO17AihNTISMUFMiS2g+MRrRsWRCv0bFQ=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=YiZ4hAOavOrw9A3dspvgcbGZZ0xrEzbPu5UwU77kV+cx8xK1k8ke0jA1/5YOzMzT3
+	 uNIo60oD/EzUiepWM7kLpqGjWk5JI4D4I2TA8Vz938g7k67iWtsHYL5ezXHwHjBB3f
+	 OacH1wTsVjg6KFq4vV14fzC5y/zk52aKtLC0sRi+R9JOU8Dwl+OXldQpKgyZDkCWs1
+	 pLEOd/YE6O676tKLzB07UduNM7OTFlGxM5X9IRIVdPoJJ3xufUTbQ5LruG9FBZBUJA
+	 n2RWvSv1hSJR7r4/hvLa+ABg4ThLV+DkxjJxNvKwFLFpf8vZwHlVVfv+gZq9gPtr8y
+	 F5g83S7FKxo7A==
+Date: Thu, 12 Nov 2026 02:18:35 +0000
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+From: penhouse24@proton.me
+Cc: "westeri@kernel.org" <westeri@kernel.org>, "andi.shyti@kernel.org" <andi.shyti@kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Subject: Re: [BUG] i2c: acpi: Dell XPS 17 9720 ELAN 04F3:311C touchpad (VEN_04F3) needs 100 kHz like DLL0945
+Message-ID: <iZI_luLf6KPDE7sZSzG-aRF3V1fJFh7moD99YLp6nXVGLKgHTGMY_fnseRx1glU4YXGKNN3zKxSkitJW1MxfxR8WWGb1fegxZnOmq4VArTo=@proton.me>
+In-Reply-To: <20261111075931.GG259790@black.igk.intel.com>
+References: <CYQ1dYF3ZUj0L_VRzN490SfuHRaulkT_y5NWcIEIl8OtpIgWgXyOlwEyUqZD_uz9bmVBXM2uLOo8bkyzcR-qCxNObstCqFUlK6lUYXK5euE=@proton.me> <20261109104542.GL176724@black.igk.intel.com> <lGd7ChJVtwyvhMVkRinryqLG3Lx32U7xoSjT4_inKH1pBNoAd4dvBKV1A4i9MOIVLKmgx8sVg98gfK-iUwb5Uoy0wX1CM2_c7I1vdTr2tYU=@proton.me> <20261111075931.GG259790@black.igk.intel.com>
+Feedback-ID: 217801480:user:proton
+X-Pm-Message-ID: fca8eeead4ee04356d57caeb6ca1968a1c244614
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -106,80 +64,142 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cd09427148a0c4718b46029c9e806f9dc1622f9b.1794425425.git.alx@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Hi Alejandro,
-
-kernel test robot noticed the following build errors:
-
-[auto build test ERROR on kees/for-next/hardening]
-[also build test ERROR on driver-core/driver-core-testing driver-core/driver-core-next driver-core/driver-core-linus kees/for-next/pstore kees/for-next/kspp linus/master v7.4-rc2 next-20261110]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Alejandro-Colomar/string-Add-strprefix-and-deprecate-str_has_prefix/20261111-205515
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/kees/linux.git for-next/hardening
-patch link:    https://lore.kernel.org/r/cd09427148a0c4718b46029c9e806f9dc1622f9b.1794425425.git.alx%40kernel.org
-patch subject: [PATCH v4 2/6] string: Warn if the prefix is the empty string
-config: s390-allmodconfig (https://download.01.org/0day-ci/archive/20261112/202611120922.GqXZB0lH-lkp@intel.com/config)
-compiler: clang version 24.0.0git (https://github.com/llvm/llvm-project c628d639fc66f8e6d8ab1f0cc6b1df38f974e020)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261112/202611120922.GqXZB0lH-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202611120922.GqXZB0lH-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
-   In file included from scripts/mod/devicetable-offsets.c:4:
-   In file included from include/linux/mod_devicetable.h:31:
-   In file included from include/linux/device-id/hv_vmbus.h:6:
-   In file included from include/linux/uuid.h:11:
->> include/linux/string.h:575:2: error: call to undeclared function 'WARN_ON_ONCE'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
-     575 |         WARN_ON_ONCE(len == 0);
-         |         ^
-   1 error generated.
-   make[3]: *** [scripts/Makefile.build:185: scripts/mod/devicetable-offsets.s] Error 1
-   make[3]: Target 'scripts/mod/' not remade because of errors.
-   make[2]: *** [Makefile:1424: prepare0] Error 2
-   make[2]: Target 'prepare' not remade because of errors.
-   make[1]: *** [Makefile:248: __sub-make] Error 2
-   make[1]: Target 'prepare' not remade because of errors.
-   make: *** [Makefile:248: __sub-make] Error 2
-   make: Target 'prepare' not remade because of errors.
+Hi Mika,=20
 
 
-vim +/WARN_ON_ONCE +575 include/linux/string.h
+Tested on top of v7.4-rc2 (067c5c24cef2) on a Dell XPS 17 9720, BIOS 1.41.0=
+, without the SSDT override.
 
-   555	
-   556	/**
-   557	 * str_has_prefix - Test if a string has a given prefix
-   558	 * @str: The string to test
-   559	 * @prefix: The string to see if @str starts with
-   560	 *
-   561	 * This is similar to strprefix(), but returns an offset instead of
-   562	 * a pointer.
-   563	 *
-   564	 * Unlike for strprefix(), if the prefix is an empty string, the
-   565	 * behavior is undefined.  If you need to support arbitrary prefixes,
-   566	 * use strprefix().
-   567	 *
-   568	 * Returns:
-   569	 * * strlen(@prefix) if @str starts with @prefix
-   570	 * * 0 if @str does not start with @prefix
-   571	 */
-   572	static __always_inline size_t str_has_prefix(const char *str, const char *prefix)
-   573	{
-   574		size_t len = strlen(prefix);
- > 575		WARN_ON_ONCE(len == 0);
-   576		return strncmp(str, prefix, len) == 0 ? len : 0;
-   577	}
-   578	
+The quirk is applied at boot.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+I've been using my laptop all day and the touchpad lag has not come back so=
+ far including on AC power. On the unpatched kernel it returns as before.
+
+Interestingly enough, I did use an off-brand AC charger for my laptop and t=
+he touchpad lag returned on the patched and unpatched Linux kernels AND Win=
+dows. When I used the Dell AC charger, the lag was gone on the patched kern=
+el and Windows, but remained on the unpatched kernel. Perhaps the root caus=
+e of this problem, on Linux relative to Windows is that Windows aggressivel=
+y filters noise without smoothing? Not sure, just a thought
+
+One question about the DMI match: does it need DMI_BIOS_VERSION? The VEN_04=
+F3 ID check already makes the quirk stop applying if a future BIOS switches=
+ to a proper ACPI ID. The 400 kHz problem also seems to be in the touchpad =
+itself, since the same 04F3:311C part is affected on the Precision 5560. Ma=
+tching only on sys_vendor and product_name would also cover users on older =
+BIOS versions, and any newer BIOS that still reports VEN_04F3.
+
+Dell also ships the same BIOS image for the Precision 5770, so it likely ex=
+poses the same ID, though I can't test that model.
+
+Thanks for the quick patch!
+
+
+
+On Wednesday, November 11th, 2026 at 2:59 AM, Mika Westerberg <mika.westerb=
+erg@linux.intel.com> wrote:
+
+> Hi,
+>=20
+> On Mon, Nov 09, 2026 at 08:57:13PM +0000, penhouse24@proton.me wrote:
+> > Hi Mika,
+> >
+> > Thank you for the response (I honestly wasn't expecting anyone to respo=
+nd for this niche issue---so a welcome surprise).
+> >
+> > Yes my BIOS version (v1.41.0) is up to date. Currently, there are no up=
+dates available through Windows or from fwupd. I have received BIOS updates=
+ many times via Windows since purchasing this computer in 2022 and have had=
+ 0 change to this problem.
+> >
+> > For what it=E2=80=99s worth, the DSDT has a valid default ID. TPD0 star=
+ts with Name (ITPN, =E2=80=9CDELL0AFF=E2=80=9D), and _INI then overwrites i=
+t from the BIOS-provided TPHD variable, which yields =E2=80=9CVEN_04F3=
+=E2=80=9D.
+> >
+> > Please find attached the output of 'sudo dmidecode'.
+> >
+> > Thank you for helping me fix this.
+>=20
+> Can you try the below patch?
+>=20
+> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+> index 84841ed13487..bed9260056b3 100644
+> --- a/drivers/i2c/i2c-core-acpi.c
+> +++ b/drivers/i2c/i2c-core-acpi.c
+> @@ -7,6 +7,7 @@
+>=20
+>  #include <linux/acpi.h>
+>  #include <linux/device.h>
+> +#include <linux/dmi.h>
+>  #include <linux/err.h>
+>  #include <linux/i2c.h>
+>  #include <linux/list.h>
+> @@ -356,6 +357,17 @@ static const struct acpi_device_id i2c_acpi_force_40=
+0khz_device_ids[] =3D {
+>  =09{ }
+>  };
+>=20
+> +static const struct dmi_system_id i2c_acpi_dell_xps_17_9720_dmi_ids[] =
+=3D {
+> +=09{
+> +=09=09.matches =3D {
+> +=09=09=09DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +=09=09=09DMI_MATCH(DMI_PRODUCT_NAME, "XPS 17 9720"),
+> +=09=09=09DMI_MATCH(DMI_BIOS_VERSION, "1.41.0"),
+> +=09=09},
+> +=09},
+> +=09{ }
+> +};
+> +
+>  static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] =
+=3D {
+>  =09/*
+>  =09 * When a 400KHz freq is used on this model of ELAN touchpad in Linux=
+,
+> @@ -377,6 +389,14 @@ static const struct acpi_device_id i2c_acpi_force_10=
+0khz_device_ids[] =3D {
+>  =09{ .id =3D "ELAN0678" },
+>  =09{ .id =3D "ELAN06FA" },
+>  =09{ .id =3D "ELAN1300" },
+> +=09{
+> +=09=09/*
+> +=09=09 * Some Dell XPS 17 9720 is not using standard ACPI IDs
+> +=09=09 * so we need to match also via DMI strings.
+> +=09=09 */
+> +=09=09.id =3D "VEN_04F3",
+> +=09=09.driver_data =3D (kernel_ulong_t)i2c_acpi_dell_xps_17_9720_dmi_ids=
+,
+> +=09},
+>  =09{ }
+>  };
+>=20
+> @@ -385,6 +405,7 @@ static acpi_status i2c_acpi_lookup_speed(acpi_handle =
+handle, u32 level,
+>  {
+>  =09struct i2c_acpi_lookup *lookup =3D data;
+>  =09struct acpi_device *adev =3D acpi_fetch_acpi_dev(handle);
+> +=09const struct acpi_device_id *id;
+>=20
+>  =09if (!adev || i2c_acpi_do_lookup(adev, lookup))
+>  =09=09return AE_OK;
+> @@ -398,7 +419,9 @@ static acpi_status i2c_acpi_lookup_speed(acpi_handle =
+handle, u32 level,
+>  =09if (acpi_match_device_ids(adev, i2c_acpi_force_400khz_device_ids) =3D=
+=3D 0)
+>  =09=09lookup->force_speed =3D I2C_MAX_FAST_MODE_FREQ;
+>=20
+> -=09if (acpi_match_device_ids(adev, i2c_acpi_force_100khz_device_ids) =3D=
+=3D 0)
+> +=09id =3D acpi_match_acpi_device(i2c_acpi_force_100khz_device_ids, adev)=
+;
+> +=09if (id && (!id->driver_data ||
+> +=09=09   dmi_check_system((const struct dmi_system_id *)id->driver_data)=
+))
+>  =09=09lookup->force_speed =3D I2C_MAX_STANDARD_MODE_FREQ;
+>=20
+>  =09return AE_OK;
+> 
