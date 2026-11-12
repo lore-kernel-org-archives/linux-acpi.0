@@ -1,49 +1,111 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794489265;
-	b=pyyBRtzelAu7Z5R5moYLBdGEpotSd9r0cKYqR5h3NYsn0otNi9QxykKjMp1ADhEnZynl
-	 3NrxwXiGI7tOmncmZAOF1d/jZh3LIP7vqS400P1PTaSBMitexORl2Gq5g/k3jZZOZjNdF
-	 rtfGUG/aLfuz3HmOyRtPunoPETXasA05M1ne0P8uqTtOrV6F4IAv2ISBRc4yx07jhiqef
-	 Js0lpN411Ug2HRrBlj8613H+sic3cfk9xFiFXjdkw4kabWAlL3Znel+fYi2JBAt4rktD8
-	 oZQmaramDDB3Xckb3mV03xBPDRFhU/KNro8efQyHae9YVsupKufZNRCprTl7sda58BA==
+	t=1794491134;
+	b=R/v4AQOks68kUJHevEi0z1TKt38NM1khLvzcBg3v1uicZI2NhyfMUkJ/RUlXUvomMpVK
+	 0TZ1vobHOMCmE15NwJwvMLJr3mpGRtpHb83TpIz1ZplrzXlOkeOaUY+sxDkPMFTQWiRIX
+	 ckf+K4kfWVDzoKCABTSlkeBLjVVsG/c0H6PFZTCvXl7BOBK+bcF/oO+T8wLkpcZxFrfjv
+	 WAcrcVzwkyqsc+yrJocmSDRbjGrkU+/1LpB11wQOQdm4okFL6rnGXwSD0kI4m2gzbCJmu
+	 bN1DcVU+dg9zJtKYe715XgdY7CeedzIH7HyvJc2WHvFYK1pCJ25EqTYg1aDWG4W1jfA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794489265;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=9mxKg6PFH2mKgwRlY7JWxXK8RldI6RUjgfddAJpwc7I=;
-	b=UrLA8vjS8hsmaNvbyRYqEN4ChKTSBSK/qGmxiK3Q5mmu6FzhHOggwGyP9CaQ4oUXkTio
-	 8LEWhvkc/Hc25oeQIxipuOSTp6/3yULxIrfA/bt4m9iTjs5fVE6TKqJe9YB21OxMOUp6f
-	 tqE3MTLxblEl9kuiiaM0eDtUWc+yMPT6B05Hz5XQK/c7KQZBpua3dBVWBtSylCPPDkL/Q
-	 z/Vi6a5CeYyknjm6QhuJ/e8JviTWR305v5PFEBkVzfTPGxL8c6SRX39eX6OsxW5NoMjn/
-	 oxbnP7CqD9kz3B7FF4cWHXnhdWR9zVBLYyWvL/W3PiS5Uxl5P6ZftG7S3PU1u2nz1CA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794491134;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
+	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Message-ID:
+	 Date:MIME-Version:User-Agent:From:Subject:To:Cc:References:
+	 Content-Language:In-Reply-To:Content-Type:Content-Transfer-Encoding:
+	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Info:X-Proofpoint-GUID:
+	 X-Proofpoint-Spam-Details-Enc:X-Authority-Analysis:
+	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
+	bh=SSHTQa6HyakUeWII5QwTPdRVYIzIGg3+WldbvYwS3KY=;
+	b=DByuUoJi7TeuDX/mFwucwQuRtfc84K2uFzSG8HU+1TT3tCzYnSjMQbEFwwSpRDxxh07C
+	 0MF+GHJwIug+y5A53G0DfQbh6/hnH9T3i82CMGLbUBgzpCLgETukgCStxZ+mi+oVhZ3LF
+	 q29fUZuHdu61G8EwiGnzPqlpJgn65DNV3HJL4ZomgaZIZ2RMVdnjCAAxsNt6z5ydYDL9r
+	 bIhosPJapb4/PHyK9gtFySGKxSQUrxarbthwe+Y4LKzg0yVjmO4W12c/IwEgZ/UFFbE9D
+	 kzylTWXPiuhfBYLGeeFybM17onwNO/la71mZ3fBfhH1PbAV5TSh/JOOsyzlQrcuj3vw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=eTo2jkKY;
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C02E560A2627;
-	Thu, 12 Nov 2026 13:14:24 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C02E560A2627
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	dmarc=pass header.from=oss.qualcomm.com;
+	spf=pass smtp.mailfrom=oss.qualcomm.com;
+	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=nj4sXmSj;
+	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=jQan9dsG;
+	arc=none smtp.remote-ip=205.220.168.131
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6975B606A31C
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 13:45:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6975B606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=eTo2jkKY
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2D3981477;
-	Thu, 12 Nov 2026 05:14:21 -0800 (PST)
-Received: from [10.0.130.226] (e127648.arm.com [10.0.130.226])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 8E4913F632;
-	Thu, 12 Nov 2026 05:14:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1794489264; bh=sJI57U+WQOiBy+zdKsRY1/z8s+X/kd45XllUmlTevYM=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=eTo2jkKY3U51csyMMrfFFecVyff9fAh9wtLCDpLVnzECVxAuLlgP6dRXs3hc9xvT1
-	 HnmFmYqbfi2H67ZLhTUvZnjQ1xOhfn/mNez+PQo06bYMt1d1YHpgd7q99t+tuhgW/O
-	 smFX5zUsYOoS8bP4A869wo2NHR9ZF2gmtUcPXuLk=
-Message-ID: <8d335175-7d1e-4e12-b28b-d6f2ee13edee@arm.com>
-Date: Thu, 12 Nov 2026 13:14:16 +0000
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=nj4sXmSj;
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=jQan9dsG
+Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6ACBUS4v442333
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 13:45:33 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	SSHTQa6HyakUeWII5QwTPdRVYIzIGg3+WldbvYwS3KY=; b=nj4sXmSjUAISGVD3
+	5Nk0C06mgyyX4VE8uX40/BJCKpM4N16OAs60W/ZAciCWNlW8cAl1QpqJku3wdRCV
+	jaNVGAOdjUUuQpR10aejveIzpUJQT8PBymo85eWtuqEUSeglS/Ms/z0SMigMOvNl
+	vybNoXozdjlLrX10l5rJnPCv5vJks/LYxee96DMVmZnfQahU52gzDBLnbQdDl0Bu
+	EnJ6pL/itJt4UalizLpynU+e8qTybWcuImpuOSrEEm+m32VNnSvU1VLNYmP1O1R5
+	Ryz9lNmA71g14b97fB5GrZ+mqqmtJzyhxWcN9WYaHvzmRgvHD5GnqCGPb9U9rb6w
+	tUNblQ==
+Received: from mail-qk1-f198.google.com (mail-qk1-f198.google.com [209.85.222.198])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hw7nc1p9a-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 13:45:33 +0000 (GMT)
+Received: by mail-qk1-f198.google.com with SMTP id af79cd13be357-943e8ff02d0so486766185a.2
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 05:45:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1794491133; x=1795095933; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :references:cc:to:subject:from:user-agent:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=SSHTQa6HyakUeWII5QwTPdRVYIzIGg3+WldbvYwS3KY=;
+        b=jQan9dsGKzZYYoQRa9U+IO7oLFWgzRMazYZTjkZoyVi8kFGfY8/D92E9jk7H30UXod
+         DxsaEhHsXOanbgur1i1EPGv4ClXMWW7zxjXYjjedPDU53JA5j+UYgPzqitvulSqBSGoe
+         jVbWfgq/Hce592/YDjC3N/4QqoOLwWlTk/GRhfJiZcACWntOa1ZISdCWHLyMaN9eEaue
+         diproXsnxrLZrJkt/MSMdla/tEK8tzg/w1LrZJIPt0eOJgU8GaJh6r/vtD11ZPzFGa/l
+         lhZpcbzqUv/xz3/S0mihKhafoacwVrECrArIWLkFSOTQU3NhdFUkfcURdi9B9ApJJgMr
+         CT8Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794491133; x=1795095933;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :references:cc:to:subject:from:user-agent:mime-version:date
+         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=SSHTQa6HyakUeWII5QwTPdRVYIzIGg3+WldbvYwS3KY=;
+        b=pkaiOPLmBVM3HwzgBgAdSNrsQgYeS22f34knvnkkwedyg+5QDj7LVVMEGKXpRgKUE9
+         01qeOQ18TAFp+UrdEsLNxkEmsCB1KhS+ptYmydsFccDBXrrkNUM2OVIhbdt37l505j/R
+         NrA7CGXjR2va3MkxjF/NglL7E9ARUAvaxOqZmVQ2OQp7kG5C/zkOzDcPPwk901U9f4QY
+         JDRSHKq5mjCteeQTHRjXvAzPzFFbmjh2ctOcoZbX9LcivKInW9smcHTYK6pT7TPRIlCu
+         Zt2UhcIEKavyytJEVCoOk4Mdo3raSzcMKh7A77/wgvT7J9z/UsrjW5T6TPd8uO06OQtW
+         Pqgw==
+X-Forwarded-Encrypted: i=1; AL+hErHjcKXVdEBio4WFNuHoklDX0VqS2KyvN8cvvJbpikL7KUiiLT7Oz+H5CDryiWnWbDUKnZCqK3P34d1F@vger.kernel.org
+X-Gm-Message-State: APuU4Z9VWqzlSF/ZEngwMfdZYFp/vBj9u4zzXVCoaNyhfASPieKSYoS5
+	y/RGm+plMmxtcuqTQvZjrOxeTcFgKMdcpgRjnEJOG3Akz7nycZbghZ02IpXooUGlSrSYVbR0TXZ
+	N5wl0P6Zc5V7oLhnoR0dWK7WPAyixkuli4LQhfeKeXZ1RNiAMdJVbPerNwWVSkYX/
+X-Gm-Gg: AYBFou0wKFDl2OblStydD6cKTR41Rpz9bYORoeWhvR0PcFo1Fy+wiffbAKDuDJhdU+o
+	EP7O1gQwIUY/hmG0Ng6wp6A2vTUaIqLTnzpfCTV0bq2vv9XWmfDNI172WUjdgsKnGFLbVP1JvHx
+	9lV+Rrwn4PEngWo3wLWkcVtG2AGJqkaPga2UA2hkshTRvhsY42czRzAcKoUAzgGUXEHgOWfjo8D
+	URekTp0ZOAD1bm7bBIsKqAIfC1UbMfUaR4udZhUg/1mLhDIrev/9XatMcb++YLYJ7Ogj40xGBcz
+	GwaWFHg2cFr/3WuYGmX6iP9V4NORtZvz7P4w+H8V3K3Uj1GJYmwTdiYyaBCTxcVK/sGRKv9kyrd
+	IRC+AKDIVs7AviaxWFz8XzSYiP6viomt0gvZuwlK4EUhF1mVW/TPLhJcyJ3AuHoGYpRJ8kmnuz0
+	/iG0nYatuTjK7EQfdcOIbpguXZ3/76RA8wsTwPWUqOPwXATT7r8EcMDkH+/1WM0jXXuJ8c4Pefn
+	VjESRQoM1iYSNWQaYKDv4dphFFVuKs5HcqzW21TA9Y=
+X-Received: by 2002:a05:620a:2b46:b0:93a:2611:270f with SMTP id af79cd13be357-947aff88b4bmr1027606185a.13.1794491132575;
+        Thu, 12 Nov 2026 05:45:32 -0800 (PST)
+X-Received: by 2002:a05:620a:2b46:b0:93a:2611:270f with SMTP id af79cd13be357-947aff88b4bmr1027599685a.13.1794491132056;
+        Thu, 12 Nov 2026 05:45:32 -0800 (PST)
+Received: from ?IPV6:2001:1c00:c32:7800:5bfa:a036:83f0:f9ec? (2001-1c00-0c32-7800-5bfa-a036-83f0-f9ec.cable.dynamic.v6.ziggo.nl. [2001:1c00:c32:7800:5bfa:a036:83f0:f9ec])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c504a62b303sm342113466b.58.2026.11.12.05.45.30
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 12 Nov 2026 05:45:30 -0800 (PST)
+Message-ID: <993586ff-a618-4a92-b95a-552e2ba268f4@oss.qualcomm.com>
+Date: Thu, 12 Nov 2026 14:45:29 +0100
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -54,307 +116,105 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 RESEND] cpufreq: CPPC: Add autonomous mode boot
- parameter support
-To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
- viresh.kumar@linaro.org, zhanjie9@hisilicon.com, zhenglifeng1@huawei.com,
- pierre.gondois@arm.com, ionela.voinescu@arm.com, mario.limonciello@amd.com,
- maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com,
- lenb@kernel.org, corbet@lwn.net, skhan@linuxfoundation.org,
- rdunlap@infradead.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org
-Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
- ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
-References: <20261112080442.4007723-1-sumitg@nvidia.com>
-Content-Language: en-US
-From: Christian Loehle <christian.loehle@arm.com>
-In-Reply-To: <20261112080442.4007723-1-sumitg@nvidia.com>
+From: Hans de Goede <johannes.goede@oss.qualcomm.com>
+Subject: Re: [PATCH] platform/wmi: Allow wmi module to load when acpi_disabled
+ is set
+To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: Armin Wolf <W_Armin@gmx.de>,
+        Patrik Jakobsson <patrik.r.jakobsson@gmail.com>,
+        Han Gao
+ <gaohan@iscas.ac.cn>, Han Gao <rabenda.cn@gmail.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-riscv@lists.infradead.org
+References: <20261111131613.6290-1-johannes.goede@oss.qualcomm.com>
+ <8382881b-f2d4-7909-d7d1-3a2c74f3b123@linux.intel.com>
+Content-Language: en-US, nl
+In-Reply-To: <8382881b-f2d4-7909-d7d1-3a2c74f3b123@linux.intel.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-ORIG-GUID: E_K4fxnr3isuc7hJHCZLvh4wcxYUyVf0
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTEyMDA1NCBTYWx0ZWRfX7Ntk5gp39gVV
+ GSU6V14rNbN9l5AAJ40H43t9CuPIv48xwTll49nk7qpTydGcMhsTJR+IutD1mSP4RFcXMm2SR6i
+ 56ENz3C/FKz7zPzMMf6f+nd5vvaVlYo=
+X-Proofpoint-GUID: E_K4fxnr3isuc7hJHCZLvh4wcxYUyVf0
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTEyMDA1NCBTYWx0ZWRfX9X74IjcOsJcq
+ 4xNnSXyiM5Tv0BQG5L2hy6pwkNfwKsJdWddGh6T8iCCHecgLjNlmykojWPBRd5MlfLzxoRSHxTR
+ H0HECuiEQl/2G3SV+c7nqO3gNtJME6rw2ivlLfOdHNvNJUeVSej3PFXOT7kqY/vzqhBdsCbng45
+ c944xeD5OOb0zSwuYwI0OE8ykZYMwaSPKAyU+eYxJmjeU/BFMNd6XpBBK2/n9qTKrttyneKxbra
+ JHfHDWLleoj6eArMCSd9UrUIMfIqfNS8a3+LXiSnDV40FNJgUalvRut2VDVhfqQfcSkI2fmcj6Y
+ TbLEZisfY3SIL2uHTaqTmo+gFozJR8DICK43xjzq6xZsNuVyyssazLS7ePfcqWaAHaw2Pfkj5QR
+ ExX1htFftfPWlgIBAhXzSxpvzIio9ZYhb1pkR7KDlgf4rzq7YLUH4s4cfZRmGVQ8Ub5JcFwhO1w
+ JNXFiCtrIH3xO2RuCNg==
+X-Authority-Analysis: v=2.4 cv=A8b5rKWG c=1 sm=1 tr=0 ts=6af5c2fd cx=c_pps
+ a=qKBjSQ1v91RyAK45QCPf5w==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+ a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=Um2Pa8k9VHT-vaBCBUpS:22 a=EUspDBNiAAAA:8
+ a=j-yhcRukXSKXep7fvDIA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
+ a=NFOGd7dJGGMPyQGDc5-O:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-11-12_01,2026-11-11_03,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ adultscore=0 malwarescore=0 spamscore=0 clxscore=1015 impostorscore=0
+ priorityscore=1501 lowpriorityscore=0 bulkscore=0 suspectscore=0 phishscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611120054
 
-On 11/12/26 08:04, Sumit Gupta wrote:
-> Configuring autonomous selection and Energy Performance Preference (EPP)
-> at every boot currently requires per-policy sysfs writes.
-> 
-> Add the 'cppc_cpufreq.auto_sel_mode' boot parameter to enable autonomous
-> selection during policy initialization and optionally set EPP. In
-> autonomous mode, the platform selects the performance level within the
-> MIN and MAX limits, which the driver sets from the policy limits. The EPP
-> hint guides that selection.
-> 
-> The parameter accepts:
-> - performance: enable autonomous selection and set EPP to 0x00
-> - balance_performance: enable it and set EPP to 0x80
-> - balance_power: enable it and set EPP to 0xc0
-> - power: enable it and set EPP to 0xff
-> - default_epp: enable it and preserve firmware EPP
-> - disabled: preserve the firmware configuration (default)
-> 
-> Warn about unrecognized values and ignore them.
-> 
-> Skip policies without autonomous-selection support. The driver enables
-> autonomous selection before writing EPP, as the platform may ignore EPP
-> while autonomous selection is disabled.
-> 
-> Record successful writes so the existing online and resume paths reapply
-> the requested values. The offline and suspend paths restore the saved
-> firmware values, including during driver unload.
-> 
-> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
-> ---
-> Resending v6 with base-commit info and Pierre added to Cc.
-> No changes to the code or commit message.
-> 
-> This is based on the "Preserve OSPM-set registers" [1] and
-> "ospm_nominal_perf" [2] series, which are applied for 7.5.
+Hi,
 
-I've sent out
-https://lore.kernel.org/lkml/20261112113204.778904-1-christian.loehle@arm.com/
-as a follow up, if it looks sound to you, feel free to pick it up
-as a series to go in before $SUBJECT?
+On 12-Nov-26 11:21, Ilpo Järvinen wrote:
+> On Wed, 11 Nov 2026, Hans de Goede wrote:
+> 
+>> The core wmi module provides symbols which may be used by other modules.
+>> These other modules may still function when acpi_disabled is set, but
+>> the current behavior of acpi_wmi_init() returning -ENODEV when it is set
+>> causes loading these modules to fail because the wmi module these depend
+>> on fails to load with -ENODEV.
+>>
+>> One example of this is booting a kernel with both DT and ACPI/WMI support
+>> on an arm64 systems with devicetree which will lead to acpi_disabled being
+>> set. Trying to load the amdgpu module will fail in this case because it
+>> uses symbols from the drivers/acpi/video module which in turn uses symbols
+>> from the wmi module. Note the video module itself already contains handling
+>> to still load when acpi_disables is set for similar reasons.
+>>
+>> Fix this by allowing the wmi module to still load and also register
+>> the class and bus instances since some exported functions like
+>> wmi_driver_register() rely on these being valid.
+>>
+>> Signed-off-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
+> 
+> No Fixes tag?
+> 
+> Doesn't this fix a real issue and we want this go through the fixes 
+> branch?
 
-> 
-> v5 -> v6:
-> - Split "Set CPPC Enable register in cpu_init" into a separate fix [3].
-> - Accept strings only (Pierre [4]).
-> - Move the setup into cppc_cpufreq_setup_auto_sel_mode() and check
->   autonomous selection support first (Pierre [4]).
-> - Drop the last_governor check, as init() now runs only for a new
->   policy (Pierre [4]).
-> - Drop the MIN/MAX seeding, Desired hint and policy->min/max override,
->   as init() and the governor already set valid values (Pierre [4]).
-> - Apply the parameter at the end of init(), after the usual
->   performance controls write.
-> - Save auto_sel and EPP through the saved-register code from [1]
->   (Sashiko [5]).
-> - Drop the cppc_cpufreq_exit() loop that cleared auto_sel on all
->   present CPUs (Pierre [4], Sashiko [5]).
-> - Enable autonomous selection before writing EPP.
-> - Set EPP also when firmware has already enabled autonomous selection.
-> - Add the balance_power (0xc0) and power (0xff) modes.
-> - Ignore an unrecognized value instead of treating it as disabled.
-> 
-> v5: https://lore.kernel.org/lkml/20260623080652.3353386-1-sumitg@nvidia.com/
-> [1] https://lore.kernel.org/lkml/20261106193304.3347374-1-sumitg@nvidia.com/
-> [2] https://lore.kernel.org/lkml/20261109195400.3600561-1-sumitg@nvidia.com/
-> [3] https://lore.kernel.org/lkml/20261110101246.3665797-1-sumitg@nvidia.com/
-> [4] https://lore.kernel.org/lkml/f61f592a-bc9c-4a83-bde1-e999c8101c36@nvidia.com/
-> [5] https://sashiko.dev/#/patchset/20260623080652.3353386-1-sumitg@nvidia.com
-> 
->  .../admin-guide/kernel-parameters.txt         |  26 ++++
->  drivers/cpufreq/cppc_cpufreq.c                | 120 ++++++++++++++++++
->  include/acpi/cppc_acpi.h                      |   2 +
->  3 files changed, 148 insertions(+)
-> 
-> diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-> index 0b3c140babd9..5714c0d30fce 100644
-> --- a/Documentation/admin-guide/kernel-parameters.txt
-> +++ b/Documentation/admin-guide/kernel-parameters.txt
-> @@ -1015,6 +1015,32 @@ Kernel parameters
->  			Format:
->  			<first_slot>,<last_slot>,<port>,<enum_bit>[,<debug>]
->  
-> +	cppc_cpufreq.auto_sel_mode=
-> +			[ACPI,CPU_FREQ] Enable ACPI CPPC autonomous performance
-> +			selection on all CPUs at boot. In autonomous mode, the
-> +			platform selects the performance level within the CPPC
-> +			Minimum and Maximum Performance limits. The driver sets
-> +			these limits from scaling_min_freq and scaling_max_freq.
-> +			The Energy Performance Preference (EPP) hint guides the
-> +			platform toward performance (0x00) or energy efficiency
-> +			(0xff).
-> +			Requires the ACPI CPPC Autonomous Selection Enable
-> +			register. EPP is set only if the platform implements it.
-> +			Format: <string>
-> +			  performance:
-> +				  enable autonomous selection, set EPP to 0x00
-> +			  balance_performance:
-> +				  enable autonomous selection, set EPP to 0x80
-> +			  balance_power:
-> +				  enable autonomous selection, set EPP to 0xc0
-> +			  power:
-> +				  enable autonomous selection, set EPP to 0xff
-> +			  default_epp:
-> +				  enable autonomous selection, keep firmware EPP
-> +			  disabled:
-> +				  keep the firmware configuration (default)
-> +			An unrecognized value is ignored with a warning.
-> +
->  	cpuidle.off=1	[CPU_IDLE]
->  			disable the cpuidle sub-system
->  
-> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-> index a62589c0674f..c9bed93cf0c9 100644
-> --- a/drivers/cpufreq/cppc_cpufreq.c
-> +++ b/drivers/cpufreq/cppc_cpufreq.c
-> @@ -238,6 +238,58 @@ static void cppc_cpufreq_apply_saved_regs(struct cpufreq_policy *policy,
->  					     saved_type);
->  }
->  
-> +/* Autonomous Selection boot parameter modes */
-> +enum {
-> +	AUTO_SEL_MODE_DISABLED,
-> +	AUTO_SEL_MODE_PERFORMANCE,
-> +	AUTO_SEL_MODE_BALANCE_PERFORMANCE,
-> +	AUTO_SEL_MODE_BALANCE_POWER,
-> +	AUTO_SEL_MODE_POWER,
-> +	AUTO_SEL_MODE_DEFAULT_EPP,
-> +};
-> +
-> +static const char * const auto_sel_mode_names[] = {
-> +	[AUTO_SEL_MODE_DISABLED]		= "disabled",
-> +	[AUTO_SEL_MODE_PERFORMANCE]		= "performance",
-> +	[AUTO_SEL_MODE_BALANCE_PERFORMANCE]	= "balance_performance",
-> +	[AUTO_SEL_MODE_BALANCE_POWER]		= "balance_power",
-> +	[AUTO_SEL_MODE_POWER]			= "power",
-> +	[AUTO_SEL_MODE_DEFAULT_EPP]		= "default_epp",
-> +};
-> +
-> +static int auto_sel_mode;
-> +
-> +static int auto_sel_mode_set(const char *val, const struct kernel_param *kp)
-> +{
-> +	int *mode = kp->arg;
-> +	int ret;
-> +
-> +	ret = sysfs_match_string(auto_sel_mode_names, val);
-> +	if (ret < 0) {
-> +		pr_warn("Invalid auto_sel_mode \"%s\", ignoring it\n", val);
-> +		return 0;
-> +	}
-> +
-> +	*mode = ret;
-> +	return 0;
-> +}
-> +
-> +static int auto_sel_mode_get(char *buffer, const struct kernel_param *kp)
-> +{
-> +	int *mode = kp->arg;
-> +
-> +	return sysfs_emit(buffer, "%s\n", auto_sel_mode_names[*mode]);
-> +}
-> +
-> +static const struct kernel_param_ops auto_sel_mode_ops = {
-> +	.set = auto_sel_mode_set,
-> +	.get = auto_sel_mode_get,
-> +};
-> +
-> +module_param_cb(auto_sel_mode, &auto_sel_mode_ops, &auto_sel_mode, 0444);
-> +MODULE_PARM_DESC(auto_sel_mode,
-> +		 "Autonomous selection mode: performance, balance_performance, balance_power, power, default_epp, disabled");
-> +
->  #ifdef CONFIG_ACPI_CPPC_CPUFREQ_FIE
->  static enum {
->  	FIE_UNSET = -1,
-> @@ -938,6 +990,72 @@ static u32 cppc_cpufreq_effective_nominal(struct cpufreq_policy *policy)
->  	return (u32)ospm_nominal;
->  }
->  
-> +/*
-> + * Apply the auto_sel_mode boot parameter in init(). Enable autonomous
-> + * selection unless it is already enabled. Then set EPP for the selected mode.
-> + *
-> + * Enable auto_sel before writing EPP, as the platform may ignore EPP while
-> + * autonomous selection is disabled. Save each value written, so that online()
-> + * and resume() write it again.
-> + */
-> +static void cppc_cpufreq_setup_auto_sel_mode(struct cpufreq_policy *policy)
-> +{
-> +	struct cppc_policy_state *st = cppc_cpufreq_policy_state(policy);
-> +	struct cppc_cpudata *cpu_data = policy->driver_data;
-> +	unsigned int cpu = policy->cpu;
-> +	u64 auto_sel, epp;
-> +	int ret;
-> +
-> +	if (auto_sel_mode == AUTO_SEL_MODE_DISABLED)
-> +		return;
-> +
-> +	/* U64_MAX means the platform does not implement the register. */
-> +	auto_sel = st->regs[CPPC_SAVED_AUTO_SEL][CPPC_SAVED_FIRMWARE];
-> +	if (auto_sel == U64_MAX) {
-> +		pr_info_once("Autonomous selection is not supported, ignoring auto_sel_mode\n");
-> +		return;
-> +	}
-> +
-> +	if (!auto_sel) {
-> +		ret = cppc_set_auto_sel(cpu, true);
-> +		if (ret) {
-> +			pr_warn("Failed to enable auto_sel for CPU%u (%d)\n",
-> +				cpu, ret);
-> +			return;
-> +		}
-> +		cppc_cpufreq_save_requested(policy, CPPC_SAVED_AUTO_SEL, true);
-> +	}
-> +	cpu_data->perf_ctrls.auto_sel = true;
-> +
-> +	switch (auto_sel_mode) {
-> +	case AUTO_SEL_MODE_PERFORMANCE:
-> +		epp = CPPC_EPP_PERFORMANCE_PREF;
-> +		break;
-> +	case AUTO_SEL_MODE_BALANCE_PERFORMANCE:
-> +		epp = CPPC_EPP_BALANCE_PERFORMANCE_PREF;
-> +		break;
-> +	case AUTO_SEL_MODE_BALANCE_POWER:
-> +		epp = CPPC_EPP_BALANCE_POWER_PREF;
-> +		break;
-> +	case AUTO_SEL_MODE_POWER:
-> +		epp = CPPC_EPP_ENERGY_EFFICIENCY_PREF;
-> +		break;
-> +	default:
-> +		/* default_epp keeps the EPP value set by firmware. */
-> +		return;
-> +	}
-> +
-> +	/* EPP is optional. */
-> +	ret = cppc_set_epp(cpu, epp);
-> +	if (ret) {
-> +		if (ret != -EOPNOTSUPP)
-> +			pr_warn("Failed to set EPP for CPU%u (%d)\n", cpu, ret);
-> +		return;
-> +	}
-> +	cpu_data->perf_ctrls.energy_perf = epp;
+This problem of the GPU-driver -> drivers/acpi/video.ko -> wmi.ko
+dep-chain breaking loading GPU drivers when acpi_disabled is set
+stems in essence from:
 
-So EPP is also allowed to be 4 or 6 bits wide and we might wanna account
-for that either here or in acpi-cppc.
-That being said that's already not working, I usually think all these
-technically compliant platforms should just be filtered out on
-acpi-cppc probe and we don't support EPP then and not worry about it.
-That being said amd-pstate requires EPP for active mode and in this case
-just handling the read/writes seems the pass of less resistance:
-https://lore.kernel.org/all/20261112131316.827708-1-christian.loehle@arm.com/
+fe7aebb40d42 ("ACPI: video: Add Nvidia WMI EC brightness control detection (v3)")
+
+which introduces the drivers/acpi/video.ko -> wmi.ko dependency.
+
+But that is from 2022 and was never a problem before, since booting
+any modern x86 hw with acpi_disabled is not really realistic.
+
+acpi_disabled however does get set on arm64 hw when booting
+a machine with devicetree on a kernel which can handle both
+devicetree as well as ACPI. So the real trigger for this being
+a problem now is:
+
+e2c1b56f3dfa ("platform/x86: wmi: Move WMI core code into a separate directory")
+
+which allows this dep chain to now also happen on arm64.
+
+I'll send a v2 with Armin's Reviewed-by and this as fixes tag.
+
+Regards,
+
+Hans
 
 
-> +	cppc_cpufreq_save_requested(policy, CPPC_SAVED_EPP, epp);
-> +}
-> +
->  static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
->  {
->  	unsigned int cpu = policy->cpu;
-> @@ -1058,6 +1176,8 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
->  	}
->  	cpu_data->perf_limits_valid = true;
->  
-> +	cppc_cpufreq_setup_auto_sel_mode(policy);
-> +
->  	cppc_cpufreq_cpu_fie_init(policy);
->  	return 0;
->  
-> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-> index 2cec54b4d2e2..3d47c07f494b 100644
-> --- a/include/acpi/cppc_acpi.h
-> +++ b/include/acpi/cppc_acpi.h
-> @@ -42,6 +42,8 @@
->  #define CPPC_AUTO_ACT_WINDOW_SIG_CARRY_THRESH 129
->  
->  #define CPPC_EPP_PERFORMANCE_PREF		0x00
-> +#define CPPC_EPP_BALANCE_PERFORMANCE_PREF	0x80
-> +#define CPPC_EPP_BALANCE_POWER_PREF		0xC0
->  #define CPPC_EPP_ENERGY_EFFICIENCY_PREF		0xFF
->  
->  #define CPPC_PERF_LIMITED_DESIRED_EXCURSION	BIT(0)
-> 
-> base-commit: a917b5968c17196b98b514158de800194d09e505
 
-Actual $SUBJECT looks okay to me, I'd wait with the R-b for the
-series, though.
