@@ -1,48 +1,113 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.180.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794482072;
-	b=dcGeKemfapvVgxSwn4D03diUtJyTuYt4id3cdOpQybb2tGQf3dbfG8vZVmDRCO5WFzaf
-	 BNdZsL7sWhT5/FM/IRFTK5WmbnOFP37/a3EAbbUdPRaSSOCcFgq7saLxiQcR1EiFc1xfi
-	 T31IeejSyVwm0d9RHYO4g7i26aw/m1oPmFbmohzY4IZkw5plrzydd02vWVRsEU4nqEjV+
-	 LKvB4GbaSkd2PZ6d/iyVEHNan9Sek3bKp5RFpiIZb9cEZDidVzfB1TD1b7kWrQ+bwL1yV
-	 lSyFfDNKZwkLRDSdf9goE5Elqyotk+4GnPHUfHGLD225cZUgbYTq4R5drLeftPNcryQ==
+	t=1794484929;
+	b=BRO+VGt4W5cAFJxi1r7iaE/hL1NxIoffimTs9zj7u2T4HuwIXTuIz1wwkwh/AeaLl5DX
+	 SbI79c0p7fku73hID6s0Euf7JlMEH5T8qv17O5FrvgV4J0u4U3ctTjTQaMEOcFh1/0jCp
+	 DzV3ON5KYiRhaqgYv/P+MvBInipGiDemgQbTJ4MwxaDpRKFWrg5ijN1U/bBEIeDSxWC3M
+	 xRjTRZjL+F+4WnV7Wb5cjt2eaglU/ilMnloP/DaLWbwAlGsXKzKoI9Yn1FQjXlMBbLlzz
+	 lZNh+5Z8rk4DkPBBsr0IVNAl7eI0FOgfXJxvhWXkLc+wHB4tTdO6kQsXSjTuL5FXBig==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794482072;
-	h=Received:DKIM-Signature:From:Date:Subject:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Message-Id:References:In-Reply-To:To:Cc:
-	 X-Mailer;
-	bh=vhBTCgfGjK4u6xQ2T++mjQLtxlRqMmOmpCWMe7WKk5w=;
-	b=qgUHqSO0ZIgiBk5168cSeiiI+t1DKuSGs7iBrHkDzVaKrZ6SweRvG0terrYHgJg5Z/2d
-	 2ne9PYN5VhJ8vgH/C3/U6ENgGw52yNJ7+8zWSvQlZJwcmjw+jmYTJNVeANhfiO1b5zmSP
-	 q7nY0AzUV7HnoCaOO5ObayivVBJJl+mEP3+Q8MXJcEAnzkt2mgGpAEdj2oenVXOOYuStm
-	 CI6OijttSlEWvKKIn4KzLlt/QF5PWbDaKMvfUqP4bltZJhcq2adBMzin2bwTt/1kKqZX7
-	 SaXJL7ojGEA8GPemOoEVriqLa1ZjJFx2bhkaaQPae/f1bLJ2WuwUNAW91ibWPAqKD5Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794484929;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
+	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:From:To:Cc:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding:X-Proofpoint-Spam-Details-Enc:
+	 X-Authority-Analysis:X-Proofpoint-Spam-Info:X-Proofpoint-GUID:
+	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Virus-Version:
+	 X-Proofpoint-Spam-Details;
+	bh=AuDYEcEDJUR1UK2uaeMHs+3RuDU+1g1i2caaN7EZPtM=;
+	b=P0edmFEJahkVtlhzT+Kxsf/fd8GXfynRugPmo3HnSSy9nODMEiy8NxZBlZOqxXbHkJ/L
+	 nQfZz4qPPEQjvQdL3DWEZBu86P+zx5oLCrBRiMBxf8Tno4SRmYpV8XvsJcYE/mZzyZN3n
+	 F0S29L9qYKThp+fVDe8klZq8e3ky8V7hOAEAIU7xL4Re5hNX0xgW5WsaFPtZ7PHSimChR
+	 Z+MZ0bnNWKk1/ZLoXhROB7kJwN6amF9iw0E2AiTguPuRZb95edX1jpuYXk9AGCm3psvoc
+	 E+mAuKpHkk4JsEI4Hq83g980NKRsfKFudnlt1IonvHnGbsMi0CsejuhYnur0lFrI4Pg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BVoIr6zI;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=oss.qualcomm.com;
+	spf=pass smtp.mailfrom=oss.qualcomm.com;
+	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=fAvN8QWs;
+	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b="d/Vm8QDn";
+	arc=none smtp.remote-ip=205.220.180.131
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BF08606A323
-	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 11:14:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D75F606A323
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 12:02:09 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5D75F606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BVoIr6zI
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C0751F00A05;
-	Thu, 12 Nov 2026 11:14:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794482072;
-	bh=vhBTCgfGjK4u6xQ2T++mjQLtxlRqMmOmpCWMe7WKk5w=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=BVoIr6zIzfj2ME5K4TFlAtDwoDSDnwEBDTLgaC2rCXHkqYQNrYaa6xoKMskrjovph
-	 3DseA3Pfkt/o6TVwHKZTvDB5ihO5ltuWBT8jOHGzNrkTrfSSgQrz95mEGUyAQDrbN1
-	 WlJZ2o8IKC7L5cg2tRX8N4183gpCtDYSjTyxqdUxdw50IIJOhwSUeMAyHYFzHtCDUR
-	 wnX7VrgCEr+KBUUHSr+/05g6dFY43PcrQmSu5hKJkKGE4x/zU5i6kRCt4rHiu3n3hL
-	 YlCt3xJk6uNqyB9A564/Nsw9ziv1oL186CVyIk8kGXMbWK8AIOdjUt/oDaEe7mXmoL
-	 w79AUG73Mh1pA==
-From: Sudeep Holla <sudeep.holla@kernel.org>
-Date: Thu, 12 Nov 2026 11:14:08 +0000
-Subject: [PATCH v2 3/3] firmware: arm_ffa: Share FF-A version negotiation
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=fAvN8QWs;
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=d/Vm8QDn
+Received: from pps.filterd (m0279869.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6ACAUn881629431
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 12:02:08 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=qcppdkim1; bh=AuDYEcEDJUR1UK2uaeMHs+3RuDU+1g1i2ca
+	aN7EZPtM=; b=fAvN8QWsmuU63JrxdCgL0qfveB+M6RlA4jwH8ZLIRqOa2zWe2v8
+	u8ja870wKN0nbFSKms4No9qzIwO0NQ4Elk+mJlDPRVmc38f0RazxKDxsMUN9fXZE
+	yZqH0kTZkJnFMd9l+k6hWZwwG9ro1NDxcRdEzW6hlyf9ChvUxEsJj87iSAkxsJtS
+	/eNdgKFGEVp2wRXvQTECYKr961yHNfF/jzcnrPDzINJaLoFEC3s5d8X5dTS0WMtA
+	t3tLQp8kWzejHOodWzwFx2eyduZn+IzP0MnTN8Pe/OQ3mgSmNp29GZHCJo4j3Lcr
+	KXuu36RRXYiLlldnhb5naaH17MaBNo8A1UQ==
+Received: from mail-vk1-f198.google.com (mail-vk1-f198.google.com [209.85.221.198])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hwbs009hf-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 12:02:08 +0000 (GMT)
+Received: by mail-vk1-f198.google.com with SMTP id 71dfb90a1353d-5eae356241fso1072771e0c.0
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 04:02:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1794484927; x=1795089727; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=AuDYEcEDJUR1UK2uaeMHs+3RuDU+1g1i2caaN7EZPtM=;
+        b=d/Vm8QDnZ+t4OJIB8H9UGHjJRI2SoF0pprMESo5cztFhTVH7KHU5IDNcAmU3i9GH2K
+         8tR+gWWt8b8RZfWSn2TVS7iOyC3B4TpE7rkO2Z1Qx9U87sQX7OLOxbK5Mc5rHmgzRGzU
+         5zzdqlaiO/IfwfV54RsAde6Arj81y7BO+iyTJEoXHNAURCetm85ajHUv7rJNTirBlyfy
+         9tgrR3sw6BRHpKHZeiPsgGRmLioWthR7esrhvNiP3//zguMKIG8g01h/WY2xJgSACrsu
+         VXOSkV7CUatSOW1m6VgP+iisbqIUueSclCIyQonjwreYpucGoHwHg8JIAxgqwRFvYQ6k
+         g9ug==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794484927; x=1795089727;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=AuDYEcEDJUR1UK2uaeMHs+3RuDU+1g1i2caaN7EZPtM=;
+        b=iG5SwpamTf44XbZcePJn2cRQPPzqygQf+G8GT+SqjSaY/HP09KLJlriqM2b4tIVK1w
+         GpfbrhEUVvy7RfwvThiu1l3fbbTKBENXM/UZ99TgRY1DTScXyCiuehnAg6i7czO+P3W3
+         3QfUHZeTqSSSrWfSG9cju0CFLV9dI4pWiewsuQdVoNgViSlkMLP1dYqyEN0m8kYvANu9
+         shZHjtjBqDUOPTL5O61nhiRc/sz24A1ZUyOcu58fH4J/FeT11vZipco/SOMofHwqlz/K
+         zNqXckeDMI70GteVGLVCsJ5lzlqEBb6IMcwPCJKOZgh1a5Xn5fWs/YdNtUOrckcaCLcs
+         9zbQ==
+X-Forwarded-Encrypted: i=1; AL+hErFVh/nvQEbmENqWjB55549euDjv8Sap63IuFs57hyCWoE7ojzc53NhzsiO3E0KMKuz3JxaSJ1Rpnyon@vger.kernel.org
+X-Gm-Message-State: APuU4Z/wfNmvDilrpPC4o51TighvQyTbPbSFv3BxRIATB2qGChipxS6g
+	z/ODb87IzulJyAKmE3b4Unq3DfX59/z1qPDPJvebNjXhurmGjW72Qyob6epgPdtBUcn0SYUk2fq
+	1sdjJdpfRu7prBUI7w+SmRcJpGD+VQkLzY+jUZNstQWjVh1oHPHsc5VHwPD+kPBp67xa7+8CV
+X-Gm-Gg: AYBFou0e7w3l4fAb5S9o/0Q45cocPVUJkJ2NBpgieQWx0Gik27vsZ0v6XT3E81tACux
+	Wmjskq7WB5GLClFpP/HZzRqbm0+X+D/tfGXZLy/O3f/JSOEPCcyyVv3WXraBX+y7GctSHSvmfIb
+	A6p8IKzr0537nZMdbiuxMor5BQTArkCT5joRQo1xhWzecg6zS8VyDXgb2VjA0AD16pzJ15Ra3Ej
+	MDCM2wXS/U6t6JBew3vrQPiOh2p6hCWd/TuWf6MvCCAle3Pmo3CmbQ6fI/VXB02Ny/CeXzIDqJI
+	2ffZxSiL41Q0nAFkmfXeDY8BSKAIj9lxKYX5WyJRHx5B+V+uXXO0eAfsPxVc/mueCMJo4u5AqtE
+	7n5Au20Lhrf4vizr0t5giAl8O1sc85I/OPJnvJsR5SRbRQ8HblOqpAY7jNdafMTZK4sJga754n6
+	ji17MBo/pSEx0v8p67ZBWVZZ84fELJtDjspeuz/1xnxpAB65dWcYphBwlB4bSrX665
+X-Received: by 2002:a05:6122:1d12:b0:5ea:bfba:f540 with SMTP id 71dfb90a1353d-5ee1c2a6763mr1925865e0c.1.1794484926958;
+        Thu, 12 Nov 2026 04:02:06 -0800 (PST)
+X-Received: by 2002:a05:6122:1d12:b0:5ea:bfba:f540 with SMTP id 71dfb90a1353d-5ee1c2a6763mr1925756e0c.1.1794484926192;
+        Thu, 12 Nov 2026 04:02:06 -0800 (PST)
+Received: from shalem (2001-1c00-0c32-7800-5bfa-a036-83f0-f9ec.cable.dynamic.v6.ziggo.nl. [2001:1c00:c32:7800:5bfa:a036:83f0:f9ec])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c504a602b70sm325553366b.49.2026.11.12.04.02.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 12 Nov 2026 04:02:05 -0800 (PST)
+From: Hans de Goede <johannes.goede@oss.qualcomm.com>
+To: Ulf Hansson <ulfh@kernel.org>, Luka Gejak <luka.gejak@linux.dev>
+Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>, linux-mmc@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH v2 0/1] mmc: sdio: Set acpi_device.power.flags.ignore_parent flag on sdio_func companion
+Date: Thu, 12 Nov 2026 13:02:03 +0100
+Message-ID: <20261112120204.98633-1-johannes.goede@oss.qualcomm.com>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -52,240 +117,65 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261112-acpi_ffh_ffa-v2-3-575a9dbed22b@kernel.org>
-References: <20261112-acpi_ffh_ffa-v2-0-575a9dbed22b@kernel.org>
-In-Reply-To: <20261112-acpi_ffh_ffa-v2-0-575a9dbed22b@kernel.org>
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Sudeep Holla <sudeep.holla@kernel.org>, 
- Jamie Nguyen <jamien@nvidia.com>, Lorenzo Pieralisi <lpieralisi@kernel.org>, 
- Hanjun Guo <guohanjun@huawei.com>, 
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
- Dat Mach <dmach@nvidia.com>
-X-Mailer: b4 0.16.0
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTEyMDA0NyBTYWx0ZWRfX0k0a2zwJIvJ2
+ Yuyg+CEy1z7h2604VUIpTdKmgisthJh5Wn8ey/SXnaQ7RpZI625X1BZBNZ1qFL7/zst8pXM+qk1
+ tfMLDfhXwRDkcp/4fnunAA+ViyhhlK9vstqAjmE+eSsHUsap081aI3zNAi0Ja5XS5RIyu9NIN55
+ r/k9pG5P9/NzeKo2RDkVm0pQ8B2LcGzcZDP/XlBtsGlWZEYkO4IcTUNePTBZusJKEX2D9NWdw1z
+ E1aGrvNi2N7pKXr8rba8+NAfKBG7H2XFzWWQFXEiNvEqoM0Du7lCkUb42pG0SfxBWpDLjQzSOYQ
+ uMO0BgmvrT6zsEpnEBnnT1eMKaYWpJKB7SYhCgACbeG5W5PLrej2hOr5M7cMZjTCMaigqnxngok
+ jy5s7YjyKE0dSYatL7eqGr9foTPn5t+OqaiK4eGaLHVL39VubizUvfLTuA+DNQLV9T46cIwRqz4
+ A+UiV4xymSKScDkpf5Q==
+X-Authority-Analysis: v=2.4 cv=AsF7T+9P c=1 sm=1 tr=0 ts=6af5aac0 cx=c_pps
+ a=1Os3MKEOqt8YzSjcPV0cFA==:117 a=xqWC_Br6kY4A:10 a=zJRp6_cAMcgA:10
+ a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=_glEPmIy2e8OvE2BGh3C:22 a=XvLEI6pVna3Y4YLx6BYA:9 a=hhpmQAJR8DioWGSBphRh:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTEyMDA0NyBTYWx0ZWRfX+uRNOu1YYw+B
+ 081xHIRaoc5GQHCWopYRa6tumMB8FFwjBJUJMAOGfpIH9huWQWoF1LznRuCcjeeVKVTivyqM+gV
+ 7G0uf6ZV9i/NFFYVAn6QdGEAP8wNYCo=
+X-Proofpoint-GUID: RMJXLY-_dA5eB26JTIRGB8HFlIZQZ8o5
+X-Proofpoint-ORIG-GUID: RMJXLY-_dA5eB26JTIRGB8HFlIZQZ8o5
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-11-12_01,2026-11-11_03,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ clxscore=1015 suspectscore=0 phishscore=0 impostorscore=0 bulkscore=0
+ adultscore=0 lowpriorityscore=0 spamscore=0 priorityscore=1501 malwarescore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611120047
 
-ACPI FFH and the FF-A transport driver use the same Normal-world
-endpoint. Independent FFA_VERSION calls can conflict with endpoint-wide
-version negotiation and make initialization order matter.
+Hi All,
 
-Add a built-in helper to serialize and cache the FFA_VERSION result,
-and use it from both clients. The transport retains its existing version
-compatibility checks, while FFH continues to require v1.2.
+Here is v2 of my fix to fix a runtime-pm race for SDIO functions with
+an ACPI-companion fwnode. Sorry for taking so long to get v2 out the door.
 
-Build the helper when either client is enabled so the transport
-driver can remain modular.
+The race this fixes has become much more likely to get triggered by the new
+rtw88-8723bs support replacing the rtl8723bs staging driver in the 7.4-rc#
+kernels (by somewhat changing the timing). This old wifi chip is still in
+use a lot on (somewhat older) cheap x86 devices. Which now often end up
+with non working wifi due to this race.
 
-Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
----
- drivers/acpi/arm64/ffh.c           | 17 ++++++-----------
- drivers/firmware/arm_ffa/Kconfig   |  5 +++++
- drivers/firmware/arm_ffa/Makefile  |  3 ++-
- drivers/firmware/arm_ffa/driver.c  | 31 ++++++++++++++++--------------
- drivers/firmware/arm_ffa/version.c | 39 ++++++++++++++++++++++++++++++++++++++
- include/linux/arm_ffa.h            | 12 ++++++++++++
- 6 files changed, 81 insertions(+), 26 deletions(-)
+Assuming there are no further remarks on this version, please queue this
+up as a fix for 7.4-rc$ to avois users getting hit by a regression when
+they update to 7.4.
 
-diff --git a/drivers/acpi/arm64/ffh.c b/drivers/acpi/arm64/ffh.c
-index 7f13a6d2473a..2b6489d9800e 100644
---- a/drivers/acpi/arm64/ffh.c
-+++ b/drivers/acpi/arm64/ffh.c
-@@ -66,23 +66,18 @@ static int acpi_ffh_ffa_features(struct acpi_ffh_data *ffh_ctxt, u32 fid)
- 
- static int acpi_ffh_ffa_init(struct acpi_ffh_data *ffh_ctxt)
- {
--	struct arm_smccc_1_2_regs args = { }, res;
-+	struct arm_smccc_1_2_regs args, res;
- 	u32 version;
--	int ret = 0;
-+	int ret;
- 
- 	guard(mutex)(&acpi_ffh_ffa_lock);
- 	if (acpi_ffh_ffa_initialized)
- 		return 0;
- 
--	args.a0 = FFA_VERSION;
--	args.a1 = FFA_VERSION_1_2;
--	acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
--	version = res.a0;
--	if ((s32)version == SMCCC_RET_NOT_SUPPORTED ||
--	    FFA_MAJOR_VERSION(version) != 1 || version < FFA_VERSION_1_2) {
--		ret = -EOPNOTSUPP;
--		return ret;
--	}
-+	ret = arm_ffa_version_get(ffh_ctxt->invoke_ffh64_fn, FFA_VERSION_1_2,
-+				  &version);
-+	if (ret || version < FFA_VERSION_1_2)
-+		return -EOPNOTSUPP;
- 
- 	ret = acpi_ffh_ffa_features(ffh_ctxt, FFA_MSG_SEND_DIRECT_REQ2);
- 	if (ret)
-diff --git a/drivers/firmware/arm_ffa/Kconfig b/drivers/firmware/arm_ffa/Kconfig
-index 5e3ae5cf82e8..81be3d6dd7da 100644
---- a/drivers/firmware/arm_ffa/Kconfig
-+++ b/drivers/firmware/arm_ffa/Kconfig
-@@ -15,6 +15,11 @@ config ARM_FFA_TRANSPORT
- 	  This driver provides interface for all the client drivers making
- 	  use of the features offered by ARM FF-A.
- 
-+config ARM_FFA_VERSION_NEGOTIATION
-+	bool
-+	depends on ARM64
-+	default y if ACPI_FFH || ARM_FFA_TRANSPORT
-+
- config ARM_FFA_SMCCC
- 	bool
- 	default ARM_FFA_TRANSPORT
-diff --git a/drivers/firmware/arm_ffa/Makefile b/drivers/firmware/arm_ffa/Makefile
-index 168990a7e792..6bd09b81e15f 100644
---- a/drivers/firmware/arm_ffa/Makefile
-+++ b/drivers/firmware/arm_ffa/Makefile
-@@ -4,5 +4,6 @@ ffa-driver-y = driver.o
- ffa-transport-$(CONFIG_ARM_FFA_SMCCC) += smccc.o
- ffa-core-objs := $(ffa-bus-y)
- ffa-module-objs := $(ffa-driver-y) $(ffa-transport-y)
--obj-$(CONFIG_ARM_FFA_TRANSPORT)  = ffa-core.o
-+obj-$(CONFIG_ARM_FFA_VERSION_NEGOTIATION) += version.o
-+obj-$(CONFIG_ARM_FFA_TRANSPORT)  += ffa-core.o
- obj-$(CONFIG_ARM_FFA_TRANSPORT) += ffa-module.o
-diff --git a/drivers/firmware/arm_ffa/driver.c b/drivers/firmware/arm_ffa/driver.c
-index babc5d62bdd2..b9b0f88e8f24 100644
---- a/drivers/firmware/arm_ffa/driver.c
-+++ b/drivers/firmware/arm_ffa/driver.c
-@@ -138,30 +138,33 @@ static u32 ffa_compatible_version_find(u32 version)
- 	return FFA_DRIVER_VERSION;
- }
- 
--static int ffa_version_check(u32 *version)
-+static void ffa_version_invoke(const ffa_value_t *args, ffa_value_t *res)
- {
--	ffa_value_t ver;
-+	invoke_ffa_fn(*args, res);
-+}
- 
--	invoke_ffa_fn((ffa_value_t){
--		      .a0 = FFA_VERSION, .a1 = FFA_DRIVER_VERSION,
--		      }, &ver);
-+static int ffa_version_check(u32 *version)
-+{
-+	int ret;
-+	u32 ver;
- 
--	if ((s32)ver.a0 == FFA_RET_NOT_SUPPORTED) {
-+	ret = arm_ffa_version_get(ffa_version_invoke, FFA_DRIVER_VERSION, &ver);
-+	if (ret) {
- 		pr_info("FFA_VERSION returned not supported\n");
--		return -EOPNOTSUPP;
-+		return ret;
- 	}
- 
--	if (FFA_MAJOR_VERSION(ver.a0) > FFA_MAJOR_VERSION(FFA_DRIVER_VERSION)) {
-+	if (FFA_MAJOR_VERSION(ver) > FFA_MAJOR_VERSION(FFA_DRIVER_VERSION)) {
- 		pr_err("Incompatible v%d.%d! Latest supported v%d.%d\n",
--		       FFA_MAJOR_VERSION(ver.a0), FFA_MINOR_VERSION(ver.a0),
-+		       FFA_MAJOR_VERSION(ver), FFA_MINOR_VERSION(ver),
- 		       FFA_MAJOR_VERSION(FFA_DRIVER_VERSION),
- 		       FFA_MINOR_VERSION(FFA_DRIVER_VERSION));
- 		return -EINVAL;
- 	}
- 
--	if (ver.a0 < FFA_MIN_VERSION) {
-+	if (ver < FFA_MIN_VERSION) {
- 		pr_err("Incompatible v%d.%d! Earliest supported v%d.%d\n",
--		       FFA_MAJOR_VERSION(ver.a0), FFA_MINOR_VERSION(ver.a0),
-+		       FFA_MAJOR_VERSION(ver), FFA_MINOR_VERSION(ver),
- 		       FFA_MAJOR_VERSION(FFA_MIN_VERSION),
- 		       FFA_MINOR_VERSION(FFA_MIN_VERSION));
- 		return -EINVAL;
-@@ -169,9 +172,9 @@ static int ffa_version_check(u32 *version)
- 
- 	pr_info("Driver version %d.%d\n", FFA_MAJOR_VERSION(FFA_DRIVER_VERSION),
- 		FFA_MINOR_VERSION(FFA_DRIVER_VERSION));
--	pr_info("Firmware version %d.%d found\n", FFA_MAJOR_VERSION(ver.a0),
--		FFA_MINOR_VERSION(ver.a0));
--	*version = ffa_compatible_version_find(ver.a0);
-+	pr_info("Firmware version %d.%d found\n", FFA_MAJOR_VERSION(ver),
-+		FFA_MINOR_VERSION(ver));
-+	*version = ffa_compatible_version_find(ver);
- 
- 	return 0;
- }
-diff --git a/drivers/firmware/arm_ffa/version.c b/drivers/firmware/arm_ffa/version.c
-new file mode 100644
-index 000000000000..f5c973710dff
---- /dev/null
-+++ b/drivers/firmware/arm_ffa/version.c
-@@ -0,0 +1,39 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+#define pr_fmt(fmt) "ARM FF-A: " fmt
-+
-+#include <linux/arm-smccc.h>
-+#include <linux/arm_ffa.h>
-+#include <linux/cleanup.h>
-+#include <linux/errno.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+
-+static DEFINE_MUTEX(ffa_version_lock);
-+static int ffa_version;
-+
-+int arm_ffa_version_get(void (*invoke)(const struct arm_smccc_1_2_regs *args,
-+				       struct arm_smccc_1_2_regs *res),
-+			u32 input_version, u32 *version)
-+{
-+	struct arm_smccc_1_2_regs args = {
-+		.a0 = FFA_VERSION,
-+		.a1 = input_version,
-+	}, res;
-+
-+	guard(mutex)(&ffa_version_lock);
-+	if (!ffa_version) {
-+		invoke(&args, &res);
-+
-+		if ((s32)res.a0 == FFA_RET_NOT_SUPPORTED)
-+			ffa_version = -EOPNOTSUPP;
-+		else
-+			ffa_version = res.a0;
-+	}
-+
-+	if (ffa_version < 0)
-+		return ffa_version;
-+
-+	*version = ffa_version;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(arm_ffa_version_get);
-diff --git a/include/linux/arm_ffa.h b/include/linux/arm_ffa.h
-index 3831fbe244c1..039308a41cdb 100644
---- a/include/linux/arm_ffa.h
-+++ b/include/linux/arm_ffa.h
-@@ -6,6 +6,7 @@
- #ifndef _LINUX_ARM_FFA_H
- #define _LINUX_ARM_FFA_H
- 
-+#include <linux/arm-smccc.h>
- #include <linux/bitfield.h>
- #include <linux/device.h>
- #include <linux/module.h>
-@@ -179,6 +180,17 @@ static inline void *ffa_dev_get_drvdata(struct ffa_device *fdev)
- 
- struct ffa_partition_info;
- 
-+#if IS_BUILTIN(CONFIG_ARM_FFA_VERSION_NEGOTIATION)
-+int arm_ffa_version_get(void (*invoke)(const struct arm_smccc_1_2_regs *args,
-+				       struct arm_smccc_1_2_regs *res),
-+			u32 input_version, u32 *version);
-+#else
-+static inline int arm_ffa_version_get(
-+	void (*invoke)(const struct arm_smccc_1_2_regs *args,
-+		       struct arm_smccc_1_2_regs *res),
-+	u32 input_version, u32 *version) { return -EOPNOTSUPP; }
-+#endif /* CONFIG_ARM_FFA_VERSION_NEGOTIATION */
-+
- #if IS_REACHABLE(CONFIG_ARM_FFA_TRANSPORT)
- struct ffa_device *
- ffa_device_register(const struct ffa_partition_info *part_info,
+Changes in v2:
+- Do not clear func->dev's (ACPI) fwnode pointer before calling
+  device_del() so that acpi_device_notify_remove() properly removes
+  the physical-device links from the ACPI fwnode.
+
+Regards,
+
+Hans
+
+
+Hans de Goede (1):
+  mmc: sdio: Set acpi_device.power.flags.ignore_parent flag on sdio_func
+    companion
+
+ drivers/mmc/core/sdio_bus.c | 26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
 -- 
-2.43.0
+2.56.0
 
