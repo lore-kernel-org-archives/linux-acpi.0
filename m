@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794482070;
-	b=3UNItUUoGCI8dNsMDY2omdJhHss8bSAlZtwZJq6hOgQRJIEdiNtNl616KGDsB/1UoJid
-	 mhT6/VpiaF/HOijZUGWblU67hA/jjqv49DRfOImSsUutqpGxm1Bnm5WxZ1UZa3lPv9zrl
-	 YFTaodipArQXBfGLvJmhYu7J+yUVoRfQln6grTg8HH4iWuJxS9oJXKViJp8AnySeLhlpW
-	 IFR9rgkmFRZ7vJmpAGfYJgocCdT4YJ3xAM1GPNkkiiWvPUyIRBJHM73Sg6SzH2WLLxyBD
-	 zpPcAG7LKoh/yiDX3xhX18uid9zawlgSRr4Rjd0jb381Ncx265QXOjuKsJpL2EEfWYA==
+	t=1794482072;
+	b=dcGeKemfapvVgxSwn4D03diUtJyTuYt4id3cdOpQybb2tGQf3dbfG8vZVmDRCO5WFzaf
+	 BNdZsL7sWhT5/FM/IRFTK5WmbnOFP37/a3EAbbUdPRaSSOCcFgq7saLxiQcR1EiFc1xfi
+	 T31IeejSyVwm0d9RHYO4g7i26aw/m1oPmFbmohzY4IZkw5plrzydd02vWVRsEU4nqEjV+
+	 LKvB4GbaSkd2PZ6d/iyVEHNan9Sek3bKp5RFpiIZb9cEZDidVzfB1TD1b7kWrQ+bwL1yV
+	 lSyFfDNKZwkLRDSdf9goE5Elqyotk+4GnPHUfHGLD225cZUgbYTq4R5drLeftPNcryQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794482070;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794482072;
 	h=Received:DKIM-Signature:From:Date:Subject:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding:Message-Id:References:In-Reply-To:To:Cc:
 	 X-Mailer;
-	bh=oHLESe3h+Hl0fvYPNJEst+wVARKEJnOl/p9IddcU5sU=;
-	b=olhucGn9zCt4tApboZKa8F6cPLYwuQGigupRHRpTo/PlNpxhsc/cfusvLnXqEs+ptis+
-	 hcIjA28A/Jix3uytqBLKkYTLMtRZ8vak2QnezCfCz9Pe9R3mGRI/oP144dv4/x3MgyCSh
-	 jDVCr7js9m/212H+2xtzZN/HubxiMJsyvJsuTYaNOFfH1NijGeZH7b3wJKBgcFGYPat4m
-	 deqKPA7yNw12PWj6pwrxQEpMgVNdLxEm9MgHiI0qRmZ1ecOkoBU28fKv6OPHLQa+scPYI
-	 L5gl3lRtY/QLyrUt+kGwiawIhr/dc3CFWNCIBKW7cxV7Ec6IsqB9tgVmD6RoFGAGeNg==
+	bh=vhBTCgfGjK4u6xQ2T++mjQLtxlRqMmOmpCWMe7WKk5w=;
+	b=qgUHqSO0ZIgiBk5168cSeiiI+t1DKuSGs7iBrHkDzVaKrZ6SweRvG0terrYHgJg5Z/2d
+	 2ne9PYN5VhJ8vgH/C3/U6ENgGw52yNJ7+8zWSvQlZJwcmjw+jmYTJNVeANhfiO1b5zmSP
+	 q7nY0AzUV7HnoCaOO5ObayivVBJJl+mEP3+Q8MXJcEAnzkt2mgGpAEdj2oenVXOOYuStm
+	 CI6OijttSlEWvKKIn4KzLlt/QF5PWbDaKMvfUqP4bltZJhcq2adBMzin2bwTt/1kKqZX7
+	 SaXJL7ojGEA8GPemOoEVriqLa1ZjJFx2bhkaaQPae/f1bLJ2WuwUNAW91ibWPAqKD5Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="e/HFL7qs";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BVoIr6zI;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65322606A321
-	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 11:14:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BF08606A323
+	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 11:14:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=e/HFL7qs
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEE041F00A07;
-	Thu, 12 Nov 2026 11:14:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BVoIr6zI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C0751F00A05;
+	Thu, 12 Nov 2026 11:14:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794482070;
-	bh=oHLESe3h+Hl0fvYPNJEst+wVARKEJnOl/p9IddcU5sU=;
+	s=k20260515; t=1794482072;
+	bh=vhBTCgfGjK4u6xQ2T++mjQLtxlRqMmOmpCWMe7WKk5w=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=e/HFL7qsI2hY8ATut6Sat24X4iqrDFOYNRDjmti84zjG8PQClxYYlxvNEJrwFqYil
-	 b8T7lnQF9FPukcY1tDcO0KOTBjGV2B+0Jk7lTyWr3+0oOOXfgLJ5K/qw5NshEwbLVT
-	 kW6Yx2YhK2+iQ+G9h63GAD1gylKS1cAbVFVrxT6rzFvihky3J0NX0tYxOyOX0RS8gv
-	 Aj18h6S5olpdOuveh4HMUBAR8gxfWUBf4Jnz2ECvrZxq7hYak1QUSWAQ1/mPfhuVTA
-	 KOCdTSKa+iKNbMko63aYBcW4GGhF855e4iL9LLv2h74pwI/DZPazR8zxeJbVKV4bHV
-	 mockRzc5hw54g==
+	b=BVoIr6zIzfj2ME5K4TFlAtDwoDSDnwEBDTLgaC2rCXHkqYQNrYaa6xoKMskrjovph
+	 3DseA3Pfkt/o6TVwHKZTvDB5ihO5ltuWBT8jOHGzNrkTrfSSgQrz95mEGUyAQDrbN1
+	 WlJZ2o8IKC7L5cg2tRX8N4183gpCtDYSjTyxqdUxdw50IIJOhwSUeMAyHYFzHtCDUR
+	 wnX7VrgCEr+KBUUHSr+/05g6dFY43PcrQmSu5hKJkKGE4x/zU5i6kRCt4rHiu3n3hL
+	 YlCt3xJk6uNqyB9A564/Nsw9ziv1oL186CVyIk8kGXMbWK8AIOdjUt/oDaEe7mXmoL
+	 w79AUG73Mh1pA==
 From: Sudeep Holla <sudeep.holla@kernel.org>
-Date: Thu, 12 Nov 2026 11:14:07 +0000
-Subject: [PATCH v2 2/3] ACPI: FFH: Support FF-A direct request 2 calls
+Date: Thu, 12 Nov 2026 11:14:08 +0000
+Subject: [PATCH v2 3/3] firmware: arm_ffa: Share FF-A version negotiation
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -54,7 +54,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261112-acpi_ffh_ffa-v2-2-575a9dbed22b@kernel.org>
+Message-Id: <20261112-acpi_ffh_ffa-v2-3-575a9dbed22b@kernel.org>
 References: <20261112-acpi_ffh_ffa-v2-0-575a9dbed22b@kernel.org>
 In-Reply-To: <20261112-acpi_ffh_ffa-v2-0-575a9dbed22b@kernel.org>
 To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
@@ -65,278 +65,226 @@ Cc: Sudeep Holla <sudeep.holla@kernel.org>,
  Dat Mach <dmach@nvidia.com>
 X-Mailer: b4 0.16.0
 
-Arm Functional Fixed Hardware specification v1.3 defines FFH
-OperationRegion offset 2 for issuing FFA_MSG_SEND_DIRECT_REQ2 calls.
-The arm64 FFH handler currently supports only generic 32-bit and 64-bit
-SMCCC calls, so it cannot implement this standardized interface.
+ACPI FFH and the FF-A transport driver use the same Normal-world
+endpoint. Independent FFA_VERSION calls can conflict with endpoint-wide
+version negotiation and make initialization order matter.
 
-Add a standalone FF-A path using the existing SMCCC conduit. Negotiate
-FF-A v1.2, discover the sender endpoint with FFA_ID_GET, and use either
-the receiver supplied by firmware or resolve a unique receiver from the
-service UUID with FFA_PARTITION_INFO_GET_REGS.
+Add a built-in helper to serialize and cache the FFA_VERSION result,
+and use it from both clients. The transport retains its existing version
+compatibility checks, while FFH continues to require v1.2.
 
-Convert the ACPI ToUUID representation to the FF-A register encoding,
-construct the direct request, resume interrupted or yielded calls with
-FFA_RUN, and return the defined FFH status codes to AML.
-
-Register-based partition discovery avoids RX/TX buffer ownership and
-keeps the FFH implementation independent of the Arm FF-A transport
-driver.
+Build the helper when either client is enabled so the transport
+driver can remain modular.
 
 Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
 ---
- drivers/acpi/arm64/ffh.c | 223 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 223 insertions(+)
+ drivers/acpi/arm64/ffh.c           | 17 ++++++-----------
+ drivers/firmware/arm_ffa/Kconfig   |  5 +++++
+ drivers/firmware/arm_ffa/Makefile  |  3 ++-
+ drivers/firmware/arm_ffa/driver.c  | 31 ++++++++++++++++--------------
+ drivers/firmware/arm_ffa/version.c | 39 ++++++++++++++++++++++++++++++++++++++
+ include/linux/arm_ffa.h            | 12 ++++++++++++
+ 6 files changed, 81 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/acpi/arm64/ffh.c b/drivers/acpi/arm64/ffh.c
-index 04380bab193d..7f13a6d2473a 100644
+index 7f13a6d2473a..2b6489d9800e 100644
 --- a/drivers/acpi/arm64/ffh.c
 +++ b/drivers/acpi/arm64/ffh.c
-@@ -1,7 +1,23 @@
- // SPDX-License-Identifier: GPL-2.0-only
- #include <linux/acpi.h>
-+#include <linux/arm_ffa.h>
- #include <linux/arm-smccc.h>
-+#include <linux/cleanup.h>
-+#include <linux/delay.h>
-+#include <linux/mutex.h>
- #include <linux/slab.h>
-+#include <linux/unaligned.h>
-+
-+#define FFH_FFA_CALL_FAILED		1
-+#define FFH_FFA_SUCCESS			0
-+#define FFH_FFA_NOT_SUPPORTED		-1
-+#define FFH_FFA_INVALID_PARAMETERS	-2
-+#define FFH_FFA_OUT_OF_MEMORY		-3
-+#define FFH_FFA_UNSPECIFIED_ERROR	-4
-+
-+#define FFH_FFA_MIN_LEN			(5 * sizeof(u64))
-+#define FFH_FFA_MAX_LEN			(18 * sizeof(u64))
-+#define FFH_FFA_UUID_OFFSET		(2 * sizeof(u64))
+@@ -66,23 +66,18 @@ static int acpi_ffh_ffa_features(struct acpi_ffh_data *ffh_ctxt, u32 fid)
  
- /*
-  * Implements ARM64 specific callbacks to support ACPI FFH Operation Region as
-@@ -19,6 +35,211 @@ struct acpi_ffh_data {
- 				struct arm_smccc_1_2_regs *res);
- };
+ static int acpi_ffh_ffa_init(struct acpi_ffh_data *ffh_ctxt)
+ {
+-	struct arm_smccc_1_2_regs args = { }, res;
++	struct arm_smccc_1_2_regs args, res;
+ 	u32 version;
+-	int ret = 0;
++	int ret;
  
-+static DEFINE_MUTEX(acpi_ffh_ffa_lock);
-+static bool acpi_ffh_ffa_initialized, acpi_ffh_ffa_partition_info_regs;
-+static u16 acpi_ffh_ffa_sender_id;
-+
-+static void acpi_ffh_ffa_invoke(struct acpi_ffh_data *ffh_ctxt,
-+				const struct arm_smccc_1_2_regs *args,
-+				struct arm_smccc_1_2_regs *res)
-+{
-+	ffh_ctxt->invoke_ffh64_fn(args, res);
-+}
-+
-+static int acpi_ffh_ffa_features(struct acpi_ffh_data *ffh_ctxt, u32 fid)
-+{
-+	struct arm_smccc_1_2_regs args = {
-+		.a0 = FFA_FEATURES,
-+		.a1 = fid,
-+	};
-+	struct arm_smccc_1_2_regs res;
-+
-+	acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
-+	if (res.a0 == FFA_ERROR) {
-+		if ((s32)res.a2 == FFA_RET_NOT_SUPPORTED)
-+			return -EOPNOTSUPP;
-+		return -EINVAL;
-+	}
-+
-+	return res.a0 == FFA_SUCCESS ? 0 : -EIO;
-+}
-+
-+static int acpi_ffh_ffa_init(struct acpi_ffh_data *ffh_ctxt)
-+{
-+	struct arm_smccc_1_2_regs args = { }, res;
-+	u32 version;
-+	int ret = 0;
-+
-+	guard(mutex)(&acpi_ffh_ffa_lock);
-+	if (acpi_ffh_ffa_initialized)
-+		return 0;
-+
-+	args.a0 = FFA_VERSION;
-+	args.a1 = FFA_VERSION_1_2;
-+	acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
-+	version = res.a0;
-+	if ((s32)version == SMCCC_RET_NOT_SUPPORTED ||
-+	    FFA_MAJOR_VERSION(version) != 1 || version < FFA_VERSION_1_2) {
-+		ret = -EOPNOTSUPP;
-+		return ret;
-+	}
-+
-+	ret = acpi_ffh_ffa_features(ffh_ctxt, FFA_MSG_SEND_DIRECT_REQ2);
-+	if (ret)
-+		return ret;
-+
-+	ret = acpi_ffh_ffa_features(ffh_ctxt, FFA_MSG_SEND_DIRECT_RESP2);
-+	if (ret)
-+		return ret;
-+
-+	acpi_ffh_ffa_partition_info_regs =
-+		!acpi_ffh_ffa_features(ffh_ctxt, FFA_PARTITION_INFO_GET_REGS);
-+
-+	args = (struct arm_smccc_1_2_regs) { .a0 = FFA_ID_GET };
-+	acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
-+	if (res.a0 == FFA_ERROR) {
-+		ret = (s32)res.a2 == FFA_RET_NOT_SUPPORTED ? -EOPNOTSUPP : -EIO;
-+		return ret;
-+	}
-+	if (res.a0 != FFA_SUCCESS) {
-+		ret = -EIO;
-+		return ret;
-+	}
-+
-+	acpi_ffh_ffa_sender_id = (u16)res.a2;
-+	acpi_ffh_ffa_initialized = true;
-+	return ret;
-+}
-+
-+static void acpi_ffh_ffa_uuid_convert(const u8 *guid, u8 *uuid)
-+{
-+	/* ACPI ToUUID uses GUID byte order while FF-A uses UUID byte order. */
-+	uuid[0] = guid[3];
-+	uuid[1] = guid[2];
-+	uuid[2] = guid[1];
-+	uuid[3] = guid[0];
-+	uuid[4] = guid[5];
-+	uuid[5] = guid[4];
-+	uuid[6] = guid[7];
-+	uuid[7] = guid[6];
-+	memcpy(uuid + 8, guid + 8, UUID_SIZE - 8);
-+}
-+
-+static int acpi_ffh_ffa_receiver_id(struct acpi_ffh_data *ffh_ctxt,
-+				    u64 uuid_lo, u64 uuid_hi, u16 *receiver_id)
-+{
-+	struct arm_smccc_1_2_regs args = {
-+		.a0 = FFA_PARTITION_INFO_GET_REGS,
-+		.a1 = uuid_lo,
-+		.a2 = uuid_hi,
-+	};
-+	struct arm_smccc_1_2_regs res;
-+	u32 properties;
-+
-+	if (!acpi_ffh_ffa_partition_info_regs)
+ 	guard(mutex)(&acpi_ffh_ffa_lock);
+ 	if (acpi_ffh_ffa_initialized)
+ 		return 0;
+ 
+-	args.a0 = FFA_VERSION;
+-	args.a1 = FFA_VERSION_1_2;
+-	acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
+-	version = res.a0;
+-	if ((s32)version == SMCCC_RET_NOT_SUPPORTED ||
+-	    FFA_MAJOR_VERSION(version) != 1 || version < FFA_VERSION_1_2) {
+-		ret = -EOPNOTSUPP;
+-		return ret;
+-	}
++	ret = arm_ffa_version_get(ffh_ctxt->invoke_ffh64_fn, FFA_VERSION_1_2,
++				  &version);
++	if (ret || version < FFA_VERSION_1_2)
 +		return -EOPNOTSUPP;
+ 
+ 	ret = acpi_ffh_ffa_features(ffh_ctxt, FFA_MSG_SEND_DIRECT_REQ2);
+ 	if (ret)
+diff --git a/drivers/firmware/arm_ffa/Kconfig b/drivers/firmware/arm_ffa/Kconfig
+index 5e3ae5cf82e8..81be3d6dd7da 100644
+--- a/drivers/firmware/arm_ffa/Kconfig
++++ b/drivers/firmware/arm_ffa/Kconfig
+@@ -15,6 +15,11 @@ config ARM_FFA_TRANSPORT
+ 	  This driver provides interface for all the client drivers making
+ 	  use of the features offered by ARM FF-A.
+ 
++config ARM_FFA_VERSION_NEGOTIATION
++	bool
++	depends on ARM64
++	default y if ACPI_FFH || ARM_FFA_TRANSPORT
 +
-+	acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
-+	if (res.a0 != FFA_FN64_SUCCESS)
-+		return -EINVAL;
+ config ARM_FFA_SMCCC
+ 	bool
+ 	default ARM_FFA_TRANSPORT
+diff --git a/drivers/firmware/arm_ffa/Makefile b/drivers/firmware/arm_ffa/Makefile
+index 168990a7e792..6bd09b81e15f 100644
+--- a/drivers/firmware/arm_ffa/Makefile
++++ b/drivers/firmware/arm_ffa/Makefile
+@@ -4,5 +4,6 @@ ffa-driver-y = driver.o
+ ffa-transport-$(CONFIG_ARM_FFA_SMCCC) += smccc.o
+ ffa-core-objs := $(ffa-bus-y)
+ ffa-module-objs := $(ffa-driver-y) $(ffa-transport-y)
+-obj-$(CONFIG_ARM_FFA_TRANSPORT)  = ffa-core.o
++obj-$(CONFIG_ARM_FFA_VERSION_NEGOTIATION) += version.o
++obj-$(CONFIG_ARM_FFA_TRANSPORT)  += ffa-core.o
+ obj-$(CONFIG_ARM_FFA_TRANSPORT) += ffa-module.o
+diff --git a/drivers/firmware/arm_ffa/driver.c b/drivers/firmware/arm_ffa/driver.c
+index babc5d62bdd2..b9b0f88e8f24 100644
+--- a/drivers/firmware/arm_ffa/driver.c
++++ b/drivers/firmware/arm_ffa/driver.c
+@@ -138,30 +138,33 @@ static u32 ffa_compatible_version_find(u32 version)
+ 	return FFA_DRIVER_VERSION;
+ }
+ 
+-static int ffa_version_check(u32 *version)
++static void ffa_version_invoke(const ffa_value_t *args, ffa_value_t *res)
+ {
+-	ffa_value_t ver;
++	invoke_ffa_fn(*args, res);
++}
+ 
+-	invoke_ffa_fn((ffa_value_t){
+-		      .a0 = FFA_VERSION, .a1 = FFA_DRIVER_VERSION,
+-		      }, &ver);
++static int ffa_version_check(u32 *version)
++{
++	int ret;
++	u32 ver;
+ 
+-	if ((s32)ver.a0 == FFA_RET_NOT_SUPPORTED) {
++	ret = arm_ffa_version_get(ffa_version_invoke, FFA_DRIVER_VERSION, &ver);
++	if (ret) {
+ 		pr_info("FFA_VERSION returned not supported\n");
+-		return -EOPNOTSUPP;
++		return ret;
+ 	}
+ 
+-	if (FFA_MAJOR_VERSION(ver.a0) > FFA_MAJOR_VERSION(FFA_DRIVER_VERSION)) {
++	if (FFA_MAJOR_VERSION(ver) > FFA_MAJOR_VERSION(FFA_DRIVER_VERSION)) {
+ 		pr_err("Incompatible v%d.%d! Latest supported v%d.%d\n",
+-		       FFA_MAJOR_VERSION(ver.a0), FFA_MINOR_VERSION(ver.a0),
++		       FFA_MAJOR_VERSION(ver), FFA_MINOR_VERSION(ver),
+ 		       FFA_MAJOR_VERSION(FFA_DRIVER_VERSION),
+ 		       FFA_MINOR_VERSION(FFA_DRIVER_VERSION));
+ 		return -EINVAL;
+ 	}
+ 
+-	if (ver.a0 < FFA_MIN_VERSION) {
++	if (ver < FFA_MIN_VERSION) {
+ 		pr_err("Incompatible v%d.%d! Earliest supported v%d.%d\n",
+-		       FFA_MAJOR_VERSION(ver.a0), FFA_MINOR_VERSION(ver.a0),
++		       FFA_MAJOR_VERSION(ver), FFA_MINOR_VERSION(ver),
+ 		       FFA_MAJOR_VERSION(FFA_MIN_VERSION),
+ 		       FFA_MINOR_VERSION(FFA_MIN_VERSION));
+ 		return -EINVAL;
+@@ -169,9 +172,9 @@ static int ffa_version_check(u32 *version)
+ 
+ 	pr_info("Driver version %d.%d\n", FFA_MAJOR_VERSION(FFA_DRIVER_VERSION),
+ 		FFA_MINOR_VERSION(FFA_DRIVER_VERSION));
+-	pr_info("Firmware version %d.%d found\n", FFA_MAJOR_VERSION(ver.a0),
+-		FFA_MINOR_VERSION(ver.a0));
+-	*version = ffa_compatible_version_find(ver.a0);
++	pr_info("Firmware version %d.%d found\n", FFA_MAJOR_VERSION(ver),
++		FFA_MINOR_VERSION(ver));
++	*version = ffa_compatible_version_find(ver);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/firmware/arm_ffa/version.c b/drivers/firmware/arm_ffa/version.c
+new file mode 100644
+index 000000000000..f5c973710dff
+--- /dev/null
++++ b/drivers/firmware/arm_ffa/version.c
+@@ -0,0 +1,39 @@
++// SPDX-License-Identifier: GPL-2.0-only
++#define pr_fmt(fmt) "ARM FF-A: " fmt
 +
-+	if (FIELD_GET(FFA_PART_INFO_LAST_IDX_MASK, res.a2) ||
-+	    FIELD_GET(FFA_PART_INFO_CUR_IDX_MASK, res.a2) ||
-+	    FIELD_GET(FFA_PART_INFO_DESC_SIZE_MASK, res.a2) <
-+		    FFA_PART_INFO_MIN_DESC_SIZE)
-+		return -EINVAL;
++#include <linux/arm-smccc.h>
++#include <linux/arm_ffa.h>
++#include <linux/cleanup.h>
++#include <linux/errno.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
 +
-+	properties = FIELD_GET(FFA_PART_INFO_PROPS_MASK, res.a3);
-+	if (!(properties & FFA_PARTITION_DIRECT_REQ2_RECV))
-+		return -EINVAL;
++static DEFINE_MUTEX(ffa_version_lock);
++static int ffa_version;
 +
-+	*receiver_id = FIELD_GET(FFA_PART_INFO_ID_MASK, res.a3);
++int arm_ffa_version_get(void (*invoke)(const struct arm_smccc_1_2_regs *args,
++				       struct arm_smccc_1_2_regs *res),
++			u32 input_version, u32 *version)
++{
++	struct arm_smccc_1_2_regs args = {
++		.a0 = FFA_VERSION,
++		.a1 = input_version,
++	}, res;
++
++	guard(mutex)(&ffa_version_lock);
++	if (!ffa_version) {
++		invoke(&args, &res);
++
++		if ((s32)res.a0 == FFA_RET_NOT_SUPPORTED)
++			ffa_version = -EOPNOTSUPP;
++		else
++			ffa_version = res.a0;
++	}
++
++	if (ffa_version < 0)
++		return ffa_version;
++
++	*version = ffa_version;
 +	return 0;
 +}
++EXPORT_SYMBOL_GPL(arm_ffa_version_get);
+diff --git a/include/linux/arm_ffa.h b/include/linux/arm_ffa.h
+index 3831fbe244c1..039308a41cdb 100644
+--- a/include/linux/arm_ffa.h
++++ b/include/linux/arm_ffa.h
+@@ -6,6 +6,7 @@
+ #ifndef _LINUX_ARM_FFA_H
+ #define _LINUX_ARM_FFA_H
+ 
++#include <linux/arm-smccc.h>
+ #include <linux/bitfield.h>
+ #include <linux/device.h>
+ #include <linux/module.h>
+@@ -179,6 +180,17 @@ static inline void *ffa_dev_get_drvdata(struct ffa_device *fdev)
+ 
+ struct ffa_partition_info;
+ 
++#if IS_BUILTIN(CONFIG_ARM_FFA_VERSION_NEGOTIATION)
++int arm_ffa_version_get(void (*invoke)(const struct arm_smccc_1_2_regs *args,
++				       struct arm_smccc_1_2_regs *res),
++			u32 input_version, u32 *version);
++#else
++static inline int arm_ffa_version_get(
++	void (*invoke)(const struct arm_smccc_1_2_regs *args,
++		       struct arm_smccc_1_2_regs *res),
++	u32 input_version, u32 *version) { return -EOPNOTSUPP; }
++#endif /* CONFIG_ARM_FFA_VERSION_NEGOTIATION */
 +
-+static int acpi_ffh_ffa_status(int error)
-+{
-+	switch (error) {
-+	case -EOPNOTSUPP:
-+		return FFH_FFA_NOT_SUPPORTED;
-+	case -EINVAL:
-+		return FFH_FFA_INVALID_PARAMETERS;
-+	case -ENOMEM:
-+		return FFH_FFA_OUT_OF_MEMORY;
-+	default:
-+		return FFH_FFA_UNSPECIFIED_ERROR;
-+	}
-+}
-+
-+static int acpi_ffh_ffa_direct_req2(acpi_integer *value,
-+				    struct acpi_ffh_data *ffh_ctxt)
-+{
-+	struct arm_smccc_1_2_regs args = { }, res;
-+	u64 *buf = (u64 *)value;
-+	u64 uuid_lo, uuid_hi;
-+	u16 receiver_id = (u16)buf[1];
-+	uuid_t uuid;
-+	size_t len = ffh_ctxt->info.length;
-+	int ret;
-+
-+	if (len < FFH_FFA_MIN_LEN || len > FFH_FFA_MAX_LEN ||
-+	    !IS_ALIGNED(len - 4 * sizeof(u64), sizeof(u64))) {
-+		buf[0] = FFH_FFA_INVALID_PARAMETERS;
-+		return AE_OK;
-+	}
-+
-+	acpi_ffh_ffa_uuid_convert((u8 *)value + FFH_FFA_UUID_OFFSET, uuid.b);
-+	if (uuid_is_null(&uuid)) {
-+		buf[0] = FFH_FFA_INVALID_PARAMETERS;
-+		return AE_OK;
-+	}
-+
-+	ret = acpi_ffh_ffa_init(ffh_ctxt);
-+	if (ret) {
-+		buf[0] = acpi_ffh_ffa_status(ret);
-+		return AE_OK;
-+	}
-+
-+	uuid_lo = get_unaligned_le64(uuid.b);
-+	uuid_hi = get_unaligned_le64(uuid.b + sizeof(uuid_lo));
-+	if (!receiver_id) {
-+		ret = acpi_ffh_ffa_receiver_id(ffh_ctxt, uuid_lo, uuid_hi,
-+					       &receiver_id);
-+		if (ret) {
-+			buf[0] = FFH_FFA_INVALID_PARAMETERS;
-+			return AE_OK;
-+		}
-+	}
-+
-+	args.a0 = FFA_MSG_SEND_DIRECT_REQ2;
-+	args.a1 = ffa_pack_target_info(acpi_ffh_ffa_sender_id, receiver_id);
-+	args.a2 = uuid_lo;
-+	args.a3 = uuid_hi;
-+	memcpy((void *)&args + offsetof(struct arm_smccc_1_2_regs, a4),
-+	       &buf[4], len - 4 * sizeof(u64));
-+
-+	acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
-+	while (res.a0 == FFA_INTERRUPT || res.a0 == FFA_YIELD) {
-+		if (res.a0 == FFA_YIELD)
-+			fsleep(1000);
-+
-+		args = (struct arm_smccc_1_2_regs) {
-+			.a0 = FFA_RUN,
-+			.a1 = res.a1,
-+		};
-+		acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
-+	}
-+
-+	memcpy(buf, &res, len);
-+	if (res.a0 == FFA_MSG_SEND_DIRECT_RESP2 || res.a0 == FFA_SUCCESS ||
-+	    res.a0 == FFA_FN64_SUCCESS)
-+		buf[0] = FFH_FFA_SUCCESS;
-+	else
-+		buf[0] = FFH_FFA_CALL_FAILED;
-+
-+	return AE_OK;
-+}
-+
- int acpi_ffh_address_space_arch_setup(void *handler_ctxt, void **region_ctxt)
- {
- 	enum arm_smccc_conduit conduit;
-@@ -99,6 +320,8 @@ int acpi_ffh_address_space_arch_handler(acpi_integer *value, void *region_contex
- 			ffh_ctxt->invoke_ffh64_fn(r, r);
- 			memcpy(value, r, ffh_ctxt->info.length);
- 		}
-+	} else if (ffh_ctxt->info.offset == 2) {
-+		ret = acpi_ffh_ffa_direct_req2(value, ffh_ctxt);
- 	} else {
- 		ret = AE_ERROR;
- 	}
+ #if IS_REACHABLE(CONFIG_ARM_FFA_TRANSPORT)
+ struct ffa_device *
+ ffa_device_register(const struct ffa_partition_info *part_info,
 
 -- 
 2.43.0
