@@ -1,111 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.10
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794477584;
-	b=N0ChVUe1m9uBY5S60wHeC0VKoxEt5mgzOHLgqgRL8eCsYp1anD6E55Y+Xxkul3xQoHyr
-	 hiNL81H7SpH4SbQ19wSg/auv5LK3gl9TaQekqcyJ601gn7BlskFrPmx+lhT0+QOwe277i
-	 HObwcFz5GC3nzdAvRPCyMPJCCF8ANMyf0DbDFqOVmLZWtFSPwUTDPeEjw6r4okHAKishc
-	 eb9gqJTEH/aF2z8IjrDHwd0MJW1xeINO7jdwHe2uMoovbl0VgwNvsqUbCJN8dgGFT/OnD
-	 cTuC3/IsqzQ82TAqLaPisQhIwzUySAqks0WALbJ5dFf6bY7kr/atbglH3n1h0Z77qoA==
+	t=1794478887;
+	b=EaBpQbMCiEIxgJCrIPvxCDhSxG7j5sroFM5aMrTXFiAUp4xEwl5zLzVPcu4aCmDc2H/H
+	 ijtZzTk10NBL6ERMbhQ2EeABND6tnHp4HfLp3QwmwrJUmKO2VuTeuOdR7rW7yLVJ0xbVk
+	 0NL81RzsrR/oW+ZpH0fzfE2rOXJMWEGcwVQgaHgi8PDyPOAQyq1OKpFgoraTUU8sCmULb
+	 hhPISmq47eXhVVKB58eupLX3B3mNS2kSdd0iBBgaT6ZcVNZol8h8QSNfexz4eb13766Hb
+	 earKi+Zz99Gen4JuUW8aNoJS1IuUAsMCuKGBkKHskD/MY/0AcqIIhoMwfX+ok5hQtPw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794477584;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Message-ID:
-	 Date:MIME-Version:User-Agent:From:Subject:To:Cc:References:
-	 Content-Language:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 X-Proofpoint-ORIG-GUID:X-Proofpoint-GUID:X-Authority-Analysis:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-Spam-Details-Enc:
-	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
-	bh=kdVV3SEHauOLt7HICNv2pGDFaIdsDo3i9Ev2IzLm2Nk=;
-	b=Xq0QyF6n8kXeu5Q564BHKVdtUqqQ7UNBn8jtHBPe5nGvj+LEBi4qEdvCqKN37OC9J/F6
-	 bwiCspuHQ+bcaMxi/wuB/Ehd1dttChIKWFM721o3q4yztuU+ir4FXyQk+wgfaRgn9NB0d
-	 SM/SQOnmpagWexoK7UsRPWHTHS7Sr7mTGXRcaYOI/Qkcg7g1/NHFDkhit1z/oOj2YgKCz
-	 eRDAVmuidUwT0ZpEeKk/w+Ck/e8tzHyKOBnfCUdsP9XNbaAL5dH8DuQ73DhZmIUbyidqo
-	 rQiYWWdtJQaOTzmMHxklCjVeQ224FVhmzPfV4VX5CV3sjpoLSHdsP/TgYXehzqkiSQQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794478887;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:Date:To:cc:
+	 Subject:In-Reply-To:Message-ID:References:MIME-Version:Content-Type;
+	bh=NVbji0KZV1uYZUK4TZCgFQxar91nD/H9oFtItu7ZRyY=;
+	b=S4OYhJdctklN7E6/5i3eDbwjCaMN/AqH/MndBbbMvOtsIWbPQ1WpXlbEuxpeqn8d6yzX
+	 NPjc5x9M0cE9tdC2lwYxYLx30sWiyMdbUY3jXIC40p5o6SsKw1WzTG4dECb+sIBWHNwek
+	 udlh9buZJ0RRLyENB6l0fKI/v+OUAdVmiJZTUO17N/hAguRAd2N0C4sXp3Hkxnm6YMjd9
+	 o/BSq3SZXxX4s7u939sR0a/GXQKclhsjorZ87DOk+aJPQ6PAaw/35Lo0QySdSvpETeVLq
+	 ZqNky0+gKsouaN4Lj8heQd8Na/00Air6cQE5wp/W4+94AKJNAY8hpVIIYfbQLI1MuaA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.qualcomm.com;
-	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=dAIhFCtJ;
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=XoBk5PYo;
-	arc=none smtp.remote-ip=205.220.168.131
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=JFa1Uo6g;
+	arc=none smtp.remote-ip=192.198.163.10
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CFE2606A333
-	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 09:59:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3CFE2606A333
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD7BD606A33B;
+	Thu, 12 Nov 2026 10:21:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AD7BD606A33B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=dAIhFCtJ;
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=XoBk5PYo
-Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AC4mNAo3893759
-	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 09:59:43 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	kdVV3SEHauOLt7HICNv2pGDFaIdsDo3i9Ev2IzLm2Nk=; b=dAIhFCtJgHYjNdcC
-	Ngrlb8LeVtNnGrjeoojy2CEW+j2OWWFVLHPBqPQETk34ZR5r9gTN8qu5K7B8KF2y
-	UiHvTlF/8EXJMiuF7qOoiogL6XoAsxzgI2HdMeXnEj3/VfWvVS3vKjH5npuWo9oC
-	y3TbrsHGErIXdn/HACpbN8ppxtKB0LiBMPLSaNFfGxpIo/rpCkCS4dUV21ZyoGsW
-	AIxUhv1sK13Kz2aZQNalvuVjjbQATKc9XQ6U2D6hN8CHotgvVXwIA1kfo7abfSf7
-	N9ByrZTCJLj0mA1Na/+jbkEZxaC0dEiShwl2dqsBFH3pxo58QtHBA2YESKmqSaHl
-	x3xztQ==
-Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com [209.85.222.199])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hw6re126d-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 09:59:43 +0000 (GMT)
-Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-946038e22f5so970201885a.0
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 01:59:43 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1794477582; x=1795082382; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :references:cc:to:subject:from:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=kdVV3SEHauOLt7HICNv2pGDFaIdsDo3i9Ev2IzLm2Nk=;
-        b=XoBk5PYoNAW4S9zN7TeaCw03wztz/X0wkyfYGSleV1yEmphQgcLwUAywI6OufHCsvm
-         s+S3lyRu0WN7HmsfZWCxeGJHhr4i3kJBYXyvvY9nShI5XBsHwogQ1YsbZJQS7f6wbSyE
-         pgLjsgXeP2qnIk5jUiXpZLckixHus8Pzmvz6+7ymZi+oH5U94If7xok+MW6nGyWk/FBq
-         vNqgrmfhVakZndaD6KgWpOvWSPYtoCwsZYcjIUSmiQAB/z6hAyjMMbMKdJl5geOkVKoi
-         6yRAQhy66jIlRAl79zHipZw/PAystCu4BDriM+UoRMs7GnswAaDHpTWkoPlj/LeSLsmj
-         HmGQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794477582; x=1795082382;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :references:cc:to:subject:from:user-agent:mime-version:date
-         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=kdVV3SEHauOLt7HICNv2pGDFaIdsDo3i9Ev2IzLm2Nk=;
-        b=nyBSubOBrgEIUM7B8p4XfhsclSEbMc8sFCu3vtsdbfyQTLrP6sXaZHyFvFg2gI360Q
-         38HcDb2ABoEoL1hKNibjFxOwjURMk0Ake/T1Hcr3GqNCW9oXw05TAJeinxddFtJXfiOf
-         ey8MH84thQ/c/PqySGnhPxELm0EtJGWLZ6GZzvOzcpC7SKo7ErjeDRa94whdxpvlJszf
-         gcmtfBDwJ13sCWpH79Jq0yXn03ES8+JYb5EBJOW70hVZSNsUiLSK7Ilon7dgL0xclcK/
-         Rn6gw+wOrVL3nNoCBsvLjjSoPSzGglM90YbuyPLQuIhKrdmLuTk1Wj2kv0oPx/0pxOm3
-         lSkA==
-X-Forwarded-Encrypted: i=1; AL+hErEocLibbavCdEVYhLdqz8k7jqn65lkTfIsssLrurNCo0Loyb6wEmNdAmZVwL/f/PWsUGYB3+8khU98H@vger.kernel.org
-X-Gm-Message-State: APuU4Z/JmsxV0toeFRijW69etx26afDznCJmcnoXmyimyFIdIvEcptpE
-	iFHfhVpNMoMTGjif20Rh8movA2izfiBxV9WFHjd0H2peWix3MUuPrCyVCIGRbH1EUCQ+yG0MIlq
-	u042dX0LR28lhUJgh9SJvgwmmNRDkpLY7t5SWvKcd6bxFHl3vhN2FNrQJlQYbvXgX
-X-Gm-Gg: AYBFou2ju/DPXA5+wWv1KNf3YHaaE+q/gcFgouggFpmSygpAQWzbsJZwBgRSPA4Gf3P
-	BDE66GZpw/NH7McscNUndNniae6mZHXYtw+nBysiWGXZBVygKCmgKwWxSKRC/hiX27bVdc0qb4I
-	JYGlhrHF9aWXDKdIq5wjs4uG2Yb742TPAW1tMD2OStzcOfKI62k+YQuQRDbmLG8bldo6rn7y5D4
-	F0BJZK3neyc0SZFSFPOCNA0cxjOyKO75kSGhXR7EZar+pR/N0D4YK2xLgE6UFQwNoe6eG1svcug
-	19SdZlmZ99ULrcM8vdywu86cZRfaUeKOyxzBMe919iY+twwa28nmWCkSFfSPN5IjiFqOgeb7wT6
-	gqGH5IsCeRD5pq1JKse1Mq43LzHoX8R5wCaXbAEr1DLGX2fko4lhoA6IN5kAzhVSRN3CozfZWXU
-	afMaWAE58GYdGNYW6VrS28ibtVD+ZuCHSwgBIdalEJdIA2e7PCqWUJmGDG4WB6V7DBZebhZ6q+o
-	0gwDoxK4CcQ6E3J3029lipQd3m3aIyD+GgnnygbTMk=
-X-Received: by 2002:a05:620a:26a0:b0:945:f0ca:436a with SMTP id af79cd13be357-947afcd6319mr845701585a.2.1794477582322;
-        Thu, 12 Nov 2026 01:59:42 -0800 (PST)
-X-Received: by 2002:a05:620a:26a0:b0:945:f0ca:436a with SMTP id af79cd13be357-947afcd6319mr845700085a.2.1794477581916;
-        Thu, 12 Nov 2026 01:59:41 -0800 (PST)
-Received: from ?IPV6:2001:1c00:c32:7800:5bfa:a036:83f0:f9ec? (2001-1c00-0c32-7800-5bfa-a036-83f0-f9ec.cable.dynamic.v6.ziggo.nl. [2001:1c00:c32:7800:5bfa:a036:83f0:f9ec])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c504a649875sm317803466b.64.2026.11.12.01.59.40
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 12 Nov 2026 01:59:41 -0800 (PST)
-Message-ID: <2f680bf3-8c68-4dc6-b457-ce381cc4ee88@oss.qualcomm.com>
-Date: Thu, 12 Nov 2026 10:59:40 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=JFa1Uo6g
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794478887; x=1826014887;
+  h=from:date:to:cc:subject:in-reply-to:message-id:
+   references:mime-version;
+  bh=9ryvtv+3D0u7ZmUKVKxFugtxHQCXrLGXh6W32QRNzjY=;
+  b=JFa1Uo6ghSC6xIev84cCaylQslA7hOsf+RLg340XAKdjA5XmZKlTjh1/
+   iGiMjZl+cXUZM51DWUYjetSU9YKSKAp472mkqYssg1l224iKtLnCI9zoe
+   aHUpMJXvveSM59HbhCNDJrvfOr2Mtp7chc3oARQ8paPAYckWb7AhK+tHX
+   k7cjjYxZU7NC8+6IwGTQTytLkHe40H1CKte/WDz06NbhYF88qbbkLCnj+
+   1QzHfNRUph+ICuCqgcutdH4cbGpCoFWs1olXksY0GUFTVeQA7k6ABhiJ0
+   bTjnDAsmu6DAbzZK7LVFQ7rQDU5g1qx8i42PB9pxIYsnuGNd9U4nqxS7h
+   g==;
+X-CSE-ConnectionGUID: 33oAaIa7ToaEXr+nv+c1IQ==
+X-CSE-MsgGUID: HXZWRI9dRaedbeORUFlJ5g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11963"; a="3160356"
+X-IronPort-AV: E=Sophos;i="6.27,209,1787036400"; 
+   d="scan'208";a="3160356"
+Received: from fmviesa012.fm.intel.com ([10.60.135.152])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2026 02:21:26 -0800
+X-CSE-ConnectionGUID: 65ZHtRybSxOdws+e3pTDYg==
+X-CSE-MsgGUID: 57Vuhv93R72AniB1yhhDCw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,209,1787036400"; 
+   d="scan'208";a="10352280"
+Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.68])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2026 02:21:22 -0800
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Date: Thu, 12 Nov 2026 12:21:19 +0200 (EET)
+To: Hans de Goede <johannes.goede@oss.qualcomm.com>
+cc: Armin Wolf <W_Armin@gmx.de>, 
+    Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, 
+    Han Gao <gaohan@iscas.ac.cn>, Han Gao <rabenda.cn@gmail.com>, 
+    "Rafael J . Wysocki" <rafael@kernel.org>, 
+    platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, 
+    linux-riscv@lists.infradead.org
+Subject: Re: [PATCH] platform/wmi: Allow wmi module to load when acpi_disabled
+ is set
+In-Reply-To: <20261111131613.6290-1-johannes.goede@oss.qualcomm.com>
+Message-ID: <8382881b-f2d4-7909-d7d1-3a2c74f3b123@linux.intel.com>
+References: <20261111131613.6290-1-johannes.goede@oss.qualcomm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -115,139 +83,77 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-From: Hans de Goede <johannes.goede@oss.qualcomm.com>
-Subject: Re: [PATCH] mmc: sdio: Set acpi_device.power.flags.ignore_parent flag
- on sdio_func companion
-To: Luka Gejak <luka.gejak@linux.dev>, Ulf Hansson <ulfh@kernel.org>
-Cc: Aaron Lu <aaron.lu@intel.com>, linux-mmc@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-References: <20261017160448.77436-1-johannes.goede@oss.qualcomm.com>
- <8ac7b295da3af2836e88faeb2b464f6ca80932d1@linux.dev>
-Content-Language: en-US, nl
-In-Reply-To: <8ac7b295da3af2836e88faeb2b464f6ca80932d1@linux.dev>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-ORIG-GUID: 8nizPQL13Dc-zIJLbY9vzX8gxWUSyrnh
-X-Proofpoint-GUID: 8nizPQL13Dc-zIJLbY9vzX8gxWUSyrnh
-X-Authority-Analysis: v=2.4 cv=NJhAaE6g c=1 sm=1 tr=0 ts=6af58e0f cx=c_pps
- a=HLyN3IcIa5EE8TELMZ618Q==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
- a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=_K5XuSEh1TEqbUxoQ0s3:22 a=NEAV23lmAAAA:8
- a=EUspDBNiAAAA:8 a=Gfae7-l09DI4fA1CBzkA:9 a=QEXdDO2ut3YA:10
- a=bTQJ7kPSJx9SKPbeHEYW:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTEyMDAzOSBTYWx0ZWRfXydcZjePSQV/z
- TOHRBjY6R7EM7fJjAe1khd3hk46QKZpCeE7tZaXpUPKrwq6PgmPJUT689jvpdL7i/9nEv6eXpa3
- hRdGvw1FE1ZmIwUo5M4dV5yzy13uVv8=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTEyMDAzOSBTYWx0ZWRfX2mGI1xuPyK7q
- hBfBHrwkcD0xxI1nI9bTKW1mUyvhHs8abq2q0yVyx4YvNOKGIElDZ+Ey/kQaBKWaSluwOIJQDQ2
- aVnV7/y/OJr+rikzt+7DS+E2ba8QdmeTRsreqjm95SHvopZJQ1fyim1An65W+Ivi0m4U5cPy8YL
- BZ4mTZcVFPQWzt9UrowHoRtrd3lb5odYl7Og2C7Ox0JXx8GXiDJ6NUNURleVoiug6nZpxqElBOD
- Z2mPykr8Zclbgcir9LumW4fyEb1uBQ2vcudfgnfrvtY7E+NMVHB+0pauaA+LZdaQS+JJZ7J9yEB
- wCTW0fKosRNdKPoMSKVUVe/R5OvnDF7c0Evj7wZ+5A/QII/YvhIYy77PH8vJbpEv6lRqDezaSSc
- cdV9W09Hut/EtiCUjMyl/KXGcHK6dQtISpljWQCD4GC3jKaM4XBvXOkZn/Pdu3cx2+3eweDuD+l
- ovQ2C6C+rELxxJSfwSA==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-12_01,2026-11-11_03,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 impostorscore=0 phishscore=0 spamscore=0 clxscore=1015
- malwarescore=0 adultscore=0 bulkscore=0 lowpriorityscore=0 suspectscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611120039
+Content-Type: text/plain; charset=US-ASCII
 
-Hi Luka,
+On Wed, 11 Nov 2026, Hans de Goede wrote:
 
-On 18-Oct-26 14:00, Luka Gejak wrote:
-> Hi Hans,
+> The core wmi module provides symbols which may be used by other modules.
+> These other modules may still function when acpi_disabled is set, but
+> the current behavior of acpi_wmi_init() returning -ENODEV when it is set
+> causes loading these modules to fail because the wmi module these depend
+> on fails to load with -ENODEV.
 > 
-> October 17, 2026 at 6:04 PM, "Hans de Goede" <johannes.goede@oss.qualcomm.com> wrote:
+> One example of this is booting a kernel with both DT and ACPI/WMI support
+> on an arm64 systems with devicetree which will lead to acpi_disabled being
+> set. Trying to load the amdgpu module will fail in this case because it
+> uses symbols from the drivers/acpi/video module which in turn uses symbols
+> from the wmi module. Note the video module itself already contains handling
+> to still load when acpi_disables is set for similar reasons.
 > 
->>
->> Many MMC host drivers call pm_suspend_ignore_children() which allows
->> to keep MMC cards and SDIO-functions on while the host is suspended.
->>
->> For SDIO functions which are in the ACPI power-domain this causes a race
->> where the host may end up runtime-suspended before the driver for a SDIO
->> function loads and probes it. When the probe() looses this race this causes
->> the pm_runtime_get_sync() in sdio_bus_probe() to fail in the ACPI pm-domain
->> code with e.g. the following error:
->>
->>  ACPI: \_SB_.SDHB.WLAN: Cannot transition to D0 for parent in D3hot
->>
->> Busses using pm_suspend_ignore_children() for their children should set
->> acpi_device.power.flags.ignore_parent on the ACPI companion device of
->> their children to avoid this.
->>
->> This is safe todo because drivers for sdio_func devices should always
->> call sdio_claim_host() before doing any IO and that runtime-resumes
->> the host.
->>
->> Add the missing setting of the acpi_device.power.flags.ignore_parent flag
->> to fix probing of SDIO functions sometimes failing on ACPI systems with
->> the error mentioned above.
->>
->> Also add a sdio_acpi_clear_handle() function to undo this, since the ACPI
->> companion device wills stay around after removing the sdio_func device. To
->> make sdio_acpi_clear_handle() the proper inverse of sdio_acpi_set_handle()
->> also make it actually clear the companion pointer on the sdio_func device.
->> Technically this clearing is not really necessary since the sdio_func
->> device will go away shortly afterwards anyways.
->>
->> Closes: https://github.com/MocLG/rtw/issues/2/
->> Signed-off-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
->> ---
-> [...]
+> Fix this by allowing the wmi module to still load and also register
+> the class and bus instances since some exported functions like
+> wmi_driver_register() rely on these being valid.
+> 
+> Signed-off-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
+
+No Fixes tag?
+
+Doesn't this fix a real issue and we want this go through the fixes 
+branch?
+
+-- 
+ i.
+
+> ---
+>  drivers/platform/wmi/core.c | 9 +++++----
+>  1 file changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/platform/wmi/core.c b/drivers/platform/wmi/core.c
+> index 529825dcfbfe..412f2e23b01d 100644
+> --- a/drivers/platform/wmi/core.c
+> +++ b/drivers/platform/wmi/core.c
+> @@ -1573,9 +1573,6 @@ static int __init acpi_wmi_init(void)
+>  {
+>  	int error;
+>  
+> -	if (acpi_disabled)
+> -		return -ENODEV;
+> -
+>  	error = class_register(&wmi_bus_class);
+>  	if (error)
+>  		return error;
+> @@ -1584,6 +1581,9 @@ static int __init acpi_wmi_init(void)
+>  	if (error)
+>  		goto err_unreg_class;
+>  
+> +	if (acpi_disabled)
+> +		return 0;
 > +
->> +static void sdio_acpi_clear_handle(struct sdio_func *func)
->> +{
->> +     struct acpi_device *adev;
->> +
->> +     adev = ACPI_COMPANION(&func->dev);
->> +     if (adev) {
->> +             adev->power.flags.ignore_parent = false;
->> +             ACPI_COMPANION_SET(&func->dev, NULL);
->> +     }
->>  }
->>  #else
->>  static inline void sdio_acpi_set_handle(struct sdio_func *func) {}
->> +static inline void sdio_acpi_clear_handle(struct sdio_func *func) {}
->>  #endif
->>
->>  static void sdio_set_of_node(struct sdio_func *func)
-> [...]
->> @@ -414,6 +432,8 @@ int sdio_add_func(struct sdio_func *func)
->>   */
->>  void sdio_remove_func(struct sdio_func *func)
->>  {
->> +     sdio_acpi_clear_handle(func);
->> +
->>       if (sdio_func_present(func))
->>               device_del(&func->dev);
->>
+>  	error = platform_driver_register(&acpi_wmi_driver);
+>  	if (error) {
+>  		pr_err("Error loading mapper\n");
+> @@ -1603,7 +1603,8 @@ static int __init acpi_wmi_init(void)
+>  
+>  static void __exit acpi_wmi_exit(void)
+>  {
+> -	platform_driver_unregister(&acpi_wmi_driver);
+> +	if (!acpi_disabled)
+> +		platform_driver_unregister(&acpi_wmi_driver);
+>  	bus_unregister(&wmi_bus_type);
+>  	class_unregister(&wmi_bus_class);
+>  }
 > 
-> I am not an expert on this topic, but clearing the companion here
-> before device_del(), looks wrong to me. As far as I understand
-> device_add() binds this device with acpi_bind_one() and that takes
-> a reference on both the companion and the device. The unbinding is
-> done in device_del() via acpi_device_notify_remove(), which returns
-> early when the companion is NULL, so does acpi_unbind_one()
-> never run and the physical_node entry, the sysfs links and the
-> references from acpi_bind_one() all stay behind
 
-You're right, thank you for catching this. I'll prepare a v2
-addressing this.
-
-<snip>
-
-> Would it be enough to only clear ignore_parent in sdio_acpi_clear_handle()
-> and let device_del() clear the companion?
-
-Probably, I'll dive into the acpi_device_notify_remove() path
-a bit and make sure I'll get this right for v2.
-
-Regards,
-
-Hans
-
+-- 
+ i.
 
