@@ -1,53 +1,69 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.85.4
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794487611;
-	b=R1Io3MxmPOVT9yK9Nl6MUVhxBcNz42OCzIUlYdbC+XvqzHmRUBRsNRx34qQJSyh1N69W
-	 +ZCOlQL5vF/9fRzox/9RYWmISao0e+JBbhFO5Pfq6RdDVYXFsuckLocY2EIwajfFASpgi
-	 OzWxxNv9kRLESvUbtetSlLHOqx3JMVAbZ1iF0zzDnWcGcCEABbobw9MF4cF+sryNtPFrJ
-	 yxy1WKcsrm2j9IKI4SV4iOcYwxCTmkpPWdWrzGtLe2kA7N8KNwBUukYohHeJ4XeHRQTdj
-	 c5V8KmdhTIRz/LL8+BU9qDWd4KJShvnjvH1UR7JBdrCtq8un+HyYj6/MjFpexrYy1HQ==
+	t=1794488660;
+	b=bYcYMISZ3sGcbPGqzMOMpJ2/7L4yUcmfVGZ1K55qxMoKPy5AV9W9KkTwzdr2rPNXhhJ7
+	 ICQdKqZe5Z6L3FUQy3wdXiL8RWJUrIYfXS7B8BF8gXgv4aYwWqYKMunV5Qf5k54k6M1c/
+	 n1IQxzb+ixu89iztrc+vcPii8ca057Gj9tiRSHh91FRHUwhIsH58+fIYhrgOQL6e0a/bh
+	 faGWiAdyrqd+A+50AcEFdfMASPwQgEqWJP47kaWQCZXyHcKeaIxNAOgvcXRCNL7OvUIMJ
+	 m904eVe1MxPXauoVgExVqC9iTYDYs9OVLeSDXH01Ba4aGLNWzW2YBHoJX93VDvY3Xyw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794487611;
-	h=Received:DKIM-Signature:Received:X-Gm-Message-State:X-Received:
-	 MIME-Version:From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type;
-	bh=SKx5XnqpFxmzXIHE6O+2xtdoRnFRPkkgy3sCH7aU4Iw=;
-	b=YcR78Gd9w5DTfAiHhOPIq/B4AMGIgI7N+yAxYgZiswH2Qg26NPpkdbNTIRk0a6EeNe7b
-	 7QzlEYfN7wPHLULvBTiPOPWvga7NqjV4BUFeotImDjJxr4KnEtno1j2p9r+4jioYQft84
-	 pGQAV6AI93sTqm45M40V1MoAtmpNoWqGOrEPUOvXSN7PrlEgUXiZPEAc90FJbPbmGRhhk
-	 DKMgRLrzVuIDyVOIrvAD7l8NpICmegY1WNTJHo6qliwgqTMBN1YEGKPJ3L2z1NPlaE4P6
-	 MpoyTZ+4+wb5yxEU63dMq+0N3nIgZ1Pjjj/WmQ4YDTwThL9QT170IEsoE6VtwsanXWQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794488660;
+	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:Message-ID:
+	 Subject:From:To:Cc:Date:In-Reply-To:References:Content-Type:
+	 Content-Transfer-Encoding:User-Agent:MIME-Version:
+	 X-Last-TLS-Session-Version;
+	bh=FazWs8jp3Tiswz7nCpkhqYJ6EHXn89P/WpbYmozbrYE=;
+	b=PrMxl0ddlO1HwMTOXllXzq58iw0RB0XJ+I4fnlidm8EsJTTnTHUD5PNDORzz4baKzC7f
+	 FneI5OtH2twmdTBEAlvDNuzzckxrF5sWwGRNom9KylDg3xXthDUWeRLCsNAyl4E4XmHNP
+	 I4IhgBqv79j2Oo9iUTvcAkynqSjInlWTvXQhlI+63M7QLpknmRWa4n2+EK7z276sLn9ss
+	 C3ItjRTAxumFnVuEEi/M4kxBfgklIf+xn/p1L/DcYgqUMWV58RQ9mOaov0q7HTnL/ji0D
+	 eFMGqCGBu+uRI8EygIs0saG2UpkdI/VlUmNrfHYjLB22Q5FALYQ98iT+s4vwK47w8uQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fDIffL+J;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=bootlin.com;
+	spf=pass smtp.mailfrom=bootlin.com;
+	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=L8vjgZzz;
+	arc=none smtp.remote-ip=185.246.85.4
+Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA3D4606A327
-	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 12:46:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCDBD606A32A;
+	Thu, 12 Nov 2026 13:04:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CCDBD606A32A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fDIffL+J
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 711CB1F00A06
-	for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 12:46:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794487611;
-	bh=SKx5XnqpFxmzXIHE6O+2xtdoRnFRPkkgy3sCH7aU4Iw=;
-	h=From:Date:Subject:To:Cc;
-	b=fDIffL+JhthfLIsCGsh+rOnadZuLUQO2OCMj6fXd3ReIx9fHnY7ee74wolDmh3gxi
-	 CpqJEEC/iPZ5g39D+g2GhZqASJTcqSxVHQWhP4B1amBGvCPh4c3Jbhzp6Ur9J7hsrT
-	 imHNz5jLb9JV1wVwlboyuR+ctNQZwFr7Mym0MhSUJq7txGQ6I82++D6wfXBWtt7nfj
-	 pzhuPxHA3JoQW/LEigsx0RziPSjRDxBfjgiyhNsG9c4q19ShrbEhA28obe7wSu/eeu
-	 +TdBK6ILJR6C5b0SO9t1rbiyUJOG/L8zNA4+fxvVE15osmKKXFz/03TA+8vypLuL6N
-	 BKG5p8SDs/yQw==
-Received: by mail-lj1-f180.google.com with SMTP id 38308e7fff4ca-3acff56a300so37602301fa.2
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2026 04:46:51 -0800 (PST)
-X-Gm-Message-State: APuU4Z+P1Vnr4RTAQp49V67foSFJ6M2Lrd9TlyzLAIOf44cqUHuTe0qT
-	o1mEtNwdQwOgtD0/THny4r1hltaL4wM7iafj+sFaqEEo5qbzZ+kHC1YKQ7xf1+YbH3PpYtl2YZE
-	/NERX9uUMt7mH8OYwADi9KIneyxpukRk=
-X-Received: by 2002:a05:651c:a324:b0:3ab:2a19:8625 with SMTP id
- 38308e7fff4ca-3ae1266c798mr13362901fa.4.1794487609931; Thu, 12 Nov 2026
- 04:46:49 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=L8vjgZzz
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-03.galae.net (Postfix) with ESMTPS id 140F74E4158C;
+	Thu, 12 Nov 2026 13:04:18 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id D5662601D5;
+	Thu, 12 Nov 2026 13:04:17 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id E477111BC0490;
+	Thu, 12 Nov 2026 14:04:15 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1794488657; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=FazWs8jp3Tiswz7nCpkhqYJ6EHXn89P/WpbYmozbrYE=;
+	b=L8vjgZzzhUHlMXfPjZRzPq88Fvu9zCdjTzSBPbElh0dWXsdyZU+rvidedpfUDqZie9f6sM
+	9VY1a0x9J4clWOrK999ZhNqd7jD51Ud9mlHt4A0QUEOAcGpUjI36f9NfBoSloWmd2mAes0
+	6YVYV92IP41si+55QQXpYsVrTYxzS3DrIJ679QbDbT3KRVWxjgVJ6ZT/gog6HkdvkNcCfh
+	YYIuO1whK4sWbnHtot5abPliWEfeZajiIqiPjHnj9KSSz1qbgD1zaChvitc0sklHozMcEO
+	S9Peckw4UHT0UC2SoSj6GMfoE31sZNzsR2b1i1T9BeumKNukqmEviJgs0RyK3A==
+Message-ID: <cf152e73eb4585fc0592bd59882a426ef5ea398d.camel@bootlin.com>
+Subject: Re: [PATCH v2] ACPI: platform: Add basic support for ACPI 6.5 fixed
+ clock resources
+From: Paul Cercueil <paul.cercueil@bootlin.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas
+ Petazzoni	 <thomas.petazzoni@bootlin.com>
+Date: Thu, 12 Nov 2026 14:04:12 +0100
+In-Reply-To: <20261111100736.98364-1-paul.cercueil@bootlin.com>
+References: <20261111100736.98364-1-paul.cercueil@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2-0+deb13u1 
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -57,79 +73,172 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 12 Nov 2026 13:46:37 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0gEHWcCX=1cDRUstU5m=9_PQqfD-PgJfrF4jo=0hk4NWA@mail.gmail.com>
-X-Gm-Features: AclHuK8mt_wd5S8LnVA8XFElid_4ewR-fH-4OHvi9tIdQ2IzC5u0ab_yFDCYkQw
-Message-ID: <CAJZ5v0gEHWcCX=1cDRUstU5m=9_PQqfD-PgJfrF4jo=0hk4NWA@mail.gmail.com>
-Subject: [GIT PULL] ACPI support fixes for 7.4-rc3
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+X-Last-TLS-Session-Version: TLSv1.3
 
-Hi Linus,
+Hi Rafael,
 
-Please pull from the tag
+I see Sashiko complains about this patch:
+https://sashiko.dev/#/patchset/20261111100736.98364-1-paul.cercueil%40bootl=
+in.com
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-7.4-rc3
+But its only complaint is addressed by a second patch that was sent in para=
+llel:
+https://lore.kernel.org/linux-arm-kernel/20261103084915.8405-1-paul.cercuei=
+l@bootlin.com/T/
 
-with top-most commit 756a3f9e02913ca1616ee8ed4598b1208ab8e9fb
+In retrospective I probably should have packed both into one patchset; I th=
+ought
+they were parallelizable enough to go each its own way, but that was withou=
+t
+thinking about Sashiko.
 
- Merge branches 'acpi-scan' and 'acpi-apei'
+Cheers,
+-Paul
 
-on top of commit 7475ea8b58616b33c04afb976cf0fbaad9dd63fb
-
- Linux 7.4-rc2
-
-to receive ACPI support fixes for 7.4-rc3.
-
-These fix a mistake in the ACPI APEI GHES code causing recoverable CPU,
-memory, CXL and vendor-specific errors reported through GHES to never
-show up in a vmcore, address a potential deadlock related to ACPI
-device hotplug that causes lockdep to complain and give up, and fix
-up the recently added support for _Ixx GPEs:
-
- - Make recoverable CPU, memory, CXL and vendor-specific errors reported
-   through GHES show up in vmcores by fixing a broken error severity
-   check in ghes_log_hwerr() (Breno Leitao)
-
- - Avoid printing diagnostic messages for ACPI device objects after
-   dropping reference to them (Sasha Levin)
-
- - Avoid holding the physical_node_lock for ACPI device objects across
-   device_offline() and device_online() due to a potential deadlock that
-   causes lockdep to complain and turn itself off (Sasha Levin)
-
- - Avoid spurious system wakeups from suspend-to-idle on platforms where
-   an _Ixx GPE is shared by user-wakeup and background events (Saranya
-   Gopal)
-
-Thanks!
-
-
----------------
-
-Breno Leitao (1):
-      ACPI: APEI: GHES: Fix severity check in ghes_log_hwerr()
-
-Saranya Gopal (1):
-      ACPI: s2idle: Handle shared _Ixx GPEs without an EC
-
-Sasha Levin (2):
-      ACPI: scan: Print the offline failure message in acpi_bus_offline()
-      ACPI: scan: Do not hold physical_node_lock across
-device_offline() and device_online()
-
----------------
-
- drivers/acpi/apei/ghes.c  |   2 +-
- drivers/acpi/ec.c         |  10 ++---
- drivers/acpi/internal.h   |   6 +--
- drivers/acpi/scan.c       | 108 +++++++++++++++++++++++++++++++++++++---------
- drivers/acpi/sleep.c      |  11 ++++-
- drivers/acpi/sleep.h      |   8 ++++
- drivers/acpi/x86/s2idle.c |  61 ++++++++++++++++++++++++++
- include/acpi/acpi_bus.h   |   1 +
- 8 files changed, 176 insertions(+), 31 deletions(-)
+Le mercredi 11 novembre 2026 =C3=A0 11:07 +0100, Paul Cercueil a =C3=A9crit=
+=C2=A0:
+> ACPI 6.5 introduced a clock input resource descriptor, which allows to
+> specify in the ACPI tables what clocks are connected to a given device.
+>=20
+> This patch adds support for the most basic clock resource, which is the
+> one that represents a fixed clock. The new code will then create a
+> clk_hw for each fixed clock resource, which is then made available to
+> the device drivers, that can obtain it through a regular call to
+> clk_get(NULL).
+>=20
+> Signed-off-by: Paul Cercueil <paul.cercueil@bootlin.com>
+>=20
+> ---
+>=20
+> Related:
+> https://lore.kernel.org/linux-arm-kernel/20261103084915.8405-1-paul.cercu=
+eil@bootlin.com/T/
+>=20
+> v2:
+> - Use the calculated clock name in devm_clk_hw_register_fixed_rate()
+> =C2=A0 instead of the device name
+> - Make sure clkres->scale is <=3D 2. The field is 2 bits but the value
+> =C2=A0 clkres->scale =3D=3D 3 is not defined in the spec.
+> - Compute the fraction numerator using 64-bit math, to make sure it
+> =C2=A0 won't overflow on 32-bit systems.
+> - Initialize clocks only when the device_type matches
+> =C2=A0 ACPI_BUS_TYPE_DEVICE.
+> - Use a shorter name for clocks as the hard limit is 16 characters
+> =C2=A0 including the terminator.
+> ---
+> =C2=A0drivers/acpi/acpi_platform.c | 64 +++++++++++++++++++++++++++++++++=
++++
+> =C2=A01 file changed, 64 insertions(+)
+>=20
+> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+> index 80ea7121744d..71322cdcf0dd 100644
+> --- a/drivers/acpi/acpi_platform.c
+> +++ b/drivers/acpi/acpi_platform.c
+> @@ -10,17 +10,27 @@
+> =C2=A0
+> =C2=A0#include <linux/acpi.h>
+> =C2=A0#include <linux/bits.h>
+> +#include <linux/clk-provider.h>
+> +#include <linux/clkdev.h>
+> =C2=A0#include <linux/device.h>
+> =C2=A0#include <linux/err.h>
+> =C2=A0#include <linux/ioport.h>
+> +#include <linux/kconfig.h>
+> =C2=A0#include <linux/kernel.h>
+> +#include <linux/list.h>
+> =C2=A0#include <linux/module.h>
+> =C2=A0#include <linux/dma-mapping.h>
+> =C2=A0#include <linux/pci.h>
+> =C2=A0#include <linux/platform_device.h>
+> +#include <linux/units.h>
+> =C2=A0
+> =C2=A0#include "internal.h"
+> =C2=A0
+> +struct acpi_clk_data {
+> +	struct device *dev;
+> +	unsigned int idx;
+> +};
+> +
+> =C2=A0/* Exclude devices that have no _CRS resources provided */
+> =C2=A0#define ACPI_ALLOW_WO_RESOURCES		BIT(0)
+> =C2=A0
+> @@ -130,6 +140,57 @@ static unsigned int acpi_platform_resource_count(str=
+uct
+> acpi_resource *ares, voi
+> =C2=A0	return AE_CTRL_TERMINATE;
+> =C2=A0}
+> =C2=A0
+> +static int acpi_add_fixed_clock(struct acpi_resource *res, void *d)
+> +{
+> +	static const unsigned long clk_scale[] =3D { 1, HZ_PER_KHZ, HZ_PER_MHZ
+> };
+> +	struct acpi_resource_clock_input *clkres;
+> +	struct acpi_clk_data *data =3D d;
+> +	struct device *dev =3D data->dev;
+> +	struct clk_hw *clk;
+> +	unsigned long rate;
+> +	char name[64];
+> +	int err;
+> +
+> +	if (res->type =3D=3D ACPI_RESOURCE_TYPE_CLOCK_INPUT) {
+> +		clkres =3D &res->data.clock_input;
+> +
+> +		if (clkres->mode) {
+> +			dev_warn(dev, "Only fixed rate clocks supported for
+> now.\n");
+> +			return 1; /* keep going */
+> +		}
+> +
+> +		if (clkres->frequency_divisor =3D=3D 0 || clkres->scale > 2)
+> +			return -EINVAL;
+> +
+> +		rate =3D DIV_ROUND_UP_ULL((u64)clkres->frequency_numerator *
+> clk_scale[clkres->scale],
+> +					clkres->frequency_divisor);
+> +
+> +		snprintf(name, sizeof(name), "%s-%u", dev_name(dev), data-
+> >idx++);
+> +
+> +		clk =3D devm_clk_hw_register_fixed_rate(dev, name, NULL, 0,
+> rate);
+> +		if (IS_ERR(clk))
+> +			return PTR_ERR(clk);
+> +
+> +		err =3D devm_clk_hw_register_clkdev(dev, clk, name,
+> dev_name(dev));
+> +		if (err)
+> +			return err;
+> +	}
+> +
+> +	return 1;
+> +}
+> +
+> +static void acpi_platform_init_clocks(struct acpi_device *adev)
+> +{
+> +	struct device *dev =3D &adev->dev;
+> +	struct acpi_clk_data data =3D { .dev =3D dev };
+> +	LIST_HEAD(list);
+> +	int ret;
+> +
+> +	ret =3D acpi_dev_get_resources(adev, &list, acpi_add_fixed_clock,
+> &data);
+> +	if (ret < 0)
+> +		dev_err(dev, "Failed to add clock resources: %d\n", ret);
+> +}
+> +
+> =C2=A0/**
+> =C2=A0 * acpi_create_platform_device - Create platform device for ACPI de=
+vice node
+> =C2=A0 * @adev: ACPI device node to create a platform device for.
+> @@ -196,6 +257,9 @@ struct platform_device *acpi_create_platform_device(s=
+truct
+> acpi_device *adev,
+> =C2=A0			}
+> =C2=A0			acpi_dev_free_resource_list(&resource_list);
+> =C2=A0		}
+> +
+> +		if (IS_ENABLED(CONFIG_COMMON_CLK))
+> +			acpi_platform_init_clocks(adev);
+> =C2=A0	}
+> =C2=A0
+> =C2=A0	memset(&pdevinfo, 0, sizeof(pdevinfo));
