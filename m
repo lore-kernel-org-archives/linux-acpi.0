@@ -1,79 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=79.135.106.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794576496;
-	b=J9+Uxx5Q29OV9sbvj4EfCUDgiLzg6MxjQF64JiOy74LvgYB2oV06vPmfTduTJ2QgYYLq
-	 1fiMXkS8ZhtH51WXUoyYLj/FMW0nI0CIISQPwof4q466fu5j6TQMvx0c2wu95X7d3jZ0d
-	 JZ0c9rB7QI4i78xYM8NWzRjttMwd7p5fPl1EXidYUTGYJ7V9DgSV1p+H6PI+78udepxtL
-	 rCK5mcA2JFYVPbJ8n5BClnVyL9pOhnxPFggYey9E2RXwdZg5vnKTr8n6XZfCFUsJxjwvM
-	 7j6XdAut4QmjKOUy2P718QUMUdwN33s4VRB0pkn+vQxj+kIBLg2m7D32ScBYbpxMUeQ==
+	t=1794579454;
+	b=CIQIOAR1qpE7LXZocrhJ8htkELk9o4IF6pFTtQo6YtMhToH5+M5PVCZ+TGPloTv1Ynkc
+	 BEx5gRxxO4NYGdan/aafi7LVsAaoF0AGGJR5ilCJXY8wsrbQ4jth+eyKSt19dma5yBMMn
+	 bfpJ1Ygah5GCDE9jz4c72PIAAj0e4MD1dnNraGK/gvx94C4IokWMkXX4bpf7l9RLzU3ML
+	 V0eLB901QWPASfA7ggsECL0fT1ddUihxuEBc6wZNQbsS0ChhJyOp/H5yjfWA1aJFQLjIX
+	 +h2mvG1HJDjlz0ZsmWBdEIpbtDOCWtUzJOTHKRC4T6PB1NRBEaLQeM7ygkBo7MKN9PA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794576496;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=1+aHLi2UtIuBlcJCbpbAPaiJvtL7eNx9R7my6J/Wo6I=;
-	b=D4hExSM/DkG90NCySZIoG8VE6SdxpMKBiBn/ByDl7oB1JofyIAQ4lGKqZfNFlAUC1/9W
-	 XCxdi3H9Ml+YJyIRij4M+CIm1MzTUila1y1wPjPTeB3zPbV70P+aX9FIg9F5BdXEPqKUt
-	 5hNe2o1k1MAksHacYHTaNwvD9Jo/84Sh67EyLxr2NkIGefTLUiuoXUM0FbkAgYis7zfqp
-	 Sp0D9nDtme+ZB3FxdIOZQ7DV+XhtOyUsJuQ9NfvEPiCGzi6eAreLc+p3A9WGABkG6y0Fe
-	 /2vnsa6gPBIG2WxHHbklCp1saUYn9VDJ8FhY3eQclbSPIAgieDF7PjqAdL1seUz1XAQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794579454;
+	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
+	 In-Reply-To:References:Feedback-ID:X-Pm-Message-ID:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=wAr4d2rWXv5qNiuwhdGDlq/wH2H3/NP+kcpEdNzRW2Q=;
+	b=R6wAYy03l77jyRA5ZKg8zyQalqv4csoNQlL0bWzrDu/FXm/2PhLHb4GlmmB2XjsIWEni
+	 mGGAoUDWppH8IPBmyhsLh5DK/WcAhmEJ5uQeldrVy45Cj0jGmEdpqhen+0sbrEq2sxbIV
+	 MFiUha9vnBSrUacq0Plrs+ypDdkI+7fl9fOf76eT1PJn+JNFhlRURvEMl/fV3mdk/yJBy
+	 Vhb5qO5vlEjUCR1YgkiD1DYy53fYVx1oxJuz3vyQ/sOFH63x404s3kIRwLNHbqwuuz5ZO
+	 XhSgeFyrukR/IyeNX1E8/IOLuBUMZQhMbWOS9Ln9qXFGlsycFgUlyuc6wli7Jl6yJcQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=SmeRqcZi;
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 988B160A6F7F;
-	Fri, 13 Nov 2026 13:28:15 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 988B160A6F7F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	dmarc=pass header.from=proton.me;
+	spf=pass smtp.mailfrom=proton.me;
+	dkim=pass header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=protonmail2 header.b=Sduqpwo5;
+	arc=none smtp.remote-ip=79.135.106.30
+Received: from mail-10630.protonmail.ch (mail-10630.protonmail.ch [79.135.106.30])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64BB1606A323
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 14:17:33 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 64BB1606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=SmeRqcZi
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id F1D8C1BB2;
-	Fri, 13 Nov 2026 05:28:11 -0800 (PST)
-Received: from e135073.arm.com (unknown [10.57.14.137])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 299A53F85F;
-	Fri, 13 Nov 2026 05:28:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1794576495; bh=o0mvMz7Hkgc98u3XVYb9ZY3WvbaHGaD0B1hl0lPQEk0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=SmeRqcZigWsajIP8sYoa3JsAi8Y6QEfkmYzM/Baj7a2mEEJmN5TCy82jGV6wtHaCC
-	 5xvoqeFyM0+g86zVsLGw0TF2Xb9k+vZFfP7hpJ8t53k47xuJ7LpBJO1ZmySFohO4+O
-	 nirc16pEnX+l915yFVqjq6nmHiuOVAef2tggG04c=
-From: Pierre Gondois <pierre.gondois@arm.com>
-To: linux-kernel@vger.kernel.org
-Cc: Ashok Raj <ashok.raj@oss.qualcomm.com>,
-	James Morse <james.morse@arm.com>,
-	Mark Brown <broonie@kernel.org>,
-	Pierre Gondois <pierre.gondois@arm.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Tony Luck <tony.luck@intel.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>,
-	Breno Leitao <leitao@debian.org>,
-	"Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
-	Dan Williams <djbw@kernel.org>,
-	Terry Bowman <terry.bowman@amd.com>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Morduan Zang <zhangdandan@uniontech.com>,
-	linux-acpi@vger.kernel.org,
-	linux-edac@vger.kernel.org,
-	acpica-devel@lists.linux.dev
-Subject: [PATCH v4 12/12] efi/cper: Increase memory error location and detail buffer sizes
-Date: Fri, 13 Nov 2026 14:24:54 +0100
-Message-ID: <20261113132600.3355836-13-pierre.gondois@arm.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261113132600.3355836-1-pierre.gondois@arm.com>
-References: <20261113132600.3355836-1-pierre.gondois@arm.com>
+	dkim=pass (2048-bit key, unprotected) header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=protonmail2 header.b=Sduqpwo5
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=protonmail2; t=1794579451; x=1794838651;
+	bh=wAr4d2rWXv5qNiuwhdGDlq/wH2H3/NP+kcpEdNzRW2Q=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=Sduqpwo5gM13haVrOaExaW74MisPHwgpLn6xDUMja1Qjd8FfFi+dmGqsvktsvw7C3
+	 ZgwpPX4v0abqwomqS2eeDd42D0nQc8QVrzvhjDrItl0ZojJuyFHPCvOMFdU7nRj9+l
+	 Qtyp73J+dyT2NEi9Mh2JN9JoqDEyLGqt7RtfCDzMfa4Ex8bWyOdlntPnQUE4uCBE4R
+	 kiI1bWnva1sgVUodior1OcDiPsDC/1nw3zywrNHMOv4d55RcJLDOAkRU/gJru6lSwc
+	 XUErUboiIYmsAFPhxUuuYCSYk5NQRcwXquscN+YJVkLnMRXSl+cPk5zyqNOM91qe+4
+	 gHTN/EQiiMNJA==
+Date: Fri, 13 Nov 2026 14:17:23 +0000
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: penhouse24@proton.me
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andi Shyti <andi.shyti@kernel.org>, Hans de Goede <johannes.goede@oss.qualcomm.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH] i2c: acpi: Force Dell XPS 17 9720 touchpad to 100 kHz
+Message-ID: <oyP4Jwe9KmZeViSughKaFgfxdsCa4bOmWguiI5_JlkvEHQ3lSwRAgU48s260tgGXfueLHta38-Zlhq9LQ-oB4aEObhQdAH7mujrH4BFSQ90=@proton.me>
+In-Reply-To: <avcBBe428-3Fdonb@ashevche-desk.local>
+References: <20261113083940.2583439-1-mika.westerberg@linux.intel.com> <avcBBe428-3Fdonb@ashevche-desk.local>
+Feedback-ID: 217801480:user:proton
+X-Pm-Message-ID: 5c39618a9f5f3ef6b348c5ec7ac3be6b7c061576
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -83,84 +64,50 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Memory Error Section 2 descriptions can exceed the existing buffers.
-Helpers require:
+Hi Andy,=20
 
-1. cper_mem_err2_location(): ~263 chars:
-    node:65535 card:65535 module:65535 rank:4294967295 bank_group:255
-    bank_address:255 device:4294967295 row:4294967295 column:4294967295
-    bit_position:4294967295 requestor_id:0xffffffffffffffff
-    responder_id:0xffffffffffffffff target_id:0xffffffffffffffff
-    chip_id:255
+Yes this post explains this exact problem (I even posted on it).=20
 
-2. cper_dimm_err2_location(): 17 + strlen(bank) + strlen(device):
-    DIMM location: <bank> <device>
-   Or ~51 chars:
-    DIMM location: not present. DMI handle: 0xffffffff
+Since applying the 100khz patch I have had 0 issue with the touchpad. Not s=
+ure why the Dell XPS 17 9720 is so unique in this issue, but amongst all th=
+e firmware updates I have received since purchasing this computer, there ha=
+s been 0 improvement to this.=20
 
-3. print_mem_error2_other_detail(): ~65 + strlen(location) +
-   strlen(status):
-    APEI location: <location> status(0xffffffffffff13ff): <status>
-    section_status:0xff
+I appreciate you all working to resolve this issue. Is there any further in=
+formation I can provide you all to get a fix pushed to the main Linux kerne=
+l?
 
-Increase the size of:
-- CPER_REC_LEN: used to store the output of [1] or [2]
-- LOCATION_SIZE: used to store the output of [1] + [2]
-- OTHER_DETAIL_LEN: used to store the output of [3]
-  (which includes the size of the location buffer).
 
-Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
----
- drivers/edac/ghes_edac.c | 3 ++-
- include/linux/cper.h     | 4 ++--
- include/linux/edac.h     | 2 +-
- 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index 33e3aa897c18..d3544dc20649 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -17,7 +17,8 @@
- #include <linux/notifier.h>
- #include <linux/string.h>
- 
--#define OTHER_DETAIL_LEN	400
-+/* Allow 65 formatting characters plus the longest status description (63). */
-+#define OTHER_DETAIL_LEN	(LOCATION_SIZE + 128)
- 
- struct ghes_pvt {
- 	struct mem_ctl_info *mci;
-diff --git a/include/linux/cper.h b/include/linux/cper.h
-index db69995a43bf..a8eedc098bb0 100644
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -29,9 +29,9 @@
-  * CPER record length contains the CPER fields which are relevant for further
-  * handling of a memory error in userspace (we don't carry all the fields
-  * defined in the UEFI spec because some of them don't make any sense.)
-- * Currently, a length of 256 should be more than enough.
-+ * Allow room for the wider fields in Memory Error Section 2.
-  */
--#define CPER_REC_LEN					256
-+#define CPER_REC_LEN					512
- /*
-  * Severity definition for error_severity in struct cper_record_header
-  * and section_severity in struct cper_section_descriptor
-diff --git a/include/linux/edac.h b/include/linux/edac.h
-index f7a8218f9cc0..ef0569aa97be 100644
---- a/include/linux/edac.h
-+++ b/include/linux/edac.h
-@@ -48,7 +48,7 @@ static inline void opstate_init(void)
- #define EDAC_MC_LABEL_LEN	31
- 
- /* Maximum size of the location string */
--#define LOCATION_SIZE 256
-+#define LOCATION_SIZE		512
- 
- /* Defines the maximum number of labels that can be reported */
- #define EDAC_MAX_LABELS		8
--- 
-2.43.0
 
+
+
+On Friday, November 13th, 2026 at 7:22 AM, Andy Shevchenko <andriy.shevchen=
+ko@linux.intel.com> wrote:
+
+> On Fri, Nov 13, 2026 at 09:39:40AM +0100, Mika Westerberg wrote:
+> > The Dell XPS 17 9720 touchpad has the same lagging issue as with others
+> > when run at 400 kHz as the ACPI tables describe. This particular system
+> > does not use standard ACPI ID but it seems to use "Windows Device ID"
+> > VEN_04F3 for whatever reason. Add this one to the 100 kHz quirk list as
+> > well but since this is not a standard ACPI ID match it also via DMI
+> > strings just to be on the safe side.
+>=20
+> ...
+>=20
+> > Reported-by: penhouse24@proton.me
+> > Link: https://lore.kernel.org/linux-i2c/20261109104542.GL176724@black.i=
+gk.intel.com/
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>=20
+> Isn't this https://bugzilla.kernel.org/show_bug.cgi?id=3D214597 as well?
+>=20
+> --
+> With Best Regards,
+> Andy Shevchenko
+>=20
+>=20
+> 
