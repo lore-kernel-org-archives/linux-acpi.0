@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794592586;
-	b=Lah5/l6524F2csBrNKBa1+ogokso+24bkXgNlA7SUWL+PLtCCprolAFE8MZyqNSnB6KM
-	 bmXjOquKyauoUvjXv1wQuI72NpHtSZviFqJ5C3hCB0PeGGxD5VW7kU7ZsFS69/05CqijM
-	 yR+ZLEkgUO5r6i0ekOpG99xJtwYCDQ3GTZV7cVUVNhdLktGvTaS+S/bi9nNdNPxJ8ub72
-	 7LtMOvHjhnPOGRxE98+iy7OTUjJezMKpjz28Y7LZXDQ7StuN/qfEKjwlADCaStANTQnpB
-	 BxUnQGf+yhVdRO7Bgj7b9C3Qb4jBxh/nKMWv+0c7Yog9xtF7LnMRpeVL/LK8x58X1Zw==
+	t=1794592754;
+	b=EjreY5kl1doiPPHh/D0KGOEh7qs41e9jn+FBfIGpNO42L4cRul0AJM5960KAQVA9L9jJ
+	 OGt56SHN2nqzEUHpoAX50vq3LlmVOstWFE/IUCP5tEAkXPbOTU2X2XMy4MZxEb+u89Kbn
+	 8/7FWOEuIagRSPjCzYbKeoUpVB1zbFiLWySLWQcQE57+ih+gYTWVPK2lmrm6+CWgt9Ukx
+	 wsrXmdhf3uo8wtfOCHBXxBTjbWv8F6czjmheV9HbMA1eNMzGLd3pHVhLdP0cq5a/82vZx
+	 /wptN5XF9UGdvGVh9QtqcTXYt9XqBMAuNlX5hboUBwBQgrEKhBe4Vxn0Ci9POlHwA9g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794592586;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794592754;
 	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
 	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
 	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=z4NuS5WvkTyKHlT/Rjy7maiYnnlr6yz7spwuCHaRFJI=;
-	b=PDVcDfY8beS8EbbPrBueqVWhxNiaI7jnc6E6NtO7pKT0QIA09chosilSiM4QYB6ZYTy5
-	 2sRXYXsrA9ERB+yzsyMvabWEsKY+IfBBfJAghQec5NTsol8YuSvsREZRvsD9TpD7lmroe
-	 YsVRXKuHnEhGMTYIUJ7/hC8v21ZJ9gpu2TV+3yY5drqXn9t2nftQ1RJrGbE7uPQc3lwNM
-	 nDbECaFzA+Ys/icXTeNxuUpoi4eCN+LgdJhreIvHRpJ58jMQlkvu93fM9Ou0bkOywlCAP
-	 HUktf52zgt9YpyAv9gZf6EytBzcfG6nWH8H71iSr68e6PECPlUqFbzW4LZlkB4JAJJg==
+	bh=pCh73/AankLvFfu279FREelHFGxRQOaIIEdv4L4ZOkQ=;
+	b=NrcZ6qxzThMsvSRE+F8LM4/fKJGQVVZwzP5CWDSKcE5JF+hayvNvjOMGUzvktqdenI+r
+	 tdB27SiGta5WDkvEGtycMVJ2b/kDzNgfDHex9SwoUX82eshyqBWa2m1BCI+pEDKIg8Pup
+	 HuUQ4aBKyaXTrC7Fv4NaSpeIAvOyn6y3sGlcGTy1+XnVDIqBKZFwGQsZ1jduioOplJArl
+	 igRMaKd12qwjcmdC7/mj06yI9AYs5Jq36sDq8wYEa0gOd/YXXzRBghzAyjqL3Fuda1wTv
+	 5XFWHvjzl3x3PI5vYUGnc7v2GcUcVV8Zis1vDVlimZlsZyowj5NEMePH3C8F1QC/2gA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RnYVho3t;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NwttOTUm;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E78A2606A885
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 17:56:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E23AC606A89B
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 17:59:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RnYVho3t
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 729FF1F000C7
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 17:56:25 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NwttOTUm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68D7C1F000C4
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 17:59:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794592585;
-	bh=z4NuS5WvkTyKHlT/Rjy7maiYnnlr6yz7spwuCHaRFJI=;
+	s=k20260515; t=1794592753;
+	bh=pCh73/AankLvFfu279FREelHFGxRQOaIIEdv4L4ZOkQ=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=RnYVho3tABkAN8QRXrYg1cVLyOq3ohHCmTS1zWBUeQlhfVJrl/pIVhtmlCcRWtfUJ
-	 JnCTY10rxC+/y9JxzNV/vfGrGbAanzEFaqtzBDStSk2U9zMeUhya9qEs2BQoBnFJYb
-	 fWFXrbvBmONFKsYeAvkD9Tio6WFXW4GYlKe6VFhiaDYahw2Jf0LzFkjLCqAkxrygUg
-	 sHZ8Z/kc9V8dXwMJNJof/+pRrMaaei9uMcvb8sS3TxC1SNb7tGZs5TrR0bxPIhalNV
-	 kGYiYNXbaOhxGOGihoS6vMRCv7y2ADfmOFtxxiGqFzGBk1fyftpwQj23Qh/vIQFWL6
-	 Z0QdPswHVKHgg==
-Received: by mail-lj1-f178.google.com with SMTP id 38308e7fff4ca-3adfe77d336so17996431fa.1
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 09:56:25 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErFd/bLLqWyvmR5eRlFFkyPot0H4LbYgpJ7iswhPtP9qZOwxtVl2pF0GemRa4yiAtaxuGc3tONYgRh43@vger.kernel.org
-X-Gm-Message-State: APuU4Z+nB7UH0pr9TSgMiRYPUmzlpdCK2NvH1IbcdYxdI+utqV3yIbJh
-	xIrp4L0A2hhaaBAeQa9v4okyJRar7lSEHCwEiWlsHFIykDpjLz5UOOSFq6cls7LiPE2reZtC0TB
-	tF2W94j9QYMO43Uoc8xbbAZj8Ypk3ES0=
-X-Received: by 2002:a05:6512:a8c:b0:5c1:5775:d1ea with SMTP id
- 2adb3069b0e04-5c1709994a4mr1323474e87.11.1794592583815; Fri, 13 Nov 2026
- 09:56:23 -0800 (PST)
+	b=NwttOTUmck2eSDKuAQa9fTmq97RDDe5W+iNCmpE0PSESNJUqtR+WrRWL/WNXOASrO
+	 mXzIdsZfa2i5C6MAs/+nc3u8f7xoGsEo9eqOruyH1EfQgzEenDPqL+b+11BhbHtgTY
+	 E8M+F6KnA4Zw5dAc1Uv1fwEkSdDdfHjARyZWu5VphuC3ooootGUs+xKoKVeUsHirkH
+	 B0aAqoLRXYVaBi3jaw3StcIclvEqSH1KDg3UooW0JUJ/LAoC+3x+arMArfX2bL2hDP
+	 YHEw1O9UYeJ2oubZUIpd6hEi2EfkUYSMg+Smg6S4FHkTiAtPUqbu8VajoSwZMN76sn
+	 Hd4NXjUAtwssQ==
+Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-3ae3a5d440aso2273801fa.2
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 09:59:13 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErGogF+bZ052UpdOF9NIQzSeQJjBdx1FGnQnSa0tjSBm/k2vcZCTBNwl3EORfEb5Ejm+Ue2sAAe9jaz9@vger.kernel.org
+X-Gm-Message-State: APuU4Z/3ooM2al+j3P8X+bul8lHCmR6s4pD4PEmtOFwMic+YOnmtZSYr
+	t4zOe0iTmRJeyUxCpznqIgsf3harM5y0amgfP5IfCZfVM53I7dFhW/cmg4NFznD60vQbkPS1GlA
+	9plVv0OElF1hagQD6VgJ/N2vQGj0QZlU=
+X-Received: by 2002:a05:651c:907:b0:3a9:811d:3a58 with SMTP id
+ 38308e7fff4ca-3ae2b4efe24mr10269581fa.14.1794592751829; Fri, 13 Nov 2026
+ 09:59:11 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,14 +59,15 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261110154630.1550730-2-ca@modelmiser.com>
-In-Reply-To: <20261110154630.1550730-2-ca@modelmiser.com>
+References: <20261110144436.1529000-2-ca@modelmiser.com>
+In-Reply-To: <20261110144436.1529000-2-ca@modelmiser.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 13 Nov 2026 18:56:09 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0iLdz68hRJbuiULM-CaDoB-tu8_hMSeDkwx+f5z2jkcRQ@mail.gmail.com>
-X-Gm-Features: AclHuK_oVbcpbi7gbT7o-DVceCdgZpxBmOG6quCsZ-e6C8G31-f3G0B_vbHIxao
-Message-ID: <CAJZ5v0iLdz68hRJbuiULM-CaDoB-tu8_hMSeDkwx+f5z2jkcRQ@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: pfr_update: wait for running calls in remove()
+Date: Fri, 13 Nov 2026 18:58:59 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0jTHbr2KD3PXMdcOCs+QUrGrjGGuxOH7cbOe4kEF77d-A@mail.gmail.com>
+X-Gm-Features: AclHuK8jaHGf-qx8UBko-VJj1ALkgDJ0YCbq_IA-4T8aFhwIIej3H6tkxEBgYDI
+Message-ID: <CAJZ5v0jTHbr2KD3PXMdcOCs+QUrGrjGGuxOH7cbOe4kEF77d-A@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI: pfr_telemetry: keep the state until the last
+ file is closed
 To: Chad Aldreda <ca@modelmiser.com>
 Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Chen Yu <yu.c.chen@intel.com>, 
 	linux-acpi@vger.kernel.org, stable@vger.kernel.org, 
@@ -74,275 +75,289 @@ Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Chen 
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 10, 2026 at 4:46=E2=80=AFPM Chad Aldreda <ca@modelmiser.com> wr=
+On Tue, Nov 10, 2026 at 3:44=E2=80=AFPM Chad Aldreda <ca@modelmiser.com> wr=
 ote:
 >
-> Commit dacb7cef6f32 ("ACPI: pfr_update: keep the state until the last
-> file is closed") makes ioctl() and write() fail with -ENODEV once
-> remove() has run, but a call that started before remove() keeps running
-> after it returns. Such a call can evaluate _DSM while device_del()
-> unbinds the parent's ACPI companion, and after an unbind and bind it
-> acts on the firmware behind the new instance's back. Its message says
-> such a call "finishes against state that is still valid"; that was
-> wrong.
+> struct pfrt_log_device is allocated with devm_kzalloc_obj() and embeds
+> the miscdevice, so it is freed when the driver unbinds. A file that is
+> open on the node outlives the unbind and nothing holds a reference for
+> it: the next ioctl() or mmap() on that file uses freed memory.
+> Unbinding the driver needs root.
 >
-> Run the firmware calls of ioctl() and write() under a new mutex, and set
-> the removed flag under it in remove(), so that remove() waits for calls
-> already running. The mutex also serializes rev_id and the use of the
-> shared communication buffer, which concurrent calls on different files
-> could interleave. User memory is copied outside the lock, so a page
-> fault that does not complete cannot hold up remove(): write() now copies
-> the capsule into a kernel buffer first, and a fault there returns
-> -EFAULT rather than -EINVAL. It queries the buffer again once it holds
-> the lock, since SET_REV may have run in between. An unbind during a
-> capsule stage or activation waits for it to finish, rather than
-> returning with the update still in progress.
+> Allocate the structure with kzalloc_obj() and reference count it:
+> open() takes a reference, under misc_mtx, which misc_deregister() also
+> takes, release() drops it, and a devm action drops the driver's own.
+> The structure also holds a reference on the parent device it uses.
 >
-> The race was pointed out by Sashiko's review of the matching
-> pfr_telemetry patch [1]. The fix and this message were written with an
-> AI assistant (Claude) and checked by hand, and tested in QEMU with
-> KASAN and lockdep, using an SSDT whose _DSM stands in for the firmware.
-> Hardware with this firmware interface was not tested.
+> Also make remove() wait for calls already running. The firmware calls
+> in ioctl() and mmap() run under a mutex, and remove() sets a flag under
+> it that makes any later call that would reach the firmware fail with
+> -ENODEV. Without that, a call that started before remove() can
+> evaluate _DSM after remove() has returned, while device_del() unbinds
+> the parent's ACPI companion. The mutex also serializes the updates to
+> the log settings, which concurrent ioctl() calls could interleave.
+> ioctl() copies to and from user memory outside the lock, because mmap()
+> is called with mmap_lock held.
 >
-> Link: https://sashiko.dev/#/patchset/20261108233900.4043941-3-ca%40modelm=
-iser.com [1]
-> Fixes: dacb7cef6f32 ("ACPI: pfr_update: keep the state until the last fil=
-e is closed")
+> The problem was found with a Coccinelle script that reports device
+> nodes in devm memory [1]. The fix, the reproducers and this message
+> were written with an AI assistant (Claude) and checked by hand. The bug
+> was reproduced and the fix tested in QEMU with KASAN and lockdep, using
+> an SSDT whose _DSM stands in for the firmware. Hardware with this
+> firmware interface was not tested.
+>
+> Link: https://lore.kernel.org/r/20261106193517.3267013-2-ca@modelmiser.co=
+m [1]
+> Fixes: b0013e037a8b ("ACPI: Introduce Platform Firmware Runtime Telemetry=
+ driver")
 > Cc: stable@vger.kernel.org
 > Assisted-by: Claude:claude-opus-5-5
 > Signed-off-by: Chad Aldreda <ca@modelmiser.com>
-
-Applied as 7.5 material, thanks!
-
 > ---
-> This goes on top of commit dacb7cef6f32 in linux-pm, which Rafael
-> applied for 7.5. The matching pfr_telemetry change is in v2 of that
-> patch:
-> https://lore.kernel.org/r/20261110144436.1529000-2-ca@modelmiser.com
+> Changes in v2:
+> - remove() now waits for calls already running, under a new mutex, which
+>   also serializes the log settings. Sashiko's review of v1, which Rafael
+>   asked me to address, showed that a call that passed the removed check
+>   can evaluate _DSM after remove() returns, while device_del() unbinds
+>   the ACPI companion. The v1 notes said such a call finishes against
+>   state that is still valid; that was wrong.
+> - kzalloc_obj(), on top of the devm_kzalloc_obj() conversion in
+>   linux-pm.
+> v1: https://lore.kernel.org/r/20261108233900.4043941-3-ca@modelmiser.com
 >
-> As in pfr_telemetry, user memory is copied outside the lock. For
-> write() that means a kernel copy of the capsule, of up to the firmware
-> buffer size, so a slow or stalled user fault no longer holds the lock.
+> Tested in QEMU 10.2.4 (q35, KASAN with kasan_multi_shot, lockdep) with
+> the SSDT from v1, which adds a device with _HID INTC1081 and a _DSM that
+> returns valid packages. With a file held open across a sysfs unbind,
+> SET_INFO, GET_INFO, GET_DATA_INFO and mmap() all work before the unbind
+> and fail with -ENODEV after it, a mapping made before the unbind stays
+> readable, the same holds after a bind, and there are no KASAN or lockdep
+> reports.
 >
-> Tested as for the pfr_telemetry v2 patch, with the SSDT device _HID
-> INTC1080. QUERY_CAP, SET_REV, write() of a minimal capsule and STAGE
-> work before a sysfs unbind and fail with -ENODEV after it on a file
-> held open, the same holds after a bind, and there are no KASAN or
-> lockdep reports. With a test-only msleep(2000) before the QUERY_CAP
-> firmware call and the driver unbound 0.5 s into the call, the unbind
-> returned at once without this patch and the firmware call completed
-> 1.5 s after remove() returned; with it the unbind returned 2.0 s in,
-> after the call completed. ACTIVATE and STAGE_ACTIVATE were not run,
-> and neither was removal of the device itself.
+> For the race, a test-only msleep(2000) was put before the SET_INFO
+> firmware call and the driver unbound 0.5 s into the call. With v1 the
+> unbind returned at once and the firmware call completed 1.5 s after
+> remove() returned. With v2 the unbind returned 2.0 s in, after the call
+> completed. The test used a sysfs unbind, which keeps the ACPI companion
+> bound; removal of the device itself was not tested.
+>
+> A test variant that calls copy_to_user() inside the lock makes lockdep
+> report a cycle between the new lock, taken in pfrt_log_mmap(), and
+> mmap_lock, which is why the user copies stay outside it.
+>
+> Mainline and stable still allocate with devm_kzalloc(), so a backport
+> needs kzalloc(sizeof(*pfrt_log_dev), GFP_KERNEL) in that hunk.
+>
+> The same race exists in pfr_update; a matching patch on top of the one
+> you applied will follow once that is in your tree.
 >
 > The code, changelog and reproducers were written with an AI assistant
 > (Claude Opus 5.5), and the assistant ran the tests above. I ran the
 > final version myself and got the same results.
 >
->  drivers/acpi/pfr_update.c | 86 ++++++++++++++++++++++++++-------------
->  1 file changed, 58 insertions(+), 28 deletions(-)
+>  drivers/acpi/pfr_telemetry.c | 102 +++++++++++++++++++++++++++++------
+>  1 file changed, 86 insertions(+), 16 deletions(-)
 >
-> diff --git a/drivers/acpi/pfr_update.c b/drivers/acpi/pfr_update.c
-> index 797956d9defb..73cde535b34b 100644
-> --- a/drivers/acpi/pfr_update.c
-> +++ b/drivers/acpi/pfr_update.c
-> @@ -19,11 +19,11 @@
->  #include <linux/kref.h>
+> diff --git a/drivers/acpi/pfr_telemetry.c b/drivers/acpi/pfr_telemetry.c
+> index 458cb99ae216..53d5e25497e9 100644
+> --- a/drivers/acpi/pfr_telemetry.c
+> +++ b/drivers/acpi/pfr_telemetry.c
+> @@ -15,10 +15,13 @@
+>  #include <linux/errno.h>
+>  #include <linux/file.h>
+>  #include <linux/fs.h>
+> +#include <linux/kref.h>
 >  #include <linux/miscdevice.h>
 >  #include <linux/module.h>
 > +#include <linux/mutex.h>
+>  #include <linux/mm.h>
 >  #include <linux/platform_device.h>
->  #include <linux/slab.h>
+> +#include <linux/slab.h>
 >  #include <linux/string.h>
 >  #include <linux/uaccess.h>
-> -#include <linux/uio.h>
->  #include <linux/uuid.h>
->
->  #include <uapi/linux/pfrut.h>
-> @@ -85,6 +85,12 @@ struct pfru_device {
+>  #include <linux/uio.h>
+> @@ -62,6 +65,14 @@ struct pfrt_log_device {
+>         struct pfrt_log_info info;
 >         struct device *parent_dev;
 >         struct miscdevice miscdev;
->         struct kref kref;
+> +       struct kref kref;
 > +       /*
-> +        * Serializes the firmware calls, rev_id and the communication bu=
-ffer
-> +        * of the file operations, and remove(), which sets removed under=
- it
-> +        * and so waits for calls already running.
+> +        * Serializes the firmware calls and info of the file operations,=
+ and
+> +        * remove(), which sets removed under it and so waits for calls
+> +        * already running.
 > +        */
 > +       struct mutex lock;
->         bool removed;
+> +       bool removed;
 >  };
 >
-> @@ -424,6 +430,15 @@ static int start_update(int action, struct pfru_devi=
-ce *pfru_dev)
->         return ret;
->  }
+>  /* pfrt_guid is the parameter for _DSM method */
+> @@ -254,33 +265,49 @@ static long pfrt_log_ioctl(struct file *file, unsig=
+ned int cmd, unsigned long ar
+>                 if (copy_from_user(&info, p, sizeof(info)))
+>                         return -EFAULT;
 >
-> +static int pfru_start_update(int action, struct pfru_device *pfru_dev)
-> +{
-> +       guard(mutex)(&pfru_dev->lock);
-> +       if (pfru_dev->removed)
-> +               return -ENODEV;
-> +
-> +       return start_update(action, pfru_dev);
-> +}
-> +
->  static long pfru_ioctl(struct file *file, unsigned int cmd, unsigned lon=
-g arg)
->  {
->         struct pfru_update_cap_info cap_hdr =3D {};
-> @@ -432,12 +447,14 @@ static long pfru_ioctl(struct file *file, unsigned =
-int cmd, unsigned long arg)
->         u32 rev;
->         int ret;
->
-> -       if (READ_ONCE(pfru_dev->removed))
-> -               return -ENODEV;
-> -
->         switch (cmd) {
->         case PFRU_IOC_QUERY_CAP:
-> -               ret =3D query_capability(&cap_hdr, pfru_dev);
-> +               scoped_guard(mutex, &pfru_dev->lock) {
-> +                       if (pfru_dev->removed)
+> -               if (valid_log_revid(info.log_revid))
+> -                       pfrt_log_dev->info.log_revid =3D info.log_revid;
+> +               scoped_guard(mutex, &pfrt_log_dev->lock) {
+> +                       if (pfrt_log_dev->removed)
 > +                               return -ENODEV;
-> +
-> +                       ret =3D query_capability(&cap_hdr, pfru_dev);
-> +               }
->                 if (ret)
->                         return ret;
 >
-> @@ -453,18 +470,23 @@ static long pfru_ioctl(struct file *file, unsigned =
-int cmd, unsigned long arg)
->                 if (!pfru_valid_revid(rev))
->                         return -EINVAL;
+> -               if (valid_log_level(info.log_level)) {
+> -                       ret =3D set_pfrt_log_level(info.log_level, pfrt_l=
+og_dev);
+> -                       if (ret < 0)
+> -                               return ret;
+> +                       if (valid_log_revid(info.log_revid))
+> +                               pfrt_log_dev->info.log_revid =3D info.log=
+_revid;
 >
-> -               pfru_dev->rev_id =3D rev;
-> +               scoped_guard(mutex, &pfru_dev->lock) {
-> +                       if (pfru_dev->removed)
-> +                               return -ENODEV;
+> -                       pfrt_log_dev->info.log_level =3D info.log_level;
+> -               }
+> +                       if (valid_log_level(info.log_level)) {
+> +                               ret =3D set_pfrt_log_level(info.log_level=
+, pfrt_log_dev);
+> +                               if (ret < 0)
+> +                                       return ret;
 > +
-> +                       pfru_dev->rev_id =3D rev;
+> +                               pfrt_log_dev->info.log_level =3D info.log=
+_level;
+> +                       }
+>
+> -               if (valid_log_type(info.log_type))
+> -                       pfrt_log_dev->info.log_type =3D info.log_type;
+> +                       if (valid_log_type(info.log_type))
+> +                               pfrt_log_dev->info.log_type =3D info.log_=
+type;
 > +               }
 >
 >                 return 0;
 >
->         case PFRU_IOC_STAGE:
-> -               return start_update(START_STAGE, pfru_dev);
-> +               return pfru_start_update(START_STAGE, pfru_dev);
->
->         case PFRU_IOC_ACTIVATE:
-> -               return start_update(START_ACTIVATE, pfru_dev);
-> +               return pfru_start_update(START_ACTIVATE, pfru_dev);
->
->         case PFRU_IOC_STAGE_ACTIVATE:
-> -               return start_update(START_STAGE_ACTIVATE, pfru_dev);
-> +               return pfru_start_update(START_STAGE_ACTIVATE, pfru_dev);
->
->         default:
->                 return -ENOTTY;
-> @@ -478,14 +500,33 @@ static ssize_t pfru_write(struct file *file, const =
-char __user *buf,
->         struct pfru_update_cap_info cap;
->         struct pfru_com_buf_info buf_info;
->         phys_addr_t phy_addr;
-> -       struct iov_iter iter;
-> -       struct iovec iov;
->         char *buf_ptr;
->         int ret;
->
-> -       if (READ_ONCE(pfru_dev->removed))
-> +       scoped_guard(mutex, &pfru_dev->lock) {
-> +               if (pfru_dev->removed)
-> +                       return -ENODEV;
+>         case PFRT_LOG_IOC_GET_INFO:
+> -               info.log_level =3D get_pfrt_log_level(pfrt_log_dev);
+> -               info.log_type =3D pfrt_log_dev->info.log_type;
+> -               info.log_revid =3D pfrt_log_dev->info.log_revid;
+> +               scoped_guard(mutex, &pfrt_log_dev->lock) {
+> +                       if (pfrt_log_dev->removed)
+> +                               return -ENODEV;
 > +
-> +               ret =3D query_buffer(&buf_info, pfru_dev);
-> +       }
+> +                       info.log_level =3D get_pfrt_log_level(pfrt_log_de=
+v);
+> +                       info.log_type =3D pfrt_log_dev->info.log_type;
+> +                       info.log_revid =3D pfrt_log_dev->info.log_revid;
+> +               }
+> +
+>                 if (copy_to_user(p, &info, sizeof(info)))
+>                         return -EFAULT;
+>
+>                 return 0;
+>
+>         case PFRT_LOG_IOC_GET_DATA_INFO:
+> -               ret =3D get_pfrt_log_data_info(&data_info, pfrt_log_dev);
+> +               scoped_guard(mutex, &pfrt_log_dev->lock) {
+> +                       if (pfrt_log_dev->removed)
+> +                               return -ENODEV;
+> +
+> +                       ret =3D get_pfrt_log_data_info(&data_info, pfrt_l=
+og_dev);
+> +               }
+>                 if (ret)
+>                         return ret;
+>
+> @@ -311,6 +338,10 @@ pfrt_log_mmap(struct file *file, struct vm_area_stru=
+ct *vma)
+>
+>         pfrt_log_dev =3D to_pfrt_log_dev(file);
+>
+> +       guard(mutex)(&pfrt_log_dev->lock);
+> +       if (pfrt_log_dev->removed)
+> +               return -ENODEV;
+> +
+>         ret =3D get_pfrt_log_data_info(&info, pfrt_log_dev);
+>         if (ret)
+>                 return ret;
+> @@ -337,8 +368,39 @@ pfrt_log_mmap(struct file *file, struct vm_area_stru=
+ct *vma)
+>         return 0;
+>  }
+>
+> +static void pfrt_log_free(struct kref *kref)
+> +{
+> +       struct pfrt_log_device *pfrt_log_dev =3D
+> +               container_of(kref, struct pfrt_log_device, kref);
+> +
+> +       put_device(pfrt_log_dev->parent_dev);
+> +       kfree(pfrt_log_dev);
+> +}
+> +
+> +static void pfrt_log_put(void *data)
+> +{
+> +       struct pfrt_log_device *pfrt_log_dev =3D data;
+> +
+> +       kref_put(&pfrt_log_dev->kref, pfrt_log_free);
+> +}
+> +
+> +/* misc_open() holds misc_mtx here, and misc_deregister() takes it. */
+> +static int pfrt_log_open(struct inode *inode, struct file *file)
+> +{
+> +       kref_get(&to_pfrt_log_dev(file)->kref);
+> +       return 0;
+> +}
+> +
+> +static int pfrt_log_release(struct inode *inode, struct file *file)
+> +{
+> +       pfrt_log_put(to_pfrt_log_dev(file));
+> +       return 0;
+> +}
+> +
+>  static const struct file_operations acpi_pfrt_log_fops =3D {
+>         .owner          =3D THIS_MODULE,
+> +       .open           =3D pfrt_log_open,
+> +       .release        =3D pfrt_log_release,
+>         .mmap           =3D pfrt_log_mmap,
+>         .unlocked_ioctl =3D pfrt_log_ioctl,
+>         .llseek         =3D noop_llseek,
+> @@ -349,6 +411,8 @@ static void acpi_pfrt_log_remove(struct platform_devi=
+ce *pdev)
+>         struct pfrt_log_device *pfrt_log_dev =3D platform_get_drvdata(pde=
+v);
+>
+>         misc_deregister(&pfrt_log_dev->miscdev);
+> +       scoped_guard(mutex, &pfrt_log_dev->lock)
+> +               pfrt_log_dev->removed =3D true;
+>  }
+>
+>  static void pfrt_log_put_idx(void *data)
+> @@ -373,10 +437,17 @@ static int acpi_pfrt_log_probe(struct platform_devi=
+ce *pdev)
+>                 return -ENODEV;
+>         }
+>
+> -       pfrt_log_dev =3D devm_kzalloc_obj(&pdev->dev, *pfrt_log_dev);
+> +       pfrt_log_dev =3D kzalloc_obj(*pfrt_log_dev);
+>         if (!pfrt_log_dev)
+>                 return -ENOMEM;
+>
+> +       kref_init(&pfrt_log_dev->kref);
+> +       mutex_init(&pfrt_log_dev->lock);
+> +       pfrt_log_dev->parent_dev =3D get_device(&pdev->dev);
+> +       ret =3D devm_add_action_or_reset(&pdev->dev, pfrt_log_put, pfrt_l=
+og_dev);
 > +       if (ret)
 > +               return ret;
 > +
-> +       if (len > buf_info.buf_size) {
-> +               dev_dbg(pfru_dev->parent_dev, "Capsule image size too lar=
-ge\n");
-> +               return -EINVAL;
-> +       }
-> +
-> +       /* Copy from the user outside the lock, which remove() waits for =
-*/
-> +       void *data __free(kvfree) =3D vmemdup_user(buf, len);
-> +       if (IS_ERR(data))
-> +               return PTR_ERR(data);
-> +
-> +       guard(mutex)(&pfru_dev->lock);
-> +       if (pfru_dev->removed)
->                 return -ENODEV;
->
-> +       /* Query again: SET_REV may have run while the lock was dropped *=
-/
->         ret =3D query_buffer(&buf_info, pfru_dev);
->         if (ret)
+>         ret =3D ida_alloc(&pfrt_log_ida, GFP_KERNEL);
+>         if (ret < 0)
 >                 return ret;
-> @@ -495,10 +536,6 @@ static ssize_t pfru_write(struct file *file, const c=
-har __user *buf,
->                 return -EINVAL;
->         }
+> @@ -387,7 +458,6 @@ static int acpi_pfrt_log_probe(struct platform_device=
+ *pdev)
+>                 return ret;
 >
-> -       iov.iov_base =3D (void __user *)buf;
-> -       iov.iov_len =3D len;
-> -       iov_iter_init(&iter, ITER_SOURCE, &iov, 1, len);
-> -
->         /* map the communication buffer */
->         phy_addr =3D (phys_addr_t)((buf_info.addr_hi << 32) | buf_info.ad=
-dr_lo);
->         buf_ptr =3D memremap(phy_addr, buf_info.buf_size, MEMREMAP_WB);
-> @@ -507,22 +544,13 @@ static ssize_t pfru_write(struct file *file, const =
-char __user *buf,
->                 return -ENOMEM;
->         }
+>         pfrt_log_dev->info.log_revid =3D PFRT_DEFAULT_REV_ID;
+> -       pfrt_log_dev->parent_dev =3D &pdev->dev;
 >
-> -       if (!copy_from_iter_full(buf_ptr, len, &iter)) {
-> -               dev_dbg(pfru_dev->parent_dev,
-> -                       "Failed to copy the data from the user space buff=
-er\n");
-> -               ret =3D -EINVAL;
-> -               goto unmap;
-> -       }
-> +       memcpy(buf_ptr, data, len);
->
->         /* check if the capsule header has a valid version number */
->         ret =3D query_capability(&cap, pfru_dev);
-> -       if (ret)
-> -               goto unmap;
-> -
-> -       if (!applicable_image(buf_ptr, &cap, pfru_dev))
-> +       if (!ret && !applicable_image(buf_ptr, &cap, pfru_dev))
->                 ret =3D -EINVAL;
->
-> -unmap:
->         memunmap(buf_ptr);
->
->         return ret ?: len;
-> @@ -571,7 +599,8 @@ static void acpi_pfru_remove(struct platform_device *=
-pdev)
->         struct pfru_device *pfru_dev =3D platform_get_drvdata(pdev);
->
->         misc_deregister(&pfru_dev->miscdev);
-> -       WRITE_ONCE(pfru_dev->removed, true);
-> +       scoped_guard(mutex, &pfru_dev->lock)
-> +               pfru_dev->removed =3D true;
->  }
->
->  static void pfru_put_idx(void *data)
-> @@ -601,6 +630,7 @@ static int acpi_pfru_probe(struct platform_device *pd=
-ev)
->                 return -ENOMEM;
->
->         kref_init(&pfru_dev->kref);
-> +       mutex_init(&pfru_dev->lock);
->         pfru_dev->parent_dev =3D get_device(&pdev->dev);
->         ret =3D devm_add_action_or_reset(&pdev->dev, pfru_put, pfru_dev);
->         if (ret)
+>         pfrt_log_dev->miscdev.minor =3D MISC_DYNAMIC_MINOR;
+>         pfrt_log_dev->miscdev.name =3D devm_kasprintf(&pdev->dev, GFP_KER=
+NEL,
 > --
-> 2.43.0
->
->
+
+Applied as 7.5 material, thanks!
