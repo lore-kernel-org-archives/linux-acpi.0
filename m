@@ -1,80 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794559183;
-	b=RAhT3RkK1ewgu2xZOJLJ+6rjlG8PRFQePkaMfRmTtot2uCP39GFN9V5sPHUqoH6qJk8f
-	 zBIxleZkN42/3f4LK4nDdLtCC/YMFZfRcbUzRN4uU3/sWyG1aTTdmjDyUgjtQAvHf9Jvj
-	 j6i7mI0KPavsHqqAe04HxVHrVkMjFtvlif0+em528//lkfQeA/f95g6k1OyTsxtx0SlIu
-	 ILP8irHEe1tBYG5jadK7f0b+niwlrOF4EGuvd48KvOpNA5qY4v519HSLsJBk0jN96k3a0
-	 CnMG5g4F3dnOuHyibmPv0hcMThIy57cs34f3NHoeNQzUqzCVSW2GuuhRDOAvtiO127w==
+	t=1794561246;
+	b=ys2g20pHKMOU1FSiwtLsvyiRkDDskWWtKR8KHzXr0v4CEZuUAW4WfiZKhLHdznuInSnz
+	 RcbhFTWz3GYWTEdqv7JVpwNkyznkmp8JwW78zm+YTx49QlmlUqVlheXO8htm6jPZ+Eukc
+	 Gs6Gwg9KEmlvICNYSAH+tNXcZdVAUhDbc+KCOyd3C5AZ5k3XsaRujXRuQzjqrBx8hUe6f
+	 t7DBPDTggXuCHEldvtKtofdIi46F8UNwrNjEfLeuSXBh+p5GEf6Fb2iRAujMXVL/o5YsM
+	 FW5uGnxgyCYHwLYuX0zkRt/krovq0qUWVU9uVZoluD60E0hjsc4Wem918EGdLzuX12g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794559183;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794561246;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:From:To:Cc:
-	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=I2tO/nVipIuSEk5oXD89iJaagz6EjrPkA4O6Hp10oWY=;
-	b=Jgl3mvO29adrJnWhOKgJzcAYD9/didP+bsoR1acp+67Ltvawbq3F52Cc3ftwpcMH+qMF
-	 On/ckOrvsJns3pWY0+bN9SYmhssJjPhkzeD+DAnwMWJlPTjLVe20leT7QEXQv41qiH1VN
-	 HzKNu6wiYlRLXBb80exz8hxdqJUmZW/X1uZ4IZS+YcxJpquM3HVX+9ccukDLNIseKMkuV
-	 l0deOUmUvFzNahkJhx+AvVSp6t3tQJ1w4CDZkNC5FH1voYkcbjx034N2sN5/FPdu/CizH
-	 okbsEg2NMNEMMwUTihd39CW7GpUzvqWm38ZQFihH/Dl2bsXf0sch8ZXgyv8Ro9RyyOg==
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=rcCOAgaNQ6mOxfEeq0aJhRnhXgr/WD3qzoIXLp7iAwM=;
+	b=sxVNkTuowSYF4ndIp8lolGOaYuVoP6Dgfbcj4vmEJsq4UermNRsTDV9HT5mOjoeeLOve
+	 c9tcrAif0fJTGACibCPOGEwfd5RYNrpgyXEPusaEMoN5LS0npq77F85chvuC/FPFiYeor
+	 S6Hb+gQ+4nfvnQB/UqszwyDjmOG9ocZSFOIsdt0JPmMnsHkssqLz899pKmNDOwiI8ZuBR
+	 0ZAoaOrc7IPcC66t4/0aMbzKZPc3GuwKh7IRmy5OS9O6YsmWaxH10sg1iDfgc2e9OPerS
+	 KVYAGyz730YdoWYorTuKbYStMzdzV4aIsX9ySFKKMPN9K0uoiepfLfjL4NizuGfPKfQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=WZ7CLdSd;
-	arc=none smtp.remote-ip=198.175.65.21
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=nzYFBAvs;
+	arc=none smtp.remote-ip=192.198.163.18
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4168C60A2611;
-	Fri, 13 Nov 2026 08:39:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4168C60A2611
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27CB0606A31C
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 09:14:05 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 27CB0606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=WZ7CLdSd
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=nzYFBAvs
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794559183; x=1826095183;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=RkaUg1TnP8iq0WZ2/X6DQ6hMitMiehVfWhA9KaLyZU8=;
-  b=WZ7CLdSdF3BIfuZ8OMWylF8FGv2ovN9KwBFxDVJIrvz3X/+EUurZ0iUO
-   sFhMYmWtkOIG/BNbNrCmptai2BFdbfBpHVjIkSH6gq5d+KiThLkQQbQLA
-   PfZDhmxp4RLcRUKcWlj6mHmklew0JGgCTML6WhDDAWuInElRUxkVs1IRu
-   fQHHM9Hiabv3USY2UYR4Xuumh+ANrl/icrL4O97GxmdOOhRJb5mgLea/k
-   DDT2G3qRa5KvxRCsjqCstDgkU50R24QtsxnrCmVtC1VJH1rTlH6mkcFzI
-   iCkWiqHOU0rRmAAIi9oLvBp1dn8vwz/RdFzh8FTVN1WbHwYfMWsFDlpTu
-   Q==;
-X-CSE-ConnectionGUID: MfiPVRHFQLOhBZKNGplcOA==
-X-CSE-MsgGUID: ZsSuBicQSR281nXDiAKPkw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11964"; a="3435784"
+  t=1794561245; x=1826097245;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=3YQC2srLmB0eRjZt+W5Kk9zvcxE/nqYSAZ8PFwWwbRU=;
+  b=nzYFBAvs8djHhSdWEJCabzoU5932qyHqClo4rgGp5UbO6hEFTPEAqCl7
+   LPf57dpt6er7uYNsQqhPm/4DdQNqFtCSAuTgsxM3zg2OMkaYe1pP1l0Nk
+   HGotaAoZ0Q5NIcYH0nNCs7ZbOgWt2ngH9N6rwvmXfjXg1UvQ4OTW1rCMt
+   tpO6/qzXK08E8PZg/zlgakjveT+96AXw/a8MTfYvxconEh0m4tqFbnQq2
+   iZNWMS5KHMbijP5Gp10r/hkEB7nGzbzY5n/8HRbI0hAuf6m7TQRX5PbLw
+   3iON6V4rc1HaW8G12PFkbopwLz5d380qrWOaDz6+52nGIKiYS66zfz1o5
+   A==;
+X-CSE-ConnectionGUID: CTQGm9a8TNOmJMCILit7jQ==
+X-CSE-MsgGUID: ZJ7TxUEXRFemcaGFd9321w==
+X-IronPort-AV: E=McAfee;i="6800,10657,11964"; a="3388889"
 X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
-   d="scan'208";a="3435784"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 00:39:43 -0800
-X-CSE-ConnectionGUID: z3/vNLXrS9aMri+L6hNTdw==
-X-CSE-MsgGUID: yCvnhUfpSHygY0MXahAz4g==
+   d="scan'208";a="3388889"
+Received: from fmviesa011.fm.intel.com ([10.60.135.151])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 01:14:04 -0800
+X-CSE-ConnectionGUID: 918UqnjfQUaNbjvAweC7Xw==
+X-CSE-MsgGUID: NDVEmg+mRYOn7n4rQPLLqA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
-   d="scan'208";a="8869298"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by orviesa002.jf.intel.com with ESMTP; 13 Nov 2026 00:39:41 -0800
-Received: by black.igk.intel.com (Postfix, from userid 1001)
-	id 0F0E399; Fri, 13 Nov 2026 09:39:40 +0100 (CET)
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-To: Andi Shyti <andi.shyti@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Hans de Goede <johannes.goede@oss.qualcomm.com>,
-	penhouse24@proton.me,
-	linux-i2c@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] i2c: acpi: Force Dell XPS 17 9720 touchpad to 100 kHz
-Date: Fri, 13 Nov 2026 09:39:40 +0100
-Message-ID: <20261113083940.2583439-1-mika.westerberg@linux.intel.com>
-X-Mailer: git-send-email 2.50.1
+   d="scan'208";a="10656371"
+Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
+  by fmviesa011.fm.intel.com with ESMTP; 13 Nov 2026 01:14:02 -0800
+Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xRnM7-000000012ch-3Yr3;
+	Fri, 13 Nov 2026 09:13:59 +0000
+Date: Fri, 13 Nov 2026 17:13:20 +0800
+From: kernel test robot <lkp@intel.com>
+To: Sudeep Holla <sudeep.holla@kernel.org>, linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: oe-kbuild-all@lists.linux.dev, Sudeep Holla <sudeep.holla@kernel.org>,
+	Jamie Nguyen <jamien@nvidia.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>, Dat Mach <dmach@nvidia.com>
+Subject: Re: [PATCH v2 3/3] firmware: arm_ffa: Share FF-A version negotiation
+Message-ID: <202611131749.3XbZQkPM-lkp@intel.com>
+References: <20261112-acpi_ffh_ffa-v2-3-575a9dbed22b@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -84,85 +87,52 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261112-acpi_ffh_ffa-v2-3-575a9dbed22b@kernel.org>
 
-The Dell XPS 17 9720 touchpad has the same lagging issue as with others
-when run at 400 kHz as the ACPI tables describe. This particular system
-does not use standard ACPI ID but it seems to use "Windows Device ID"
-VEN_04F3 for whatever reason. Add this one to the 100 kHz quirk list as
-well but since this is not a standard ACPI ID match it also via DMI
-strings just to be on the safe side.
+Hi Sudeep,
 
-Reported-by: penhouse24@proton.me
-Link: https://lore.kernel.org/linux-i2c/20261109104542.GL176724@black.igk.intel.com/
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/i2c/i2c-core-acpi.c | 24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+kernel test robot noticed the following build warnings:
 
-diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index 84841ed13487..98a8d63e3fb8 100644
---- a/drivers/i2c/i2c-core-acpi.c
-+++ b/drivers/i2c/i2c-core-acpi.c
-@@ -7,6 +7,7 @@
- 
- #include <linux/acpi.h>
- #include <linux/device.h>
-+#include <linux/dmi.h>
- #include <linux/err.h>
- #include <linux/i2c.h>
- #include <linux/list.h>
-@@ -356,6 +357,16 @@ static const struct acpi_device_id i2c_acpi_force_400khz_device_ids[] = {
- 	{ }
- };
- 
-+static const struct dmi_system_id i2c_acpi_dell_xps_17_9720_dmi_ids[] = {
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "XPS 17 9720"),
-+		},
-+	},
-+	{ }
-+};
-+
- static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
- 	/*
- 	 * When a 400KHz freq is used on this model of ELAN touchpad in Linux,
-@@ -377,6 +388,14 @@ static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
- 	{ .id = "ELAN0678" },
- 	{ .id = "ELAN06FA" },
- 	{ .id = "ELAN1300" },
-+	{
-+		/*
-+		 * Some Dell XPS 17 9720 systems do not use standard
-+		 * ACPI IDs so we need to match also via DMI strings.
-+		 */
-+		.id = "VEN_04F3",
-+		.driver_data = (kernel_ulong_t)i2c_acpi_dell_xps_17_9720_dmi_ids,
-+	},
- 	{ }
- };
- 
-@@ -385,6 +404,7 @@ static acpi_status i2c_acpi_lookup_speed(acpi_handle handle, u32 level,
- {
- 	struct i2c_acpi_lookup *lookup = data;
- 	struct acpi_device *adev = acpi_fetch_acpi_dev(handle);
-+	const struct acpi_device_id *id;
- 
- 	if (!adev || i2c_acpi_do_lookup(adev, lookup))
- 		return AE_OK;
-@@ -398,7 +418,9 @@ static acpi_status i2c_acpi_lookup_speed(acpi_handle handle, u32 level,
- 	if (acpi_match_device_ids(adev, i2c_acpi_force_400khz_device_ids) == 0)
- 		lookup->force_speed = I2C_MAX_FAST_MODE_FREQ;
- 
--	if (acpi_match_device_ids(adev, i2c_acpi_force_100khz_device_ids) == 0)
-+	id = acpi_match_acpi_device(i2c_acpi_force_100khz_device_ids, adev);
-+	if (id && (!id->driver_data ||
-+		   dmi_check_system((const struct dmi_system_id *)id->driver_data)))
- 		lookup->force_speed = I2C_MAX_STANDARD_MODE_FREQ;
- 
- 	return AE_OK;
--- 
-2.53.0
+[auto build test WARNING on 7475ea8b58616b33c04afb976cf0fbaad9dd63fb]
 
+url:    https://github.com/intel-lab-lkp/linux/commits/Sudeep-Holla/firmware-arm_ffa-Share-FF-A-register-field-definitions/20261112-111406
+base:   7475ea8b58616b33c04afb976cf0fbaad9dd63fb
+patch link:    https://lore.kernel.org/r/20261112-acpi_ffh_ffa-v2-3-575a9dbed22b%40kernel.org
+patch subject: [PATCH v2 3/3] firmware: arm_ffa: Share FF-A version negotiation
+config: arm-allyesconfig (https://download.01.org/0day-ci/archive/20261113/202611131749.3XbZQkPM-lkp@intel.com/config)
+compiler: arm-linux-gnueabi-gcc (GCC) 16.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261113/202611131749.3XbZQkPM-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202611131749.3XbZQkPM-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+   In file included from drivers/tee/optee/ffa_abi.c:8:
+>> include/linux/arm_ffa.h:189:37: warning: 'struct arm_smccc_1_2_regs' declared inside parameter list will not be visible outside of this definition or declaration
+     189 |         void (*invoke)(const struct arm_smccc_1_2_regs *args,
+         |                                     ^~~~~~~~~~~~~~~~~~
+
+
+vim +189 include/linux/arm_ffa.h
+
+   182	
+   183	#if IS_BUILTIN(CONFIG_ARM_FFA_VERSION_NEGOTIATION)
+   184	int arm_ffa_version_get(void (*invoke)(const struct arm_smccc_1_2_regs *args,
+   185					       struct arm_smccc_1_2_regs *res),
+   186				u32 input_version, u32 *version);
+   187	#else
+   188	static inline int arm_ffa_version_get(
+ > 189		void (*invoke)(const struct arm_smccc_1_2_regs *args,
+   190			       struct arm_smccc_1_2_regs *res),
+   191		u32 input_version, u32 *version) { return -EOPNOTSUPP; }
+   192	#endif /* CONFIG_ARM_FFA_VERSION_NEGOTIATION */
+   193	
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
