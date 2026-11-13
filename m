@@ -1,71 +1,71 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=52.12.53.23
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=52.42.203.116
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794566565;
-	b=ZD5tsL2bK8vhGS4K6u+Og/Zo9rM15j7QVXBQyCclBo4Urzr+MdfPnPOosrKURqoameZT
-	 ygBXzmXYUkW6HnG50t7axMsBCcpDry1sUA5yN3IQ3fEVqp9IuPbMZEZf3zzvY49zxSomC
-	 zyBz0VTgs1tq3hNTtVo1ilVmdqYi/W90EOF40ZvPiDOZDvO3SL5o3pHGewzdcovnbnjbW
-	 g2chnpO17trEmoeNSLvFo1qu2X34GCW+3TNehy0rN6i7FBcMrMpB76ecLQAh5Qeb+9e7v
-	 pJ4AqWXC2CYSt8KrXvSCmUsDMo7fAFWk/Zp5VWrxnn2bHYNqvrsXgADLBFcpYvgjmqA==
+	t=1794567805;
+	b=oanJls0Akj3Osd0lToImTsVPjcS7hUms9zxmJl28XzqILFDTnTBG8HEsjHmb9UKWuWHg
+	 Td5TNNbV6GA68r0cSv3DBhki5NQH6y+8qzeMjI4VM9kVyqjB6Dx1KGKuqzlzjQbrlqeAX
+	 EyNhWAic6J7h4KUzmP1kx4gcvPm3AuN6nXXIdnYA93CmOjL0IRCPdCXWfTiTZyG2WXzFk
+	 k9boCXNaqYHoNbey6oRFzYWoBaVk5ME1r21NvjEdDgHbDGkZH4zWOpr89a83fhc4Qq2xV
+	 uoe7vsk7YXUZtyX8TzTbrPocM3T2opsYM841aOVM8zW14LIGsFrgwe21A3c/oGOqqag==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794566565;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794567805;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:Received:Received:X-Farcaster-Flow-ID:Received:Received:
 	 From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding:Content-Type:X-Originating-IP:
 	 X-ClientProxiedBy;
-	bh=JpfG/3aBXx1rKxk956ChNxo8T4iBYqWt9/juBC5bREs=;
-	b=1ItpP1LtzrtqPoikddzriA54+uGIJLUKXZk87uXebHIAUpcZasquBt31hMUk3e6tEtPn
-	 6kb/uMutbP1xVyBQS8LacXLe+u4fhGLY0AKyNWx2lAWzqJP5KkKd50jpP+SEunjQkuIKc
-	 MSf1cSOwhftKVp0kE1bdE8eXZDzqmi/LGlNxTCzOxVUXDGhNrytQZ8ccQvUImoE1XGfFQ
-	 jqZq3jveaITc1tbgcC4BINh57yOSl317C90FkcpmsXh+u0RU75B/G2ZBmbcDAMrR1Ijuu
-	 XptZAySQyLUzmVo3FsqpyhWeKnENIKhRsgwkj4CCi2G7CwASDWULmOLtJNpsAbe49Eg==
+	bh=IfMDB5jT1COQwB7EaC+iwOi7A/4j/kO76zTU8Es9W8g=;
+	b=WuNzaSJJmrIsooYXjhUXP1c8H1FbzH9aKwpUOgWHN0oyUthgqGOoSz1C792kHRNE0yah
+	 +M00HuB0sIvdlqgpfUuBbLUWhecbMN4buZQ+A0nwpwAeLMcTsUg0gcnjyYD9qY3KRnrrq
+	 1ONvqcTPFRDd/M+L8RFVbiPCjMaJkDqv5InCdkf9EgXU64Hdk0jQm4Xq7kNJOkzxI7UpG
+	 ywQYOOpY5tWgHedXS6FiW02vwbdXPVmKc3SWoU0yblXMJObG3ypD/b7I7JeufYYsArpYz
+	 S7CyMmekVLE+T8Zyvpm6z+7L1RBjMKsCKiejGE8QyzYxmesQgSzPNxEsL4NirYMQLOg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=amazon.com;
 	spf=pass smtp.mailfrom=amazon.com;
-	dkim=pass header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=EfjIOPoh;
-	arc=none smtp.remote-ip=52.12.53.23
-Received: from pdx-out-010.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-010.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.12.53.23])
+	dkim=pass header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=lvmUcpjE;
+	arc=none smtp.remote-ip=52.42.203.116
+Received: from pdx-out-008.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-008.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.42.203.116])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A515F606A886;
-	Fri, 13 Nov 2026 10:42:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A515F606A886
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83668606A331;
+	Fri, 13 Nov 2026 11:03:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 83668606A331
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=EfjIOPoh
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=lvmUcpjE
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1794566564; x=1826102564;
+  t=1794567805; x=1826103805;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=JpfG/3aBXx1rKxk956ChNxo8T4iBYqWt9/juBC5bREs=;
-  b=EfjIOPohZFKmvaHGRNugBlJde7yVCKNxQEV5cslM5J9LdDnUizpoExfI
-   oy0k1dgh9cjE5I0/25Stmcf1dfwk/fCvg91vH7z+m1milZaqrAgT7Sal6
-   Bm5YYkotVkKV1wcDTfXIA/X6F+uOpnZiPKQLNgldkCNfus5T7+IEH2h4y
-   6HHsBm4JKi9mmBOjoyR5jUiCIoSK5MnwUPjGp1DYTR1yorMCrB2cYYa4A
-   FY/IAiJVAX+NCMxldwDvUSg0PX3T+aKS06cf5IwnPvnAmHAMdA3yGCsG7
-   3BOlx3mnp7xq3cPk0QHuRhv43naEtnspBG1dg5kO9XPf0Jowd6iYoTXLH
-   g==;
-X-CSE-ConnectionGUID: ZIoiaqvDSJSt9TXTWLMcGA==
-X-CSE-MsgGUID: iPbRX6dFRnuCsoQjB10NKA==
+  bh=IfMDB5jT1COQwB7EaC+iwOi7A/4j/kO76zTU8Es9W8g=;
+  b=lvmUcpjEzJlppHb1fGrSe6vx6PvOqn6YlzXX+t3MZFWUQoTsQ5UAn8tD
+   Ck329CfBbCryLn2lyDMa6bwR0khU15wrYujjxfyAQcqgleNzFQYs2Ejhu
+   OGTPjakD3YjYsb42xOJ1lxQjJFt+0Ng21jYrgrCNgNMUpB1lwh0Qm8LcX
+   N5mKB8fr9bNxO8iRlid6cPoOLTgtTb5gjLh3Yp3NOzI36njDeuJj0LeZK
+   ec1SEMqP66nTxjbkDCEImNdY/UvlCCO7SOtIL3NUzucD8Ns8rOWx0A9oH
+   zZQfjmNtgv8OD5szHlfsC7CpT2FXtc6Q4RDBh1LaZPn7ab/VdgO5l6cm2
+   A==;
+X-CSE-ConnectionGUID: wc8Sr9MET0GF1ptZHaPoFg==
+X-CSE-MsgGUID: RrTJuRR+R/++b5y85wG1Gw==
 X-IronPort-AV: E=Sophos;i="6.27,211,1787011200"; 
-   d="scan'208";a="33745501"
-Received: from ip-10-5-6-203.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.6.203])
-  by internal-pdx-out-010.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 10:42:44 +0000
-Received: from EX19MTAUWC001.ant.amazon.com [205.251.233.53:27579]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.31.142:2525] with esmtp (Farcaster)
- id 093b2b8f-8379-4905-919d-e95002cffb8f; Fri, 13 Nov 2026 10:42:44 +0000 (UTC)
-X-Farcaster-Flow-ID: 093b2b8f-8379-4905-919d-e95002cffb8f
+   d="scan'208";a="33912430"
+Received: from ip-10-5-9-48.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.9.48])
+  by internal-pdx-out-008.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 11:03:23 +0000
+Received: from EX19MTAUWA001.ant.amazon.com [205.251.233.236:22474]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.55.227:2525] with esmtp (Farcaster)
+ id a839e1dc-e47b-4102-9419-ebbca99491bb; Fri, 13 Nov 2026 11:03:22 +0000 (UTC)
+X-Farcaster-Flow-ID: a839e1dc-e47b-4102-9419-ebbca99491bb
 Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWC001.ant.amazon.com (10.250.64.174) with Microsoft SMTP Server
+ EX19MTAUWA001.ant.amazon.com (10.250.64.204) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.56;
- Fri, 13 Nov 2026 10:42:43 +0000
+ Fri, 13 Nov 2026 11:03:22 +0000
 Received: from dev-dsk-farbere-1a-46ecabed.eu-west-1.amazon.com
  (172.19.116.181) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.56; Fri, 13 Nov 2026
- 10:42:40 +0000
+ 11:03:19 +0000
 From: Eliav Farber <farbere@amazon.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Dmitry Torokhov
 	<dmitry.torokhov@gmail.com>, Laurent Pinchart
@@ -73,19 +73,14 @@ To: "Rafael J. Wysocki" <rafael@kernel.org>, Dmitry Torokhov
 	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, Armin Wolf
 	<W_Armin@gmx.de>, Sebastian Reichel <sre@kernel.org>, Andrew Morton
 	<akpm@linux-foundation.org>
-CC: Eliav Farber <farbere@amazon.com>, Jonathan Cameron
-	<jonathan.cameron@oss.qualcomm.com>, Tony Luck <tony.luck@intel.com>,
-	Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>, "Mauro
- Carvalho Chehab" <mchehab@kernel.org>, Shuai Xue
-	<xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, Dave Jiang
-	<dave.jiang@intel.com>, "Fabio M. De Francesco"
-	<fabio.m.de.francesco@linux.intel.com>, Breno Leitao <leitao@debian.org>,
-	Terry Bowman <terry.bowman@amd.com>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Andy Shevchenko <andy@kernel.org>, Kai-Heng
- Feng <kaihengf@nvidia.com>
-Subject: [PATCH v6 4/7] ACPI: APEI: GHES: use devm_blocking_notifier_chain_register()
-Date: Fri, 13 Nov 2026 10:42:06 +0000
-Message-ID: <20261113104218.32566-5-farbere@amazon.com>
+CC: <linux-acpi@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
+	<linux-input@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
+	<linux-pwm@vger.kernel.org>, <platform-driver-x86@vger.kernel.org>,
+	<linux-pm@vger.kernel.org>, <linux-kernel@vger.kernel.org>, Eliav Farber
+	<farbere@amazon.com>
+Subject: Re: [PATCH v6 0/7] notifier: convert remaining drivers to device-managed registration
+Date: Fri, 13 Nov 2026 11:03:15 +0000
+Message-ID: <20261113110315.20412-1-farbere@amazon.com>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261113104218.32566-1-farbere@amazon.com>
 References: <20261113104218.32566-1-farbere@amazon.com>
@@ -100,60 +95,19 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: EX19D031UWA004.ant.amazon.com (10.13.139.19) To
+X-ClientProxiedBy: EX19D031UWC002.ant.amazon.com (10.13.139.212) To
  EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-Replace the blocking_notifier_chain_register() +
-devm_add_action_or_reset() pattern with a single call to
-devm_blocking_notifier_chain_register(), removing the
-ghes_vendor_record_notifier_destroy() callback.
+Patches 5/7, 6/7 and 7/7 are not in this thread. My mail server refused the
+second half of the series with a submission rate limit, and the resend went
+out as a separate thread:
 
-Signed-off-by: Eliav Farber <farbere@amazon.com>
-Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
----
-Changes in v6:
-- Rebased onto v7.4-rc1. No functional change since v4.
-- Jonathan Cameron's Reviewed-by retained; the code is unchanged since
-  v4, when it was given.
+  5/7 https://lore.kernel.org/all/20261113104459.35839-1-farbere@amazon.com/
+  6/7 https://lore.kernel.org/all/20261113104459.35839-2-farbere@amazon.com/
+  7/7 https://lore.kernel.org/all/20261113104459.35839-3-farbere@amazon.com/
 
-Changes in v4:
-- Split removal of unused code into a separate preceding patch
-  (Andy Shevchenko)
+All seven patches were delivered, so I am not resending them. Sorry for the
+split thread.
 
- drivers/acpi/apei/ghes.c | 17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index a81ffacb16d0..92184ced12b8 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -679,23 +679,12 @@ static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
- 
- static BLOCKING_NOTIFIER_HEAD(vendor_record_notify_list);
- 
--static void ghes_vendor_record_notifier_destroy(void *data)
--{
--	struct notifier_block *nb = data;
--
--	blocking_notifier_chain_unregister(&vendor_record_notify_list, nb);
--}
--
- int devm_ghes_register_vendor_record_notifier(struct device *dev,
- 					      struct notifier_block *nb)
- {
--	int ret;
--
--	ret = blocking_notifier_chain_register(&vendor_record_notify_list, nb);
--	if (ret)
--		return ret;
--
--	return devm_add_action_or_reset(dev, ghes_vendor_record_notifier_destroy, nb);
-+	return devm_blocking_notifier_chain_register(dev,
-+						     &vendor_record_notify_list,
-+						     nb);
- }
- EXPORT_SYMBOL_GPL(devm_ghes_register_vendor_record_notifier);
- 
--- 
-2.47.3
-
+--
+Thanks, Eliav
