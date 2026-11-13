@@ -1,54 +1,101 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.19
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794580145;
-	b=PWyiupPCM/aNEfxBUbytD0PicMm011Ka/AE0/lEhc7Zx6SGaKCfsNMGPFWuH96mAOIo4
-	 YTuX7PoJZxqrnOlhfYsHNv5aX+u7BX+RPOy5nL57eyGz7D5r5ZOpmfkR3EZ6lVmBCRBa+
-	 hg34xMqGAxq+RGO6iI0ffitiogWPK+9mSO0RBqP/5InZMKu/vypvCZWpb1qstZJO4Y7HK
-	 0SbvKIO485id8QwKKxE9XFQxqIHNy1D1j2/8juOTrlO0zxd39xVd6ba/148UAmbSx4XDD
-	 kCHILCXL2kzvL8ctvhCUPB8fjo9zOURrOy0yuznIgB4Rym0Fhxf095dZ6nNsqk9QUuw==
+	t=1794580424;
+	b=yjy7CB7MfzzeZWoStdXg1OfeltLfOci/aJB9p+tzU5K+fC+CrGX8eCaqSrfX6AWnoOFz
+	 GyJeLlVXm8iPRljQV5BBY3k1Jre1XA3g1CFfMdcuPioHUKm2JjUCu56czBPs30htCgE9X
+	 Fa7cHKAYx55ff1m3yuL0aDJbizxAC2vh1N/iDN3RTCCt5xsMQWsg4t241K83KgxMrPjtK
+	 bdHz0hcA6V4KnvEANcvxOhoZn5wTzTiWE6bMpv8V1WtQDIPSyzMm9o4kyzPiO1RuTGQgf
+	 U7mD60+WSEWFX+cmOgvibVF4V5lQGfI1dLjtHw5J2qcxMJGn6jwCoslEqfAAbQkBBqg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794580145;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 Organization:MIME-Version:Content-Transfer-Encoding:Content-Type;
-	bh=ah38blLA4LkY3qwnaluR3CN6L09sZvQIHQwHdJmqgws=;
-	b=BNUFQd1SF93JiNju48MKsff0juYa0hGvc2CalZCDXnfzcRQBscO3zf/Z0hS5jRs5gnxO
-	 xdeF6++wBiG4VZPzboo0R1pc5cgku2q5I/igLyKSHN2E8RGkdECZqCPNB76oz/vkLyXpt
-	 xXy7xpOrKXPvjfv/kqXpWzclxr106dN685qXJjW1GpEWFreA4+1K/AANvdpdwsOB2gRVC
-	 MHthO/98bc1RpnhbKnMCH+LZo4xHvHoe10bBFfahiFhZPOd0Lr2v1/I/1U21BGiVklaIt
-	 dLzTfNQGgE2beeC2/VNxLV955dg9xjTlb6quaEY03iKc/oE1WPK2GF8buJuOgWN/UGw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794580424;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To:Organization;
+	bh=oF05r2gLDpP1hVCaMdikfunskSzqkU4N8lTkjjhVRpw=;
+	b=TaXVPGDHIPdB7f7LJ4MFIwe3achRRwyTxtF55o7TbmYyYDUnr/jUyDfFvoR1sdoklVXh
+	 3/FoD00oeoFYqkqoJeVFQIJkIRduQEY26MDYL7hTdlhi4FRzjo43wXOiWIhFg0/gYlOmZ
+	 cpSu4sR8qvZ/42IwmzCW+Q/Mx+Zyjg827f7d26XzpWX1oPckW7d5h7DoDzX4IBoATCyyV
+	 7v6EdgwWUeSlZ+1jGjFr6gD4Ip6a2J2ZojgCJqY8rNuYdG01lYB9Gfww1QHxydNWwq9Hj
+	 V2sxi+qw+huHyzxgtzEHwabfIoxikW2oa6gesenEMTQJC9ctVVLMcpleqP0gNVMPagw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lnPgRQuG;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=P15X2YJC;
+	arc=none smtp.remote-ip=192.198.163.19
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE4B6606A882;
-	Fri, 13 Nov 2026 14:29:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EB4860A261D;
+	Fri, 13 Nov 2026 14:33:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2EB4860A261D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lnPgRQuG
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5ACF71F000C6;
-	Fri, 13 Nov 2026 14:29:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794580145;
-	bh=ah38blLA4LkY3qwnaluR3CN6L09sZvQIHQwHdJmqgws=;
-	h=From:To:Cc:Subject:Date;
-	b=lnPgRQuGknLzVDJ0IED5TjbiFTYdEO89BrLncuSEWkGkHm5qs1O9vwa1zLt+C+38H
-	 dgX4ydZbikGHSgQhFhhwIW+8qta8f2qFWQXcS3fthUoB5lWeudJOgFby36G6yqjhe1
-	 zU9FpIz3OFruLIwot0nF9svXU5RaTki03FRax01pcNbmKcysNa0F3JLZoBHq/6l/XV
-	 g1AmD/CcmXolzxAtma28ZKj1XnK8ksHVOMd7OKrjH7gquVFu/YHc9+1b/k4bm5B3FE
-	 vdPECcatlgNpbpIXdPOMnAyetGuHoQkZpvSJPKLBQnTdEdrvUOF5xbsbxVtu0M0N5y
-	 t/MbXMqn7IWhQ==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>,
- Christian Loehle <christian.loehle@arm.com>
-Cc: Linux PM <linux-pm@vger.kernel.org>,
- Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject:
- [PATCH v3] ACPI: CPPC: Drop compliance checks involving nominal performance
-Date: Fri, 13 Nov 2026 15:29:01 +0100
-Message-ID: <6060382.DvuYhMxLoT@rafael.j.wysocki>
-Organization: Linux Kernel Development - Intel
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=P15X2YJC
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794580424; x=1826116424;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=3q908pnAG5D1NxhTnjaCLWJTSR5VAD4uS9kgBibyPTI=;
+  b=P15X2YJCMTPnO4gtI8GThaHRUJ751XmN/SSiL+t/sYTkJxkdML9gC+ci
+   VGAbnE+Gy6TTzOQlRZ/eMZj7GawYZPau4sEr1AVP7hU/g0ozK+KtCNi+M
+   GXfiwfVKlORvz4vUOV32Lp7nc1D1ycjpHjg7a1T0zU/EMqy6QJambCfTX
+   z9U6iML/9vATRTdwLa0rIK7awumzYy+usoElClHuFT+oLAyek1k41fv05
+   uy2oeIaJ7adQza57WmAO1T4CR/ZNCVVWnft5uXQxvzDiTIo/HCjoDCTO8
+   jpJg7kunUk4mZCAdD08mjUKedCvdDnHQaMPKfk1XlpiCQS2Q2u6em6wSD
+   A==;
+X-CSE-ConnectionGUID: ixnkyp0sS8S7Q+RmGF48Dg==
+X-CSE-MsgGUID: RIKlkIygT2GZqddzlo4Lxg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11965"; a="3481798"
+X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
+   d="scan'208";a="3481798"
+Received: from fmviesa011.fm.intel.com ([10.60.135.151])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 06:33:38 -0800
+X-CSE-ConnectionGUID: ugQoK6AzSEivYqC/ncfyrw==
+X-CSE-MsgGUID: BPVpGyXAQzqkEgyt1NMoSw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
+   d="scan'208";a="10716636"
+Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.244.148])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 06:33:31 -0800
+Date: Fri, 13 Nov 2026 16:33:28 +0200
+From: Andy Shevchenko <andriy.shevchenko@intel.com>
+To: Alejandro Colomar <alx@kernel.org>
+Cc: linux-hardening@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+	"Maciej W. Rozycki" <macro@orcam.me.uk>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Andreas Schwab <schwab@linux-m68k.org>,
+	Andy Shevchenko <andy@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Len Brown <lenb@kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linus Walleij <linusw@kernel.org>,
+	Namhyung Kim <namhyung@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: Re: [PATCH v5 1/7] string: Add strprefix(), and deprecate
+ str_has_prefix()
+Message-ID: <avcfuBAbNkBrk6uy@ashevche-desk.local>
+References: <cover.1794574496.git.alx@kernel.org>
+ <f25bf43d7f18c99019a52b9ba9a1e46fa68174c7.1794574496.git.alx@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -58,60 +105,45 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <f25bf43d7f18c99019a52b9ba9a1e46fa68174c7.1794574496.git.alx@kernel.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Fri, Nov 13, 2026 at 02:10:29PM +0100, Alejandro Colomar wrote:
+> As Bartosz reported, str_has_prefix() has a bug: it can't differentiate
+> between an empty prefix matching an empty string from a non-matching
+> prefix.  This is a fundamental design flaw in this API, and not
+> something that can be fixed.
+> 
+> As always, this is a consequence of choosing sizes instead of pointers.
+> Sizes are often the wrong choice.  In this specific case, pointers are
+> more capable of differentiating these cases, as NULL is a special
+> sentinel value that doesn't need to overload a valid value.
+> 
+> Let's implement strprefix(), a function that returns a pointer
+> right after the prefix if found, and a null pointer if not found.
+> 
+> We'll slowly migrate existing code from str_has_prefix() to strprefix().
+> 
+> Move the description from str_has_prefix(), and describe
+> str_has_prefix() by comparing it to strprefix().
+> 
+> Reported-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> Link: https://lore.kernel.org/linux-hardening/20261104-fwnode-for-each-prop-v1-1-6e28fe1c72c4@oss.qualcomm.com/
 
-On a number of Intel platforms in the field, the nominal performance
-value in ACPI _CPC (which is an integer embedded in the _CPC package)
-is less than the guaranteed performance value, and it may even be less
-than the minimum nonlinear performance value or greater than the highest
-performance value (that all come from register reads).
+It's unreferred Link tag, spurious? Please, refer to it in the commit message
+to understand why it's here. Use Link: $URL [1] and use [1] in the text.
 
-The new specification compliance checks involving those values added
-by commit 32299b29a887 ("ACPI: CPPC: Validate _CPC entry and control
-semantics") cause the CPPC library to refuse to work for some CPUs
-on the affected systems which in turn causes the intel_pstate driver
-to overestimate the maximum performance levels for those CPUs.  One
-of the affected systems is Dell Pro 5 14 P514260.
+> Cc: Andy Shevchenko <andy@kernel.org>
 
-In this particular case, the fact that the specification is not
-exactly followed has no implications and the checks enforcing
-compliance are not really useful, so drop the checks in question
-from the CPPC library.
+No need to put my name explicitly in Cc list, I'm a designated reviewer for
+string library, you should get it via `b4` or `get_maintainer.pl`. And in
+general is better to just move the Cc after the '---' line.
 
-If really necessary, they will need to be done elsewhere.
-
-Fixes: 32299b29a887 ("ACPI: CPPC: Validate _CPC entry and control semantics")
-Reviewed-by: Christian Loehle <christian.loehle@arm.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-Sorry for the quick turnaround, but Sashiko has made a good point that
-the ordering between high, min_nonlinear and low, and high, guaranteed,
-and low should still be checked:
-
-https://sashiko.dev/#/patchset/2869679.mvXUDI8C0e%40rafael.j.wysocki
-
----
- drivers/acpi/cppc_acpi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -2940,9 +2940,9 @@ int cppc_get_perf_caps(int cpunum, struc
- 	if (!high || !low || !nom || !ref || !min_nonlinear ||
- 	    high > U32_MAX || low > U32_MAX || guaranteed > U32_MAX ||
- 	    nom > U32_MAX || ref > U32_MAX || min_nonlinear > U32_MAX ||
--	    high < nom || nom < min_nonlinear || min_nonlinear < low ||
-+	    high < min_nonlinear || min_nonlinear < low ||
- 	    (CPC_SUPPORTED(guaranteed_reg) &&
--	     (guaranteed < low || guaranteed > nom))) {
-+	     (guaranteed < low || guaranteed > high))) {
- 		ret = -EFAULT;
- 		goto out_err;
- 	}
-
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
