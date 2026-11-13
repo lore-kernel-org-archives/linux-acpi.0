@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794576385;
-	b=sXZb6wsa+mgwSV8wQSeVxeGFqLmtrzCcm1fhlPTANce5VHpxH3lOnoZY2IMgn7ELij1r
-	 T/z79Wzdu6QC4ivPmuEutxkxx9g9NuBHdsCcabgqRP4p1opADFfSNpsRhwzULunihNdhi
-	 Pj/vbTMt8UL4aZ0lNmp8qGRGEoBEtEfsfpeIdH+Jv0Fcl1lW0T9Sxrb3ACaqcCAuqbvQA
-	 uohlA9R9TEbQu/zeBCTgAeXeQ4yarSGDHE+IAEWxjZW4wHYLwmb1eFoYhyW/U5KarJs5+
-	 jsIKW/MRnq7rq1MpHV/0lmt/2bbX3mocsDs/Ivfzs3J18pAViRzL9A5Rnj5feb4JmNQ==
+	t=1794576396;
+	b=RPo9xw2mpIFRzc7JJi9WR25izGUqR6+Rv4m06YVjBS0rrSynZ9ps95FVaYzl4jERHC01
+	 FISA/8nv8HfbOuyLSDuPrCTN1++AKe6FAaqDeK1Jx2LTzSGoDNYYNTsrrDDwMoBiNkpC1
+	 +mikEe/SvQbKqlFkxd4DkHIKam3E3QX9ucmj4TSwNF3LvjZbBYhEQeUxWVg7HtOxBSk0J
+	 9glZy2UhE8iTiHndHSgGo85p0zDa5teaoPDUVbIa8GL/mJlc4kr5S5swb9vMcyb3Xmrfb
+	 o439g9aqDn4rThPPisUrHkiOUfT1YzQ7HnS3TElh91WmZVFShQI7xJAd1k9BKY3XHow==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794576385;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794576396;
 	h=DMARC-Filter:Received:Received:DKIM-Signature:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=d7wDSG/SXruxgnunNSoyJ4CR7wmnL3FLA/2npqOXGqA=;
-	b=gX5vRXwEOgpZl3TcPAIHHuJkLOt5nzR7EDphwhh2U61QJC1wKOi2cfQCqEbiOoki5J/y
-	 raHydB0oYaIunLNcS23R0HhF8mW6rPbK65s5AM6YEKpKGKZ2kQDv7jR9o7J5Wer8Ugwdj
-	 PqgPY1JJAudFJVbkNwyMjGDU33W69kyssFTkEd3CvNAs7fZEzna8MQmB1YihKxWv8wpJz
-	 Nty5jFUfntahGLYioA5YpCP1PIVsW/+5Sw1IvNZWFeUOUvUgyfHfgePlTqdJdxH9QDtxm
-	 UdhbJe5+TBG9PrtQhuMRm5Nqs47+pGgmANSPs+JKhhNwYJY6ptRwv/UqfJh5MKIpD7Q==
+	bh=yWn9u4tD+84c6x7/nV1XUypo0WI5wdNfcTUj+B81vhM=;
+	b=V7MKeV6V0uFeCPk/JdoXFdOI9RapIqEHlH5MKtmHXljYK4f2fYKg/8haJL3/+kP1eaXd
+	 1+55mv1s1khaQel4eFFr18U8Bg8uVGGIUzQZ3NTs+jcTBnfbu3oXANsGnEX4CwpDkvJDj
+	 /PfH44ZehAWt7W+rIr3ovGBieYmHNFRMEXHsvSKFrGCvrONM8oL0ALEA7+s76qXchpTqj
+	 jWcS+o+5fupqV0dRS/NVUWd6pxU94ZAHjhslP/zqf9Fl7y9ASYARIRO3H5zFekVbLZYBI
+	 xnCfFBjxfrC5DbL4yAJUX37aR1MKKD30hVImOVd06MKvxmrazKbTRmgvq7Jp+QOmpAw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=arm.com;
 	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=DmHafwSu;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b="C9k4sq1/";
 	arc=none smtp.remote-ip=217.140.110.172
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 367F8606A89E;
-	Fri, 13 Nov 2026 13:26:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 367F8606A89E
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2F944606A898;
+	Fri, 13 Nov 2026 13:26:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2F944606A898
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=DmHafwSu
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=C9k4sq1/
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8C0241476;
-	Fri, 13 Nov 2026 05:26:21 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 941DB1516;
+	Fri, 13 Nov 2026 05:26:31 -0800 (PST)
 Received: from e135073.arm.com (unknown [10.57.14.137])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id EEC6F3F85F;
-	Fri, 13 Nov 2026 05:26:18 -0800 (PST)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 7FDC73F85F;
+	Fri, 13 Nov 2026 05:26:29 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1794576384; bh=rsozKlYlSQiIOPqJqT+17nALnlTop4O1X8/hATg6xB4=;
+	t=1794576394; bh=A/iGec4Uv9uoJL/kSrig5hUGHKwOZqLz/hPd/NTBX9U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=DmHafwSuy4w94GTb9rvTvouqGUnrwIUWlwL4lj/fAqRhRvHsfEvUPWDnfH/S4ATg/
-	 ReEhCKT41OrFINVIt/hVFqhCxbd48h5vUuKGtqQjNeMZZ7hPum36U+t/gMbkoPpZvq
-	 m0xnHLV1+O73ZTJdpC/rvxLgDnn9ye0kgVHa8usw=
+	b=C9k4sq1/Dgi8b8RMcBx3vwphWVM06nHnj2qBHYE2OQjYvlQToW6FtnUNv+E/H9ON5
+	 1upCErNMY+rKtDL83WxePE/iM6cvWpcWeItOxoZgNQfkf7yA3N4es1Ht7GnrLpuR2P
+	 MKPituZLJqVAfdhbeOCUWCSOtCFWglCu7v83jEMA=
 From: Pierre Gondois <pierre.gondois@arm.com>
 To: linux-kernel@vger.kernel.org
 Cc: Ashok Raj <ashok.raj@oss.qualcomm.com>,
@@ -68,9 +68,9 @@ Cc: Ashok Raj <ashok.raj@oss.qualcomm.com>,
 	linux-acpi@vger.kernel.org,
 	linux-edac@vger.kernel.org,
 	acpica-devel@lists.linux.dev
-Subject: [PATCH v4 01/12] cper: use BIT_ULL() for processor and memory validation bits
-Date: Fri, 13 Nov 2026 14:24:43 +0100
-Message-ID: <20261113132600.3355836-2-pierre.gondois@arm.com>
+Subject: [PATCH v4 02/12] cper: add Memory Error Section 2 structures
+Date: Fri, 13 Nov 2026 14:24:44 +0100
+Message-ID: <20261113132600.3355836-3-pierre.gondois@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261113132600.3355836-1-pierre.gondois@arm.com>
 References: <20261113132600.3355836-1-pierre.gondois@arm.com>
@@ -85,107 +85,94 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Use the BIT_ULL() macro to describe flag bits instead of
-hexadecimal values which are harder to read.
+Add CPER Memory Error Section 2 definitions to the CPER headers.
 
 Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
 Reviewed-by: Breno Leitao <leitao@debian.org>
 Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
 ---
- include/linux/cper.h | 73 ++++++++++++++++++++++----------------------
- 1 file changed, 37 insertions(+), 36 deletions(-)
+ include/linux/cper.h | 54 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
 
 diff --git a/include/linux/cper.h b/include/linux/cper.h
-index 440b35e459e5..f532a8a01411 100644
+index f532a8a01411..56a73c981ce1 100644
 --- a/include/linux/cper.h
 +++ b/include/linux/cper.h
-@@ -9,6 +9,7 @@
- #ifndef LINUX_CPER_H
- #define LINUX_CPER_H
+@@ -199,6 +199,10 @@ enum {
+ #define CPER_SEC_PLATFORM_MEM						\
+ 	GUID_INIT(0xA5BC1114, 0x6F64, 0x4EDE, 0xB8, 0x63, 0x3E, 0x83,	\
+ 		  0xED, 0x7C, 0x83, 0xB1)
++/* Platform Memory 2 */
++#define CPER_SEC_PLATFORM_MEM2						\
++	GUID_INIT(0x61EC04FC, 0x48E6, 0xD813, 0x25, 0xC9, 0x8D, 0xAA,	\
++		  0x44, 0x75, 0x0B, 0x12)
+ #define CPER_SEC_PCIE							\
+ 	GUID_INIT(0xD995E954, 0xBBC1, 0x430F, 0xAD, 0x91, 0xB4, 0x4D,	\
+ 		  0xCB, 0x3C, 0x6F, 0x35)
+@@ -263,6 +267,30 @@ enum {
+ #define CPER_MEM_VALID_BANK_ADDRESS		BIT_ULL(20)
+ #define CPER_MEM_VALID_CHIP_ID			BIT_ULL(21)
  
-+#include <linux/bits.h>
- #include <linux/uuid.h>
- #include <linux/trace_seq.h>
- 
-@@ -225,42 +226,42 @@ enum {
- 	GUID_INIT(0x036F84E1, 0x7F37, 0x428c, 0xA7, 0x9E, 0x57, 0x5F,	\
- 		  0xDF, 0xAA, 0x84, 0xEC)
- 
--#define CPER_PROC_VALID_TYPE			0x0001
--#define CPER_PROC_VALID_ISA			0x0002
--#define CPER_PROC_VALID_ERROR_TYPE		0x0004
--#define CPER_PROC_VALID_OPERATION		0x0008
--#define CPER_PROC_VALID_FLAGS			0x0010
--#define CPER_PROC_VALID_LEVEL			0x0020
--#define CPER_PROC_VALID_VERSION			0x0040
--#define CPER_PROC_VALID_BRAND_INFO		0x0080
--#define CPER_PROC_VALID_ID			0x0100
--#define CPER_PROC_VALID_TARGET_ADDRESS		0x0200
--#define CPER_PROC_VALID_REQUESTOR_ID		0x0400
--#define CPER_PROC_VALID_RESPONDER_ID		0x0800
--#define CPER_PROC_VALID_IP			0x1000
--
--#define CPER_MEM_VALID_ERROR_STATUS		0x0001
--#define CPER_MEM_VALID_PA			0x0002
--#define CPER_MEM_VALID_PA_MASK			0x0004
--#define CPER_MEM_VALID_NODE			0x0008
--#define CPER_MEM_VALID_CARD			0x0010
--#define CPER_MEM_VALID_MODULE			0x0020
--#define CPER_MEM_VALID_BANK			0x0040
--#define CPER_MEM_VALID_DEVICE			0x0080
--#define CPER_MEM_VALID_ROW			0x0100
--#define CPER_MEM_VALID_COLUMN			0x0200
--#define CPER_MEM_VALID_BIT_POSITION		0x0400
--#define CPER_MEM_VALID_REQUESTOR_ID		0x0800
--#define CPER_MEM_VALID_RESPONDER_ID		0x1000
--#define CPER_MEM_VALID_TARGET_ID		0x2000
--#define CPER_MEM_VALID_ERROR_TYPE		0x4000
--#define CPER_MEM_VALID_RANK_NUMBER		0x8000
--#define CPER_MEM_VALID_CARD_HANDLE		0x10000
--#define CPER_MEM_VALID_MODULE_HANDLE		0x20000
--#define CPER_MEM_VALID_ROW_EXT			0x40000
--#define CPER_MEM_VALID_BANK_GROUP		0x80000
--#define CPER_MEM_VALID_BANK_ADDRESS		0x100000
--#define CPER_MEM_VALID_CHIP_ID			0x200000
-+#define CPER_PROC_VALID_TYPE			BIT_ULL(0)
-+#define CPER_PROC_VALID_ISA			BIT_ULL(1)
-+#define CPER_PROC_VALID_ERROR_TYPE		BIT_ULL(2)
-+#define CPER_PROC_VALID_OPERATION		BIT_ULL(3)
-+#define CPER_PROC_VALID_FLAGS			BIT_ULL(4)
-+#define CPER_PROC_VALID_LEVEL			BIT_ULL(5)
-+#define CPER_PROC_VALID_VERSION			BIT_ULL(6)
-+#define CPER_PROC_VALID_BRAND_INFO		BIT_ULL(7)
-+#define CPER_PROC_VALID_ID			BIT_ULL(8)
-+#define CPER_PROC_VALID_TARGET_ADDRESS		BIT_ULL(9)
-+#define CPER_PROC_VALID_REQUESTOR_ID		BIT_ULL(10)
-+#define CPER_PROC_VALID_RESPONDER_ID		BIT_ULL(11)
-+#define CPER_PROC_VALID_IP			BIT_ULL(12)
++/* Memory Error Section 2 validation bits, UEFI v2.11 sec N.2.6. */
++#define CPER_MEM2_VALID_ERROR_STATUS		BIT_ULL(0)
++#define CPER_MEM2_VALID_PA			BIT_ULL(1)
++#define CPER_MEM2_VALID_PA_MASK			BIT_ULL(2)
++#define CPER_MEM2_VALID_NODE			BIT_ULL(3)
++#define CPER_MEM2_VALID_CARD			BIT_ULL(4)
++#define CPER_MEM2_VALID_MODULE			BIT_ULL(5)
++#define CPER_MEM2_VALID_BANK			BIT_ULL(6)
++#define CPER_MEM2_VALID_DEVICE			BIT_ULL(7)
++#define CPER_MEM2_VALID_ROW			BIT_ULL(8)
++#define CPER_MEM2_VALID_COLUMN			BIT_ULL(9)
++#define CPER_MEM2_VALID_RANK_NUMBER		BIT_ULL(10)
++#define CPER_MEM2_VALID_BIT_POSITION		BIT_ULL(11)
++#define CPER_MEM2_VALID_CHIP_ID			BIT_ULL(12)
++#define CPER_MEM2_VALID_ERROR_TYPE		BIT_ULL(13)
++#define CPER_MEM2_VALID_STATUS			BIT_ULL(14)
++#define CPER_MEM2_VALID_REQUESTOR_ID		BIT_ULL(15)
++#define CPER_MEM2_VALID_RESPONDER_ID		BIT_ULL(16)
++#define CPER_MEM2_VALID_TARGET_ID		BIT_ULL(17)
++#define CPER_MEM2_VALID_CARD_HANDLE		BIT_ULL(18)
++#define CPER_MEM2_VALID_MODULE_HANDLE		BIT_ULL(19)
++#define CPER_MEM2_VALID_BANK_GROUP		BIT_ULL(20)
++#define CPER_MEM2_VALID_BANK_ADDRESS		BIT_ULL(21)
 +
-+#define CPER_MEM_VALID_ERROR_STATUS		BIT_ULL(0)
-+#define CPER_MEM_VALID_PA			BIT_ULL(1)
-+#define CPER_MEM_VALID_PA_MASK			BIT_ULL(2)
-+#define CPER_MEM_VALID_NODE			BIT_ULL(3)
-+#define CPER_MEM_VALID_CARD			BIT_ULL(4)
-+#define CPER_MEM_VALID_MODULE			BIT_ULL(5)
-+#define CPER_MEM_VALID_BANK			BIT_ULL(6)
-+#define CPER_MEM_VALID_DEVICE			BIT_ULL(7)
-+#define CPER_MEM_VALID_ROW			BIT_ULL(8)
-+#define CPER_MEM_VALID_COLUMN			BIT_ULL(9)
-+#define CPER_MEM_VALID_BIT_POSITION		BIT_ULL(10)
-+#define CPER_MEM_VALID_REQUESTOR_ID		BIT_ULL(11)
-+#define CPER_MEM_VALID_RESPONDER_ID		BIT_ULL(12)
-+#define CPER_MEM_VALID_TARGET_ID		BIT_ULL(13)
-+#define CPER_MEM_VALID_ERROR_TYPE		BIT_ULL(14)
-+#define CPER_MEM_VALID_RANK_NUMBER		BIT_ULL(15)
-+#define CPER_MEM_VALID_CARD_HANDLE		BIT_ULL(16)
-+#define CPER_MEM_VALID_MODULE_HANDLE		BIT_ULL(17)
-+#define CPER_MEM_VALID_ROW_EXT			BIT_ULL(18)
-+#define CPER_MEM_VALID_BANK_GROUP		BIT_ULL(19)
-+#define CPER_MEM_VALID_BANK_ADDRESS		BIT_ULL(20)
-+#define CPER_MEM_VALID_CHIP_ID			BIT_ULL(21)
- 
  #define CPER_MEM_EXT_ROW_MASK			0x3
  #define CPER_MEM_EXT_ROW_SHIFT			16
+ 
+@@ -507,6 +535,32 @@ struct cper_sec_mem_err {
+ 	u16	mem_dev_handle;		/* "module handle" in UEFI 2.4 */
+ };
+ 
++/* Memory Error Section 2, UEFI v2.11 sec N.2.6 */
++struct cper_sec_mem_err2 {
++	u64	validation_bits;
++	u64	error_status;
++	u64	physical_addr;
++	u64	physical_addr_mask;
++	u16	node;
++	u16	card;
++	u16	module;
++	u16	bank;
++	u32	device;
++	u32	row;
++	u32	column;
++	u32	rank;
++	u32	bit_pos;
++	u8	chip_id;
++	u8	error_type;
++	u8	status;
++	u8	reserved;
++	u64	requestor_id;
++	u64	responder_id;
++	u64	target_id;
++	u32	mem_array_handle;	/* "card handle" */
++	u32	mem_dev_handle;		/* "module handle" */
++};
++
+ struct cper_mem_err_compact {
+ 	u64	validation_bits;
+ 	u16	node;
 -- 
 2.43.0
 
