@@ -1,67 +1,63 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794561905;
-	b=iJI4vlkZeLh302QtVSf38EE0eE8J8jiJO90buECaQ4vPxyeIOwlYDyOMIWV8et1ycZI2
-	 jwspa9u/j+qKYOzyvraIcz+ZPezIy/JwVTYzHvdBJ7mJoGyFHPM/8D53BD5Zh5/NLx6ey
-	 wIn3nF4Sigyu3UgngiX5LJI9+F2pT3SrrA4GPjiCjkhEsPuuDY8qVp5ou7Btxm+iOLuB4
-	 zQPhj5XAGXCbubCDhqLghD0o52/qAiAtsmIoj/fda0xh6I8Y/toQHqaDLqqPxu0ymbxfy
-	 5eELKelh+Uk8f+5Bdg3kzHDwpCgKnBGCa5C99ku4TQnZSaIY5u9slUskmEriwm0IPFw==
+	t=1794562635;
+	b=PmmDJa5KYxMTbaNLMvDTha26wRwM/Nwzq4LJpCC6iDsTb6b/10iG5KQ7qAFwSgqJblSD
+	 px0HQv4Z1j5Gh2Xx+v+6iQ8SojSiBGuJTegGX5/T0Yq3wZAuzCqbhCy/ISLrXtdiTB6YZ
+	 u5HUXxdPI+am982iPirZfIwwSocSlNigclzfoQAgSr8vYhQ3BbpeFlbVFzyyQxdbKR48a
+	 RVs12nNk/E3Om9VAOu3uw78DodLwowzXCLYHzdeiQWSD/BfOFd6m9vbo/GZpZ9Wkz97O/
+	 V39QCle+o0Gh3Gti/sRyQGcN/Vz3ZxkEMO8EgQQzqE7oZLOKSTLD+q1jCId6jqthqCA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794561905;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794562635;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=Y8PJU2qTkV5zoqq3Y06nfgKl3m4JKwY+ZbQmM98l8qk=;
-	b=qIJp/Tmfc6c3R0nNuOFCqXDYHtCCw7OW8HmLZGrqgRIXbkfShhIkBgCpRDSpvbhEVbr2
-	 YLpPAhqEHxVWChjevQqnP1W9xmXreKicAk57SzJkAvsUdfzo5kxDIil8uuhpXuUZ/Iz7a
-	 3Sd9pcaI6iFdtTgHQoipsPHirAZCMoWIY6Z5Am4G0lziyYx9yr2sVpJ+cmwAggR1dG8dq
-	 zJN+lXLlYZLAVxz9336wT/EZaAyrhhbwIx6/LZQZYVKbIR9NE4D26mO3JCqTxnhR9pkFN
-	 8bw0SgYQomA8MPrQHwHghCqMep06uSaslPiRrQmB89400TMq+d7D4an1R1T70z0wlFA==
+	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=LgPdgX1TU3hIXLVu79B9VzFv8HuFp+6oHaduAGW/ehs=;
+	b=RLtC1NywcYroOwZrkZPqLn2yAGbb4xZ/w2mYWXcGnuuKXja65YyHxbtFuaHuVWLO3DNF
+	 Dgnhx6iQj15vsfkCuwUUqFPKW6b2pRXuhZJV2mQau9H1eDI01xgdI20gTY0W9Gxf64Tbd
+	 Oa041cERVboReDrBHY11kZcMcJFeOIrH2h9Qt1n9xr1auSmv4bTcx0VCxzwz0IpPmW0RN
+	 hxS06WEtud1A2y0KIjxT5Lg9z/QC9poBOFSyVylDTCtEw7NiJuC3iGyJxItd0DYwp7GEd
+	 9OEfPmW/EunMzbXvj/Z6pXk9BQFcjzyXmLfn9W23N1ioX/6ngFxiVrk5vwVWvRlnFaw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="AQx/uk9B";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YIC7VXIO;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 64CE5606A32D;
-	Fri, 13 Nov 2026 09:25:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 063C8606A321;
+	Fri, 13 Nov 2026 09:37:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AQx/uk9B
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id B9C311F000C4;
-	Fri, 13 Nov 2026 09:25:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YIC7VXIO
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52EF61F000C4;
+	Fri, 13 Nov 2026 09:37:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794561904;
-	bh=Y8PJU2qTkV5zoqq3Y06nfgKl3m4JKwY+ZbQmM98l8qk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=AQx/uk9BsCIfMYnd4xxCoB60iMUfPLzBeCEIYDE/+8QvCUZUM95ANZo0nNT5vgVzy
-	 eNV+xpDniee1H7YpPAUmATBbLYBfyx/YRKlmVvcXlwef4rlg+zhPhpP5GGVC4FfRG8
-	 RqigJs+zVQrtE6tYsBdhrrveKzXMjrz6YRKyAvFJC2Qy4D2vrhjRWeVwLnxe/5GdjK
-	 I34gM427KiQiSIzu03rVpdr4FldvwcOORrAY5oZLnPN5i5DaW0Ni7OJufbif8oaxUe
-	 QNkOPYGLn8kdnhBRxX9iffDR/fJWYw5qIyTsnSAvSqQZvq+8NqukKT7sgNyW/3WoEX
-	 VQDTu4PFZMMTg==
-Date: Fri, 13 Nov 2026 10:25:00 +0100
-From: Bartosz Golaszewski <brgl@kernel.org>
-To: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org, 
-	Krzysztof Kozlowski <krzk@kernel.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, 
-	Andy Shevchenko <andy@kernel.org>, Daniel Scally <djrscally@gmail.com>, 
-	Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Hans Verkuil <hverkuil-cisco@xs4all.nl>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>, Kees Cook <kees@kernel.org>, 
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Len Brown <lenb@kernel.org>, 
-	Linus Torvalds <torvalds@linux-foundation.org>, Linus Walleij <linusw@kernel.org>, 
-	Namhyung Kim <namhyung@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Rob Herring <robh@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Saravana Kannan <saravanak@kernel.org>, Steven Rostedt <rostedt@goodmis.org>, 
-	Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v4 0/6] Add strprefix() and fix a bug with it
-Message-ID: <vjuf6ritphyrfi2befwf4pwrujrl3pmjjkutr2ccsvta3jjcep@5mpgr3dc7263>
-References: <cover.1794425425.git.alx@kernel.org>
- <avTIWshl9klX0obF@devuan>
- <avXYmk5sZKS0rm92@ashevche-desk.local>
+	s=k20260515; t=1794562634;
+	bh=LgPdgX1TU3hIXLVu79B9VzFv8HuFp+6oHaduAGW/ehs=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=YIC7VXIObG41v3zDczVKNAh+pOX8Xb2PWBll4SyOFjOJb80K0ZGZBpECpIicCwZem
+	 wfMQ12N7d59BW7qAPe2UBA+XJwGtUviNQ6zSF5cEsGGJDcOLj6bCCaOHbRbYVSwuCB
+	 y2/KeS5SZ2dkDQ/eYFHDN7vQ26dgX2Fx7E74n7LKQ+dahD7B5Fui/QVQ6MXY4Ow/ue
+	 OlmwpxAvd3I8jW5gWYDjXoAwrucClX83GXrZE2Hzd3olvBRPxJ2W7YU7+BqlyfXHW1
+	 q7RjBi6fsP29xTcF9vBW1O7J63r6710PNQEtBQojB1HVR2w1xPnOAT+3lnNriyhb6O
+	 lcXJE2awRmFtA==
+Date: Fri, 13 Nov 2026 10:37:09 +0100
+From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Zenghui Yu <yuzenghui@huawei.com>, "linux-acpi@vger.kernel.org"
+ <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org"
+ <linux-kernel@vger.kernel.org>, "rafael@kernel.org" <rafael@kernel.org>,
+ "bp@alien8.de" <bp@alien8.de>, "guohanjun@huawei.com"
+ <guohanjun@huawei.com>, "mchehab@kernel.org" <mchehab@kernel.org>,
+ "xueshuai@linux.alibaba.com" <xueshuai@linux.alibaba.com>,
+ "lenb@kernel.org" <lenb@kernel.org>, "wangzhigang17@huawei.com"
+ <wangzhigang17@huawei.com>
+Subject: Re: [PATCH] ACPI: APEI: EINJ: Validate length of the Vendor Error
+ Type Extension structure
+Message-ID: <20261113103709.13bfd3d6@foz.lan>
+In-Reply-To: <CH8PR11MB40343305FD3C1BE0E18882B5CCFC7F2@CH8PR11MB403433.namprd11.prod.outlook.com>
+References: <20261111115729.253-1-yuzenghui@huawei.com>
+	<CH8PR11MB40343305FD3C1BE0E18882B5CCFC7F2@CH8PR11MB403433.namprd11.prod.outlook.com>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -71,50 +67,33 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <avXYmk5sZKS0rm92@ashevche-desk.local>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 12, 2026 at 05:17:46PM +0200, Andy Shevchenko wrote:
-> On Wed, Nov 11, 2026 at 08:57:30PM +0100, Alejandro Colomar wrote:
-> 
-> ...
-> 
-> > > Testing
-> > > ~~~~~~~
-> > > 
-> > > I haven't changed the implementation of the function meaningfully, so
-> > > haven't re-run tests.  Since the changes since v2 are only about type
-> > > safety and diagnostics, I have built again with 'allmodconfig', just to
-> > > make sure it still compiles.
-> > 
-> > Ouch!  It seems I had built before adding WARN_ON_ONCE(), not after.
-> > I just saw a compiler error in a background terminal after hitting send.
-> > 
-> > 	$ make 
-> > 	  DESCEND objtool
-> > 	  CC      arch/x86/purgatory/sha256.o
-> > 	In file included from ./include/crypto/sha2.h:10,
-> > 			 from lib/crypto/sha256.c:13:
-> > 	./include/linux/string.h: In function ‘str_has_prefix’:
-> > 	./include/linux/string.h:619:9: error: implicit declaration of function ‘WARN_ON_ONCE’ [-Wimplicit-function-declaration]
-> > 	  619 |         WARN_ON_ONCE(len == 0);
-> > 	      |         ^~~~~~~~~~~~
-> > 	make[4]: *** [arch/x86/purgatory/Makefile:12: arch/x86/purgatory/sha256.o] Error 1
-> > 	make[3]: *** [scripts/Makefile.build:572: arch/x86/purgatory] Error 2
-> > 	make[2]: *** [scripts/Makefile.build:572: arch/x86] Error 2
-> > 	make[1]: *** [/srv/alx/src/linux/linux/master/Makefile:2244: .] Error 2
-> > 	make: *** [Makefile:248: __sub-make] Error 2
-> > 
-> > Will fix that for v5, and fully test again.
-> 
-> Are you sure that it's okay to use asm/bug.h APIs in string.h?
-> The include/linux/string.h along with the backed C implementations is really
-> special in the kernel. Hint: check which stages of kernel boot use it.
->
+On Fri, 13 Nov 2026 00:27:20 +0000
+"Luck, Tony" <tony.luck@intel.com> wrote:
 
-Agreed. I'd just move the implementation into lib/string.c and not do a
-static inline function here.
+> > The BIOS on my machine is obviously buggy (non-zero Vendor Extension of=
+fset
+> > pointing to zeroed memory, and bit 31 is not set in the error type eith=
+er)
+> > and needs fixing. I'm not sure if it is necessary to add such a sanity
+> > check for EINJ at all. =20
+>=20
+> Production machine? Or just an internal development machine?  I.e. is thi=
+s broken
+> BIOS out in the wild for others to hit this bug?
 
-Bart
+As a reminder, any VM runs with a BIOS that is not produced by an OEM, and=
+=20
+there are lots of production environments running VMs out there.
+
+So, I'd say that, if the fix is good, better apply it.
+
+=46rom my side:
+
+Reviewed-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+
+
+Thanks,
+Mauro
