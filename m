@@ -1,108 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.41
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794600238;
-	b=BoDm3iNTjiTdNJ3rQnmZi6IHaVTPYpTeRn+M3ki0bmkgFRhDmMIozD6Fw86m8AXB5j9Z
-	 9iwZpWJynpMmdnxWcWfPm4UEEckkmP6VeFffdBbhRKMDWyXMWj9AkTrF2s7I/7ORYCX9B
-	 8fZlecH4S/SpdBLYhmMZjfIdaEwgKB4Hhu1zIuH42d6OUF25cvV39MJIzGywndAsnw6z9
-	 BPu6v+gV1xhwKjqM/P20PRr0SbyH4ZaPv861aE66Du1jOe0c0eJiryBxK1sS+/JPPwMlB
-	 0EZaflNLN4r+uuS7+6fbS0ooRQ7gr4HSR57sNZ8AVWennSyDakvZDVQdiSEzjk8IiEw==
+	t=1794602082;
+	b=p3t3p/x7hdUwPocUPVdXAJHAmVsOvh+xVHvWDs/TmP1p1+CqBgCymkXr3a923Sfdi5mR
+	 F5r6uXN3SFa7jvVDK2uRf+ebNEDorh5OPO4lAm4RxamGKsArqwYo0q7kXcwsQ4RkDP59c
+	 0nJTlsAsyaaYJVPnTd1E7FpIAR3sYmDL9+BWZgSPFUdIiwWOo9wAsKlG0o7dHsyCDS9Zc
+	 mgIaj8MEDcVuQV9BmWhoYbV64zNShwVrK6bk+U3KOQiIYLv4LVNFqGEByM6XH7CvLH29Y
+	 uDh19gVm5RyyClAbSZCaec311qDIgqiqkMkobOMtAXygMHW1oFeyASWXBhcFTU/mEcg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794600238;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=A3el8S04EFqA+bkIJ/B4fePgF2ZgOcyTw3ueW29faVU=;
-	b=Y8Nqm0uX5iEeJQJRfd3A7C2DWoWWR4H3emlHoFzhMZxfCckRmMCgIrKhoUx4oxu3U/EY
-	 5L5jI48l/AzBLH79RCxTrmL8bA6JeRHW/UiS95KT11Tx52MOf1KjoT9yZIncC+vE9s5As
-	 VFTitcOHR3Uua5o0IGknqnlJBy/0E/jifLYj7LnB7YaD3QZbPon4ei2tbY0KHhzcMRy62
-	 UY0sDH1Rvi5r9X7Jc1VBJkM1zCSZOVdkQnHsZjHb8jtffXB2jDK0yyBlkHQo4nK6+Hg8S
-	 EYX2ysnekWwPy4z1fH57E81lf8+RD9fJhy6fCFp/qPbMV2fuMqmRH5uUN2nrMFgEJcQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794602082;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=xA/dHrB8DVHvhn8WCh7VdIDLIPRiACwfBEGFOII6u8o=;
+	b=C01/46SJzCGwAD0RuXnl7kLmMvFUr+1YDjXc2bWxOZmkU+wM6LJi15+GCCHYaLEka42x
+	 6yqqDkRu1uNZRSyzTXcf+bla1qxqiVDq6MUUKk6rwWlnnhMgU2J24dCFtlFNRlplUiUkp
+	 1OHL7aL0pMJ635rsjY9Fuayhm9KHTVhF5L7xisBpobb4gNZWABM9/cbLvUiQJnE4Z+sT+
+	 kTK1cueyeREQtUwRK8YOmFvdwzh6szMCtwbWFW9XlSnoRfBzCukugbLHVzT0TDsJxlOUL
+	 wqxz6RTzginqpuESUsP+AW8E351y8kzHw3CBMlBoxAZzW+VxDby1IVcbdrpFAjdxJsw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=baylibre.com;
-	spf=pass smtp.mailfrom=baylibre.com;
-	dkim=pass header.d=baylibre.com header.i=@baylibre.com header.a=rsa-sha256 header.s=google header.b=W7MKkIT5;
-	arc=none smtp.remote-ip=209.85.221.41
-Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com [209.85.221.41])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UV8SW5bu;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84E1F606A323
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 20:03:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 84E1F606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=baylibre.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26B6C606A334
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 20:34:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.a=rsa-sha256 header.s=google header.b=W7MKkIT5
-Received: by mail-wr1-f41.google.com with SMTP id ffacd0b85a97d-49318428d98so565755f8f.1
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 12:03:57 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre.com; s=google; t=1794600236; x=1795205036; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=A3el8S04EFqA+bkIJ/B4fePgF2ZgOcyTw3ueW29faVU=;
-        b=W7MKkIT5Q9rh9Xztw2bm3uuHsYmv57VQi0+thtSj1D49fTxRDDBbJsNmxOPGE6WBjU
-         8lZK8u2hqd0IgRPffQoF0dFu8gcIaHJBOeoU4RIDer+/evIspavw77sHj63HL3ektFDs
-         Rah12ZicLQ/lBGIH/2/KeADS8NUu7Nn1dNu7nngAVc64X+T0EZrrC28OPQpR/UtJ1Xj4
-         qPhzuPKFw5NLxdskX8de53t42gh9dN68uZKDCr+Wu5FGs/ZvMgDUx1KRYMyxttmF7Cgz
-         rQAVPfhTqOJCCRwvvkd5FcwP7b4U3MQOIlP/UtkJexWGEW3ko/rm9sAQPOJm/uAhq06q
-         ltgg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794600236; x=1795205036;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=A3el8S04EFqA+bkIJ/B4fePgF2ZgOcyTw3ueW29faVU=;
-        b=PnBmZgv4OIZ48XSrxF8e4VunjRuEWxly5wVgJUu0OjE4RXaFTOLtuOBhB+WweMR95Y
-         fhG+8a1CijtS+595ErM7g8DmgQSU2Yl9Ul5u7W1wZWk11E8h21Q36IDTx32F+An7l1LH
-         DfUvvurYdyT2VHDAUNvFTw8T5J4CHoWt4dGLj9nzF3Ida/37fGvovjtzcE1eK9ubXfND
-         bIMDuKv+p/I31Lh9VHbmvKBUpjXdJn5UqJs91jzRUnCqZCU0LU31n/1rliJEEcPAVEci
-         4U8Ox20ViecbLQrHiMv2GaAfuBwi+aPEhOxaMAh5g9ujfDDR8CMDGcIBKY+X1YAW/Jlz
-         4jCA==
-X-Forwarded-Encrypted: i=1; AL+hErHg/uf/ScFv7QBpuSSWotZKx+JcKfraEDKb86GIJpUmEPacv89BLu2VPWXoD9bEIGZVyS3HtwjFsGog@vger.kernel.org
-X-Gm-Message-State: APuU4Z/btcz128nEwyHvqUHntwb2I3+P9kbRPD+oP79/Zn5k87Nthd4t
-	0TF3wMJdCtEjBG/WHScI2QZxNXYRRL52w9PTBqYtHpWm1Fc6UGp8H3LSbmUZIbCJB3o=
-X-Gm-Gg: AYBFou2FNgrpEd3qt2dN3mdN1du38MwJCi2MomG/gwhuFGRoZnNrqbXCjuq0a5vWqPJ
-	2xqdJGKM2eqAFXZ5oIUulNMNMUhyHdcuEnwLeX3VWO3WOMQDXa9fjyCWnCMC6haYPpV2GEGB44G
-	sDj+qyxXWEuOyi0Xb28FqH/4/xkApYCBg7dib7rmvAUrNut16rdlA2try8eszMHp1aIQLhAM6kA
-	jVZkg+dh50841S87Ck5wnWhIoMR/1BJSxjYSLS10ICzc79cSFcIV3Xnh3o2STaTWlFG4PDrm+jT
-	hzsrw+w05u7uAJzLo3Bjt/kd/0Btd6EkMgleKHomM0UILRHOOffvDnFa0SN2BX+LXgQzrVKhYw3
-	RH0sAQY9mLSxY0WthHrqCGbzesHKI4Q4Mrhj8ofGeqNAivyBxJTkCwsYS/zuTdV+EpLSFKc0HCv
-	15opS0sviN7hRIXd2wOF2FpSSn33OqM/Ml/KPWqJg8Id/b+9RsCy2b9GLsbPeNClzOigkGwoQIE
-	cbHJU1ukyZgeb8cePXn8gwdQ7f8FfQDkxp+jcI2R6HD+iTeXd5Zl0Kzoj6Igii3pBOc26ghVICt
-	KzL9HjXbpvkVe4CetlV72hPL+d13/6TaW234+NP7NriA+ZhW61hR2yCH
-X-Received: by 2002:a05:600c:4e13:b0:4ba:38a9:85e3 with SMTP id 5b1f17b1804b1-4bb55a47fabmr74738355e9.12.1794600235768;
-        Fri, 13 Nov 2026 12:03:55 -0800 (PST)
-Received: from localhost ([2a02:8071:56d1:2de0:1d24:d58d:2b65:c291])
-        by smtp.gmail.com with UTF8SMTPSA id 5b1f17b1804b1-4bb55ae5299sm94406885e9.11.2026.11.13.12.03.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 13 Nov 2026 12:03:54 -0800 (PST)
-Date: Fri, 13 Nov 2026 21:03:53 +0100
-From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Lorenzo Pieralisi <lpieralisi@kernel.org>, 
-	Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Dan Williams <djbw@kernel.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Alison Schofield <alison.schofield@intel.com>, Ira Weiny <iweiny@kernel.org>, 
-	Bjorn Helgaas <bhelgaas@google.com>, Zhang Rui <rui.zhang@intel.com>, 
-	"Mario Limonciello (AMD)" <superm1@kernel.org>, Saranya Gopal <saranya.gopal@intel.com>, 
-	Gergo Koteles <soyer@irl.hu>, Jakob Riemenschneider <riemenschneiderjakob@gmail.com>, 
-	Yauhen Kharuzhy <jekhor@gmail.com>, Pawel Zalewski <pzalewski@thegoodpenguin.co.uk>, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, nvdimm@lists.linux.dev, linux-pci@vger.kernel.org, 
-	Kai-Heng Feng <kaihengf@nvidia.com>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, 
-	Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>, 
-	Alexandre Belloni <alexandre.belloni@bootlin.com>, Dave Hansen <dave.hansen@linux.intel.com>, 
-	Chu Guangqing <chuguangqing@inspur.com>, Andy Shevchenko <andy@kernel.org>, 
-	Mika Westerberg <westeri@kernel.org>
-Subject: Re: [PATCH v1 0/4] ACPI: Use named initializers for acpi_device_id
- arrays
-Message-ID: <avdryC3GOqVNVF8s@monoceros>
-References: <cover.1794567577.git.ukleinek@kernel.org>
- <CAJZ5v0jC5YXsLgB6Qd55KNCU0oCsN86X5WpRfL+Ycz0MJ8vGqA@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UV8SW5bu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 049241F000CF
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 20:34:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794602082;
+	bh=xA/dHrB8DVHvhn8WCh7VdIDLIPRiACwfBEGFOII6u8o=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=UV8SW5busPS8VmXNfVtCA8Gy0bDmDzqHePhNmga+YXjs6tdgK4mMuY3lJA6UVrv6F
+	 Og18/irl95YcHnECYzmIN6RGkJwoBP+CqhKwq/3OI0ttro56XVwFhud+FCAPccT+38
+	 RM4VYeTnymaDrrkZRiYTT9YfbVr+rSmYkya8zngTI9Qlc2iIKOdx4TnNilsvSnrInK
+	 xYftri6PomOsPSDloIpP4Vw42Eey7oq4zMBD4Vcy/RcHHRt6n7P0/ebU/1qpMjYds9
+	 DZVon4ggKltPGFINtBlvW6Hgwv3MnyU6UQSbe4UTPwrmbU86XyQ9pOhFTZT4JP5NoA
+	 pd9vv+I5nNgiQ==
+Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-3ae25c84207so14022211fa.3
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 12:34:41 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErGRKjqz4uH7GtgIl2gjwXs41wFY8Cv4nCxO7tcRAiUZEN2HgqFdJ+t6sKZvGEch+6R2KOGWJnH6UBDp@vger.kernel.org
+X-Gm-Message-State: APuU4Z9a+E3gFg+zTjPzRdrEHtIZe/jkeyLHh4pfprl8sd2ppwcZ02S5
+	WBEbqPmiioL1MeAJa258hb/YRdlHZsXzjTCNejgErcbY03rAUumUHsTl3zQKfwiMZ50XR3mQ2fm
+	QQQC56+8CVt5MwNBAj5p5IsNF4mPry5M=
+X-Received: by 2002:a2e:bea8:0:b0:3ae:25c9:f5d1 with SMTP id
+ 38308e7fff4ca-3ae2b4cb695mr13163291fa.11.1794602079970; Fri, 13 Nov 2026
+ 12:34:39 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -112,97 +59,107 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="4g7esaq7hdzrtwtt"
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0jC5YXsLgB6Qd55KNCU0oCsN86X5WpRfL+Ycz0MJ8vGqA@mail.gmail.com>
-
-
---4g7esaq7hdzrtwtt
-Content-Type: text/plain; protected-headers=v1; charset=utf-8
-Content-Disposition: inline
+References: <cover.1794567577.git.ukleinek@kernel.org> <CAJZ5v0jC5YXsLgB6Qd55KNCU0oCsN86X5WpRfL+Ycz0MJ8vGqA@mail.gmail.com>
+ <avdryC3GOqVNVF8s@monoceros>
+In-Reply-To: <avdryC3GOqVNVF8s@monoceros>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 13 Nov 2026 21:34:26 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0jxB4-R2K6iQEh5BVeF1pDXFGn81jkXFCTMJLBAXoL8rA@mail.gmail.com>
+X-Gm-Features: AclHuK98RV8mUx3a_eF9a_B1pqyxZw7Jy48hGkbo4K83RPSBSBvPbkBZkEPiro0
+Message-ID: <CAJZ5v0jxB4-R2K6iQEh5BVeF1pDXFGn81jkXFCTMJLBAXoL8rA@mail.gmail.com>
+Subject: Re: [PATCH v1 0/4] ACPI: Use named initializers for acpi_device_id arrays
+To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, 
+	Sudeep Holla <sudeep.holla@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Will Deacon <will@kernel.org>, Dan Williams <djbw@kernel.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alison Schofield <alison.schofield@intel.com>, Ira Weiny <iweiny@kernel.org>, 
+	Bjorn Helgaas <bhelgaas@google.com>, Zhang Rui <rui.zhang@intel.com>, 
+	"Mario Limonciello (AMD)" <superm1@kernel.org>, Saranya Gopal <saranya.gopal@intel.com>, 
+	Gergo Koteles <soyer@irl.hu>, Jakob Riemenschneider <riemenschneiderjakob@gmail.com>, 
+	Yauhen Kharuzhy <jekhor@gmail.com>, Pawel Zalewski <pzalewski@thegoodpenguin.co.uk>, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, nvdimm@lists.linux.dev, 
+	linux-pci@vger.kernel.org, Kai-Heng Feng <kaihengf@nvidia.com>, 
+	Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, 
+	Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>, 
+	Alexandre Belloni <alexandre.belloni@bootlin.com>, Dave Hansen <dave.hansen@linux.intel.com>, 
+	Chu Guangqing <chuguangqing@inspur.com>, Andy Shevchenko <andy@kernel.org>, 
+	Mika Westerberg <westeri@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH v1 0/4] ACPI: Use named initializers for acpi_device_id
- arrays
-MIME-Version: 1.0
 
-On Fri, Nov 13, 2026 at 05:17:30PM +0100, Rafael J. Wysocki (Intel) wrote:
-> On Fri, Nov 13, 2026 at 12:14=E2=80=AFPM Uwe Kleine-K=C3=B6nig (The Capab=
-le Hub)
-> <u.kleine-koenig@baylibre.com> wrote:
+On Fri, Nov 13, 2026 at 9:04=E2=80=AFPM Uwe Kleine-K=C3=B6nig (The Capable =
+Hub)
+<u.kleine-koenig@baylibre.com> wrote:
+>
+> On Fri, Nov 13, 2026 at 05:17:30PM +0100, Rafael J. Wysocki (Intel) wrote=
+:
+> > On Fri, Nov 13, 2026 at 12:14=E2=80=AFPM Uwe Kleine-K=C3=B6nig (The Cap=
+able Hub)
+> > <u.kleine-koenig@baylibre.com> wrote:
+> > >
+> > > From: Uwe Kleine-K=C3=B6nig <ukleinek@kernel.org>
+> > >
+> > > Hello,
+> > >
+> > > this series is about preparing drivers/acpi for a change to struct
+> > > acpi_device_id. The idea is to replace .driver_data by an anonymous
+> > > union, see
+> > > https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@bayl=
+ibre.com/
+> > > for more details. (The linked example is about platform_device_id, I
+> > > intend to apply it acpi_device_id and several others, too.)
+> > >
+> > > Before this union can be added, all initializers must use named
+> > > initializers (C99 calls them designated initializers), which IMHO is =
+a
+> > > nice cleanup that can stand for itself as it makes the code easier to
+> > > read.
+> > >
+> > > Pawel sent a similar series earlier, find it at
+> > > https://lore.kernel.org/all/20260727-acpi-refactor-v1-0-ff900aa326ee@=
+thegoodpenguin.co.uk/.
+> > > Compared to that the patch splitting is done differently and the base
+> > > here is newer.
+> > >
+> > > I checked for the other *_device_id and for these there is nothing to=
+ do
+> > > below drivers/acpi because the few instances already use named
+> > > initializers.
+> > >
+> > > The last patch in this series is just some cosmetic to align the codi=
+ng
+> > > style. If you consider it churn, just drop it.
+> > >
+> > > It would be great to get this series in soon, as keeping it up to dat=
+e
+> > > for a later resend is an annoying effort. Thanks for your cooperation=
+.
+> > >
+> > > Best regards
+> > > Uwe
+> > >
+> > > Uwe Kleine-K=C3=B6nig (The Capable Hub) (4):
+> > >   ACPI: Unify acpi_device_id list terminators
+> > >   ACPI: Drop unused .driver_data initializers in acpi_device_id array=
+s
+> > >   ACPI: Use named initializers for acpi_device_id arrays
+> > >   ACPI: Unify *_device_id list terminators
 > >
-> > From: Uwe Kleine-K=C3=B6nig <ukleinek@kernel.org>
-> >
-> > Hello,
-> >
-> > this series is about preparing drivers/acpi for a change to struct
-> > acpi_device_id. The idea is to replace .driver_data by an anonymous
-> > union, see
-> > https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@baylib=
-re.com/
-> > for more details. (The linked example is about platform_device_id, I
-> > intend to apply it acpi_device_id and several others, too.)
-> >
-> > Before this union can be added, all initializers must use named
-> > initializers (C99 calls them designated initializers), which IMHO is a
-> > nice cleanup that can stand for itself as it makes the code easier to
-> > read.
-> >
-> > Pawel sent a similar series earlier, find it at
-> > https://lore.kernel.org/all/20260727-acpi-refactor-v1-0-ff900aa326ee@th=
-egoodpenguin.co.uk/.
-> > Compared to that the patch splitting is done differently and the base
-> > here is newer.
-> >
-> > I checked for the other *_device_id and for these there is nothing to do
-> > below drivers/acpi because the few instances already use named
-> > initializers.
-> >
-> > The last patch in this series is just some cosmetic to align the coding
-> > style. If you consider it churn, just drop it.
-> >
-> > It would be great to get this series in soon, as keeping it up to date
-> > for a later resend is an annoying effort. Thanks for your cooperation.
-> >
-> > Best regards
-> > Uwe
-> >
-> > Uwe Kleine-K=C3=B6nig (The Capable Hub) (4):
-> >   ACPI: Unify acpi_device_id list terminators
-> >   ACPI: Drop unused .driver_data initializers in acpi_device_id arrays
-> >   ACPI: Use named initializers for acpi_device_id arrays
-> >   ACPI: Unify *_device_id list terminators
->=20
-> All patches applied as 7.5 material, thanks!
+> > All patches applied as 7.5 material, thanks!
+>
+> That's great, thank you.
+>
+> I fatfingered my author address in patch 2, so if someone wails that the
+> author S-o-b is missing and your tree isn't set in stone yet, something l=
+ike:
+>
+>         git filter-branch -f --env-filter 'if test "$GIT_AUTHOR_NAME" =3D=
+ "Uwe Kleine-K=C3=B6nig (The Capable Hub)"; then GIT_AUTHOR_EMAIL=3Du.klein=
+e-koenig@baylibre.com; fi' next/master..
+>
+> should fix it. Sorry!
 
-That's great, thank you.
-
-I fatfingered my author address in patch 2, so if someone wails that the
-author S-o-b is missing and your tree isn't set in stone yet, something lik=
-e:
-
-	git filter-branch -f --env-filter 'if test "$GIT_AUTHOR_NAME" =3D "Uwe Kle=
-ine-K=C3=B6nig (The Capable Hub)"; then GIT_AUTHOR_EMAIL=3Du.kleine-koenig@=
-baylibre.com; fi' next/master..
-
-should fix it. Sorry!
-
-Best regards
-Uwe
-
---4g7esaq7hdzrtwtt
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmr3bRsACgkQj4D7WH0S
-/k566ggAp3mVFLzwpw2p/Hu9/ihSgiW3Z2Tu9oz8iP6Hksl4NiASgBy6mJoash2/
-ZDHfLPzYzE0YsfjakvmDc8blOwPZ2QV69Vx9Fc8fLNJi1PvJ74rqfVIPonGSvdXn
-6+2YBRjK+POnqAPEnXAd9cApwIMTQ9NYSvjrWGyQouXTDKMInmgoLfb/tYhLof9q
-b9dnQA9vTvGhMcKgdtAHObnpFXb94+Jl4CWWoU0Mk9QgO9AOxkb9TjdpZqPCXbcB
-A/FFYcgiErFTmvM7eidmBfW/sKlCCSyQdTjpteEL4Nov/1w7p83cyHBBPnKx/mDk
-cN+flW8XminlXyu6kws4p0NQuaFi8w==
-=bkIh
------END PGP SIGNATURE-----
-
---4g7esaq7hdzrtwtt--
+Thanks for the heads-up, I fixed it up.
