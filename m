@@ -1,184 +1,70 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=192.198.163.9
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794529767;
-	b=VNIslmBeor4PUAjIylXfa8UyJtddVRrGwYdGcYWOg4bAaGgV48qxCpg9po+HhGBIdGRF
-	 +YB8G0f/fVQLa8zUGKWbLk2gzbXDIcZ31Y17F9YBMr1wDBA/Sn5yPOumOetczLv0Nudga
-	 XZM87cXyBwcuLcUueB6/gvAWVUBRrbNPJ25QGOEoAHNC0JfQT5Ia2WWRI9jKX/lewRuvi
-	 kNgIqzXdS9PKiYB8PXeD9o9b638yH6mtIeCBJmwLIu8hROZ39+FaCKWD1+jYoYRwdC0cg
-	 HrBgRC9A0YD1iQYcVHYyFpvnmPGLvL+a9BjUdh7pk2jzwaKLFiH9hnjZ6bXPLySeGWA==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794529767;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Received:
-	 Received:DKIM-Signature:Received:Received:From:To:CC:Subject:
-	 Thread-Topic:Thread-Index:Date:Message-ID:References:In-Reply-To:
-	 Accept-Language:Content-Language:X-MS-Has-Attach:X-MS-TNEF-Correlator:
-	 x-ms-publictraffictype:x-ms-traffictypediagnostic:
-	 x-ms-office365-filtering-correlation-id:x-ms-exchange-senderadcheck:
-	 x-ms-exchange-antispam-relay:x-microsoft-antispam:
-	 x-microsoft-antispam-message-info:x-forefront-antispam-report:
-	 x-ms-exchange-antispam-messagedata-chunkcount:
-	 x-ms-exchange-antispam-messagedata-0:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version:
-	 X-Exchange-RoutingPolicyChecked:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-AuthSource:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-originalarrivaltime:
-	 X-MS-Exchange-CrossTenant-fromentityheader:
-	 X-MS-Exchange-CrossTenant-id:X-MS-Exchange-CrossTenant-mailboxtype:
-	 X-MS-Exchange-CrossTenant-userprincipalname:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
-	bh=wQUkZm2zn4Pk71XaaKir9TcgdZIdv8j1aJzmZoUhHIo=;
-	b=ourxdvh/O2+/1NJeFn5Ci4sg/Jaw2hOpWbDQ6SpDLadYN7oRwwMhc/rsWtrn3075/u/h
-	 RSp2VLJ7oj07V3KAgUF/1ME07eL5w643Bj9gHLyxMFzyv1+3yQmFbsZqdEv23MEKZ9eUY
-	 HZp/bFtKmvecE6iSiFMxUvHsTApgkTdI0Y/ZA2Up7LzKkBiFl8yiaMBy05oo+jXv4d6Xx
-	 FYcbYD2BI171bz5AP8nd51+/at1PS+0YKyYaKewiR1fmgBtr3q5ZKynis9nrYV5rg0eLK
-	 W/qSkfSpxrAw7u3ssUn/wtFEis28nnV4Ri66wCJLBcU9YBBmB28tpPp56v2kAjkvwjw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=i+DUiVjc;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=selector1 header.b=loqYQz7F;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=192.198.163.9
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=124.126.103.232
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794530670;
+	b=rDk4IRoQOyWb8mfPEQLAcLi2UonqwuuZCj2UXN07ZEMu1dwlwvxPxQZuTC9JjNEPRnKf
+	 6NE7Zn3BzAuwazI4sCQ27v86B0pEvPGiPaI32Fj2jSO6kO88AbQxxbi4TX/6mNxz8pILr
+	 qKRPNrYOPySUFnKArDMviTmCG1+OcjjeLWVsTuGnHK/HdYof6r16Yv2LDHzVM20Mj3uFW
+	 wiJXYgfFBDQ6keOKKwlYbqEsyBrmeu/P5NiMnu5Fybqpc1fycvGuZv/Xo8dAO+GM7sYsB
+	 l24iBqKvZ0ipyM2P3kAb1hTGf3P1MZ57bdObzk1FM7tKaCX1O5BLYOctXIOcPNTtQFg==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794530670;
+	h=DMARC-Filter:X-UUID:X-CID-P-RULE:X-CID-O-INFO:X-CID-META:X-CID-BVR:
+	 X-CID-BAS:X-CID-FACTOR:X-CID-RHF:X-UUID:X-User:Received:From:To:Cc:
+	 Subject:Date:Message-Id:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=Qk9MPy6Npw1ZCCumf8cujp4oJUl8nPKip11lWWoNcbQ=;
+	b=jkFpYaLV2KXXCZCmxQIELv4wkKHlfwgBY+/AW66ElktmqP3Kjb80otcmq8lnfuCHyc1c
+	 bcJ4jBDSxMYS03Dk9/RGj6pBQMeeTwujpevSVtJG0396ufSGxASPBok9fodZTc7qKKhsT
+	 pzN6ibo/TZyrClVhe343LIOsPuRLciCId5R7DACadtH9n0r9tLOEsNoG2ytqnj1R9I7pr
+	 NeiRM8v3mJ0jvKCb0cX8qQSVufTk8Y+ZHCvhbDo983+PqaaRVOxTs9YcNgggKL44rVDdo
+	 dFo4dNlDr0uN5f86c43rT9qorCDY/CNUMDq/3FYQn7aF79LkFxHH/v31g59aRqPaG7w==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=none header.from=kylinos.cn;
+	spf=pass smtp.mailfrom=kylinos.cn;
+	arc=none smtp.remote-ip=124.126.103.232
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95F65606A31C;
-	Fri, 13 Nov 2026 00:29:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 95F65606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=i+DUiVjc;
-	dkim=pass (1024-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=selector1 header.b=loqYQz7F
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794529766; x=1826065766;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=r50qKz22bdyq+Tk7dIvBjHFPLMjsyhG9xNwtA3kgiIU=;
-  b=i+DUiVjcWaEKVwTi7XDSBYxDUJQmvjXDWgSj3/+ekQB5jSwJLdZmWiX1
-   L9nBKSBxrDqFsMKm5BfGH8MZIvABrRp0GMv6dwB7+oaQibpxQ9UpZDPoT
-   sPHpG3rewZXKkoK5JFXmSVvp9cdsGtPKyhi/TYb9Zn+Cv5U99aiWzUqeG
-   NENXpTPu7ExBIV2P1Nvtrsx5RjMEROgelTGLFPb4iZYRRQpOi0olithPb
-   hK5CCQ6qygtK378JOQMDO5LOJqXg8XxzlkNhW3gbWrX/EW5if/hu/UNvk
-   EmL2RP/sVQAQsDLd0vAjZYFllP+puxlVwuMbkggqQT/xqfc04m4VItwtw
-   g==;
-X-CSE-ConnectionGUID: 6pSUUY7kQDOSbj76+K2MGQ==
-X-CSE-MsgGUID: cR1m6GBzSR2m9cJjfX/xEw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11964"; a="3204864"
-X-IronPort-AV: E=Sophos;i="6.27,210,1787036400"; 
-   d="scan'208";a="3204864"
-Received: from fmviesa012.fm.intel.com ([10.60.135.152])
-  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2026 16:29:26 -0800
-X-CSE-ConnectionGUID: bv1PyV5tRoGbbkRLF2gf5Q==
-X-CSE-MsgGUID: XEvSxm2/QH+utzbe90cBFQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,210,1787036400"; 
-   d="scan'208";a="10521507"
-Received: from fmsmsx902.amr.corp.intel.com ([10.18.126.91])
-  by fmviesa012.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2026 16:29:26 -0800
-Received: from FMSMSX903.amr.corp.intel.com (10.18.126.92) by
- fmsmsx902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56; Thu, 12 Nov 2026 16:29:25 -0800
-Received: from fmsedg902.ED.cps.intel.com (10.1.192.144) by
- FMSMSX903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56 via Frontend Transport; Thu, 12 Nov 2026 16:29:25 -0800
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (40.93.195.17)
- by edgegateway.intel.com (192.55.55.82) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56; Thu, 12 Nov 2026 16:29:25 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=v5KjUHJN9mZWMh9E2l6gyXSsrmqpNM8ze/nvK8JSiJ5W9R2Hk4ClmvzE3w5ud6HMWFDQetoXPlZ6RG+lzdMQDL8pooJkA+E1kHe9qZ+bwPZpCUmX96y22rmAS5wxGQFOTKeh9krZ6183J3qd2neWoa/O4VDByttICmtu0YPsHD6DOu++/7S7y8Wp/nQok60VoEzc2l5r30hnLGQ9gpiwvBtpUmbCSAIk8wmpI2gqR/EeuqmF82rSw4O4GlC1cuRH7lvpD+naJwBK3coVYKfKoLNbH5DUoMglL6r14nkIL5VHIGjflDuzfvb4vtTpGtD0IS0kSe+P3cHLMeRBRCCoXg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=wQUkZm2zn4Pk71XaaKir9TcgdZIdv8j1aJzmZoUhHIo=;
- b=UBA2JyPaOAWFMoBqy0C56uY77noT0nFFr7WbrTU4TFvwlyOAuFQrPk9Fdb0uhfraxPBlE4VSIC14rGk72I3Z60ml4N8PHy4MV3i+IZU/YpgGeQCYZBgF1nRTQeRQ1xpiJ8muvhm39WuHTLRnu5ya0SL81BWLFvr1tIGNdo4zckiQtRERm3S/72BR9gF/RB8TwoIREdGuFUNCHOIJiOGOuC/ThC3OECG9HVMsuyqhdkinQ+56JCCLBCHWIN2QnsSNBxAvX4gLgmNT7ai0/8kJkP1lLhxfKY8TMEcw2PKQowT4vbY3bwHQSyAgXNWdfi+q9Ensx8bmjZ04eP+v82GBCg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wQUkZm2zn4Pk71XaaKir9TcgdZIdv8j1aJzmZoUhHIo=;
- b=loqYQz7FmUaYd1FPRuqxC6BATwQlnrjJ2XStGiy3kNvZKEjJatxTE2F5lSzay4Uu33CXuyexKwqPG/1/uOhiKbfpFznNt1BBxE/VmUy/EEKagIQE9PdZ/vgtViCKWcoSZdEQWdguu4+IrYJJuvjs6uXt4OEDZrl1oHLGxVLmnRo=
-Received: from CH8PR11MB403433.namprd11.prod.outlook.com
- (2603:10b6:610:32f::10) by AT6PR11MB935162.namprd11.prod.outlook.com
- (2603:10b6:170:113::14) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.10; Fri, 13 Nov
- 2026 00:27:20 +0000
-Received: from CH8PR11MB403433.namprd11.prod.outlook.com
- ([fe80::b087:96e4:50ea:b5de]) by CH8PR11MB403433.namprd11.prod.outlook.com
- ([fe80::b087:96e4:50ea:b5de%4]) with mapi id 15.21.0615.009; Fri, 13 Nov 2026
- 00:27:20 +0000
-From: "Luck, Tony" <tony.luck@intel.com>
-To: Zenghui Yu <yuzenghui@huawei.com>, "linux-acpi@vger.kernel.org"
-	<linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>
-CC: "rafael@kernel.org" <rafael@kernel.org>, "bp@alien8.de" <bp@alien8.de>,
-	"guohanjun@huawei.com" <guohanjun@huawei.com>, "mchehab@kernel.org"
-	<mchehab@kernel.org>, "xueshuai@linux.alibaba.com"
-	<xueshuai@linux.alibaba.com>, "lenb@kernel.org" <lenb@kernel.org>,
-	"wangzhigang17@huawei.com" <wangzhigang17@huawei.com>
-Subject: RE: [PATCH] ACPI: APEI: EINJ: Validate length of the Vendor Error
- Type Extension structure
-Thread-Topic: [PATCH] ACPI: APEI: EINJ: Validate length of the Vendor Error
- Type Extension structure
-Thread-Index: AQHdcdPjUx0U7PWz5ESx+HiIsCK3B7cqw7Og
-Date: Fri, 13 Nov 2026 00:27:20 +0000
-Message-ID: <CH8PR11MB40343305FD3C1BE0E18882B5CCFC7F2@CH8PR11MB403433.namprd11.prod.outlook.com>
-References: <20261111115729.253-1-yuzenghui@huawei.com>
-In-Reply-To: <20261111115729.253-1-yuzenghui@huawei.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: CH8PR11MB403433:EE_|AT6PR11MB935162:EE_
-x-ms-office365-filtering-correlation-id: 11537ac6-928c-49ee-7876-08df411ce17c
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;ARA:13230040|1800799024|7416014|23010399003|376014|366016|18002099003|22082099003|11063799006|56012099006|261102123227099003|261022075727099003|261026121527099003|261021121427099003|38070700021|10067099003;
-x-microsoft-antispam-message-info: SMq6R4JlUPVeq6bobhsryb3eonNT2+A++WOSyRYw3+wiZ5jXpLrSQu9qEQ7z8qjxWac8SXwSELbxKPQHiiTdc/Q2RkwCmT/pJ3wyvKPwn2Fk8WFMvHCAPvBCsDXgyy/SDISmmQakoT+ibPI2TxSQaTuR7BoxslsxvZXogNifzPxFVSICevLIWMCV29zpNyMjHMzKgqA6hj1d5JZZy1PgjJBJSs+453HoNcq82kaIWmaaoMJ4eHJ+ca3r2E1iA+yrrSXmUgQRc0QaS5wCmw8fvmoeayCWkWMHCcc4K3N1JVPVYgepaxOnaGpUk7MMdh4kIIDcSUePOY30k7REDKkhGoEgeNWQWFR8iMIfxkNOA7CJJuOF9IlGU7rKgJlwvqjCOzKvQg4IZmHI9A7D+YEq9QXDFcqjHsQUjqGN4OAihToY1TJy0fYAvVbdDHlZu2Q1AlCioZ3feZXZLCy2SsOIPgBtKj2wS13KpCqGw6LCYxdFWuApPKZsFqsqPKMEdaUMqeXh4PXwAfsNZbeJKe7I/3TZ6hzicbN/mNBSl1sf+zxmTRc/0ryVyp55aGqCR4ratkxZEjxYdRW+HWXOau9idzm+Qbxq3uOSqHQBv6ttpeONrx1/KBIJqC9NmHMjqoc/d8RIkpeqqZrFwbES7bohq6l4HYJRfi+zxueuhhK3j0LdG+eLS7GyJJGBzCjJ9e+6y3j0nYUeoQjj8gyLYxK4+cAp57Z5afjXf2eMYWZb/qg=
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH8PR11MB403433.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(23010399003)(376014)(366016)(18002099003)(22082099003)(11063799006)(56012099006)(261102123227099003)(261022075727099003)(261026121527099003)(261021121427099003)(38070700021)(10067099003);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?tntPc95KKjdKUP+7WWRil98m5YPpJofun7L+KQLGRFTKqf1K+B1Nkor2EJlh?=
- =?us-ascii?Q?UxJyXvJ8HuFLSIIk+/LDx67LEj2jBKhmBbF/deAAjsHWKN/cBwbzhALZGBSR?=
- =?us-ascii?Q?Ryy73iHKkNsWgay8oq13dQerFhEZGsV8qXoeqNeYCBoykr7PweGPQIo7UCh6?=
- =?us-ascii?Q?Zl6jjOKINJI2/V4568dw4VqjGcdKTKyqq2MMggjJbZoYLDhhhu8xCkJCe9Gf?=
- =?us-ascii?Q?LFVhFCrzJ8r8Biu06DgC5vnX105m4zXDdWn8HM08uNcYxlJD3IAJx6SnYYR6?=
- =?us-ascii?Q?iEapK4Xo+3LaVwAUnWc0zQvu4pj4H9nPThD7Tp0lwPOmyuy8Z3JeDD2hpjr0?=
- =?us-ascii?Q?/J/nmcFtnUsVj+gHLPEOrAyPPVKu8IDjaeMCVCVq/8Tu+jrY3q/rar1wft9g?=
- =?us-ascii?Q?VewUBMIqPvWMX4i6cE/dISYAW58/wNxxlB4cvUrwaFrXzTdpOwqS2+0EREoC?=
- =?us-ascii?Q?QqBNaQwkPjBOmXeC0HX8Nf4IXK4AQI+9TpLLY7F5zZWL9l5Glitdp5ve3VLU?=
- =?us-ascii?Q?w8L9dgWELWxot2N1uoF7ip+vljdsPYUkM9IeGxvD7eZeWYMAdfbAAngGMjJs?=
- =?us-ascii?Q?PmscP/LzmNysQ/8uatyjebnWvN881f5JZLIIMuVwkFOrcNippyZgt/9a2Kv0?=
- =?us-ascii?Q?iOyEZXfzOw/9y+Ux+CA0BMekmpNOzxwnONqvB0i9QuXr8fnPBr7h1wHX5yrV?=
- =?us-ascii?Q?jrTHGmoHBQF6VAaaLZqe00+1XfzV/vuTsP3ZCk2kxfSzt7V+b4pienBYAY60?=
- =?us-ascii?Q?AwVQJRQY88uFiENFEkuaIWtcE7cSZzb95ICvggNvnzjzQBCCWqz8FRd4Vpn+?=
- =?us-ascii?Q?zQmjWd1Px8M0DM2Pcy4TG6B79psCXhKiX911C+9MWwmOad4Q25XrA/bswLKE?=
- =?us-ascii?Q?H/HoXswN6fFBAojHtf+ZQ0p/NeauzuTKSn1MLl+UtAH5pbka5DVbledCaksi?=
- =?us-ascii?Q?hpJB/kfxAZS/apHG49JuQ6+3LRpvukuMWRcOk0ZxvF33HkPetfcg1uGeYpWo?=
- =?us-ascii?Q?7QM6toGNzZz+O+tbNCvOOD2HL2Hjh3PUf5nqtzRZ89Bw+Ygm6zZszVHaQgdD?=
- =?us-ascii?Q?8CUfFcdRVMHnHwaWGZxzVN48Bf0GYR9rNJDM/VjgKgW0TsrhCvB721KMLYIc?=
- =?us-ascii?Q?2oecZjK7hBmEPJrlBcPCeAJHF4dPXheLjJ2MFOU2vphQWWRj9nexOpT+s2NY?=
- =?us-ascii?Q?ML65todsdRi1aYVTPJ7J9Tui6n/cHS/mVNNRjHpTyYyjvreqdAU5ilkXkvwM?=
- =?us-ascii?Q?tgwgusowU5YdBOwXd3vcFKo3ZKhXKPy5g5kWr5P30MoylQImh0ftFWwENO3K?=
- =?us-ascii?Q?llnYMA80e5Qo6hR7lL6H9VksDc3xmVpb6Tw1bYvqNlE9lVsInQE5zFBL16t3?=
- =?us-ascii?Q?2QYUvSMsm3L4yaNerDZq2jYdGUD98ve53gWiQjGjavAG6gB43n5mOyDcfe4g?=
- =?us-ascii?Q?it18u35Ol+1oJoRDIQOZ2J9YowrKChVtdwAXu56Qa7uuPZUY4tByYMs8gKBB?=
- =?us-ascii?Q?a7kKb34kYGbJswT0q61rAPluy83Ry87AYEqfShLZuhidirr52RD5Ks4jyfDw?=
- =?us-ascii?Q?fMNs0XdASgw8bYsGZtV+f7hwBjIxaDd9ZGBIk2Fi7AJXUef8FACDH800DEkY?=
- =?us-ascii?Q?xMwiXcJIHtZMN7ayULX2HEgy8zmEeyHVn4XF1ksiDtKynvgg/11NH0rsbSXo?=
- =?us-ascii?Q?6Jqhb8f8hwMOljA/Z80lRqVnHOv9pwQ4QBwwgSQVdpfQy9Ol?=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 588F7606A885;
+	Fri, 13 Nov 2026 00:44:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 588F7606A885
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
+X-UUID: 5dd0f284defb11f19a56ed5b684f684d-20261113
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.3.19,REQID:201c943b-613b-42aa-a102-655a3e16884c,IP:0,U
+	RL:0,TC:0,Content:-25,EDM:25,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTI
+	ON:release,TS:0
+X-CID-META: VersionHash:7db8b62,CLOUDID:d47035176f9f8d75a6a0c96e5a45fcbf,BulkI
+	D:nil,BulkQuantity:0,SF:102|850|865|898,TC:nil,Content:0|15|50|99,EDM:5,IP
+	:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OSA:0,AV:0,
+	LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
+X-CID-BVR: 2,SSN|SDN
+X-CID-BAS: 2,SSN|SDN,0,_
+X-CID-FACTOR: TF_CID_SPAM_SNR
+X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
+X-UUID: 5dd0f284defb11f19a56ed5b684f684d-20261113
+X-User: luriwen@kylinos.cn
+Received: from localhost.localdomain [(10.44.16.150)] by mailgw.kylinos.cn
+	(envelope-from <luriwen@kylinos.cn>)
+	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
+	with ESMTP id 343206682; Fri, 13 Nov 2026 08:44:21 +0800
+From: Riwen Lu <luriwen@kylinos.cn>
+To: rafael@kernel.org
+Cc: luriwen@kylinos.cn,
+	lenb@kernel.org,
+	pjw@kernel.org,
+	palmer@dabbelt.com,
+	aou@eecs.berkeley.edu,
+	alex@ghiti.fr,
+	linux-riscv@lists.infradead.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v7] ACPI: PM: Make s2idle available on HW-reduced ACPI platforms
+Date: Fri, 13 Nov 2026 08:44:19 +0800
+Message-Id: <20261113004419.1877837-1-luriwen@kylinos.cn>
+X-Mailer: git-send-email 2.25.1
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -188,49 +74,516 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-Exchange-RoutingPolicyChecked: RZTOGPwYWoYVBp0MOeRWUA6gJ+gfn+BZhlAhdT4yzg6/LuUEHZqFAZBE0q9w/6qASHw06wZi0UXL5UwSEZIkm/D08D98rds3033CDThw4EJFrlgdvtXAOfpaBfVRdRnBGkOeGO5oJJalHXWVGl5AtOeLOTp/ootccp30yE0PgXaSkDd+XhpCd7ES2eZD0w2kOmXtyVBWHBCEYKhUrW+jeBGYSppNuDDUTyW+pDvp0lY2K37zZ1fIptmAuw+t/+winvefU5zvo+v8bcH68sOtX4hMLwCfvST5ENL4zVh8ERfgI/qleW6NDLls/TTEKAnYaBXfZVjwQJw5bvAxsOx5rw==
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: CH8PR11MB403433.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 11537ac6-928c-49ee-7876-08df411ce17c
-X-MS-Exchange-CrossTenant-originalarrivaltime: 13 Nov 2026 00:27:20.7445
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: FtYJInF/A8PisdK58QxoTKOPPKqoPVcrgoTU0umfCHaV4FEALQuCJ4RoYh6Hmtwy7E4Qh38c7kytX+6gF/u+iw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AT6PR11MB935162
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
 
-> The BIOS on my machine is obviously buggy (non-zero Vendor Extension offs=
-et
-> pointing to zeroed memory, and bit 31 is not set in the error type either=
-)
-> and needs fixing. I'm not sure if it is necessary to add such a sanity
-> check for EINJ at all.
+The ACPI s2idle code in sleep.c is only compiled when
+ACPI_SYSTEM_POWER_STATES_SUPPORT is set, which is selected by x86 and
+loongarch alone, so ACPI platforms using HW-reduced ACPI (like arm64
+or riscv) have no ACPI s2idle support at all and cannot handle ACPI
+wakeup events (power button, lid, GPEs) during suspend-to-idle.
 
-Production machine? Or just an internal development machine?  I.e. is this =
-broken
-BIOS out in the wild for others to hit this bug?
+The majority of that code, however, is specific to systems with full
+ACPI HW support: the SCI IRQ handling, the wakeup device and global
+GPE management, the wakeup arbitration loop and the EC event draining
+are all not configured on HW-reduced platforms, so those platforms
+should not compile them at all.
 
->
->
-> +     if (v.length < sizeof(v) || v.length > PAGE_SIZE) {
-> +             pr_warn(FW_BUG "Invalid vendor error extension length %u\n"=
-,
+Therefore move the s2idle code into a new s2idle.c with the parts
+usable on every ACPI platform (scan lock, event draining) provided
+under a new hidden ACPI_S2IDLE symbol that is enabled by default
+whenever suspend support is there.  The HW-specific parts are only
+built for CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT and the reduced
+callbacks do not install a wake() one at all: with nothing to
+arbitrate there, the PM core's default pm_wakeup_pending() check is
+the desired wakeup rule.
 
-The "FW_BUG" tag was created specifically to point blame at BIOS and thus
-encourage OEMs to fix their BIOS. So correct use of it here :-)
+x86 and loongarch builds are not affected and the LPS0 path in
+drivers/acpi/x86/s2idle.c keeps working as before.
 
-> +                     v.length);
-> +             acpi_os_unmap_iomem(p, sizeof(v));
-> +             return;
-> +     }
+Signed-off-by: Riwen Lu <luriwen@kylinos.cn>
+---
+v1 -> v2:
+ - Fix acpi_s2idle_setup() declaration error when SUSPEND is disabled in
+   x86 builds.
 
-The fix looks reasonable. If this has been seen on a production system, the=
-n
-seems a good idea to apply your patch.
+v2 -> v3:
+ - Select ACPI_S2IDLE if SUSPEND is enabled for
+   ACPI_SYSTEM_POWER_STATES_SUPPORT, so the select no longer violates the
+   ACPI_S2IDLE dependency on SUSPEND.
 
-Reviewed-by: Tony Luck <tony.luck@intel.com>
+v3 -> v4:
+ - Add pr_fmt() in s2idle.c so log messages keep the "ACPI: PM: " prefix
+   that sleep.c used; without it the moved pr_info/pr_warn would lose the
+   subsystem prefix.
+ - Drop the redundant #ifdef CONFIG_SUSPEND / #else wrapper in s2idle.c.
+   The !SUSPEND branch was dead code, because CONFIG_ACPI_S2IDLE itself
+   depends on SUSPEND, so s2idle.c is only compiled when SUSPEND is set.
+ - Make acpi_s2idle_init() return void.  The int return value was always 0
+   in the real implementation and -ENXIO in the stub, and the only caller
+   (acpi_bus_init()) ignores it; a void interface is honest and the stub
+   becomes a clean no-op.
+ - Mark the weak acpi_s2idle_setup() default __init, matching the x86
+   override (which is already __init) and allowing the code to be discarded
+   after init.
+ - Use SPDX-License-Identifier: GPL-2.0-only in s2idle.c for consistency
+   with sleep.c (the file the code was split out from).
+ - Trivial cleanups: remove a double blank line in the Makefile and drop
+   the redundant "Warning: " prefix from a pr_warn() message.
 
--Tony
+v4 -> v5:
+ - Add #include <linux/interrupt.h> to s2idle.c.  enable_irq_wake(),
+   disable_irq_wake() and rearm_wake_irq() are declared there.
+
+v5 -> v6:
+ - Turn ACPI_S2IDLE into a hidden bool with default y, following the
+   ACPI_LPIT pattern, instead of a user-visible option selected by
+   ACPI_SYSTEM_POWER_STATES_SUPPORT.  No prompt, no conditional select
+   and no arch-specific changes: x86 and loongarch builds stay as they
+   are and arm64 gets s2idle automatically.
+
+v6 -> v7:
+ - Keep the code split, but stop compiling the HW-specific parts of it
+   unconditionally: the SCI IRQ wakeup, the fixed event and EC GPE
+   arbitration, the EC event draining, the wakeup device handling and
+   the global GPE list switch over are now built only when
+   CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT is set, following the review
+   feedback that none of them is configured on HW-reduced platforms.
+ - HW-reduced platforms get a reduced set of callbacks which does not
+   install a wake() one at all: with nothing to arbitrate there, the
+   PM core's default pm_wakeup_pending() check is the desired wakeup
+   rule.
+
+
+ drivers/acpi/Kconfig    |   5 ++
+ drivers/acpi/Makefile   |   1 +
+ drivers/acpi/bus.c      |   3 +
+ drivers/acpi/internal.h |  10 ++-
+ drivers/acpi/s2idle.c   | 178 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/sleep.c    | 145 --------------------------------
+ 6 files changed, 195 insertions(+), 147 deletions(-)
+ create mode 100644 drivers/acpi/s2idle.c
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index fa3eb52b22cd..21b7aa68346d 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -113,6 +113,11 @@ config ACPI_SLEEP
+ 	depends on ACPI_SYSTEM_POWER_STATES_SUPPORT
+ 	default y
+ 
++config ACPI_S2IDLE
++	bool
++	depends on SUSPEND
++	default y
++
+ config ACPI_REV_OVERRIDE_POSSIBLE
+ 	bool "Allow supported ACPI revision to be overridden"
+ 	depends on X86
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 91584a3c1e01..d51207e52741 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -35,6 +35,7 @@ acpi-$(CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT) += sleep.o
+ acpi-y				+= device_sysfs.o device_pm.o
+ acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
+ 
++acpi-$(CONFIG_ACPI_S2IDLE)	+= s2idle.o
+ 
+ #
+ # ACPI Bus and Device Drivers
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 1d6867dec925..59979d862889 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1412,6 +1412,9 @@ static int __init acpi_bus_init(void)
+ 	/* Initialize sleep structures */
+ 	acpi_sleep_init();
+ 
++	/* Initialize default acpi s2idle ops */
++	acpi_s2idle_init();
++
+ 	/*
+ 	 * Get the system interrupt model and evaluate \_PIC.
+ 	 */
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 011da4ed6a80..05a576610822 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -268,13 +268,19 @@ static inline bool acpi_ec_dispatch_gpe(void)
+                                   Suspend/Resume
+   -------------------------------------------------------------------------- */
+ #ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
+-extern bool acpi_s2idle_wakeup(void);
+ extern int acpi_sleep_init(void);
+ #else
+-static inline bool acpi_s2idle_wakeup(void) { return false; }
+ static inline int acpi_sleep_init(void) { return -ENXIO; }
+ #endif
+ 
++#ifdef CONFIG_ACPI_S2IDLE
++extern bool acpi_s2idle_wakeup(void);
++extern void acpi_s2idle_init(void);
++#else
++static inline bool acpi_s2idle_wakeup(void) { return false; }
++static inline void acpi_s2idle_init(void) {}
++#endif
++
+ #ifdef CONFIG_ACPI_SLEEP
+ void acpi_sleep_proc_init(void);
+ int suspend_nvs_alloc(void);
+diff --git a/drivers/acpi/s2idle.c b/drivers/acpi/s2idle.c
+new file mode 100644
+index 000000000000..22cd7416ac56
+--- /dev/null
++++ b/drivers/acpi/s2idle.c
+@@ -0,0 +1,178 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * s2idle.c - ACPI suspend-to-idle support.
++ *
++ */
++
++#define pr_fmt(fmt) "ACPI: PM: " fmt
++
++#include <linux/acpi.h>
++#include <linux/device.h>
++#include <linux/interrupt.h>
++#include <linux/irq.h>
++#include <linux/suspend.h>
++
++#include "internal.h"
++#include "sleep.h"
++
++static bool s2idle_wakeup;
++
++int acpi_s2idle_begin(void)
++{
++	acpi_scan_lock_acquire();
++	return 0;
++}
++
++int acpi_s2idle_prepare(void)
++{
++#ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
++	if (acpi_sci_irq_valid()) {
++		int error;
++
++		error = enable_irq_wake(acpi_sci_irq);
++		if (error)
++			pr_warn("Failed to enable wakeup from IRQ %d: %d\n",
++				acpi_sci_irq, error);
++
++		acpi_ec_set_gpe_wake_mask(ACPI_GPE_ENABLE);
++	}
++
++	acpi_enable_wakeup_devices(ACPI_STATE_S0);
++
++	/* Change the configuration of GPEs to avoid spurious wakeup. */
++	acpi_enable_all_wakeup_gpes();
++#endif /* CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT */
++	acpi_os_wait_events_complete();
++
++	s2idle_wakeup = true;
++	return 0;
++}
++
++#ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
++bool acpi_s2idle_wake(void)
++{
++	if (!acpi_sci_irq_valid())
++		return pm_wakeup_pending();
++
++	while (pm_wakeup_pending()) {
++		/*
++		 * If IRQD_WAKEUP_ARMED is set for the SCI at this point, the
++		 * SCI has not triggered while suspended, so bail out (the
++		 * wakeup is pending anyway and the SCI is not the source of
++		 * it).
++		 */
++		if (irqd_is_wakeup_armed(irq_get_irq_data(acpi_sci_irq))) {
++			pm_pr_dbg("Wakeup unrelated to ACPI SCI\n");
++			return true;
++		}
++
++		/*
++		 * If the status bit of any enabled fixed event is set, the
++		 * wakeup is regarded as valid.
++		 */
++		if (acpi_any_fixed_event_status_set()) {
++			pm_pr_dbg("ACPI fixed event wakeup\n");
++			return true;
++		}
++
++		/* Check wakeups from drivers sharing the SCI. */
++		if (acpi_check_wakeup_handlers()) {
++			pm_pr_dbg("ACPI custom handler wakeup\n");
++			return true;
++		}
++
++		/*
++		 * Check non-EC GPE wakeups and if there are none, cancel the
++		 * SCI-related wakeup and dispatch the EC GPE.
++		 */
++		if (acpi_ec_dispatch_gpe()) {
++			pm_pr_dbg("ACPI non-EC GPE wakeup\n");
++			return true;
++		}
++
++		acpi_os_wait_events_complete();
++
++		/*
++		 * The SCI is in the "suspended" state now and it cannot produce
++		 * new wakeup events till the rearming below, so if any of them
++		 * are pending here, they must be resulting from the processing
++		 * of EC events above or coming from somewhere else.
++		 */
++		if (pm_wakeup_pending()) {
++			pm_pr_dbg("Wakeup after ACPI Notify sync\n");
++			return true;
++		}
++
++		pm_pr_dbg("Rearming ACPI SCI for wakeup\n");
++
++		pm_wakeup_clear(acpi_sci_irq);
++		rearm_wake_irq(acpi_sci_irq);
++	}
++
++	return false;
++}
++#endif /* CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT */
++
++void acpi_s2idle_restore(void)
++{
++	/*
++	 * Drain pending events; on systems with full ACPI HW support the
++	 * working-state GPE configuration is also restored below.
++	 */
++	acpi_os_wait_events_complete(); /* synchronize GPE processing */
++#ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
++	acpi_ec_flush_work(); /* flush the EC driver's workqueues */
++	acpi_os_wait_events_complete(); /* synchronize Notify handling */
++#endif /* CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT */
++
++	s2idle_wakeup = false;
++
++#ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
++	acpi_enable_all_runtime_gpes();
++
++	acpi_disable_wakeup_devices(ACPI_STATE_S0);
++
++	if (acpi_sci_irq_valid()) {
++		acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
++		disable_irq_wake(acpi_sci_irq);
++	}
++#endif /* CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT */
++}
++
++void acpi_s2idle_end(void)
++{
++	acpi_scan_lock_release();
++}
++
++/*
++ * No wake() callback on HW-reduced platforms: there is nothing to
++ * arbitrate there, so the PM core's default pm_wakeup_pending()
++ * check applies.
++ */
++static const struct platform_s2idle_ops acpi_s2idle_ops = {
++	.begin = acpi_s2idle_begin,
++	.prepare = acpi_s2idle_prepare,
++#ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
++	.wake = acpi_s2idle_wake,
++#endif
++	.restore = acpi_s2idle_restore,
++	.end = acpi_s2idle_end,
++};
++
++void __init __weak acpi_s2idle_setup(void)
++{
++	if (acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0)
++		pr_info("Efficient low-power S0 idle declared\n");
++
++	s2idle_set_ops(&acpi_s2idle_ops);
++}
++
++bool acpi_s2idle_wakeup(void)
++{
++	return s2idle_wakeup;
++}
++
++void __init acpi_s2idle_init(void)
++{
++	acpi_s2idle_setup();
++}
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index a94bac4422d4..b588629fb22e 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -723,143 +723,6 @@ static const struct platform_suspend_ops acpi_suspend_ops_old = {
+ 	.recover = acpi_pm_finish,
+ };
+ 
+-static bool s2idle_wakeup;
+-
+-int acpi_s2idle_begin(void)
+-{
+-	acpi_scan_lock_acquire();
+-	return 0;
+-}
+-
+-int acpi_s2idle_prepare(void)
+-{
+-	if (acpi_sci_irq_valid()) {
+-		int error;
+-
+-		error = enable_irq_wake(acpi_sci_irq);
+-		if (error)
+-			pr_warn("Warning: Failed to enable wakeup from IRQ %d: %d\n",
+-				acpi_sci_irq, error);
+-
+-		acpi_ec_set_gpe_wake_mask(ACPI_GPE_ENABLE);
+-	}
+-
+-	acpi_enable_wakeup_devices(ACPI_STATE_S0);
+-
+-	/* Change the configuration of GPEs to avoid spurious wakeup. */
+-	acpi_enable_all_wakeup_gpes();
+-	acpi_os_wait_events_complete();
+-
+-	s2idle_wakeup = true;
+-	return 0;
+-}
+-
+-bool acpi_s2idle_wake(void)
+-{
+-	if (!acpi_sci_irq_valid())
+-		return pm_wakeup_pending();
+-
+-	while (pm_wakeup_pending()) {
+-		/*
+-		 * If IRQD_WAKEUP_ARMED is set for the SCI at this point, the
+-		 * SCI has not triggered while suspended, so bail out (the
+-		 * wakeup is pending anyway and the SCI is not the source of
+-		 * it).
+-		 */
+-		if (irqd_is_wakeup_armed(irq_get_irq_data(acpi_sci_irq))) {
+-			pm_pr_dbg("Wakeup unrelated to ACPI SCI\n");
+-			return true;
+-		}
+-
+-		/*
+-		 * If the status bit of any enabled fixed event is set, the
+-		 * wakeup is regarded as valid.
+-		 */
+-		if (acpi_any_fixed_event_status_set()) {
+-			pm_pr_dbg("ACPI fixed event wakeup\n");
+-			return true;
+-		}
+-
+-		/* Check wakeups from drivers sharing the SCI. */
+-		if (acpi_check_wakeup_handlers()) {
+-			pm_pr_dbg("ACPI custom handler wakeup\n");
+-			return true;
+-		}
+-
+-		/*
+-		 * Check non-EC GPE wakeups and if there are none, cancel the
+-		 * SCI-related wakeup and dispatch the EC GPE.
+-		 */
+-		if (acpi_ec_dispatch_gpe()) {
+-			pm_pr_dbg("ACPI non-EC GPE wakeup\n");
+-			return true;
+-		}
+-
+-		acpi_os_wait_events_complete();
+-
+-		/*
+-		 * The SCI is in the "suspended" state now and it cannot produce
+-		 * new wakeup events till the rearming below, so if any of them
+-		 * are pending here, they must be resulting from the processing
+-		 * of EC events above or coming from somewhere else.
+-		 */
+-		if (pm_wakeup_pending()) {
+-			pm_pr_dbg("Wakeup after ACPI Notify sync\n");
+-			return true;
+-		}
+-
+-		pm_pr_dbg("Rearming ACPI SCI for wakeup\n");
+-
+-		pm_wakeup_clear(acpi_sci_irq);
+-		rearm_wake_irq(acpi_sci_irq);
+-	}
+-
+-	return false;
+-}
+-
+-void acpi_s2idle_restore(void)
+-{
+-	/*
+-	 * Drain pending events before restoring the working-state configuration
+-	 * of GPEs.
+-	 */
+-	acpi_os_wait_events_complete(); /* synchronize GPE processing */
+-	acpi_ec_flush_work(); /* flush the EC driver's workqueues */
+-	acpi_os_wait_events_complete(); /* synchronize Notify handling */
+-
+-	s2idle_wakeup = false;
+-
+-	acpi_enable_all_runtime_gpes();
+-
+-	acpi_disable_wakeup_devices(ACPI_STATE_S0);
+-
+-	if (acpi_sci_irq_valid()) {
+-		acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
+-		disable_irq_wake(acpi_sci_irq);
+-	}
+-}
+-
+-void acpi_s2idle_end(void)
+-{
+-	acpi_scan_lock_release();
+-}
+-
+-static const struct platform_s2idle_ops acpi_s2idle_ops = {
+-	.begin = acpi_s2idle_begin,
+-	.prepare = acpi_s2idle_prepare,
+-	.wake = acpi_s2idle_wake,
+-	.restore = acpi_s2idle_restore,
+-	.end = acpi_s2idle_end,
+-};
+-
+-void __weak acpi_s2idle_setup(void)
+-{
+-	if (acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0)
+-		pr_info("Efficient low-power S0 idle declared\n");
+-
+-	s2idle_set_ops(&acpi_s2idle_ops);
+-}
+-
+ static void __init acpi_sleep_suspend_setup(void)
+ {
+ 	bool suspend_ops_needed = false;
+@@ -874,20 +737,12 @@ static void __init acpi_sleep_suspend_setup(void)
+ 	if (suspend_ops_needed)
+ 		suspend_set_ops(old_suspend_ordering ?
+ 				&acpi_suspend_ops_old : &acpi_suspend_ops);
+-
+-	acpi_s2idle_setup();
+ }
+ 
+ #else /* !CONFIG_SUSPEND */
+-#define s2idle_wakeup		(false)
+ static inline void acpi_sleep_suspend_setup(void) {}
+ #endif /* !CONFIG_SUSPEND */
+ 
+-bool acpi_s2idle_wakeup(void)
+-{
+-	return s2idle_wakeup;
+-}
+-
+ #ifdef CONFIG_PM_SLEEP
+ static u32 saved_bm_rld;
+ 
+-- 
+2.25.1
 
