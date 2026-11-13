@@ -1,55 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794587104;
-	b=jQiKu5bIh9uxzF8Q+v3fnkMSDYf2KsSsU0ymkhOhy6OnJhA0liSUquZ3mPvud0PyWJRa
-	 8cjs+hlcn9h5R20Y0ja4k7VDuko3oy1A2EdfAqMJJ8CIuLBP0pmAbXEdi8tuVrKMseGep
-	 3RCOrD5BamAafpPq80JsAP0dIyldNiO0P8Ue9Elysh6PRxIbwwRLq1QrmTE6uMkD9e4D+
-	 8k9FOO+clmaHQlwtSpRwnQ3PwDwR6qjc9gkGoI6bQhxOIJr5iMYZ4lBOuEys4UNoEe+74
-	 u8c/EJO2Y2+UzgDUMeWODVSRFvv0DRuq8K3PxDpOY/BPTfvSlTi05jvFo1+s+2n341g==
+	t=1794587246;
+	b=QrSCQEk27as0dAIfQ0nVLzxV2/13UGpAZr+IT3wSCtJ5P8rBFdNqvJ03VvV6SADG9Qsc
+	 wXs8POohfkkhBGJzJMbEWDye4gbaM3j8NiXeXG7TC8VBLm93lINUMfDA94uHlGRalYIap
+	 69a0himTa0XN9W9XvElvuqE6f0AG0b2UiyCHkxYN2yljVyTGbSMv/e2yW9qcBDFPNv8Uu
+	 7am8fOV7xCfBdVr1Q20lotknlY22OZ3PGFGKTHjqqt0MNdZVMywSjj+7m+OpUvJm2wqkj
+	 bPzuL4dnkvoZgyn73RhaOH5Y2dWYm+9TavGH6qu4hoRv2RKbt4oX6ZNnjZ8+KdEK8/g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794587104;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=EdidfY8kkjQXTJZy8RRsiMCtOG0JFSggzZGbgvEUt5E=;
-	b=Nc2wkMX/kIzsctYainICSaHchOD1R549wckiLGCqa4wtfd9XzYEWzYyYMesomaj2YM6n
-	 qsz61DhOZgFlJkwGiPntZqkM3vvvBRTQ81A2KoDB9oVmR9Uu7ugh829ebuTFZ8Tm4jIEq
-	 tsvamlj7wH43ofkgd5HS8rhVYyD1Ytt5AcvzIz1e1kF5mTaBajOUzv32a5Wbmn6cN1Gjw
-	 +0za45hKuiHGRu99hmt4nPp8f2Y2JEHitjEI4DQXGSbUey8nu1/0aiwgSldKzLSpLqusO
-	 mDWd0+C4dpJgasXblr5xkyEGsbwY2eUZuhqoF1SW1YLg5S2FZU8lhYxKQg/WkzTxDkQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794587246;
+	h=Received:DKIM-Signature:Received:X-Gm-Message-State:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:
+	 X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:Subject:To:Cc:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=j97SfSaNINREcAUOnX4Ita9v3nTN3dmHaeIvc25MaPY=;
+	b=G/Esagbf0SOKcikA7gCrmJf0XgN0A3F3XaF4yDRLohWziLh+cIhm0WYrI7fhm/QslLX7
+	 /st4MpU7MPTxcwBgAvyGvK4UZ/hL0+IRs/+TV7aSfSt/tOnLwGijbT+6xLjaBBZvSDaPp
+	 0/DX1t6fwxOH5zAWHhON4Nh4qGsvg+M0kEe4zEsix0IF5OFsQLrnoYheVHErVNhqXqiNG
+	 phmp9YBxYupmtxVTAgvBbiQWE4mAvwddH1abNlHpZqtIuen0RCXP0vHs9l1cyBbtvaWqJ
+	 5LwPv+1hA+0kid23BehXATfe7UvM/A8E+8pl5ZrXjeUcfwHgmFfMR6TDNN/H6aLlWYg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CT9GYnwQ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="nhd7Tn/G";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C850606C578
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 16:25:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0741D606B2ED
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 16:27:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CT9GYnwQ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69FB21F000D3
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 16:25:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nhd7Tn/G
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90CAA1F000C6
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 16:27:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794587104;
-	bh=EdidfY8kkjQXTJZy8RRsiMCtOG0JFSggzZGbgvEUt5E=;
+	s=k20260515; t=1794587245;
+	bh=j97SfSaNINREcAUOnX4Ita9v3nTN3dmHaeIvc25MaPY=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=CT9GYnwQ5xO9mcoj1riTuGCQPREGqLar/U3PU7KFJxrs7Ba1JaVXVcPcVP99bWSrJ
-	 NJXdXGNltJx420zg7szplLxYB8CKHlU34K8oZXks7u1ME5eHjb84nz2cEgVUnjZbLN
-	 D+bdbZQZowRAiVlP3mzS4YGbKAC3M9bkQJb/XBd0vbYsURe2b22gPCPePo+Wk5rD/z
-	 Q7yyHWs0qkusB/L529dssPuv2C7QVwiGuJVqrR177gKxDJF6+EsX/ueVLW0w73lHHm
-	 oH1P9JXIoyStLtkoPSfvw9Hs1a+NfgGuY/abq/PLVO9FG0Ixp0T1TL9mQ46fXJ8SIt
-	 D+yoCKjurfG1g==
-Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5be47aa555cso1661441e87.3
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 08:25:04 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErFfeaGgjY60NgmBRcqKydpOjDRLf95kNrolNarHcic570v9aYqhMfLF9XDgytIrdl/LAJW039DnjvEE@vger.kernel.org
-X-Gm-Message-State: APuU4Z8tlAO1L0LTBQOWGN5AQv4xH4acf8htZfpxIwtAkDAm12HHOHxT
-	nkQ4+GELLUJjx5a2ne8E7QZqvgXUGQWm72nSASOMwVkcECp0PR6GPtWRhOk4/IRO5+bf45nMU96
-	Rz0XsZzodVjrUrf4OLMeG97CyuREuAP4=
-X-Received: by 2002:a05:6512:b08:b0:5bf:b945:2403 with SMTP id
- 2adb3069b0e04-5c1709e1278mr1097583e87.44.1794587102823; Fri, 13 Nov 2026
- 08:25:02 -0800 (PST)
+	b=nhd7Tn/GnjgtnmAIXpmt3VH/lRxhsFlvKIA1WFp97+DFSDKPw2zptvVl6GiEpLf9K
+	 XKRcm1LTsf/YJQfcBhuaugQmBsd1xKPNEunyd26O1hk+554xAnP9LEHXNJekMQz+CG
+	 RnRb3WEyvXapTEw2ZTgCPJj61jln/91QjB8xV8V82sXxgkUFexbibLt+7rC9VlJhVH
+	 5J+iyqJB7bDPWIWP8beYWnQH57tOJVKP8Lox/bLL9Zp/wlq60nHzyOvjPCeV0SnZ3r
+	 qs0YwsdTDa8KaSW5djmS+Rtp4YG5Ym0FW7GgbHiH6gfIXatJKnLjqWtsZp8z0htQjS
+	 i4OzowCaWJu7A==
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-3acef9307c7so14642571fa.2
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 08:27:25 -0800 (PST)
+X-Gm-Message-State: APuU4Z+3yq5tNjmpmesYK8LFHWqj6FWayZBSdxBJOXW06mnFWZPCG30t
+	rlQR/fxhHWExG18Kw83HuczOdyOtikXeZJYKClgC3jmR06dbjFhViVhvBgpK3WywM+s4paPksre
+	1qxMYRVdiCDa4MCRYwpktGjwsS8SXy8c=
+X-Received: by 2002:a05:651c:b2c:b0:3ab:2a19:862b with SMTP id
+ 38308e7fff4ca-3ae2b4b7fd2mr9981721fa.4.1794587244008; Fri, 13 Nov 2026
+ 08:27:24 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,67 +58,69 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <1D6D9530A62ECE64+20261112091935.1394634-1-raoxu@uniontech.com>
-In-Reply-To: <1D6D9530A62ECE64+20261112091935.1394634-1-raoxu@uniontech.com>
+References: <3471545.44csPzL39Z@rafael.j.wysocki>
+In-Reply-To: <3471545.44csPzL39Z@rafael.j.wysocki>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 13 Nov 2026 17:24:48 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0ggbq2=1JqA8dc6s=SWcssYxUS_T4EwHEv2gTs21EzhdA@mail.gmail.com>
-X-Gm-Features: AclHuK_ZUjaC9RtYeBJy00-Na35nfX1uTFnRYl-LBsandFGPggNV1UpSzgXVJQw
-Message-ID: <CAJZ5v0ggbq2=1JqA8dc6s=SWcssYxUS_T4EwHEv2gTs21EzhdA@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: property: Do not free embedded subnode packages
-To: raoxu <raoxu@uniontech.com>
-Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Shuangpeng Bai <shuangpeng.kernel@gmail.com>, 
-	stable@vger.kernel.org
+Date: Fri, 13 Nov 2026 17:27:12 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0gB+ktRht4j8SjSTo-mqmsRR+e5m1sfc6j5gnGop6=BJg@mail.gmail.com>
+X-Gm-Features: AclHuK-loPyRxcKMfF_r6Mj1RdEKPCYy9Gl17nXvlsXJr1eeoXvD_joakaRzCLQ
+Message-ID: <CAJZ5v0gB+ktRht4j8SjSTo-mqmsRR+e5m1sfc6j5gnGop6=BJg@mail.gmail.com>
+Subject: Re: [PATCH v1 0/3] ACPI: glue: Rework ACPI companion lookup related
+ to device type
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, 
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
+	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, 
+	Andreas Noever <andreas.noever@gmail.com>, Mika Westerberg <westeri@kernel.org>, 
+	Yehezkel Bernat <YehezkelShB@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	dri-devel@lists.freedesktop.org, linux-usb@vger.kernel.org, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 12, 2026 at 10:19=E2=80=AFAM raoxu <raoxu@uniontech.com> wrote:
+On Wed, Nov 4, 2026 at 10:12=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.or=
+g> wrote:
 >
-> From: Xu Rao <raoxu@uniontech.com>
+> Hi All,
 >
-> The _DSD data-subnode parser accepts both named-object paths and packages
-> embedded in an enclosing evaluation result. For a named-object path,
-> acpi_nondev_subnode_ok() evaluates the object into a separate buffer and
-> passes its handle to acpi_nondev_subnode_extract(). For an embedded
-> package, acpi_add_nondev_subnodes() passes an interior pointer into the
-> enclosing result and a NULL handle instead.
+> The ACPI "glue" code is responsible for binding Linux devices (like platf=
+orm
+> devices for one example) to their ACPI companions (represented by struct
+> acpi_device objects).  This is done by acpi_device_notify() when the give=
+n
+> device is registered.
 >
-> acpi_destroy_nondev_subnodes() unconditionally frees dn->data.pointer
-> in both cases. Unloading an SSDT with embedded data subnodes therefore
-> attempts to free an interior address, as reported by KASAN. Subnodes
-> created exclusively from named-object paths do not have this problem.
+> If the device's ACPI companion is set already at that point, the binding
+> simply adds the device to the list of "physical nodes" associated with it=
+s
+> ACPI companion.  That's the case for PCI devices and platform devices, fo=
+r
+> example.  However, there are cases in which the ACPI companion is not set
+> upfront and it needs to be looked up via "lookup helpers" registered by
+> the subsystems the devices in question belong to.  This series changes
+> the "lookup helpers" representation and handling.
 >
-> Only free a subnode's result buffer when dn->handle is non-NULL. Embedded
-> packages are owned by the enclosing evaluation result, which is freed
-> after its child nodes have been destroyed. Keep the property-container
-> and data-node cleanup for both kinds of subnode.
+> Before the changes, the "lookup helpers" are represented by struct
+> acpi_bus_type objects which is doubly confusing because they have nothing
+> to do with bus types and because the "acpi_bus_type" name is also used
+> elsewhere.  Patch [1/3] renames struct acpi_bus_type to struct acpi_dev_t=
+ype
+> because all of the existing "lookup helpers" operate on device types.
 >
-> Fixes: 99db5ff7fe0b ("ACPI / property: Hierarchical properties support up=
-date")
-> Reported-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
-> Link: https://lists.openwall.net/linux-kernel/2026/06/05/10
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Xu Rao <raoxu@uniontech.com>
-> ---
->  drivers/acpi/property.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+> Next, the registration and unregistration functions for "lookup helpers"
+> are defined to return an int, but all of their existing users effectively
+> discard their return values (they are discarded right away or passed up t=
+he
+> call chain and then discarded).  Patch [2/3] changes the return type of
+> those functions to void.
 >
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index 8ee5a1f0eb48..3a26df35979d 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -664,7 +664,8 @@ static void acpi_destroy_nondev_subnodes(struct list_=
-head *list)
->                 acpi_destroy_nondev_subnodes(&dn->data.subnodes);
->                 wait_for_completion(&dn->kobj_done);
->                 list_del(&dn->sibling);
-> -               ACPI_FREE((void *)dn->data.pointer);
-> +               if (dn->handle)
-> +                       ACPI_FREE((void *)dn->data.pointer);
->                 acpi_free_device_properties(&dn->data.properties);
->                 kfree(dn);
->         }
-> --
+> Finally, since all of the existing "lookup helpers" match dev->type to
+> a certain device type, they can be rearranged to point to the device
+> types in question and provide a .find_companion() callback, and an
+> additional .setup() callback in one case.  This is done by patch [3/3]
+> and allows all of the affected code to be simplified quite a bit.
 
-Applied as 7.5 material, thanks!
+In the absence of any feedback I will assume no objections or concerns
+and I'll queue up this lot for 7.5.
+
+Thanks!
