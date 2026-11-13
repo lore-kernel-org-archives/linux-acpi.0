@@ -1,58 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=204.191.154.188
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.12
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794543519;
-	b=j4i3qWZ4miWhsaNqNUSSxizbNlQZ4cw0/vjgbiXJ3m2Kyn4wnZXVY9LkiwCiDNyVj9eK
-	 o0yxVUmaDA3+yRw9YMJt/Eczw+k+1hq49gXbepp99uPNEEdRPAhicstT03XGXiEsvEx66
-	 Jdk+G1vLJ+YBN2cSDFH7jgN8TtAvLvuC3A0Au/KKzeiuILWbyPqiy0k3nEqj2Mk/2b+dg
-	 SLtuxM2jcs9K6pV+jOd9F/oryeikSnRt374Ts0r185qyowSjpN6hg8UkFbtYQtL6Sy/Rz
-	 QN+aJjO7fhU6rwgnmDZg9+j1uuch0h9Oi/RKs5qrqYEb9t7XDYglsy+w8WHGFWRQSwQ==
+	t=1794559115;
+	b=qX2MhLLKOmVfc3PSrdztnoDadeYwec6/ivt7R+5gMXHa2BU12OYXh7wvXgS69E7m25Kr
+	 LBCCfhyhVMZb/sOYjjTGJKMGLxTFZEY5OIPd67tIDluYEhNIkHFJOORJVkh+zPJvnDlVV
+	 3wLdK0rPLfzkz1u0D7b8i5ro0DtjnfF0n7p4teytMVUlhRyC2gk+Ie6MHRmQomI9g63lv
+	 qCb8D5J9YkDBuncLoJ4vdRxvtN6JlirY2yAKPK/F+dXUStij01ovg3bN05uIt7bqtmIZL
+	 vZWEpBJw8PJB1dLJvqVgh7qKZvoC9Xt2r6Vr6/SpBqtfBsLiwhY9KoBSPcbzmFWN5aw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794543519;
-	h=DMARC-Filter:DKIM-Signature:Received:Message-ID:Date:MIME-Version:
-	 User-Agent:To:Cc:References:From:Content-Language:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-SA-Exim-Connect-IP:
-	 X-SA-Exim-Rcpt-To:X-SA-Exim-Mail-From:X-Spam-Checker-Version:
-	 X-Spam-Level:X-Spam-Status:Subject:X-SA-Exim-Version:
-	 X-SA-Exim-Scanned;
-	bh=ZiYALzwBjI65tTTQSXY2U+ySmJs1lqd9md75ReSDjlI=;
-	b=RVEVr5DUf2Hx/aHS2/7ac/TmC9EP9RYaf8loOb2FZAoouX2mhrv+jnJRU+HggH8MXTXS
-	 ezifIhjMMi+DE4cOHOPA+DfZXBlbuRMkIzsu+7eyFaP5Ln6fIFmUPJJ87WPg6G0tIyj9b
-	 7ZuitI+hLO493+fOWR4iDtF+T84LW4Kr1bOKqMxbKkjeZzBiAAyY7+/neOYBtRYlF7P/Q
-	 semkonf34IiRC2ZjCintLtvS74tUnUEkNrjcZHBza6HiNSynxaniYY2e9GIj72iTvmDHE
-	 SswSmHCU4+modtSOCcSWiZm5GRMwD2yz6E3m6NnjrInkbmEZjL1lz81a0asuriJrJHA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794559115;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=jJPPmrgHvFi7FJRmblAVYAxltGeBo3M3QF8JnKerhoQ=;
+	b=5E/mpiLYnPAVIGtLXj3tzVol9EiLGa2ks+W6VUp42++LbBkHliZ/E5Yao8EXTrqVOqCU
+	 SRKFmYOYaclOciONZE+l2Vsx43nFOmdAZWS2lgR4veaJynpfOU/yXuSQFCIfRGZIXW4i/
+	 CTs3XCM/UKf4Xws8k8+cgSCoUOo2XgNeUi8xEZZIIIlhACrBZmTwvyqu3uj+WK46kE2A4
+	 hPZ6T5T2kFIJSE1cTyBJ4iAumZjUT2qSqHmr59kqJoEFoUphHMyTO2xGPTdJDdOrJ50dS
+	 hcPdJZEnZTkSC46slkkcOZ2JQD49J2SvErOKhlVBF6sEvBT08xf78oiiUUajXK8b+tQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=deltatee.com;
-	spf=pass smtp.mailfrom=deltatee.com;
-	dkim=pass header.d=deltatee.com header.i=@deltatee.com header.a=rsa-sha256 header.s=20200525 header.b=sqJVO9Oh;
-	arc=none smtp.remote-ip=204.191.154.188
-Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=dL7mxt7t;
+	arc=none smtp.remote-ip=192.198.163.12
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 420B7606A31C;
-	Fri, 13 Nov 2026 04:18:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 420B7606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EAE5606A31C;
+	Fri, 13 Nov 2026 08:38:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1EAE5606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.a=rsa-sha256 header.s=20200525 header.b=sqJVO9Oh
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
-	MIME-Version:Date:Message-ID:content-disposition;
-	bh=ZiYALzwBjI65tTTQSXY2U+ySmJs1lqd9md75ReSDjlI=; b=sqJVO9OhFJFFp5d+CorT0gFFwx
-	gQHtm0rP9jBKdo5gtNhPuLDVJFyS5i84cybGKtUoyz1fhqHNy/GRDTRJWNgzdqFTWEyGhMkX/IdYX
-	1gczl9YxmBvNI3QYA9KvCiNAWLYKnpgv/dbGuxQdmfjTnj+SrMaiu9Ge6b2Zzu3cJj3uIAscyiV2Z
-	gGz+MjtR0Ub8ypP0wa3inb778TZZgjDpL3fgNIJjKwllEUMLxQ7GC61J0NW/qoFJgAi8vPToPSlrb
-	Ptdylv4aBTXI6DXk9fq3Si66BLJQ8a5feCTMk2q9JmLUpH879Zp+OriFt9ucCWJscZvyIYeC/6V5J
-	pp72RlUg==;
-Received: from [104.157.31.28] (helo=[192.168.1.251])
-	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-	(Exim 4.98.2)
-	(envelope-from <logang@deltatee.com>)
-	id 1xRik9-00000002SeY-3ZkQ;
-	Thu, 12 Nov 2026 22:18:32 -0600
-Message-ID: <029ccd27-68df-4e0a-bf27-3b40f68e91c6@deltatee.com>
-Date: Thu, 12 Nov 2026 22:17:50 -0600
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=dL7mxt7t
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794559114; x=1826095114;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=THoWPqTSk5fnke7XCzT4M9s/J2ey2Lfhv5W+Bhz1vIs=;
+  b=dL7mxt7tuNBbuksC+4Bc5pMyHnX7B8Cyu0/QvlwFGv/M0tprXHIa9PEj
+   QFhNfHLOm8QBTL6YI8Du+8W6uKX84W+8lFl2TrNByG2SDr8ZXPKMBbvez
+   /WWvAOZpbBP+Qd/5J9/ixz0CtJrzyEPoxUkahYjMKLH0YDN2NoBD4aTY0
+   +BJM5tT54Nr+kdHyoVakKTn7H8SA+y2dvOW37TRMpNl2JYDEh/2/OhT9W
+   pANp3MpnBcgEah8cRgF8rysHJ7br66sCSdH4/mLoDQIkMBaYMUid5ZdXv
+   FKF/+/IuSSUyI3f4iHlfC8Sato7KLZPsbPazBpY+7iqhJ3msi6OvWrp7s
+   g==;
+X-CSE-ConnectionGUID: Zwm6ywuVRNCOXEFKWYnOnw==
+X-CSE-MsgGUID: kp/4MkiXRJe56AOmMmRA+Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11964"; a="3259457"
+X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
+   d="scan'208";a="3259457"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 00:38:34 -0800
+X-CSE-ConnectionGUID: yySeRgJ4Q0yBYjW850LAuw==
+X-CSE-MsgGUID: hjfjjnXYTeKaSwXOOgKsCQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
+   d="scan'208";a="8890186"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by orviesa006.jf.intel.com with ESMTP; 13 Nov 2026 00:38:33 -0800
+Received: by black.igk.intel.com (Postfix, from userid 1001)
+	id D59BF99; Fri, 13 Nov 2026 09:38:30 +0100 (CET)
+Date: Fri, 13 Nov 2026 09:38:30 +0100
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: penhouse24@proton.me
+Cc: "westeri@kernel.org" <westeri@kernel.org>,
+	"andi.shyti@kernel.org" <andi.shyti@kernel.org>,
+	"linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Subject: Re: [BUG] i2c: acpi: Dell XPS 17 9720 ELAN 04F3:311C touchpad
+ (VEN_04F3) needs 100 kHz like DLL0945
+Message-ID: <20261113083830.GP259790@black.igk.intel.com>
+References: <CYQ1dYF3ZUj0L_VRzN490SfuHRaulkT_y5NWcIEIl8OtpIgWgXyOlwEyUqZD_uz9bmVBXM2uLOo8bkyzcR-qCxNObstCqFUlK6lUYXK5euE=@proton.me>
+ <20261109104542.GL176724@black.igk.intel.com>
+ <lGd7ChJVtwyvhMVkRinryqLG3Lx32U7xoSjT4_inKH1pBNoAd4dvBKV1A4i9MOIVLKmgx8sVg98gfK-iUwb5Uoy0wX1CM2_c7I1vdTr2tYU=@proton.me>
+ <20261111075931.GG259790@black.igk.intel.com>
+ <iZI_luLf6KPDE7sZSzG-aRF3V1fJFh7moD99YLp6nXVGLKgHTGMY_fnseRx1glU4YXGKNN3zKxSkitJW1MxfxR8WWGb1fegxZnOmq4VArTo=@proton.me>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -62,79 +87,32 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-To: Pavel Popov <pavel.e.popov@intel.com>,
- "Rafael J. Wysocki" <rafael@kernel.org>,
- Viresh Kumar <viresh.kumar@linaro.org>,
- Jani Nikula <jani.nikula@linux.intel.com>,
- Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
- Rodrigo Vivi <rodrigo.vivi@intel.com>, Tvrtko Ursulin
- <tursulin@ursulin.net>, Alex Deucher <alexander.deucher@amd.com>,
- =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
- Hans de Goede <hansg@kernel.org>,
- =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- Peter Huewe <peterhuewe@gmx.de>, Jarkko Sakkinen <jarkko@kernel.org>,
- Tom Lendacky <thomas.lendacky@amd.com>,
- Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Leon Romanovsky <leon@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
- Arnd Bergmann <arnd@arndb.de>, Len Brown <lenb@kernel.org>,
- Sakari Ailus <sakari.ailus@linux.intel.com>, Jason Gunthorpe <jgg@ziepe.ca>,
- David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
- "David S . Miller" <davem@davemloft.net>, x86@kernel.org,
- linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
- intel-gfx@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
- dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org,
- linux-integrity@vger.kernel.org, linux-crypto@vger.kernel.org,
- linux-arch@vger.kernel.org, linux-pci@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20261111234821.4814-1-pavel.e.popov@intel.com>
- <20261111234821.4814-4-pavel.e.popov@intel.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Content-Language: en-CA
-In-Reply-To: <20261111234821.4814-4-pavel.e.popov@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 104.157.31.28
-X-SA-Exim-Rcpt-To: pavel.e.popov@intel.com, rafael@kernel.org, viresh.kumar@linaro.org, jani.nikula@linux.intel.com, joonas.lahtinen@linux.intel.com, rodrigo.vivi@intel.com, tursulin@ursulin.net, alexander.deucher@amd.com, christian.koenig@amd.com, hansg@kernel.org, ilpo.jarvinen@linux.intel.com, peterhuewe@gmx.de, jarkko@kernel.org, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, leon@kernel.org, bhelgaas@google.com, arnd@arndb.de, lenb@kernel.org, sakari.ailus@linux.intel.com, jgg@ziepe.ca, airlied@gmail.com, simona@ffwll.ch, davem@davemloft.net, x86@kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, intel-gfx@lists.freedesktop.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-integrity@vger.kernel.org, linux-crypto@vger.kernel.org, linux-arch@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-X-SA-Exim-Mail-From: logang@deltatee.com
-X-Spam-Level: 
-Subject: Re: [PATCH 3/7] drm/amdgpu: Include <asm/cpu_device_id.h>
- unconditionally
-X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
-X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <iZI_luLf6KPDE7sZSzG-aRF3V1fJFh7moD99YLp6nXVGLKgHTGMY_fnseRx1glU4YXGKNN3zKxSkitJW1MxfxR8WWGb1fegxZnOmq4VArTo=@proton.me>
 
+Hi,
 
+On Thu, Nov 12, 2026 at 02:18:35AM +0000, penhouse24@proton.me wrote:
+> Hi Mika, 
+> 
+> 
+> Tested on top of v7.4-rc2 (067c5c24cef2) on a Dell XPS 17 9720, BIOS 1.41.0, without the SSDT override.
+> 
+> The quirk is applied at boot.
+> 
+> I've been using my laptop all day and the touchpad lag has not come back so far including on AC power. On the unpatched kernel it returns as before.
 
-On 2026-11-11 5:48 p.m., Pavel Popov wrote:
-> <asm/cpu_device_id.h> now has a generic version, so the #ifdef
-> CONFIG_X86 around the include is no longer needed.
-> 
-> <asm/intel-family.h> is included by <asm/cpu_device_id.h>.
-> 
-> Signed-off-by: Pavel Popov <pavel.e.popov@intel.com>
-> ---
-> Depends on <asm-generic/cpu_device_id.h> from [1]; please apply after
-> it is in mainline.
-> 
-> [1] https://lore.kernel.org/r/20261111234439.4098-1-pavel.e.popov@intel.com
-> 
->  drivers/gpu/drm/amd/amdgpu/amdgpu_device.c | 3 ---
->  1 file changed, 3 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-> index 19a566187df..fc4e7273630 100644
-> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-> @@ -88,10 +88,7 @@
->  
->  #include <drm/drm_drv.h>
->  
-> -#if IS_ENABLED(CONFIG_X86)
-> -#include <asm/intel-family.h>
->  #include <asm/cpu_device_id.h>
-> -#endif
->  
-I don't see the corresponding addition of adding the cpu_device_id.h.
-The commit message doesn't mention that. Am I missing something here?
+Thanks for testing!
 
-Logan
+> Interestingly enough, I did use an off-brand AC charger for my laptop and the touchpad lag returned on the patched and unpatched Linux kernels AND Windows. When I used the Dell AC charger, the lag was gone on the patched kernel and Windows, but remained on the unpatched kernel. Perhaps the root cause of this problem, on Linux relative to Windows is that Windows aggressively filters noise without smoothing? Not sure, just a thought
+
+Indeed it can very well be. Someone should really investigate this properly
+by hooking I2C analyzer to the bus to see what is going on there. However,
+that is not trivial to do with form factor devices.
+
+> One question about the DMI match: does it need DMI_BIOS_VERSION? The VEN_04F3 ID check already makes the quirk stop applying if a future BIOS switches to a proper ACPI ID. The 400 kHz problem also seems to be in the touchpad itself, since the same 04F3:311C part is affected on the Precision 5560. Matching only on sys_vendor and product_name would also cover users on older BIOS versions, and any newer BIOS that still reports VEN_04F3.
+> 
+> Dell also ships the same BIOS image for the Precision 5770, so it likely exposes the same ID, though I can't test that model.
+
+I agree we can drop the BIOS version. I will send the updated patch soon.
