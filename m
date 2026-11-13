@@ -1,92 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794586767;
-	b=GjwXwcVe68Xg3PQ6nlzMuCnAK9EJ5xHjBcy4hMh1R+jLokK4cwrd1HiW5BwKINd7fsKN
-	 BmTlt4N1m22r0iqVCOBaKQS7YVGMoocTg+bBwinVn8puOeO2yGTaMoSPMngEceS1Stedd
-	 oqkvrfKNKd1pMlmtTAY04a4nMvOhi4Cf4DltAmPwcHutl/dglIc41nYVjBmtH3H4WFsYw
-	 2ybcPKehwsBgdr0R+oujG5kKqCqz2heeOKFXbkVfqoskWkc/kWqlxWUXDo1Q9KphAjS0u
-	 bf65LwZndZwI1bMSHPwfqGQNNbyTPnrRsyJu1Fdd2oR05KywBrXNoFIL5opKjuBPl/Q==
+	t=1794586916;
+	b=EkjmyAN1qYjeN4EJCMSwcPRYRjHn5GpKB+raYGaDlNDhA+7lEPxg75ZLNJZkAl7fNEK6
+	 r1fvAKuJBdOj6rDRN/tTq5OCdohPdogdeJCmqqnFOBnulIJ5jZqX/lbiXeJbZS907DLkr
+	 8fV8UVGeOaNaEsoDbFmzlKWxEVcRWZcD1R1AzMne+WYc8bAgyDiQ/hHv4uRooBmDMWU3u
+	 YEIKAwu6RSvrHrpFe2M+qVOE67SaIa8H+bUXjhqw6niNCuftwmAl5+tUxuzGpf1xJXzPz
+	 lYls0CerdHmRGBk0FfUadJXEEuxHxJ02xqt7bHd7l45El4ZwtmtUw4dquD2XArNi93Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794586767;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To:Organization;
-	bh=oO/L4wT+HAyKwurpfHTFIZjxjNbn4DtR8FDLIyKt6mQ=;
-	b=uWi0IdWnhv74H/sW/5lLocjE0f45g4M8NVL8homYlOeuskaR+y/gnmCnoW0ylpWx/K96
-	 51/VxhTljOL5ui1fMibJPOMAEn/kZ3vHnmygWn9HMSqi+F2Kb/3vKF3/NKTSH05FmScIk
-	 wwxYOo+646bP8/uOkLh63NSqDK0Iqnf/9g/Ay+QfcaJgLfdgKHp22wm5n/0hpUAbHjBPp
-	 d6MS0MCcDlEBW+NXyIvdi0ieYPSLSkJLX+rNRXi6+jStgK1k6pKN5OBkmkJSKqy1vwngz
-	 yje6wOIEyhyyRixE5pV4hpCebBrq+n8waNMOoQdhjJ8VSFUmHElu0r8euMQj7HOFPxA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794586916;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=+VKfSuQjy++Fjxy2YGdpBhBllGH+kD5pPYBWRy71ETU=;
+	b=ySIXNlfofBGoRY+wOze/P7mCKan/QLxxFNrrXV4wJLRExkBw2WWjzVA0vjEAnZSEHWy2
+	 /GsNjBYG6PS84L9sB3NWWWXk86I9jPMOXrW2cb3HNKOdipVdZZENmM3drbbQL5YoobsBB
+	 t34R4AUlAiimOTnrCscfRmqfnHq/PKEG2IJaGQScgCcDkFBA0dFVJRtnSj3UoealSoW0A
+	 q3UGsIqH/l1eCf3OKcndKsGOPB3eLuwIU6q8TMJA4DgGfg1+LVEP37RuUh3cpDyxwbR2h
+	 6GtOJ8baEL3QNIz71Yj5k6x6szjSjlMlPRPwybWX7vb115rd4tEdDMW4cGgTC+7qJAQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=C4ScWfhF;
-	arc=none smtp.remote-ip=192.198.163.8
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JQQTNcBv;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32CDA606A881;
-	Fri, 13 Nov 2026 16:19:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 32CDA606A881
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 855FE606A339
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 16:21:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=C4ScWfhF
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794586768; x=1826122768;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=w/H3vxilWiIY/oBeomI3Vr9aXfPsr8K8inhIjjgOnYo=;
-  b=C4ScWfhFMkAry+zfOO/DjBIL6OrgZY+CvDgWtfqfEh0GF9RVzR1b5/sb
-   xZhfvWHNLnIh20yCYevfn9Pw3x6XyO58neFB/DT/hYSNj3WHzJxRmQChf
-   TuFlxCt5XoHsH5qWt163GfpnK23ysMb3nN2vOETCAyeU5nDBR4y/LwNNl
-   7hd0fFubaJScuslYTPnFCu7aXGV1tCdzLmubUiWyUmudbh2yZQ63Ub+Y9
-   K0e5NAUFiCsP9SGJOtpeS0fA1ZSYQ+D3sTH1EF9qWUKVwPWzAUVnH3ek+
-   ztIjuBJkAkxIlbfqONbaSIyBlLn3sNYnwONnSNBNHrchGKuZL7Se9/084
-   g==;
-X-CSE-ConnectionGUID: HUoctku+SD64Zas1iCnhUg==
-X-CSE-MsgGUID: UtTxuqX2S0qvNim72gw0Bg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11965"; a="3282226"
-X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
-   d="scan'208";a="3282226"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 08:19:23 -0800
-X-CSE-ConnectionGUID: sqDIhBnTTNqwivE1rQNtUg==
-X-CSE-MsgGUID: /+xFyyifSpayyMkgOohuzA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
-   d="scan'208";a="9128992"
-Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.244.148])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 08:19:17 -0800
-Date: Fri, 13 Nov 2026 18:19:15 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
-	Hans Verkuil <hverkuil@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kees Cook <kees@kernel.org>, Andy Shevchenko <andy@kernel.org>,
-	Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Linus Walleij <linusw@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v2 10/10] gpio: shared: generalize most code to firmware
- nodes
-Message-ID: <avc4g9cbAOEElzRX@ashevche-desk.local>
-References: <20261113-fwnode-for-each-prop-v2-0-4edc23d5cf50@oss.qualcomm.com>
- <20261113-fwnode-for-each-prop-v2-10-4edc23d5cf50@oss.qualcomm.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JQQTNcBv
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 643AB1F000C9
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 16:21:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794586916;
+	bh=+VKfSuQjy++Fjxy2YGdpBhBllGH+kD5pPYBWRy71ETU=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=JQQTNcBvIP11OFjoRGL3VjLTra+mcG38pMOAUB3P85nKQLtjDUSpORrh5C3IqfCw3
+	 6UvRZddukcA+Qph0OvWk7DzyQDZoFQTdVcvfcNtAlOLbBIFtLn4xiNCYEumKI89+hq
+	 JhM181zObk1qIrHLqYmHJdDQcPYhKVEx5D/nEN+Xzrsz6M6KHMeU3VeeOlzPGScuph
+	 4cPV+tMLioCgGVTxiIloluwiP3ugEd2G2aR85pBMzc+bzzyVR9eQ44g3anTXaTfBZX
+	 5iD8EPC7N+fdC0E6t8trzgHThqCITOHd0VtdVsxG1wv0V9wwZVfpnhgRftPbXCirlf
+	 rq1Z8dVaPnXAw==
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5c0a520df2eso1673008e87.0
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 08:21:56 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErEx5C7NlvR3LYAdpf72QYT2DtfbbSOzQbxZ5Z7qVEnMJFDC4wjE3GwmhpPBi5Les8I011QiCEgm10xn@vger.kernel.org
+X-Gm-Message-State: APuU4Z/hQG6Od/iWV54lTOoTbSVnxqnHqtScz5IFu6qbOl+hG3iiI7po
+	mIA43QRtkqS4DHyjN5vRA9Htk39qJYNjGJeQrh92ALp67QlnsK++hC2r3sdCC545hysacz4tih9
+	ewAbVCDPAW4K8wgsGNzuZFok034+wR1E=
+X-Received: by 2002:ac2:568e:0:b0:5c1:57d3:9f06 with SMTP id
+ 2adb3069b0e04-5c1709a1294mr1483206e87.31.1794586914722; Fri, 13 Nov 2026
+ 08:21:54 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -96,59 +59,79 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261113-fwnode-for-each-prop-v2-10-4edc23d5cf50@oss.qualcomm.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+References: <DC796DD7AB1437C8+20261112090954.1388267-1-raoxu@uniontech.com> <avb-JJur-yeedbFa@kekkonen.localdomain>
+In-Reply-To: <avb-JJur-yeedbFa@kekkonen.localdomain>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 13 Nov 2026 17:21:42 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0hZfO01hw14Pf5nKwReJML8yvDuapSng9c=1M57pdxtJg@mail.gmail.com>
+X-Gm-Features: AclHuK_bpQyvVno3ZCcHdbx4mFwW-KoXYWd7_RaiAp90jJbXEmy3bYe0rpPvORg
+Message-ID: <CAJZ5v0hZfO01hw14Pf5nKwReJML8yvDuapSng9c=1M57pdxtJg@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: property: Fix leaked buffers after skipped properties
+To: Sakari Ailus <sakari.ailus@linux.intel.com>, raoxu <raoxu@uniontech.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 13, 2026 at 04:47:10PM +0100, Bartosz Golaszewski wrote:
-> Ahead of adding support for sharing of GPIOs for other types of firmware
-> nodes, convert as much code in gpiolib-shared.c as possible to using
-> fwnode APIs and guard the remaining OF-specific bits with CONFIG_OF
-> guards.
+On Fri, Nov 13, 2026 at 1:10=E2=80=AFPM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+>
+> Hi Rao,
+>
+> Thanks for the patch.
+>
+> On Thu, Nov 12, 2026 at 05:09:54PM +0800, raoxu wrote:
+> > From: Xu Rao <raoxu@uniontech.com>
+> >
+> > acpi_data_add_buffer_props() compacts successfully parsed buffer
+> > properties into an output package, but stores their separately allocate=
+d
+> > evaluation buffers in props->bufs using the original input index.
+> > acpi_free_device_properties() only frees entries below the output
+> > package's successful-property count.
+> >
+> > If a property is skipped because of an invalid format, invalid types or
+> > a failed object evaluation, later successful entries can be stored past
+> > the range visited during cleanup. For example, a failed first entry and
+> > a successful second entry leave the allocation in bufs[1] while cleanup
+> > only visits bufs[0]. The evaluation buffer is then leaked when the
+> > properties are destroyed. Lists with no skipped entries do not exhibit
+> > this mismatch.
+> >
+> > Store each evaluation buffer at the current output count before
+> > incrementing it. This keeps the ownership array compact and aligned wit=
+h
+> > the cleanup bound without changing property order or buffer contents.
+> >
+> > Fixes: 103e10c69c61 ("ACPI: property: Add support for parsing buffer pr=
+operty UUID")
+> > Signed-off-by: Xu Rao <raoxu@uniontech.com>
+> > Cc: stable@vger.kernel.org
+>
+> Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-...
+Applied as 7.5 material, thanks!
 
-> -static int gpio_shared_of_scan(void)
-> +static __maybe_unused int gpio_shared_fwnode_traverse(struct fwnode_handle *curr)
->  {
-> -	if (of_root)
-> -		return gpio_shared_of_traverse(of_root);
-> +	int ret;
-> +
-> +	if (gpio_shared_fwnode_ignore(curr))
-> +		return 0;
-> +
-> +	ret = gpio_shared_fwnode_scan_properties(curr);
-> +	if (ret)
-> +		return ret;
-> +
-> +	fwnode_for_each_child_node_scoped(curr, child) {
-> +		ret = gpio_shared_fwnode_traverse(child);
-> +		if (ret)
-> +			return ret;
-> +	}
->  
->  	return 0;
->  }
-> -#else
-> +
->  static int gpio_shared_of_scan(void)
->  {
-> +#if IS_ENABLED(CONFIG_OF)
-> +	if (of_root)
-> +		return gpio_shared_fwnode_traverse(of_fwnode_handle(of_root));
-> +#endif
-> +
->  	return 0;
->  }
-> -#endif /* CONFIG_OF */
-
-Hmm... What do you exactly get from the compiler without this uglyfication?
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+> > ---
+> >  drivers/acpi/property.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> > index 8ee5a1f0eb48..fb6b214f2335 100644
+> > --- a/drivers/acpi/property.c
+> > +++ b/drivers/acpi/property.c
+> > @@ -523,7 +523,7 @@ static void acpi_data_add_buffer_props(acpi_handle =
+handle,
+> >               obj->buffer.length =3D buf_obj->buffer.length;
+> >               obj->buffer.pointer =3D buf_obj->buffer.pointer;
+> >
+> > -             props->bufs[i] =3D buf.pointer;
+> > +             props->bufs[*count] =3D buf.pointer;
+> >               package++;
+> >               (*count)++;
+> >       }
+>
+> --
+> Kind regards,
+>
+> Sakari Ailus
