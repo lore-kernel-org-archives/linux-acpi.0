@@ -1,55 +1,71 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794602082;
-	b=p3t3p/x7hdUwPocUPVdXAJHAmVsOvh+xVHvWDs/TmP1p1+CqBgCymkXr3a923Sfdi5mR
-	 F5r6uXN3SFa7jvVDK2uRf+ebNEDorh5OPO4lAm4RxamGKsArqwYo0q7kXcwsQ4RkDP59c
-	 0nJTlsAsyaaYJVPnTd1E7FpIAR3sYmDL9+BWZgSPFUdIiwWOo9wAsKlG0o7dHsyCDS9Zc
-	 mgIaj8MEDcVuQV9BmWhoYbV64zNShwVrK6bk+U3KOQiIYLv4LVNFqGEByM6XH7CvLH29Y
-	 uDh19gVm5RyyClAbSZCaec311qDIgqiqkMkobOMtAXygMHW1oFeyASWXBhcFTU/mEcg==
+	t=1794603444;
+	b=Jd9/XGcwO2iC4hlUU1BpR2zE/PqzGmS4g7UZgNtEvjo4XrS9udjopP5aFJah6Fe+ikPU
+	 VG9m75Y1Abc/Db0iBxGIIdNqrFEpsbgnc6K1Znvxo4u02VkuouFwR2+c6+IGlaVQ1JhoW
+	 JtNCbAdHTisvtq/DbsGY4587skF8k5nmXzzV7IQG0xC5mpEZo3T+YHdbKSDIRbqmjwMUv
+	 6yzhqHNeTe5ar/xk297GhlU6OuJh4JY3RQxOoFjxk0aKX+N6lFzDqt4My/WLsO3wF7sts
+	 niPbZdXtYkcr0Z0RdgX7aDOQTPDV00AVemZ9YWzCGWIvMmdjMPCv1gqsU0XexogF6SQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794602082;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=xA/dHrB8DVHvhn8WCh7VdIDLIPRiACwfBEGFOII6u8o=;
-	b=C01/46SJzCGwAD0RuXnl7kLmMvFUr+1YDjXc2bWxOZmkU+wM6LJi15+GCCHYaLEka42x
-	 6yqqDkRu1uNZRSyzTXcf+bla1qxqiVDq6MUUKk6rwWlnnhMgU2J24dCFtlFNRlplUiUkp
-	 1OHL7aL0pMJ635rsjY9Fuayhm9KHTVhF5L7xisBpobb4gNZWABM9/cbLvUiQJnE4Z+sT+
-	 kTK1cueyeREQtUwRK8YOmFvdwzh6szMCtwbWFW9XlSnoRfBzCukugbLHVzT0TDsJxlOUL
-	 wqxz6RTzginqpuESUsP+AW8E351y8kzHw3CBMlBoxAZzW+VxDby1IVcbdrpFAjdxJsw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794603444;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=BcEnhktCdND90RNu0qNfZdtATRB2rCMt5Xus7i9XGqk=;
+	b=5Qa/v6T7ZnO1Cc1FphdkVbzqJ9Kac98ReV87IZohMNJNsWPfW3lWUVnISLPTRxAY0M/K
+	 RZ8NHBiSW5hX2DoKifO29PEGSGEgLe97VoSJkSclR+u/TCVKzlsiR4SEZ1Pm1ewF3rexv
+	 2Tbw3EvCPmIHg48VEIYHAnKYkHb/1hiwFwvXWVHE1DRN/i6NwK3uUcG1I0bIFfWaBjjdt
+	 BKmUT38EF3rH+6Ytli5OlJUGBc9qvgZUy50YHNprx+K+7i4zw25UHaABknN7A5+3An7+z
+	 9OT4xXkEsMbKlc+SWCLhtk7ruJXvx3ri1kfjV3QcRpbcWorZaTXSplRuUY2o+jRwcew==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UV8SW5bu;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kfD7jmHu;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26B6C606A334
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 20:34:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80A96606A32D;
+	Fri, 13 Nov 2026 20:57:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UV8SW5bu
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 049241F000CF
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 20:34:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kfD7jmHu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB3201F000C5;
+	Fri, 13 Nov 2026 20:57:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794602082;
-	bh=xA/dHrB8DVHvhn8WCh7VdIDLIPRiACwfBEGFOII6u8o=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=UV8SW5busPS8VmXNfVtCA8Gy0bDmDzqHePhNmga+YXjs6tdgK4mMuY3lJA6UVrv6F
-	 Og18/irl95YcHnECYzmIN6RGkJwoBP+CqhKwq/3OI0ttro56XVwFhud+FCAPccT+38
-	 RM4VYeTnymaDrrkZRiYTT9YfbVr+rSmYkya8zngTI9Qlc2iIKOdx4TnNilsvSnrInK
-	 xYftri6PomOsPSDloIpP4Vw42Eey7oq4zMBD4Vcy/RcHHRt6n7P0/ebU/1qpMjYds9
-	 DZVon4ggKltPGFINtBlvW6Hgwv3MnyU6UQSbe4UTPwrmbU86XyQ9pOhFTZT4JP5NoA
-	 pd9vv+I5nNgiQ==
-Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-3ae25c84207so14022211fa.3
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 12:34:41 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErGRKjqz4uH7GtgIl2gjwXs41wFY8Cv4nCxO7tcRAiUZEN2HgqFdJ+t6sKZvGEch+6R2KOGWJnH6UBDp@vger.kernel.org
-X-Gm-Message-State: APuU4Z9a+E3gFg+zTjPzRdrEHtIZe/jkeyLHh4pfprl8sd2ppwcZ02S5
-	WBEbqPmiioL1MeAJa258hb/YRdlHZsXzjTCNejgErcbY03rAUumUHsTl3zQKfwiMZ50XR3mQ2fm
-	QQQC56+8CVt5MwNBAj5p5IsNF4mPry5M=
-X-Received: by 2002:a2e:bea8:0:b0:3ae:25c9:f5d1 with SMTP id
- 38308e7fff4ca-3ae2b4cb695mr13163291fa.11.1794602079970; Fri, 13 Nov 2026
- 12:34:39 -0800 (PST)
+	s=k20260515; t=1794603444;
+	bh=BcEnhktCdND90RNu0qNfZdtATRB2rCMt5Xus7i9XGqk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=kfD7jmHuyGTUZJH48tL2WW7iDLcbobj01KHq7Im7rXdLDTlodGMOMakZllPB2Yr3e
+	 0l0pWHkWl1M6JN6nsWW/7sdR/4K65SNz9XjZGOTk9yPpEBhypEt24Qr7f0x4wX5K/D
+	 3GRiPlPe846YMxG4HqmHDPX2pb2Lhc6RNvyHkp5UUBdnfEnmvXaZbe+GbQRpGElsfU
+	 jhVQn6m+syAnTbpJ0YP8pbj/UVTWWMcQesqOpmvOqlqNI2GsxfNyzuSHXVPs4hHChD
+	 WUxe3YRlzZianxGOeHWAKi6VfyOjGEAO3wCZ2iI1Opk2a73fTVsFMQg2XZ29zLmcfR
+	 /jg6hsIWXTZFA==
+Date: Fri, 13 Nov 2026 21:57:15 +0100
+From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@intel.com>
+Cc: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org, 
+	Krzysztof Kozlowski <krzk@kernel.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, 
+	Andy Shevchenko <andy@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
+	Daniel Scally <djrscally@gmail.com>, Danilo Krummrich <dakr@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans Verkuil <hverkuil-cisco@xs4all.nl>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+	Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, 
+	Linus Walleij <linusw@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>, 
+	Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v5 7/7] string: Implement strstarts() with strprefix()
+Message-ID: <avd4XpBivw86pBYh@devuan>
+References: <cover.1794574496.git.alx@kernel.org>
+ <382a44f7c68672ecead2436d9f569ee23f383830.1794574496.git.alx@kernel.org>
+ <avciONW-b_WXoetv@ashevche-desk.local>
+ <avcj0YbmHRyhFW-Y@devuan>
+ <avcntwOjI2i4seyB@ashevche-desk.local>
+ <avcrlaWDlBVAHpnj@devuan>
+ <avc1LK0_Deeh0zZo@ashevche-desk.local>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,107 +75,279 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <cover.1794567577.git.ukleinek@kernel.org> <CAJZ5v0jC5YXsLgB6Qd55KNCU0oCsN86X5WpRfL+Ycz0MJ8vGqA@mail.gmail.com>
- <avdryC3GOqVNVF8s@monoceros>
-In-Reply-To: <avdryC3GOqVNVF8s@monoceros>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 13 Nov 2026 21:34:26 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0jxB4-R2K6iQEh5BVeF1pDXFGn81jkXFCTMJLBAXoL8rA@mail.gmail.com>
-X-Gm-Features: AclHuK98RV8mUx3a_eF9a_B1pqyxZw7Jy48hGkbo4K83RPSBSBvPbkBZkEPiro0
-Message-ID: <CAJZ5v0jxB4-R2K6iQEh5BVeF1pDXFGn81jkXFCTMJLBAXoL8rA@mail.gmail.com>
-Subject: Re: [PATCH v1 0/4] ACPI: Use named initializers for acpi_device_id arrays
-To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, 
-	Sudeep Holla <sudeep.holla@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Will Deacon <will@kernel.org>, Dan Williams <djbw@kernel.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Alison Schofield <alison.schofield@intel.com>, Ira Weiny <iweiny@kernel.org>, 
-	Bjorn Helgaas <bhelgaas@google.com>, Zhang Rui <rui.zhang@intel.com>, 
-	"Mario Limonciello (AMD)" <superm1@kernel.org>, Saranya Gopal <saranya.gopal@intel.com>, 
-	Gergo Koteles <soyer@irl.hu>, Jakob Riemenschneider <riemenschneiderjakob@gmail.com>, 
-	Yauhen Kharuzhy <jekhor@gmail.com>, Pawel Zalewski <pzalewski@thegoodpenguin.co.uk>, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, nvdimm@lists.linux.dev, 
-	linux-pci@vger.kernel.org, Kai-Heng Feng <kaihengf@nvidia.com>, 
-	Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, 
-	Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>, 
-	Alexandre Belloni <alexandre.belloni@bootlin.com>, Dave Hansen <dave.hansen@linux.intel.com>, 
-	Chu Guangqing <chuguangqing@inspur.com>, Andy Shevchenko <andy@kernel.org>, 
-	Mika Westerberg <westeri@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="icarvji2c4hygarz"
+Content-Disposition: inline
+In-Reply-To: <avc1LK0_Deeh0zZo@ashevche-desk.local>
+
+
+--icarvji2c4hygarz
+Content-Type: text/plain; protected-headers=v1; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
+From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@intel.com>
+Cc: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org, 
+	Krzysztof Kozlowski <krzk@kernel.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, 
+	Andy Shevchenko <andy@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
+	Daniel Scally <djrscally@gmail.com>, Danilo Krummrich <dakr@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hans Verkuil <hverkuil-cisco@xs4all.nl>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+	Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, 
+	Linus Walleij <linusw@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>, 
+	Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v5 7/7] string: Implement strstarts() with strprefix()
+Message-ID: <avd4XpBivw86pBYh@devuan>
+References: <cover.1794574496.git.alx@kernel.org>
+ <382a44f7c68672ecead2436d9f569ee23f383830.1794574496.git.alx@kernel.org>
+ <avciONW-b_WXoetv@ashevche-desk.local>
+ <avcj0YbmHRyhFW-Y@devuan>
+ <avcntwOjI2i4seyB@ashevche-desk.local>
+ <avcrlaWDlBVAHpnj@devuan>
+ <avc1LK0_Deeh0zZo@ashevche-desk.local>
+MIME-Version: 1.0
+In-Reply-To: <avc1LK0_Deeh0zZo@ashevche-desk.local>
 
-On Fri, Nov 13, 2026 at 9:04=E2=80=AFPM Uwe Kleine-K=C3=B6nig (The Capable =
-Hub)
-<u.kleine-koenig@baylibre.com> wrote:
->
-> On Fri, Nov 13, 2026 at 05:17:30PM +0100, Rafael J. Wysocki (Intel) wrote=
-:
-> > On Fri, Nov 13, 2026 at 12:14=E2=80=AFPM Uwe Kleine-K=C3=B6nig (The Cap=
-able Hub)
-> > <u.kleine-koenig@baylibre.com> wrote:
-> > >
-> > > From: Uwe Kleine-K=C3=B6nig <ukleinek@kernel.org>
-> > >
-> > > Hello,
-> > >
-> > > this series is about preparing drivers/acpi for a change to struct
-> > > acpi_device_id. The idea is to replace .driver_data by an anonymous
-> > > union, see
-> > > https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@bayl=
-ibre.com/
-> > > for more details. (The linked example is about platform_device_id, I
-> > > intend to apply it acpi_device_id and several others, too.)
-> > >
-> > > Before this union can be added, all initializers must use named
-> > > initializers (C99 calls them designated initializers), which IMHO is =
-a
-> > > nice cleanup that can stand for itself as it makes the code easier to
-> > > read.
-> > >
-> > > Pawel sent a similar series earlier, find it at
-> > > https://lore.kernel.org/all/20260727-acpi-refactor-v1-0-ff900aa326ee@=
-thegoodpenguin.co.uk/.
-> > > Compared to that the patch splitting is done differently and the base
-> > > here is newer.
-> > >
-> > > I checked for the other *_device_id and for these there is nothing to=
- do
-> > > below drivers/acpi because the few instances already use named
-> > > initializers.
-> > >
-> > > The last patch in this series is just some cosmetic to align the codi=
-ng
-> > > style. If you consider it churn, just drop it.
-> > >
-> > > It would be great to get this series in soon, as keeping it up to dat=
-e
-> > > for a later resend is an annoying effort. Thanks for your cooperation=
-.
-> > >
-> > > Best regards
-> > > Uwe
-> > >
-> > > Uwe Kleine-K=C3=B6nig (The Capable Hub) (4):
-> > >   ACPI: Unify acpi_device_id list terminators
-> > >   ACPI: Drop unused .driver_data initializers in acpi_device_id array=
-s
-> > >   ACPI: Use named initializers for acpi_device_id arrays
-> > >   ACPI: Unify *_device_id list terminators
-> >
-> > All patches applied as 7.5 material, thanks!
->
-> That's great, thank you.
->
-> I fatfingered my author address in patch 2, so if someone wails that the
-> author S-o-b is missing and your tree isn't set in stone yet, something l=
-ike:
->
->         git filter-branch -f --env-filter 'if test "$GIT_AUTHOR_NAME" =3D=
- "Uwe Kleine-K=C3=B6nig (The Capable Hub)"; then GIT_AUTHOR_EMAIL=3Du.klein=
-e-koenig@baylibre.com; fi' next/master..
->
-> should fix it. Sorry!
+Hi Andy,
 
-Thanks for the heads-up, I fixed it up.
+> Date: 2026-11-13 18:05:00+0200
+> From: Andy Shevchenko <andriy.shevchenko@intel.com>
+>
+> On Fri, Nov 13, 2026 at 04:39:34PM +0100, Alejandro Colomar wrote:
+> > > On Fri, Nov 13, 2026 at 03:59:46PM +0100, Alejandro Colomar wrote:
+> > > > > On Fri, Nov 13, 2026 at 02:11:17PM +0100, Alejandro Colomar wrote:
+>=20
+> ...
+>=20
+> > > > > >  static inline bool strstarts(const char *str, const char *pref=
+ix)
+> > > > > >  {
+> > > > > > -	return strncmp(str, prefix, strlen(prefix)) =3D=3D 0;
+> > > > > > +	return strprefix(str, prefix);
+> > > > > >  }
+> > > > >=20
+> > > > > There is no sense to keep strstarts() at this point.
+> > > >=20
+> > > > I agree.  Actually, it seems my guess that strprefix() would be
+> > > > optimized out was wrong, because the kernel builds with
+> > > > -fno-delete-null-pointer-checks and other flags that prevent this
+> > > > optimization.
+> > > >=20
+> > > > > Can it be simply redefinition?
+> > > >=20
+> > > > I was thinking that we could just do a simple search and replace
+> > > > s/strstarts/strends/, prepending !! in some cases if needed.
+> > > >=20
+> > > > By 'redefinition', do you mean making strstarts() return a pointer
+> > > > instead of a bool?  A problem with strstarts() is again the function
+> > > > name: it doesn't seem to naturally fit with a function that returns=
+ a
+> > > > pointer to the position.  It also doesn't clarify whether it search=
+es
+> > > > for a string, or for a list of characters (like for example strspn(=
+3)).
+> > >=20
+> > > We have str_has_*() for that?
+> >=20
+> > I don't fully understand.  str_has_prefix() --which is the only
+> > str_has_*() function, BTW-- is meant to be the same as strprefix(),
+> > except for using an offset instead of a pointer.
+>=20
+> You argued that strstarts() versus strprefix() is a naming problem,
+> I answered that str_has_*() is for that kind of ops to solve naming issue.
+> So, semantically str_has_*() should be like a boolean checker (or behave =
+close
+> to it, which it does).
+>=20
+> > -  strstarts():
+> > 	It could be improved by returning a boolean-like pointer,
+> > 	instead of a bool, but:
+> >=20
+> > 	-  We may need to fix some callers, since some of them might
+> > 	   need an explicit conversion with !!.  It'd be risky to change
+> > 	   the implementation without first verifying that.
+>=20
+> How many cases do we have that needs special attention? Can you run spatc=
+h to
+> grep those?
+
+I *think* the only ones I expect this would be necessary are functions
+that return a boolean-like int.
+
+	// returns 1:true 0:false -1:error=3D
+	int
+	foo(...)
+	{
+		...
+		return !!strprefix(...);
+	}
+
+>=20
+> > 	   To avoid that risk, I prefer adding a new API, and
+> > 	   deprecating strstarts() for new code.  Over time, I could
+> > 	   slowly migrate users from strstarts() to strprefix().
+>=20
+> I believe this is unneeded step which may last for a few releases without=
+ even
+> guarantee that it will be finished. In such a case I would like to see a =
+branch
+> with full conversion done before you start sending per-subsystem pieces o=
+ut.
+
+Okay; I can do that.
+
+> > 	-  The name isn't ideal, since "starts" doesn't specify whether
+> > 	   it looks for a string that starts with a given prefix, or if
+> > 	   it looks for a string that starts with any of the given
+> > 	   characters.
+> >=20
+> > 	   That is, by the name, I wouldn't be able to know whether
+> > 	   strstarts implements
+> >=20
+> > 		bool strstarts(const char *s, const char *xxx)
+> > 		{
+> > 			return strspn(s, xxx);
+> > 		}
+> > 	   or
+> > 		bool strstarts(const char *s, const char *xxx)
+> > 		{
+> > 			return strprefix(s, xxx);
+> > 		}
+>=20
+> I didn't get this. We should not really need an implementation details of
+> the API beneath. Documentation what should be read before use. Do we have
+> documentation for strstarts()? Is it clear? Maybe that what should be add=
+ressed
+> first?
+>=20
+> > -  strends():
+> > 	Same as with strstarts() but from the end.
+> >=20
+> > -  str_has_prefix():
+> > 	It was an attempt at strprefix(), but with a problematic
+> > 	approach.  It's frozen because of trace code.
+> >=20
+> > -  strprefix()/strsuffix():
+> > 	I'd add them to slowly replace strstarts()/strends().
+>=20
+> See above about "slowly"...
+>=20
+> > > > I prefer replacing strstarts()/strends() with strprefix()/strsuffix=
+().
+> > > >=20
+> > > > But if you prefer changing strstarts() to return a pointer, I'm also
+> > > > okay-ish with it.  It's not a perfect name, but I can live with it.
+> > > >=20
+> > > > > However, after looking at the uses in the kernel, I prefer
+> > > > > to see the strprefix() be not implemented at all, just optimizati=
+on against
+> > > > > strstarts()/strends() if required can be performed.
+> > > >=20
+> > > > I don't understand this last sentence.
+> > >=20
+> > > It's basically repeats the idea of having only one pair out of two.
+> >=20
+> > Ok.
+> >=20
+> > > With this series will be
+> > >=20
+> > > str_has_previx()
+> > > strstarts()
+> > > strends()
+> > > strprefix()
+> > > // potentially strsuffix()
+> >=20
+> > Yes.  I'd like to replace strstarts()/strends() with
+> > strprefix()/strsuffix(), but prefer to do that slowly, to avoid
+> > introducing bugs due to missing explicit conversions to bool.
+> >=20
+> > Should I add notes that the strstarts()/strends() APIs are deprecated?
+>=20
+> Isn't Steven against that? I already forgot his points.
+
+As far as I understood, he was against deprecating str_has_prefix(), but
+we didn't yet talk about strstarts().
+
+> Keeping them
+> just as aliases to strprefix()/strsuffix() perhaps the good start
+> (see below).
+
+Ok.
+
+> > > To me seems too many for the similar task. I understand that trace us=
+er is
+> > > special one, but does it use strstarts()/strends()?
+> >=20
+> > I didn't find any uses:
+> >=20
+> > 	$ git ls-files | grep kernel/trace/ | xargs grep strstarts
+> > 	$ git ls-files | grep kernel/trace/ | xargs grep strends
+> >=20
+> > > Despite on naming I think we just good to have only str_has*() and on=
+e of
+> > > strprefix()/strsuffix(), strstarts()/strends().
+> >=20
+> > In the long term, I agree.  But I think the transition should be
+> > careful.  What do you think?
+>=20
+> Yes, it should take a few phases, first one perhaps to align strstarts() =
+to not
+> rely on the returned value to be boolean.
+
+Ok.
+
+> In parallel with that, your current series can also be considered. Then
+> similar, if even required, to be done against strends().
+
+Agree.
+
+> And one more phase
+> is to replace strstarts()/strends() with strprefix()/strsuffix() all over
+> the kernel.
+
+Ok.
+
+Thanks!
+
+
+Have a lovely night!
+Alex
+
+>=20
+> --=20
+> With Best Regards,
+> Andy Shevchenko
+>=20
+>=20
+>=20
+
+--=20
+<https://www.alejandro-colomar.es>
+
+--icarvji2c4hygarz
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmr3eaQACgkQ64mZXMKQ
+wqkNPw//XQhwJ8jwtB/Qtz8hKNEDKjhsYowvYKeAPNQr7hWf2yvnOHltNydwoLZr
+C66ScYc9yp2a7i7Uuk33HLJfAMhtdmJXrKTbP+ThLVPvUiUKZ6I43lGelYP2/qDZ
+OEDULxq1hfmKwSgq7Kto3+n6TA0umuzVexreCqbxCggcugebIaTcCKzOllQjJQfc
+INF34WQucI6mF91DbjFFzzGXX6bCMqZuZXotaypNXRmQNeTBsqASaDIUW0H+WLEC
+ZxRIr5geo3jY6GjFyBL7henaYh66gQjEaUOZvrmySFq1uTUJuHAC5xjhX74ryzDS
+6gnMFk7xGWRVYVrF4N9uAEXZESveUiYtT6pwR9kQLVhCKA9e4NYHLVf7pm8eFIag
+T+qFgiTdWC5lTh+cHoAT7WEHy4Z0oYr8V1Sp5ndyInxuOFI20vUORl2uoMvnt759
+M4dQmecWqIqF+qFUtYS4IjFeyq75/1Tl6ablDJMFJwkRN4QyQ4B/3iZcNoJPQOSl
+V2XyVmbz1HvPqvzkrvt5xy3x6ix64JzkvziAltaUHL4Q+LWOrx18PmUPyoYGhQID
+aY/W6GI4vTkmfR2cj/f1DurNQHDQSG+px5OssTAY6n8m7rN7Rjuk5JK25OpitnXY
+RLyrwYzJPd2RPUNzH5tg1wogxbVWmEHTo3E8++Hchci6Okbyd64=
+=t16e
+-----END PGP SIGNATURE-----
+
+--icarvji2c4hygarz--
