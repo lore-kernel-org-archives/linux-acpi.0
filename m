@@ -1,55 +1,61 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=213.97.179.56
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794590996;
-	b=WbfvUaMRURsOZ4VkuIzhxWBKytxLamIbH64qNpCpwD6EM5G1nveJYfOde6+oOP8r2VT5
-	 xymBJvjrKJS/ekt1vbkjR6peFdIT3znLrceSni9wxisbh9nVGuVaNhXOQzG4oGe2ogKz7
-	 E1U+C+AsJu64sqEKVXpQEP9i60dJSlpDO/gmXVR4x48wTSZ/QMFYABBYWNfQDRtMT0ApB
-	 D2jEFb6O7HMA5vFqrK5l/XQdhhxOsqMcnCCyzkOXXrwn78CfazIxcpQ/9NR7jZzIq9Xpy
-	 YSUkmgmgquHNCzGsQKn8cJUIhztkaPnAj5DCiSlc7NQE3FoJ2uWR1P8yC+070CnmBAg==
+	t=1794591025;
+	b=o7sfvEB44n1q7xYai2+7/0qzSyfoC7+fLilp7BkckTKfZ2hwTyRxAERo81GHnhEYrcgu
+	 EYJaSSJs+cYETde0qnnjI7OozKIvkmz+GIgF9cLGI/dTMBbfkeDsXHFxG17FeHJSrMakE
+	 5bnLwoqs5hKkUWRxYgGmrbnxcUBkwSFhE4BcryEWsjkSETY4vojqYL7UqvMEXkqhNaBYQ
+	 qSoT/kkbVt3uF1rwLRc0h0GX+NpgErqkmGseGacvKylY868MuxI6mqc4LONtolyo8EHfG
+	 k7Eth4RaBKp0rIlv62Q7iCq31qcjbA/L7+3opOFChBCsTbt5cOctLQn40v+OHaXgc2g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794590996;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=dqCS52njA2aiVteiRfpDb/yZ504mBEljecH8GRJRMOg=;
-	b=MDhlBPa7s27kScZRxrxuEPUB8NBcR4z3K86lwtq3YqiF+lrvvYunIv21bPnEAmzBTJrv
-	 ZPgDpcLPwCZ4BDGehErsykALxnvNK+ZuUuthUggoq4fdiiCX0bXueKpKirer8kwUcwyj2
-	 ntLxf9KPGrQtirvideXUuy/yjdGgCBQzVNCCXwOTzFn4LVAR3CLwCkhOwrXw+8UPidVdd
-	 K+sa/xrDIGouzS7PTFKOCCMqO7GSDO7UrXg1y/kMIyg2Vy6NTNtTqnkegtWqToACTpOo7
-	 xCVHnXv2WnVm1dhAs6Z0oNHw0ph+u5jJPkEo1GPoeKVN+gR+zBwUF/rSVAdSud+thTA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794591025;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Received:MIME-Version:
+	 Date:From:To:Cc:Subject:In-Reply-To:References:Message-ID:X-Sender:
+	 Content-Type:Content-Transfer-Encoding:X-Spam-Report:X-Spam-Score:
+	 X-Spam-Bar:X-Rspamd-Score:X-Rspamd-Action:X-Rspamd-Bar;
+	bh=OMyr6xNemxo9sermmgznNBCBoRJBZstiR7VSTiFQ0gs=;
+	b=EB30gQraTapmHQfQLrvGBH+y4l/Xmx1CQ0cPGAyRYKyVlu2UzakTQgIX+2NiV63ZhWvx
+	 Rd78D+vKhf1kEbeRzKTM+Bj2xUuFATB3Wv8Cyx3v5ncEyLHWcX0wYrX78zn3PE6he2R+y
+	 zFeBAXJcyEhbhRSZ+9+ys2qILNqcTGng5SlWTHR9NMh4tiVS/5yEwKgY/Fl5MZjmmPmUh
+	 H+2j6uqKl+H03/uM2UdKN/kt1yV9nQT7XRMzfCnIxr2/B+YVI/+dBAWgboWq72QBBHoWn
+	 PaKsiKRgcTKX+dUryBOFG9KuaEviVrvk4/28FG3evzystm9OIwZgKysbH907jqu8h+A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZCT1quRA;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=igalia.com;
+	spf=pass smtp.mailfrom=igalia.com;
+	dkim=pass header.d=igalia.com header.i=@igalia.com header.a=rsa-sha256 header.s=20170329 header.b=TuxOcSgh;
+	arc=none smtp.remote-ip=213.97.179.56
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59693607140B
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 17:29:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96B92606E657;
+	Fri, 13 Nov 2026 17:30:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 96B92606E657
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZCT1quRA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC5691F000CC
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 17:29:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794590996;
-	bh=dqCS52njA2aiVteiRfpDb/yZ504mBEljecH8GRJRMOg=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=ZCT1quRAUwf/hSib9hKarf/C4aWNH+c0kUQ8fPD7brf16euOOjr+OjXTF+ZlqepoF
-	 Ur41qfBxqp+V7vVSNyPqYAV2nO+ILQdwgZWVuNJGSebm1OyZ96rmxIQl2jMha+IabZ
-	 mw5g3/Jg6ngHj1T+bUksRh/qxypq1AMBvZKhhfcqNgNugviTQBTnh2lxV+c93BRo0r
-	 DC8SBTKgYxYk1S1ZSWWcdz5QdV/hmEldzW9+piOy9pYnIHhg8qoMZOAU1oL6q6DAB0
-	 MA7PiKlYeMc9hPKpqKAGzGEJWXFofsDO8YHD1qmOupoHsT+sn4PEhEEK6f4xr3nybk
-	 ycGqGzOGAv0Lg==
-Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-3ae0d0b9db2so17292281fa.1
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 09:29:55 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErEyy5WzJ6A3urL75tuWKSWs/mJ7jLneljkG1zFJ8IylwtPwdEaMEJh9qBod7OiEoEDggW9RHdbv6HB2@vger.kernel.org
-X-Gm-Message-State: APuU4Z87iEFYRMweWN8aqWDpbBSBlpi50N6Uf2Vtx48zwTzQc0ZNhww+
-	yG57JZ+ZcCgMEkAb09heUmM1GTA2fOqSdqy3d8cBlb2AOZ6XlUfFfWdc47bmEHdiTHy4OyBDSC0
-	8Ah7Ya/ZB7ZsyCxAuSo7ehXnM2bFjuuQ=
-X-Received: by 2002:a2e:a543:0:b0:3ad:f04e:d342 with SMTP id
- 38308e7fff4ca-3ae2b68c4acmr9609891fa.20.1794590994354; Fri, 13 Nov 2026
- 09:29:54 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.a=rsa-sha256 header.s=20170329 header.b=TuxOcSgh
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Content-Transfer-Encoding:Content-Type:Message-ID:Subject:Cc:To
+	:From:Date:MIME-Version:From:Reply-To;
+	bh=OMyr6xNemxo9sermmgznNBCBoRJBZstiR7VSTiFQ0gs=; t=1794591024; x=2109951024; 
+	b=TuxOcSghmKCCbNyYYZ6ERTcZVChakEv3eoSXxsvEQnFxopeguUGvgrbmgZZ0jML9t4NEvtgbPrQ
+	d6qJbic3Y73sXYHdkLFBC7ZeW4Q4nz+HKCPr1dJCh1owvBGD93fg4P7vOYLEf3NzsJ7urAlZTif5W
+	tK6IsrWueIDB4pEu7/o/9t+RVuffrzcQEH2DsbyQ/xQCYqS8vjDEmKznE9CVT5LrSz/wg2UOlaa8+
+	BvsPPHQriO4uAU/DCHZE1EU+MznYC2GxfswwneFWQcquOx9gM9vBRNYEvwMf6okch6wyCqW4H/1l/
+	CLwCyOkHLcpnG5STMq1QnBaqP/WzzOZYCpYg==;
+Received: from maestria.local.igalia.com ([192.168.10.14] helo=mail.igalia.com)
+	by fanzine2.igalia.com with esmtps 
+	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
+	id 1xRv6T-00AHrc-Uq; Fri, 13 Nov 2026 18:30:21 +0100
+Received: from webmail.service.igalia.com ([192.168.21.45])
+	by mail.igalia.com with esmtp (Exim)
+	id 1xRv6T-0000000Cijf-11XC;
+	Fri, 13 Nov 2026 18:30:21 +0100
+Received: from localhost ([127.0.0.1] helo=webmail.igalia.com)
+	by webmail.service.igalia.com with esmtp (Exim 4.98.2)
+	(envelope-from <uajain@igalia.com>)
+	id 1xRv6T-0000000HQwg-0T6Z;
+	Fri, 13 Nov 2026 18:30:21 +0100
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,160 +65,118 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261110085125.2535508-1-johan@kernel.org> <20261110085125.2535508-5-johan@kernel.org>
-In-Reply-To: <20261110085125.2535508-5-johan@kernel.org>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 13 Nov 2026 18:29:41 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0gjPPrHOy6iwWt_BubH+QvekgWQYrA+Y7GkvittHU10DA@mail.gmail.com>
-X-Gm-Features: AclHuK_IKc6zUppJnoMJ2CNbOeKvfrjfnic31BW-zR148q8dXf7IdOqQfKMoni8
-Message-ID: <CAJZ5v0gjPPrHOy6iwWt_BubH+QvekgWQYrA+Y7GkvittHU10DA@mail.gmail.com>
-Subject: Re: [PATCH v2 4/8] swnode: ignore primary nodes in device_remove_software_node()
-To: Johan Hovold <johan@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Bartosz Golaszewski <brgl@kernel.org>, 
-	Andi Shyti <andi.shyti@kernel.org>, driver-core@lists.linux.dev, 
-	linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Date: Fri, 13 Nov 2026 17:30:21 +0000
+From: Umang Jain <uajain@igalia.com>
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, kernel-dev@igalia.com
+Subject: Re: [PATCH v3 2/2] acpi: battery: Read Battery charge time for
+ Steamdeck devices
+In-Reply-To: <CAJZ5v0htK7MdRQ3N+bNhzR5uvfxtS7g1mPvQwr1yQsoJ7qM66A@mail.gmail.com>
+References: <20261014204558.466130-1-uajain@igalia.com>
+ <20261014204558.466130-3-uajain@igalia.com>
+ <CAJZ5v0htK7MdRQ3N+bNhzR5uvfxtS7g1mPvQwr1yQsoJ7qM66A@mail.gmail.com>
+Message-ID: <a4c3bc202e8c1bf3a0e4df48fc584397@igalia.com>
+X-Sender: uajain@igalia.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Spam-Report: NO, Score=-4.9, Tests=ALL_TRUSTED=-3,BAYES_00=-1.9,KAM_DMARC_STATUS=0.007
+X-Spam-Score: -48
+X-Spam-Bar: ----
+X-Rspamd-Score: -2.8
+X-Rspamd-Action: no action
+X-Rspamd-Bar: --
 
-On Tue, Nov 10, 2026 at 9:52=E2=80=AFAM Johan Hovold <johan@kernel.org> wro=
-te:
->
-> device_remove_software_node() should only be used to remove secondary
-> firmware nodes added by device_add_software_node() but will currently
-> drop a reference also if a device has a primary software node.
->
-> Bail out early if device_remove_software_node() is called for a device
-> whose primary firmware node is a software node and fix up the two
-> callers that currently work around this themselves.
->
-> Signed-off-by: Johan Hovold <johan@kernel.org>
-> ---
->  drivers/base/core.c         | 3 ++-
->  drivers/base/platform.c     | 9 ++++-----
->  drivers/base/swnode.c       | 3 +++
->  drivers/i2c/i2c-core-base.c | 9 +++------
->  include/linux/device.h      | 1 +
->  5 files changed, 13 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/base/core.c b/drivers/base/core.c
-> index bf97b06337a1..460c7ad1eaeb 100644
-> --- a/drivers/base/core.c
-> +++ b/drivers/base/core.c
-> @@ -5212,10 +5212,11 @@ int dev_warn_probe(const struct device *dev, int =
-err, const char *fmt, ...)
->  }
->  EXPORT_SYMBOL_GPL(dev_warn_probe);
->
-> -static inline bool fwnode_is_primary(struct fwnode_handle *fwnode)
-> +bool fwnode_is_primary(struct fwnode_handle *fwnode)
->  {
->         return fwnode && !IS_ERR(fwnode->secondary);
->  }
-> +EXPORT_SYMBOL_GPL(fwnode_is_primary);
+Hi Rafael,
 
-Not used in modules as Andy said, so need not be exported AFAICS.
+Thanks for the review
 
->
->  /**
->   * set_primary_fwnode - Change the primary firmware node of a given devi=
-ce.
-> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> index be5d2f315fdb..e0b38dbd5acf 100644
-> --- a/drivers/base/platform.c
-> +++ b/drivers/base/platform.c
-> @@ -598,15 +598,14 @@ static void platform_device_release(struct device *=
-dev)
->  {
->         struct platform_object *pa =3D container_of(dev, struct platform_=
-object,
->                                                   pdev.dev);
-> -       bool fwnode_is_software_node =3D is_software_node(dev_fwnode(dev)=
-);
->
->         device_remove_software_node(dev);
->         /*
-> -        * If the firmware node is a software node, its reference count
-> -        * was decremented by device_remove_software_node().
-> +        * Must be done after device_remove_software_node() which may hav=
-e
-> +        * freed a secondary firmware node and cleared the fwnode pointer=
-.
->          */
-> -       if (!fwnode_is_software_node)
-> -               fwnode_handle_put(pa->pdev.dev.fwnode);
-> +       fwnode_handle_put(dev->fwnode);
-> +
->         kfree(pa->pdev.dev.platform_data);
->         kfree(pa->pdev.mfd_cell);
->         kfree(pa->pdev.resource);
-> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-> index 5dc2029f9a7b..a90c20cb84e6 100644
-> --- a/drivers/base/swnode.c
-> +++ b/drivers/base/swnode.c
-> @@ -1108,6 +1108,9 @@ void device_remove_software_node(struct device *dev=
-)
->         if (!swnode)
->                 return;
->
-> +       if (fwnode_is_primary(&swnode->fwnode))
-> +               return;
-> +
->         if (device_is_registered(dev))
->                 software_node_notify_remove(dev);
->
-> diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-> index c55ca14eaad9..af3ae2a83626 100644
-> --- a/drivers/i2c/i2c-core-base.c
-> +++ b/drivers/i2c/i2c-core-base.c
-> @@ -1056,7 +1056,6 @@ EXPORT_SYMBOL_GPL(i2c_new_client_device);
->  void i2c_unregister_device(struct i2c_client *client)
->  {
->         struct fwnode_handle *fwnode;
-> -       bool fwnode_is_software_node;
->
->         if (IS_ERR_OR_NULL(client))
->                 return;
-> @@ -1067,14 +1066,12 @@ void i2c_unregister_device(struct i2c_client *cli=
-ent)
->         else if (is_acpi_device_node(fwnode))
->                 acpi_device_clear_enumerated(to_acpi_device_node(fwnode))=
-;
->
-> -       fwnode_is_software_node =3D is_software_node(fwnode);
->         device_remove_software_node(&client->dev);
->         /*
-> -        * If the firmware node is a software node, its reference count
-> -        * was decremented by device_remove_software_node().
-> +        * Must be done after device_remove_software_node() which may hav=
-e
-> +        * freed a secondary firmware node and cleared the fwnode pointer=
-.
->          */
-> -       if (!fwnode_is_software_node)
-> -               fwnode_handle_put(fwnode);
-> +       fwnode_handle_put(client->dev.fwnode);
->         device_unregister(&client->dev);
->  }
->  EXPORT_SYMBOL_GPL(i2c_unregister_device);
-> diff --git a/include/linux/device.h b/include/linux/device.h
-> index 6b082c638d45..229a15625766 100644
-> --- a/include/linux/device.h
-> +++ b/include/linux/device.h
-> @@ -1280,6 +1280,7 @@ int lock_device_hotplug_sysfs(void);
->  int device_offline(struct device *dev);
->  int device_online(struct device *dev);
->
-> +bool fwnode_is_primary(struct fwnode_handle *fwnode);
+On 2026-11-09 18:22, Rafael J. Wysocki (Intel) wrote:
+> On Wed, Oct 14, 2026 at 10:44 PM Umang Jain <uajain@igalia.com> wrote:
+>>
+>> Valve steamdeck devices can report battery status as
+>> charging, even when low-powered power supply is connected
+>> to the device. The battery status is reported as charging
+>> through sysfs, even though in reality, it is discharging.
+>>
+>> To handle this case, read out Battery charge time ("_BCT")
+>> as it is reported accurately on these devices, hence use that
+>> information for report charging vs discharging status.
+>> Battery charge time ("_BCT") with an eligible power supply unit
+>> will have valid values whereas with a low-powered supply unit,
+>> it shall report ACPI_BATTERY_VALUE_UNKNOWN. Use this as a
+>> differentiator to determine, whether the battery of steamdeck
+>> devices is really charging or not.
+>>
+>> Signed-off-by: Umang Jain <uajain@igalia.com>
+> 
+> I think that it would be better to merge this patch with the [1/2].
+> 
+>> ---
+>>  drivers/acpi/battery.c | 25 ++++++++++++++++++++++++-
+>>  1 file changed, 24 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+>> index fa20900bea0e..b7818695b6cb 100644
+>> --- a/drivers/acpi/battery.c
+>> +++ b/drivers/acpi/battery.c
+>> @@ -242,7 +242,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
+>>                                         : POWER_SUPPLY_STATUS_DISCHARGING;
+>>                                 return 0;
+>>                         }
+>> -               else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
+>> +               else if (battery->state & ACPI_BATTERY_STATE_CHARGING) {
+>>                         /* Check the rate and capacity to validate the status. */
+>>                         if (!acpi_battery_is_full(battery) ||
+>>                             (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
+>> @@ -252,6 +252,29 @@ static int acpi_battery_get_property(struct power_supply *psy,
+>>                                 /* Full and zero rate. */
+>>                                 val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+>>                         }
+>> +
+>> +                       /*
+>> +                        * For Valve Steamdeck devices, evaluate _BCT to determine
+>> +                        * if we are really charging.
+>> +                        */
+>> +                       if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags) &&
+>> +                           acpi_has_method(battery->device->handle, "_BCT")) {
+> 
+> Can you check the _BCT presence at the time when the quirk bit is set
+> and avoid setting the bit when _BCT is not present?  That would allow
+> you to just test the bit here.
+> 
+>> +                               unsigned long long bct;
+>> +                               acpi_status status;
+>> +                               union acpi_object arg0 = { ACPI_TYPE_INTEGER };
+>> +                               struct acpi_object_list args = { 1, &arg0 };
+>> +
+>> +                               arg0.integer.value = 100;
+>> +                               status = acpi_evaluate_integer(battery->device->handle, "_BCT",
+>> +                                                              &args, &bct);
+>> +                               if (ACPI_FAILURE(status) || bct > ACPI_UINT32_MAX)
+>> +                                       acpi_handle_info(battery->device->handle,
+> 
+> This should be acpi_handle_debug(), but I'm not sure if this message
+> is interesting at all, especially if _BCT fails every time.  Also, it
+> may be confusing in the bct > ACPI_UINT32_MAX case because it may
+> print "success" then.
 
-Could this go to drivers/base/base.h until there is an outside user?
+Agree with the ACPI_UINT32_MAX comment. I would like to keep the message
+with acpi_handle_debug and split the if branch to handle the bct >
+ACPI_UINT32_MAX separately. In this case, I won't print the
+acpi_format_exception(status) and simply write that bct value is just
+invalid. How does that sound?
 
->  void set_primary_fwnode(struct device *dev, struct fwnode_handle *fwnode=
-);
->  void set_secondary_fwnode(struct device *dev, struct fwnode_handle *fwno=
-de);
->  void device_set_node(struct device *dev, struct fwnode_handle *fwnode);
-> --
+Thanks.
+
+> 
+>> +                                                        "_BCT evaluation failed: %s",
+>> +                                                        acpi_format_exception(status));
+>> +                               else if (bct == ACPI_BATTERY_VALUE_UNKNOWN)
+>> +                                       val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
+>> +                       }
+>> +               }
+>>                 else if (battery->state & ACPI_BATTERY_STATE_CHARGE_LIMITING)
+>>                         val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+>>                 else if (acpi_battery_is_charged(battery))
+>> --
