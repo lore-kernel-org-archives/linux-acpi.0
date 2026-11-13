@@ -1,89 +1,73 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=52.42.203.116
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794567805;
-	b=oanJls0Akj3Osd0lToImTsVPjcS7hUms9zxmJl28XzqILFDTnTBG8HEsjHmb9UKWuWHg
-	 Td5TNNbV6GA68r0cSv3DBhki5NQH6y+8qzeMjI4VM9kVyqjB6Dx1KGKuqzlzjQbrlqeAX
-	 EyNhWAic6J7h4KUzmP1kx4gcvPm3AuN6nXXIdnYA93CmOjL0IRCPdCXWfTiTZyG2WXzFk
-	 k9boCXNaqYHoNbey6oRFzYWoBaVk5ME1r21NvjEdDgHbDGkZH4zWOpr89a83fhc4Qq2xV
-	 uoe7vsk7YXUZtyX8TzTbrPocM3T2opsYM841aOVM8zW14LIGsFrgwe21A3c/oGOqqag==
+	t=1794568464;
+	b=x28acHhIT88jUDgVQJkp4PfqcyTH1/3m7pGYl3QkzP9921j28kC1ufXKYyLTRx4tQqQj
+	 0uySGCbywsNmN88bN+Z87EYO++fosTOaL0Bui5L5Si1F7YLTSBukDmJYTBOt5RKmlzWZG
+	 ETno1IdqZIuw6NkAJmGg821bK+DILWzvcOs1W9NuSZztmzsxOX05zy5+6fUsUync+r88I
+	 ynV/W06+JJcwb2Dzs4W47O2QkruVAXlSyWI8INCYpCUizwKvB2PPaF7xEOvg5JbZ4IHIo
+	 ysXH4aQWfE0MQDhZYUMb8fsbSXuRuKjA1cW0YZ9LnkrODDLwPQggdXWKVaMWlqwCCQg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794567805;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:Received:Received:X-Farcaster-Flow-ID:Received:Received:
-	 From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding:Content-Type:X-Originating-IP:
-	 X-ClientProxiedBy;
-	bh=IfMDB5jT1COQwB7EaC+iwOi7A/4j/kO76zTU8Es9W8g=;
-	b=WuNzaSJJmrIsooYXjhUXP1c8H1FbzH9aKwpUOgWHN0oyUthgqGOoSz1C792kHRNE0yah
-	 +M00HuB0sIvdlqgpfUuBbLUWhecbMN4buZQ+A0nwpwAeLMcTsUg0gcnjyYD9qY3KRnrrq
-	 1ONvqcTPFRDd/M+L8RFVbiPCjMaJkDqv5InCdkf9EgXU64Hdk0jQm4Xq7kNJOkzxI7UpG
-	 ywQYOOpY5tWgHedXS6FiW02vwbdXPVmKc3SWoU0yblXMJObG3ypD/b7I7JeufYYsArpYz
-	 S7CyMmekVLE+T8Zyvpm6z+7L1RBjMKsCKiejGE8QyzYxmesQgSzPNxEsL4NirYMQLOg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794568464;
+	h=Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Type:X-Developer-Signature:X-Developer-Key:
+	 Content-Transfer-Encoding;
+	bh=5uCHaY+d+EreOr4KjJ27to6WGWTyNXNqphjNuVoJ+lo=;
+	b=FMXm5VAHH+NbviqSn0yfaiQeZqodPHhaYTtDEZay9tNuhqofM0jokVdjeFuNdOugIoQ0
+	 8gqJ+F80j8rm7tiBZo25ia/aQk63+Gp7okz7V4FrqK7MX0SfbLnrM25V91JZKORWz6nNW
+	 33+p4F5E3isVxTBuUDzmaxx31lmTcSEZB/GegHJ2RSsS7k5VTUPbgL9B2GNLDaRdKCVmK
+	 T4tJYvgwA0VFM6hIYm5bdCBlXopd5OLkVSZLFHqZGVc1stGyX8CjNal0cFKsSWunukV/7
+	 aIjUmA4mEjL4Pl/GVTByFqI5dm+UtohIvTCIn9tbY7GQeW8OVuftO18uowDNosHooww==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=amazon.com;
-	spf=pass smtp.mailfrom=amazon.com;
-	dkim=pass header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=lvmUcpjE;
-	arc=none smtp.remote-ip=52.42.203.116
-Received: from pdx-out-008.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-008.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.42.203.116])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83668606A331;
-	Fri, 13 Nov 2026 11:03:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 83668606A331
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=lvmUcpjE
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1794567805; x=1826103805;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=IfMDB5jT1COQwB7EaC+iwOi7A/4j/kO76zTU8Es9W8g=;
-  b=lvmUcpjEzJlppHb1fGrSe6vx6PvOqn6YlzXX+t3MZFWUQoTsQ5UAn8tD
-   Ck329CfBbCryLn2lyDMa6bwR0khU15wrYujjxfyAQcqgleNzFQYs2Ejhu
-   OGTPjakD3YjYsb42xOJ1lxQjJFt+0Ng21jYrgrCNgNMUpB1lwh0Qm8LcX
-   N5mKB8fr9bNxO8iRlid6cPoOLTgtTb5gjLh3Yp3NOzI36njDeuJj0LeZK
-   ec1SEMqP66nTxjbkDCEImNdY/UvlCCO7SOtIL3NUzucD8Ns8rOWx0A9oH
-   zZQfjmNtgv8OD5szHlfsC7CpT2FXtc6Q4RDBh1LaZPn7ab/VdgO5l6cm2
-   A==;
-X-CSE-ConnectionGUID: wc8Sr9MET0GF1ptZHaPoFg==
-X-CSE-MsgGUID: RrTJuRR+R/++b5y85wG1Gw==
-X-IronPort-AV: E=Sophos;i="6.27,211,1787011200"; 
-   d="scan'208";a="33912430"
-Received: from ip-10-5-9-48.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.9.48])
-  by internal-pdx-out-008.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 11:03:23 +0000
-Received: from EX19MTAUWA001.ant.amazon.com [205.251.233.236:22474]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.55.227:2525] with esmtp (Farcaster)
- id a839e1dc-e47b-4102-9419-ebbca99491bb; Fri, 13 Nov 2026 11:03:22 +0000 (UTC)
-X-Farcaster-Flow-ID: a839e1dc-e47b-4102-9419-ebbca99491bb
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWA001.ant.amazon.com (10.250.64.204) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.56;
- Fri, 13 Nov 2026 11:03:22 +0000
-Received: from dev-dsk-farbere-1a-46ecabed.eu-west-1.amazon.com
- (172.19.116.181) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.56; Fri, 13 Nov 2026
- 11:03:19 +0000
-From: Eliav Farber <farbere@amazon.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Dmitry Torokhov
-	<dmitry.torokhov@gmail.com>, Laurent Pinchart
-	<laurent.pinchart@ideasonboard.com>, Hans de Goede <hansg@kernel.org>,
-	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, Armin Wolf
-	<W_Armin@gmx.de>, Sebastian Reichel <sre@kernel.org>, Andrew Morton
-	<akpm@linux-foundation.org>
-CC: <linux-acpi@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
-	<linux-input@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
-	<linux-pwm@vger.kernel.org>, <platform-driver-x86@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, <linux-kernel@vger.kernel.org>, Eliav Farber
-	<farbere@amazon.com>
-Subject: Re: [PATCH v6 0/7] notifier: convert remaining drivers to device-managed registration
-Date: Fri, 13 Nov 2026 11:03:15 +0000
-Message-ID: <20261113110315.20412-1-farbere@amazon.com>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261113104218.32566-1-farbere@amazon.com>
-References: <20261113104218.32566-1-farbere@amazon.com>
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id D10A5606A323;
+	Fri, 13 Nov 2026 11:14:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id D16931F000C4;
+	Fri, 13 Nov 2026 11:14:23 +0000 (UTC)
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig=20=28The=20Capable=20Hub=29?= <u.kleine-koenig@baylibre.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <ukleinek@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Zhang Rui <rui.zhang@intel.com>,
+	"Mario Limonciello (AMD)" <superm1@kernel.org>,
+	Saranya Gopal <saranya.gopal@intel.com>,
+	Gergo Koteles <soyer@irl.hu>,
+	Jakob Riemenschneider <riemenschneiderjakob@gmail.com>,
+	Yauhen Kharuzhy <jekhor@gmail.com>,
+	Pawel Zalewski <pzalewski@thegoodpenguin.co.uk>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	nvdimm@lists.linux.dev,
+	linux-pci@vger.kernel.org,
+	Kai-Heng Feng <kaihengf@nvidia.com>,
+	Tony Luck <tony.luck@intel.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Shuai Xue <xueshuai@linux.alibaba.com>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Chu Guangqing <chuguangqing@inspur.com>,
+	Andy Shevchenko <andy@kernel.org>,
+	Mika Westerberg <westeri@kernel.org>
+Subject: [PATCH v1 0/4] ACPI: Use named initializers for acpi_device_id arrays
+Date: Fri, 13 Nov 2026 12:13:56 +0100
+Message-ID: <cover.1794567577.git.ukleinek@kernel.org>
+X-Mailer: git-send-email 2.56.0.rc1
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -93,21 +77,103 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4135; i=u.kleine-koenig@baylibre.com; h=from:subject:message-id; bh=6g9eJPIna9nXlYz5oY9GDvVOE+uQvQq1cCDAUQqIBMY=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBq9vD1Kg2jK4rH2lmPt2M0Te8a2xic+vqtitA1M MvIAFTTaT6JATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCavbw9QAKCRCPgPtYfRL+ TjduB/9LBwdKRfEgL0Z71JbSxfnKjG4cK1gLHWsDCCiAyYAXixAp/0bThuLUukIoPUgCEpNSKK1 wcy1HvRlRjngb8u209KeEXLpyb3g3IoKuJNwjdfa1tzl1fSRnEI5qlEZHE4p5PAtjiN1hYGFH/u IFTavpxOlQDmTwnXqJogxdEXwDZO4BvsgXIh8100Q+/9Mv2gq1PPmor0KU6Y78OyoznaHmvr++0 6PyWE0lXRx2PO9ePuKFx/79xvcpzWQ2lltsYtpZ4ksnFGHTIeN0RJotAmYPoHA/CwK5xkPOh3Kl yempOaPt5ZHdPuiA6EY3eM2i+VNfN+79E9tIE6qyV3ikyaoX
+X-Developer-Key: i=u.kleine-koenig@baylibre.com; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: EX19D031UWC002.ant.amazon.com (10.13.139.212) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-Patches 5/7, 6/7 and 7/7 are not in this thread. My mail server refused the
-second half of the series with a submission rate limit, and the resend went
-out as a separate thread:
+From: Uwe Kleine-König <ukleinek@kernel.org>
 
-  5/7 https://lore.kernel.org/all/20261113104459.35839-1-farbere@amazon.com/
-  6/7 https://lore.kernel.org/all/20261113104459.35839-2-farbere@amazon.com/
-  7/7 https://lore.kernel.org/all/20261113104459.35839-3-farbere@amazon.com/
+Hello,
 
-All seven patches were delivered, so I am not resending them. Sorry for the
-split thread.
+this series is about preparing drivers/acpi for a change to struct
+acpi_device_id. The idea is to replace .driver_data by an anonymous
+union, see
+https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@baylibre.com/
+for more details. (The linked example is about platform_device_id, I
+intend to apply it acpi_device_id and several others, too.)
 
---
-Thanks, Eliav
+Before this union can be added, all initializers must use named
+initializers (C99 calls them designated initializers), which IMHO is a
+nice cleanup that can stand for itself as it makes the code easier to
+read.
+
+Pawel sent a similar series earlier, find it at
+https://lore.kernel.org/all/20260727-acpi-refactor-v1-0-ff900aa326ee@thegoodpenguin.co.uk/.
+Compared to that the patch splitting is done differently and the base
+here is newer.
+
+I checked for the other *_device_id and for these there is nothing to do
+below drivers/acpi because the few instances already use named
+initializers.
+
+The last patch in this series is just some cosmetic to align the coding
+style. If you consider it churn, just drop it.
+
+It would be great to get this series in soon, as keeping it up to date
+for a later resend is an annoying effort. Thanks for your cooperation.
+
+Best regards
+Uwe
+
+Uwe Kleine-König (The Capable Hub) (4):
+  ACPI: Unify acpi_device_id list terminators
+  ACPI: Drop unused .driver_data initializers in acpi_device_id arrays
+  ACPI: Use named initializers for acpi_device_id arrays
+  ACPI: Unify *_device_id list terminators
+
+ drivers/acpi/ac.c                       |   6 +-
+ drivers/acpi/acpi_apd.c                 |  46 +--
+ drivers/acpi/acpi_memhotplug.c          |   4 +-
+ drivers/acpi/acpi_pad.c                 |   4 +-
+ drivers/acpi/acpi_platform.c            |  12 +-
+ drivers/acpi/acpi_pnp.c                 | 514 ++++++++++++------------
+ drivers/acpi/acpi_processor.c           |   6 +-
+ drivers/acpi/acpi_tad.c                 |   4 +-
+ drivers/acpi/acpi_video.c               |   4 +-
+ drivers/acpi/apei/ghes-nvidia.c         |   2 +-
+ drivers/acpi/arm64/amba.c               |   6 +-
+ drivers/acpi/battery.c                  |   8 +-
+ drivers/acpi/bus.c                      |   2 +-
+ drivers/acpi/button.c                   |  14 +-
+ drivers/acpi/container.c                |   8 +-
+ drivers/acpi/dptf/dptf_pch_fivr.c       |  14 +-
+ drivers/acpi/dptf/dptf_power.c          |  38 +-
+ drivers/acpi/ec.c                       |   8 +-
+ drivers/acpi/evged.c                    |   4 +-
+ drivers/acpi/fan_core.c                 |   2 +-
+ drivers/acpi/hed.c                      |   4 +-
+ drivers/acpi/mipi-disco-img.c           |   2 +-
+ drivers/acpi/nfit/core.c                |   4 +-
+ drivers/acpi/osi.c                      |   2 +-
+ drivers/acpi/pci_link.c                 |   4 +-
+ drivers/acpi/pci_root.c                 |   4 +-
+ drivers/acpi/pci_slot.c                 |   2 +-
+ drivers/acpi/pfr_telemetry.c            |   4 +-
+ drivers/acpi/pfr_update.c               |   4 +-
+ drivers/acpi/pmic/intel_pmic_bxtwc.c    |   2 +-
+ drivers/acpi/pmic/intel_pmic_chtdc_ti.c |   2 +-
+ drivers/acpi/pmic/intel_pmic_chtwc.c    |   2 +-
+ drivers/acpi/power.c                    |   2 +-
+ drivers/acpi/processor_driver.c         |   6 +-
+ drivers/acpi/processor_idle.c           |   2 +-
+ drivers/acpi/sbs.c                      |   4 +-
+ drivers/acpi/sbshc.c                    |   6 +-
+ drivers/acpi/scan.c                     |  48 +--
+ drivers/acpi/sleep.c                    |   2 +-
+ drivers/acpi/thermal.c                  |   6 +-
+ drivers/acpi/tiny-power-button.c        |   6 +-
+ drivers/acpi/video_detect.c             |   2 +-
+ drivers/acpi/x86/blacklist.c            |   2 +-
+ drivers/acpi/x86/cmos_rtc.c             |   2 +-
+ drivers/acpi/x86/lpss.c                 |  58 +--
+ drivers/acpi/x86/s2idle.c               |  14 +-
+ drivers/acpi/x86/utils.c                |  22 +-
+ include/linux/acpi.h                    |   8 +-
+ 48 files changed, 466 insertions(+), 466 deletions(-)
+
+
+base-commit: 6d582d78fad9d828e575ca0cdcff8ea47a77220b
+-- 
+2.56.0.rc1
+
