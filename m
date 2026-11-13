@@ -1,106 +1,71 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.16
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=194.117.254.33
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794605654;
-	b=XP++pAfFs/UPfZMnCUZQWRM44eEhns5cuzQAYM6wizdB9toFpScqsMJzKnWCVZ6NcCCc
-	 P8d/Jhm4+0eFPbdCxwQ1cfdrW0z6fgomH7E6KrA1eVCBaX/0mpwwboco49Qqgn2NHqCJy
-	 YvCm1GpqsvGft2nYhvru4WXgHNXwZT7xyAJsfrSpsM+BzJqzA3vc+Cj9re3rf4fHAHRk9
-	 Rb6Kpv7JZb1Hi4JwXvTni70o4n7A6ymx8CQ9ykdGyuZ39KbxBwGLkscrFVc6SDqTBwqt8
-	 CTmWviXQygP6A97Tg0D8+0Wffit8AkzpxUJUb4TfUyFd1H/aTuQ9RPrq85jYuGCFCYQ==
+	t=1794607479;
+	b=Y+Mu6YqdDWeFyKEzzXlKZ5OU79AVW+t8Q6hHe5mfzgA7fNwXwIc1vUDBJwC3WQ198DIy
+	 LLYWhJSuasJixlhIDkehOLzWAqGbLkgZpC75qfX97Baxtg7OAq/i9w61Ii8zt6SSqf+BZ
+	 zITIZAod8Bsbg9euxlwePxKknp3f1lSVg51MAa/1xrOpYOjX0RcqVhR9s1IZq6LVzJ86u
+	 ztctJOq0dMUUFf8K4auFZAbb5cNSAfcAYg0RkS+RvI42b7eiUv1UPvwUXakZEOy407tYr
+	 ZC9U9mLjiFg6CHU3JH5hRgIJDheXv66VAqHLbfrxHJZXiRyopfhAvj5N/yWTaBjIvyQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794605654;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:
-	 Organization:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=AfGkZPNe0g6Nw9LmU0I8+cKHSNqAZxOuxjNAJhbRjIw=;
-	b=YxUGlg/z+qtCv9p6G8BUQ/FdWHYZuS17M2ghE/Kxv8w2XKSJuH4wpBpjsIBDGoqxA5DJ
-	 MfU4+348KLpVWBV/eIRrmgw4+EALSBvYEd8V6Nsk5Oyq5Vn19ZoGkiioaI5WFPij1B1Vi
-	 N6d7g76uGz4xyL7Uj/acwZ8kZzfWGfv9713rskEwfmLLOPpFMC16rvGSDknoC6UbPQsC9
-	 5QAUEB9tKKoIUJGNdDud7OL3VH1UpAJrdB3E9fxUoUndl9Iq4bETbj/ocIB9RyMB1qYIm
-	 AZycvSE/AfWdagROzta9+TtOBd3wb9aZksGe7XuQUWiuJUau/I5bzQ+5lTyc3a8xefA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794607479;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:X-UD-Smtp-Session:Date:
+	 From:To:Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=060IlpN6nZBHuShVfn1h6xjHXL8bq9e9OYpRoM9tWdM=;
+	b=EcQXg4vIFZhvIVsLM6i4rlsA1eN5rGDw0yodAMcelN3OBYGWKsAeSGCcpAmYQ0Fc2/c2
+	 RoLngaADu0nCrMUuPz4Z+i3Zby8nErrH2tgBouJ0ZmDe7ri5tYWyEP2YAAMMQfRWnlOVB
+	 DeIyeUhIhnAiy/64kZype5L/bmmJCgyvKF35DKSpSWaMUb/4uSu+yFEPuKs/UMrHWuUhg
+	 UzgRg/AEuCNqSgOUPbjuorxXv72phK+fHPlfyNuPiFNntNshaq804RU4Z6bZiqI0h5GCP
+	 qn8yIA6FzExjmLtz2Ieb8kYoC6VccC1kQK4qJjieAgYqE7fDMxEu+ExUcx5J25tEd9g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=kVy3Le0q;
-	arc=none smtp.remote-ip=198.175.65.16
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=none header.from=sang-engineering.com;
+	spf=pass smtp.mailfrom=sang-engineering.com;
+	dkim=pass header.d=sang-engineering.com header.i=@sang-engineering.com header.a=rsa-sha256 header.s=k1 header.b=QtKGYcQI;
+	arc=none smtp.remote-ip=194.117.254.33
+Received: from mail.zeus03.de (zeus03.de [194.117.254.33])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 476AC606A889;
-	Fri, 13 Nov 2026 21:34:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 476AC606A889
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D115606A330
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 22:04:36 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4D115606A330
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sang-engineering.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=kVy3Le0q
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794605653; x=1826141653;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=5H18aAry4/GXJ6hd2/WDeC5xY+R/z+QH0pzgy9iRGOQ=;
-  b=kVy3Le0qh2EnrkBBmHiVtyIxrqVoNnkk+N3X68mUvHqQAdjH1TgoEeu4
-   YezJ6Je3WUz4UTzDkJlEItV+T9g7xjmRvRy0p4zAPFXA58LjXy++h97wp
-   c1NKsKoxDt+P4KfbUjs10cT0NlClEMmuGfl5solZxem/2E0uMWEgWjyeq
-   fTs+eYj2rSpo8UJdNuNTEFC2yUHdLmqSeg2s92ftTlDy+X9CbOYErUFmM
-   RvHfpTs7QrrKeb6Hi5L2oUUN3YigiE/IPBPdUkNvSxK6blmkhCpITAPXk
-   gMnpM1D0jBhZp5/adF1341hufASYfnkKgCJBMB8MudlN5bTLm4zvXrLsO
-   Q==;
-X-CSE-ConnectionGUID: jA+ZCfHoSPaWk2BfJA6oSw==
-X-CSE-MsgGUID: Ln2bkXw/SAS5VY9O2fUYnA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11965"; a="3410644"
-X-IronPort-AV: E=Sophos;i="6.27,212,1787036400"; 
-   d="scan'208";a="3410644"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 13:34:13 -0800
-X-CSE-ConnectionGUID: 5uaN0zGOSKClUoi4WnQggg==
-X-CSE-MsgGUID: v1L1tUjtRSSjwXDnysT+fA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,212,1787036400"; 
-   d="scan'208";a="8829869"
-Received: from ettammin-mobl3.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.244.254])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 13:34:06 -0800
-Received: from kekkonen.localdomain (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with SMTP id 5F3FB11F7E7;
-	Fri, 13 Nov 2026 23:34:07 +0200 (EET)
-Date: Fri, 13 Nov 2026 23:34:07 +0200
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Pavel Popov <pavel.e.popov@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Viresh Kumar <viresh.kumar@linaro.org>,
-	Jani Nikula <jani.nikula@linux.intel.com>,
-	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-	Rodrigo Vivi <rodrigo.vivi@intel.com>,
-	Tvrtko Ursulin <tursulin@ursulin.net>,
-	Alex Deucher <alexander.deucher@amd.com>,
-	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-	Hans de Goede <hansg@kernel.org>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Peter Huewe <peterhuewe@gmx.de>,
-	Jarkko Sakkinen <jarkko@kernel.org>,
-	Tom Lendacky <thomas.lendacky@amd.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Leon Romanovsky <leon@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Arnd Bergmann <arnd@arndb.de>, Len Brown <lenb@kernel.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>, David Airlie <airlied@gmail.com>,
-	Simona Vetter <simona@ffwll.ch>,
-	"David S . Miller" <davem@davemloft.net>, x86@kernel.org,
-	linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
-	intel-gfx@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-	dri-devel@lists.freedesktop.org,
-	platform-driver-x86@vger.kernel.org,
-	linux-integrity@vger.kernel.org, linux-crypto@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-pci@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/7] ACPI: mipi-disco-img: Include <asm/cpu_device_id.h>
- unconditionally
-Message-ID: <aveCT1hwhMcJ_Efm@kekkonen.localdomain>
-References: <20261111234821.4814-1-pavel.e.popov@intel.com>
- <20261111234821.4814-2-pavel.e.popov@intel.com>
+	dkim=pass (2048-bit key, unprotected) header.d=sang-engineering.com header.i=@sang-engineering.com header.a=rsa-sha256 header.s=k1 header.b=QtKGYcQI
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	sang-engineering.com; h=date:from:to:cc:subject:message-id
+	:references:mime-version:content-type:in-reply-to; s=k1; bh=060I
+	lpN6nZBHuShVfn1h6xjHXL8bq9e9OYpRoM9tWdM=; b=QtKGYcQINLZUbtBvGCrX
+	feBVnRhzy4dEj4v8brwXHAjMaRSL7bcMQaulQM1FlgQOGXCUMedRIYcOXT9cAZCa
+	kRyT5afiDUnnj/EqONlbiNV1sxsCNgDfidTvRAaHQ+4S9wvNzHNT3Rqj6I/DKVeC
+	aXmoKMaCQDVwusYmeKu0SqpliUW7whlJohAEdqKFwD2XMhypU58x38EiedEkywjb
+	DYkYWEEJTtfJ3ODg0NVlHHEHhWrO8oQ1kobOVK0CaA1DwB4A0L/l2UqffG3r+8iw
+	fof+7B1NO0+SruLY6T6U7ByveZh4NZ/m9lz8z6Fdm3hkB/sj1+5m/xmejGZpMLXB
+	NQ==
+Received: (qmail 379181 invoked from network); 13 Nov 2026 23:04:34 +0100
+Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 13 Nov 2026 23:04:34 +0100
+X-UD-Smtp-Session: l3s3148p1@E2f9nC9g+uAujntX
+Date: Fri, 13 Nov 2026 23:04:32 +0100
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: Johan Hovold <johan@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Andi Shyti <andi.shyti@kernel.org>, driver-core@lists.linux.dev,
+	linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+	Hans de Goede <hansg@kernel.org>
+Subject: Re: [PATCH v2 2/8] i2c: core: fix swnode use-after-free on client
+ deregistration
+Message-ID: <aveJbJBz0lRkpXMV@shikoro>
+References: <20261110085125.2535508-1-johan@kernel.org>
+ <20261110085125.2535508-3-johan@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -110,20 +75,59 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="j+L7QhPvMLGA3QYz"
+Content-Disposition: inline
+In-Reply-To: <20261110085125.2535508-3-johan@kernel.org>
+
+--j+L7QhPvMLGA3QYz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261111234821.4814-2-pavel.e.popov@intel.com>
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Nov 11, 2026 at 04:48:14PM -0700, Pavel Popov wrote:
-> <asm/cpu_device_id.h> now has a generic version, so the #ifdef
-> CONFIG_X86 around the include is no longer needed.
-> 
-> <asm/intel-family.h> is included by <asm/cpu_device_id.h>. The CPU
-> match table still needs CONFIG_X86 for the INTEL_* model defines.
-> 
-> Signed-off-by: Pavel Popov <pavel.e.popov@intel.com>
+On Tue, Nov 10, 2026 at 09:51:18AM +0100, Johan Hovold wrote:
+> If a client has both a primary and a secondary firmware node, the
+> secondary node is accessed via the ->secondary pointer of the primary
+> node.
+>=20
+> Use a temporary variable to track whether the firmware node is a
+> software node and remove any software node before dropping its reference
+> to avoid a use-after-free in device_remove_software_node() when
+> accessing the secondary firmware node.
+>=20
+> Fixes: df6d7277e552 ("i2c: core: Do not dereference fwnode in struct devi=
+ce")
+> Fixes: 1c24e5fc0c70 ("i2c: core: Fix double-free of fwnode in i2c_unregis=
+ter_device()")
+> Cc: stable@vger.kernel.org	# 6.16
+> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Cc: Hans de Goede <hansg@kernel.org>
+> Signed-off-by: Johan Hovold <johan@kernel.org>
 
-Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Looks reasonable to me. Thanks for doing this and the cleanup in patch
+4/8.
 
--- 
-Sakari Ailus
+Acked-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+
+
+--j+L7QhPvMLGA3QYz
+Content-Type: application/pgp-signature; name=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAmr3iWwACgkQFA3kzBSg
+KbaIMA//eWcgbnF7PZjDx4nprctqMRhaYXXJNHPesqlrO7deaWAuj6I1+Cliuco4
+sUxbGoaqeI3Pdn5iMAVHzuzxk4YWp9NqEGaarZZ6oT3MrPx8oTvQwYwnNTsou6yz
+t+x04+dPmw5di/r02KlpuI//3aGLKLVH1TStEZ7fdYdeKf9Cjw1BhzTQ5evVW0H2
+Xurqmq1uWGZ3QUvb7+LppwTkp3wp6AFbjY8Y2pRmxfrM4VgGuYLWExK7P//qqKR1
+pkpxjV4XGIvlZDlX7ynIWf55Yh2xWNjI89dS2ytFYtkXXgKf3KoGzZ+fGg0Y1Yhf
+mHJbnTCL+24rtpfDhPnC1fci8rVLJ2VvKVLtfXK3zaNe6ZOshRh8Rdl+dwfNckLi
+BMzTAr8NWsfp8m+sCrPZUDRk+bDEZiGu5IQbbgw4WwdREq/5g6z3eo+G7PF2D+HY
+cFHkyOVcMkKfq4IyYTm9AVXIKl1Oruz9QyefgNHCmdauegytSfsuI+oBvw66kXBu
+MhPSRrAlD2FLZYmOjfUT1R+rbncrT6tLHHwlRnSsjdvnVrZN5PUr+r3Jx9KTkchQ
+jTkp8P3WIcE3j3A+5DynJ2+VKhN9Pi/n/dLaK84buiyzOlzbm+TZ8NylR2nng6+q
+44eBFj99f+HuUQI/i9a6ovZwD1E9fLT0+J55g4IKqUeVi9KoIak=
+=UwRm
+-----END PGP SIGNATURE-----
+
+--j+L7QhPvMLGA3QYz--
