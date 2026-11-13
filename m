@@ -1,83 +1,73 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.224
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794561246;
-	b=ys2g20pHKMOU1FSiwtLsvyiRkDDskWWtKR8KHzXr0v4CEZuUAW4WfiZKhLHdznuInSnz
-	 RcbhFTWz3GYWTEdqv7JVpwNkyznkmp8JwW78zm+YTx49QlmlUqVlheXO8htm6jPZ+Eukc
-	 Gs6Gwg9KEmlvICNYSAH+tNXcZdVAUhDbc+KCOyd3C5AZ5k3XsaRujXRuQzjqrBx8hUe6f
-	 t7DBPDTggXuCHEldvtKtofdIi46F8UNwrNjEfLeuSXBh+p5GEf6Fb2iRAujMXVL/o5YsM
-	 FW5uGnxgyCYHwLYuX0zkRt/krovq0qUWVU9uVZoluD60E0hjsc4Wem918EGdLzuX12g==
+	t=1794561849;
+	b=Go5JtSCO/TRqAl3g8+2WeFPM+Pctam0+hA0H3zLd6A69P0jHz7wX3t0rJWgyuTzc87w8
+	 tAiu4mVhlH+w0qLAdqewFQ/8NN6LToc9VKR4vkhNigD2gzHXQV6cdxHtCjkZiEe4uvDmD
+	 kC9CDR5b9gPOvwzjI7CaGr+yD4nqj/HShVL/gZcMF0jCe7eiKaRhnHtfNE2mj1k1r3QJg
+	 XHIXzSihwfwIPiC2+XV4cQ+YbXxlWo7nMRzKRefQOHgEaKqiIN2cvQWpHeHDbpEgLqsiS
+	 UnEQJDLBeDAROV45zETIpdUx4itDpAIjH+COG0d281cUHGuGjhrUrIQDXEJSPseEzlQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794561246;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To;
-	bh=rcCOAgaNQ6mOxfEeq0aJhRnhXgr/WD3qzoIXLp7iAwM=;
-	b=sxVNkTuowSYF4ndIp8lolGOaYuVoP6Dgfbcj4vmEJsq4UermNRsTDV9HT5mOjoeeLOve
-	 c9tcrAif0fJTGACibCPOGEwfd5RYNrpgyXEPusaEMoN5LS0npq77F85chvuC/FPFiYeor
-	 S6Hb+gQ+4nfvnQB/UqszwyDjmOG9ocZSFOIsdt0JPmMnsHkssqLz899pKmNDOwiI8ZuBR
-	 0ZAoaOrc7IPcC66t4/0aMbzKZPc3GuwKh7IRmy5OS9O6YsmWaxH10sg1iDfgc2e9OPerS
-	 KVYAGyz730YdoWYorTuKbYStMzdzV4aIsX9ySFKKMPN9K0uoiepfLfjL4NizuGfPKfQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794561849;
+	h=DMARC-Filter:dkim-signature:Received:Received:Received:Subject:To:CC:
+	 References:From:Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
+	 Content-Type:Content-Language:Content-Transfer-Encoding:
+	 X-Originating-IP:X-ClientProxiedBy;
+	bh=2UkAup9JKL5N4FChP5o4WX7WhguH08XIpayrn6KgzY0=;
+	b=pXiYKKXqU8C+DPfdlqBTtFMtBgboPpCrx4jvueQ+H3IF+cYnpx4fQcGTOp+gm+QA5E+r
+	 pBdJAAbLj6CHCNSn7PPbpi/ZkpsTiEE7NRODWjuipWUzYEaymOGXHDJZvgdJjem1pi56f
+	 2pOfWPvGzfGSuMeSV7PVN/FR9H89lO5rMXyuMGkrWIbNYRKGFzjhLSUMeN4lnhv2R6E3j
+	 Jt+J7DS2faav9C/wmgExI+EZl9OwslrejAUesD9YFj8zmdJZgjWF6E89mQTjlLHwIXvPo
+	 +iR1b73KK/l1VLeXQI6b0RgF+O6+tUnluO9FvVJ90UcWZKnwauCgtUiqcZ995tQSrzA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=nzYFBAvs;
-	arc=none smtp.remote-ip=192.198.163.18
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=huawei.com;
+	spf=pass smtp.mailfrom=huawei.com;
+	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=OVkxP7CV;
+	arc=none smtp.remote-ip=113.46.200.224
+Received: from canpmsgout09.his.huawei.com (canpmsgout09.his.huawei.com [113.46.200.224])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27CB0606A31C
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 09:14:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 27CB0606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C01FA606A32D;
+	Fri, 13 Nov 2026 09:24:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C01FA606A32D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=nzYFBAvs
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794561245; x=1826097245;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=3YQC2srLmB0eRjZt+W5Kk9zvcxE/nqYSAZ8PFwWwbRU=;
-  b=nzYFBAvs8djHhSdWEJCabzoU5932qyHqClo4rgGp5UbO6hEFTPEAqCl7
-   LPf57dpt6er7uYNsQqhPm/4DdQNqFtCSAuTgsxM3zg2OMkaYe1pP1l0Nk
-   HGotaAoZ0Q5NIcYH0nNCs7ZbOgWt2ngH9N6rwvmXfjXg1UvQ4OTW1rCMt
-   tpO6/qzXK08E8PZg/zlgakjveT+96AXw/a8MTfYvxconEh0m4tqFbnQq2
-   iZNWMS5KHMbijP5Gp10r/hkEB7nGzbzY5n/8HRbI0hAuf6m7TQRX5PbLw
-   3iON6V4rc1HaW8G12PFkbopwLz5d380qrWOaDz6+52nGIKiYS66zfz1o5
-   A==;
-X-CSE-ConnectionGUID: CTQGm9a8TNOmJMCILit7jQ==
-X-CSE-MsgGUID: ZJ7TxUEXRFemcaGFd9321w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11964"; a="3388889"
-X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
-   d="scan'208";a="3388889"
-Received: from fmviesa011.fm.intel.com ([10.60.135.151])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 01:14:04 -0800
-X-CSE-ConnectionGUID: 918UqnjfQUaNbjvAweC7Xw==
-X-CSE-MsgGUID: NDVEmg+mRYOn7n4rQPLLqA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
-   d="scan'208";a="10656371"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by fmviesa011.fm.intel.com with ESMTP; 13 Nov 2026 01:14:02 -0800
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xRnM7-000000012ch-3Yr3;
-	Fri, 13 Nov 2026 09:13:59 +0000
-Date: Fri, 13 Nov 2026 17:13:20 +0800
-From: kernel test robot <lkp@intel.com>
-To: Sudeep Holla <sudeep.holla@kernel.org>, linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: oe-kbuild-all@lists.linux.dev, Sudeep Holla <sudeep.holla@kernel.org>,
-	Jamie Nguyen <jamien@nvidia.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>, Dat Mach <dmach@nvidia.com>
-Subject: Re: [PATCH v2 3/3] firmware: arm_ffa: Share FF-A version negotiation
-Message-ID: <202611131749.3XbZQkPM-lkp@intel.com>
-References: <20261112-acpi_ffh_ffa-v2-3-575a9dbed22b@kernel.org>
+	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=OVkxP7CV
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=2UkAup9JKL5N4FChP5o4WX7WhguH08XIpayrn6KgzY0=;
+	b=OVkxP7CVnLubVsEnGFmPeYl7pNL65vgfv7IV0f1jQCAqpbPz0ghOozSZnl9b0GwdUkxm38LTa
+	JE3f0u4LEilU6VQQF4qecX58VRD4M6gWfUidlyVUGcaJT8QiX8++AP5Kpg2BIZTO3KyciZrgE+b
+	suL8soanz8Y0IxbdJ+u/TWQ=
+Received: from mail.maildlp.com (unknown [172.19.163.127])
+	by canpmsgout09.his.huawei.com (SkyGuard) with ESMTPS id 4jQsJL5mLSz1cyTG;
+	Fri, 13 Nov 2026 17:23:46 +0800 (CST)
+Received: from whupemo200006.china.huawei.com (unknown [7.152.185.252])
+	by mail.maildlp.com (Postfix) with ESMTPS id 827ED40561;
+	Fri, 13 Nov 2026 17:24:03 +0800 (CST)
+Received: from [10.174.178.219] (10.174.178.219) by
+ whupemo200006.china.huawei.com (7.152.185.252) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Fri, 13 Nov 2026 17:24:02 +0800
+Subject: Re: [PATCH] ACPI: APEI: EINJ: Validate length of the Vendor Error
+ Type Extension structure
+To: "Luck, Tony" <tony.luck@intel.com>
+CC: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"rafael@kernel.org" <rafael@kernel.org>, "bp@alien8.de" <bp@alien8.de>,
+	"guohanjun@huawei.com" <guohanjun@huawei.com>, "mchehab@kernel.org"
+	<mchehab@kernel.org>, "xueshuai@linux.alibaba.com"
+	<xueshuai@linux.alibaba.com>, "lenb@kernel.org" <lenb@kernel.org>,
+	"wangzhigang17@huawei.com" <wangzhigang17@huawei.com>
+References: <20261111115729.253-1-yuzenghui@huawei.com>
+ <CH8PR11MB40343305FD3C1BE0E18882B5CCFC7F2@CH8PR11MB403433.namprd11.prod.outlook.com>
+From: Zenghui Yu <yuzenghui@huawei.com>
+Message-ID: <5630940f-e89d-2b6e-d36e-861357490ffd@huawei.com>
+Date: Fri, 13 Nov 2026 17:23:56 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.1
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -87,52 +77,54 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261112-acpi_ffh_ffa-v2-3-575a9dbed22b@kernel.org>
+In-Reply-To: <CH8PR11MB40343305FD3C1BE0E18882B5CCFC7F2@CH8PR11MB403433.namprd11.prod.outlook.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
+ whupemo200006.china.huawei.com (7.152.185.252)
 
-Hi Sudeep,
+Hi Tony,
 
-kernel test robot noticed the following build warnings:
+On 2026/11/13 8:27, Luck, Tony wrote:
+> > The BIOS on my machine is obviously buggy (non-zero Vendor Extension offset
+> > pointing to zeroed memory, and bit 31 is not set in the error type either)
+> > and needs fixing. I'm not sure if it is necessary to add such a sanity
+> > check for EINJ at all.
+> 
+> Production machine? Or just an internal development machine?  I.e. is this broken
+> BIOS out in the wild for others to hit this bug?
 
-[auto build test WARNING on 7475ea8b58616b33c04afb976cf0fbaad9dd63fb]
+The bug was hit on one of my development machines. The BIOS is pretty old.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Sudeep-Holla/firmware-arm_ffa-Share-FF-A-register-field-definitions/20261112-111406
-base:   7475ea8b58616b33c04afb976cf0fbaad9dd63fb
-patch link:    https://lore.kernel.org/r/20261112-acpi_ffh_ffa-v2-3-575a9dbed22b%40kernel.org
-patch subject: [PATCH v2 3/3] firmware: arm_ffa: Share FF-A version negotiation
-config: arm-allyesconfig (https://download.01.org/0day-ci/archive/20261113/202611131749.3XbZQkPM-lkp@intel.com/config)
-compiler: arm-linux-gnueabi-gcc (GCC) 16.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261113/202611131749.3XbZQkPM-lkp@intel.com/reproduce)
+$ cat /sys/class/dmi/id/bios_vendor 
+Huawei Corp.
+$ cat /sys/class/dmi/id/bios_date 
+09/18/2019
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202611131749.3XbZQkPM-lkp@intel.com/
+I'm afraid that I can't tell whether this exact BIOS version ever shipped
+on production machines.
 
-All warnings (new ones prefixed by >>):
+So this patch may effectively just be a workaround for my old machine. I'll
+leave the decision on whether it's worth taking to maintainers. ;-)
 
-   In file included from drivers/tee/optee/ffa_abi.c:8:
->> include/linux/arm_ffa.h:189:37: warning: 'struct arm_smccc_1_2_regs' declared inside parameter list will not be visible outside of this definition or declaration
-     189 |         void (*invoke)(const struct arm_smccc_1_2_regs *args,
-         |                                     ^~~~~~~~~~~~~~~~~~
+> >
+> > +     if (v.length < sizeof(v) || v.length > PAGE_SIZE) {
+> > +             pr_warn(FW_BUG "Invalid vendor error extension length %u\n",
+> 
+> The "FW_BUG" tag was created specifically to point blame at BIOS and thus
+> encourage OEMs to fix their BIOS. So correct use of it here :-)
+> 
+> > +                     v.length);
+> > +             acpi_os_unmap_iomem(p, sizeof(v));
+> > +             return;
+> > +     }
+> 
+> The fix looks reasonable. If this has been seen on a production system, then
+> seems a good idea to apply your patch.
+> 
+> Reviewed-by: Tony Luck <tony.luck@intel.com>
 
+Thanks for your review!
 
-vim +189 include/linux/arm_ffa.h
-
-   182	
-   183	#if IS_BUILTIN(CONFIG_ARM_FFA_VERSION_NEGOTIATION)
-   184	int arm_ffa_version_get(void (*invoke)(const struct arm_smccc_1_2_regs *args,
-   185					       struct arm_smccc_1_2_regs *res),
-   186				u32 input_version, u32 *version);
-   187	#else
-   188	static inline int arm_ffa_version_get(
- > 189		void (*invoke)(const struct arm_smccc_1_2_regs *args,
-   190			       struct arm_smccc_1_2_regs *res),
-   191		u32 input_version, u32 *version) { return -EOPNOTSUPP; }
-   192	#endif /* CONFIG_ARM_FFA_VERSION_NEGOTIATION */
-   193	
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Zenghui
