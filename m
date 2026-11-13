@@ -1,55 +1,92 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.8
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794586665;
-	b=Dqg+QNM/KyEMcr+X1AhxBzBSC5mJAofZFV3Mo8VPfog1v6qxrB8Ysz6jGkvAtSmEp6Ti
-	 8JyHcpxr2278E5RT3F00YwDyj0jqLaYLKObCqzcapCiIc07regBm7eIM74BgIptFIEzT4
-	 e18vRPgytQMuBwp/BfsP6/7LrABW7ord2kQPhL6rFhvy1hGV7lkYRjmeZY6hkJRntkTaF
-	 dcJVH6FeS2tONxm0lacqu0/wO0SGyZ5P78Thgeh4yhdy6HYPNbG0EY+j/sjh6CFWL0PDT
-	 aGvyFOhQgx5uTw6Xj4LRDZDrRVQUXx31LkLrB9PVSkCBXhyupubvEM8DGQICTsHvgCQ==
+	t=1794586767;
+	b=GjwXwcVe68Xg3PQ6nlzMuCnAK9EJ5xHjBcy4hMh1R+jLokK4cwrd1HiW5BwKINd7fsKN
+	 BmTlt4N1m22r0iqVCOBaKQS7YVGMoocTg+bBwinVn8puOeO2yGTaMoSPMngEceS1Stedd
+	 oqkvrfKNKd1pMlmtTAY04a4nMvOhi4Cf4DltAmPwcHutl/dglIc41nYVjBmtH3H4WFsYw
+	 2ybcPKehwsBgdr0R+oujG5kKqCqz2heeOKFXbkVfqoskWkc/kWqlxWUXDo1Q9KphAjS0u
+	 bf65LwZndZwI1bMSHPwfqGQNNbyTPnrRsyJu1Fdd2oR05KywBrXNoFIL5opKjuBPl/Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794586665;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=07DDAqi5jXuAZ5tD6WNu4TNE10HQBGSmuS9KSWqF5f0=;
-	b=B0McXn6utuhSGhaYLrCFKO6/7WCcUEIqmttSoJ4HuYPzUsoIhDuNiERyM/GrWbv3CErJ
-	 L7F5TFcY4ZI5hgK6JAzH5JOP2KIz8B0250BC9e5j7ZcJde+o9PsNZeo7kBiKlIpWb6CG1
-	 8aNulDYoaC5CwApMA1f/2zzJpE2yArT47OWu+HMIKv/TNQiA8gDh8J9PmvrWZREQQtQIq
-	 Bh5ePnH5dmqvo2I0X+PI5+jqQmqZD6vMmoG2U3IE6vCOPxCgZvfNgSyXrvai1Dtx5B8Hy
-	 B/30KWNVwbrhPfBQCYq95F1MlrsiGErQjWf139wWu8MFb8HBbh1B3bf7p2huaSazGAA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794586767;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To:Organization;
+	bh=oO/L4wT+HAyKwurpfHTFIZjxjNbn4DtR8FDLIyKt6mQ=;
+	b=uWi0IdWnhv74H/sW/5lLocjE0f45g4M8NVL8homYlOeuskaR+y/gnmCnoW0ylpWx/K96
+	 51/VxhTljOL5ui1fMibJPOMAEn/kZ3vHnmygWn9HMSqi+F2Kb/3vKF3/NKTSH05FmScIk
+	 wwxYOo+646bP8/uOkLh63NSqDK0Iqnf/9g/Ay+QfcaJgLfdgKHp22wm5n/0hpUAbHjBPp
+	 d6MS0MCcDlEBW+NXyIvdi0ieYPSLSkJLX+rNRXi6+jStgK1k6pKN5OBkmkJSKqy1vwngz
+	 yje6wOIEyhyyRixE5pV4hpCebBrq+n8waNMOoQdhjJ8VSFUmHElu0r8euMQj7HOFPxA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UP3iRfnN;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=C4ScWfhF;
+	arc=none smtp.remote-ip=192.198.163.8
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A420F606B2C9
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 16:17:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32CDA606A881;
+	Fri, 13 Nov 2026 16:19:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 32CDA606A881
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UP3iRfnN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A4771F000D1
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 16:17:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794586665;
-	bh=07DDAqi5jXuAZ5tD6WNu4TNE10HQBGSmuS9KSWqF5f0=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=UP3iRfnNQrQGSiNIp6w+6flT9KSUoUMKC0Z5owz+KWHvq+o7kwFCw34OanpEGcufS
-	 LhCj1yLWeHggKugNkQGiKAEqgG3h52h4cHDaIuqQn9Zfq9r7r6LPTR5vzjPtl4B2QA
-	 BelwHsJJJbcQu9eYuAP5LkLrOyIRJnRmAo2xCJSjQxZ8SW3PESdWCKHc4Yepar1ujo
-	 YP5GQo80I63bHz3Sq7um7txMqk6jCOesu8ZnB+tz23IodrTiUk4qPBRCzgPztImjAe
-	 EpUZljGI+IJgOxbRNxTbrkbWoFp/e9pPPZDVrWhFTI/h+yKDmPQTFXvMvI76csYJnp
-	 uefCeo9JPBSRQ==
-Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-3adfc004920so17282951fa.3
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 08:17:45 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErGJ7Cp8Lv605psOC6+qSKkfXUo5Cv/ooLy3uqyKlqeeKEexMNS8uHsfrD8vfQLfJpD9Dzrgmfjepuav@vger.kernel.org
-X-Gm-Message-State: APuU4Z/xLhOsKlamUxNMLX3NwFB0Ku7AsSyjruL+cLKpPruWMOprhldf
-	eobszTGF0b27fq8bDbQD0eD11LGJACS/C6fLX1Cy9l1D2HgwZdz26SDgtNI6BNqZsg8yOuj18cF
-	VlBiGLVFCUnQUi6cSNEMMvpyJi3MPjdM=
-X-Received: by 2002:a05:651c:41d1:b0:3ab:1207:bd2f with SMTP id
- 38308e7fff4ca-3ae2b4bad8cmr14071971fa.11.1794586663709; Fri, 13 Nov 2026
- 08:17:43 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=C4ScWfhF
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794586768; x=1826122768;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=w/H3vxilWiIY/oBeomI3Vr9aXfPsr8K8inhIjjgOnYo=;
+  b=C4ScWfhFMkAry+zfOO/DjBIL6OrgZY+CvDgWtfqfEh0GF9RVzR1b5/sb
+   xZhfvWHNLnIh20yCYevfn9Pw3x6XyO58neFB/DT/hYSNj3WHzJxRmQChf
+   TuFlxCt5XoHsH5qWt163GfpnK23ysMb3nN2vOETCAyeU5nDBR4y/LwNNl
+   7hd0fFubaJScuslYTPnFCu7aXGV1tCdzLmubUiWyUmudbh2yZQ63Ub+Y9
+   K0e5NAUFiCsP9SGJOtpeS0fA1ZSYQ+D3sTH1EF9qWUKVwPWzAUVnH3ek+
+   ztIjuBJkAkxIlbfqONbaSIyBlLn3sNYnwONnSNBNHrchGKuZL7Se9/084
+   g==;
+X-CSE-ConnectionGUID: HUoctku+SD64Zas1iCnhUg==
+X-CSE-MsgGUID: UtTxuqX2S0qvNim72gw0Bg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11965"; a="3282226"
+X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
+   d="scan'208";a="3282226"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 08:19:23 -0800
+X-CSE-ConnectionGUID: sqDIhBnTTNqwivE1rQNtUg==
+X-CSE-MsgGUID: /+xFyyifSpayyMkgOohuzA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
+   d="scan'208";a="9128992"
+Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.244.148])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 08:19:17 -0800
+Date: Fri, 13 Nov 2026 18:19:15 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
+	Hans Verkuil <hverkuil@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kees Cook <kees@kernel.org>, Andy Shevchenko <andy@kernel.org>,
+	Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Linus Walleij <linusw@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
+	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
+Subject: Re: [PATCH v2 10/10] gpio: shared: generalize most code to firmware
+ nodes
+Message-ID: <avc4g9cbAOEElzRX@ashevche-desk.local>
+References: <20261113-fwnode-for-each-prop-v2-0-4edc23d5cf50@oss.qualcomm.com>
+ <20261113-fwnode-for-each-prop-v2-10-4edc23d5cf50@oss.qualcomm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,80 +96,59 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <cover.1794567577.git.ukleinek@kernel.org>
-In-Reply-To: <cover.1794567577.git.ukleinek@kernel.org>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 13 Nov 2026 17:17:30 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0jC5YXsLgB6Qd55KNCU0oCsN86X5WpRfL+Ycz0MJ8vGqA@mail.gmail.com>
-X-Gm-Features: AclHuK8x25sOZXVMSbQCD89ASNTaRnpnKVCTik8ql8SNDsY_N4yuXW7y6aXTE5U
-Message-ID: <CAJZ5v0jC5YXsLgB6Qd55KNCU0oCsN86X5WpRfL+Ycz0MJ8vGqA@mail.gmail.com>
-Subject: Re: [PATCH v1 0/4] ACPI: Use named initializers for acpi_device_id arrays
-To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <ukleinek@kernel.org>, 
-	Len Brown <lenb@kernel.org>, Lorenzo Pieralisi <lpieralisi@kernel.org>, 
-	Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
-	Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
-	Ira Weiny <iweiny@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Zhang Rui <rui.zhang@intel.com>, 
-	"Mario Limonciello (AMD)" <superm1@kernel.org>, Saranya Gopal <saranya.gopal@intel.com>, 
-	Gergo Koteles <soyer@irl.hu>, Jakob Riemenschneider <riemenschneiderjakob@gmail.com>, 
-	Yauhen Kharuzhy <jekhor@gmail.com>, Pawel Zalewski <pzalewski@thegoodpenguin.co.uk>, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, nvdimm@lists.linux.dev, 
-	linux-pci@vger.kernel.org, Kai-Heng Feng <kaihengf@nvidia.com>, 
-	Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, 
-	Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>, 
-	Alexandre Belloni <alexandre.belloni@bootlin.com>, Dave Hansen <dave.hansen@linux.intel.com>, 
-	Chu Guangqing <chuguangqing@inspur.com>, Andy Shevchenko <andy@kernel.org>, 
-	Mika Westerberg <westeri@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261113-fwnode-for-each-prop-v2-10-4edc23d5cf50@oss.qualcomm.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Fri, Nov 13, 2026 at 12:14=E2=80=AFPM Uwe Kleine-K=C3=B6nig (The Capable=
- Hub)
-<u.kleine-koenig@baylibre.com> wrote:
->
-> From: Uwe Kleine-K=C3=B6nig <ukleinek@kernel.org>
->
-> Hello,
->
-> this series is about preparing drivers/acpi for a change to struct
-> acpi_device_id. The idea is to replace .driver_data by an anonymous
-> union, see
-> https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@baylibre=
-.com/
-> for more details. (The linked example is about platform_device_id, I
-> intend to apply it acpi_device_id and several others, too.)
->
-> Before this union can be added, all initializers must use named
-> initializers (C99 calls them designated initializers), which IMHO is a
-> nice cleanup that can stand for itself as it makes the code easier to
-> read.
->
-> Pawel sent a similar series earlier, find it at
-> https://lore.kernel.org/all/20260727-acpi-refactor-v1-0-ff900aa326ee@theg=
-oodpenguin.co.uk/.
-> Compared to that the patch splitting is done differently and the base
-> here is newer.
->
-> I checked for the other *_device_id and for these there is nothing to do
-> below drivers/acpi because the few instances already use named
-> initializers.
->
-> The last patch in this series is just some cosmetic to align the coding
-> style. If you consider it churn, just drop it.
->
-> It would be great to get this series in soon, as keeping it up to date
-> for a later resend is an annoying effort. Thanks for your cooperation.
->
-> Best regards
-> Uwe
->
-> Uwe Kleine-K=C3=B6nig (The Capable Hub) (4):
->   ACPI: Unify acpi_device_id list terminators
->   ACPI: Drop unused .driver_data initializers in acpi_device_id arrays
->   ACPI: Use named initializers for acpi_device_id arrays
->   ACPI: Unify *_device_id list terminators
+On Fri, Nov 13, 2026 at 04:47:10PM +0100, Bartosz Golaszewski wrote:
+> Ahead of adding support for sharing of GPIOs for other types of firmware
+> nodes, convert as much code in gpiolib-shared.c as possible to using
+> fwnode APIs and guard the remaining OF-specific bits with CONFIG_OF
+> guards.
 
-All patches applied as 7.5 material, thanks!
+...
+
+> -static int gpio_shared_of_scan(void)
+> +static __maybe_unused int gpio_shared_fwnode_traverse(struct fwnode_handle *curr)
+>  {
+> -	if (of_root)
+> -		return gpio_shared_of_traverse(of_root);
+> +	int ret;
+> +
+> +	if (gpio_shared_fwnode_ignore(curr))
+> +		return 0;
+> +
+> +	ret = gpio_shared_fwnode_scan_properties(curr);
+> +	if (ret)
+> +		return ret;
+> +
+> +	fwnode_for_each_child_node_scoped(curr, child) {
+> +		ret = gpio_shared_fwnode_traverse(child);
+> +		if (ret)
+> +			return ret;
+> +	}
+>  
+>  	return 0;
+>  }
+> -#else
+> +
+>  static int gpio_shared_of_scan(void)
+>  {
+> +#if IS_ENABLED(CONFIG_OF)
+> +	if (of_root)
+> +		return gpio_shared_fwnode_traverse(of_fwnode_handle(of_root));
+> +#endif
+> +
+>  	return 0;
+>  }
+> -#endif /* CONFIG_OF */
+
+Hmm... What do you exactly get from the compiler without this uglyfication?
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
