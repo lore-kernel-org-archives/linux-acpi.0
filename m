@@ -1,54 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794587246;
-	b=QrSCQEk27as0dAIfQ0nVLzxV2/13UGpAZr+IT3wSCtJ5P8rBFdNqvJ03VvV6SADG9Qsc
-	 wXs8POohfkkhBGJzJMbEWDye4gbaM3j8NiXeXG7TC8VBLm93lINUMfDA94uHlGRalYIap
-	 69a0himTa0XN9W9XvElvuqE6f0AG0b2UiyCHkxYN2yljVyTGbSMv/e2yW9qcBDFPNv8Uu
-	 7am8fOV7xCfBdVr1Q20lotknlY22OZ3PGFGKTHjqqt0MNdZVMywSjj+7m+OpUvJm2wqkj
-	 bPzuL4dnkvoZgyn73RhaOH5Y2dWYm+9TavGH6qu4hoRv2RKbt4oX6ZNnjZ8+KdEK8/g==
+	t=1794590600;
+	b=2vgvC+99AReWdRwBMnJtzdHwbZrTmpnnfduqOtK+pjEy2+sQ71/V35zvzT1FCUKgHNgW
+	 vWRRUrYdYBwdvNEsV+79ffdVZft/BKbme9+OEOovptc0v3t+YCHK555MaAvyV4mBiz3MG
+	 A+nmh2UlVdSeSAC4jy+IBuDHIoBLIYy7DB7TBQwy6m8REYmhDetPvAFotORRVMv1nY2Gt
+	 3f9gbH2/C6D4F/Dz/AwK1RiYBSmfCTcIhT0qb+fgRSrv+rDye/teYUXIRvjfQPaWsWqBR
+	 L2OYAMnZQ8/sRe3Q8LLJ02fuJfkuWVrmDZNL/UeAk7obuIO79mo766f3wOYjKcOrcTw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794587246;
-	h=Received:DKIM-Signature:Received:X-Gm-Message-State:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:
-	 X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:Subject:To:Cc:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=j97SfSaNINREcAUOnX4Ita9v3nTN3dmHaeIvc25MaPY=;
-	b=G/Esagbf0SOKcikA7gCrmJf0XgN0A3F3XaF4yDRLohWziLh+cIhm0WYrI7fhm/QslLX7
-	 /st4MpU7MPTxcwBgAvyGvK4UZ/hL0+IRs/+TV7aSfSt/tOnLwGijbT+6xLjaBBZvSDaPp
-	 0/DX1t6fwxOH5zAWHhON4Nh4qGsvg+M0kEe4zEsix0IF5OFsQLrnoYheVHErVNhqXqiNG
-	 phmp9YBxYupmtxVTAgvBbiQWE4mAvwddH1abNlHpZqtIuen0RCXP0vHs9l1cyBbtvaWqJ
-	 5LwPv+1hA+0kid23BehXATfe7UvM/A8E+8pl5ZrXjeUcfwHgmFfMR6TDNN/H6aLlWYg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794590600;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=2c+SwvVe+TYvB1ck0x9BFmui9dOGJzGDRlpiqG9Cfj0=;
+	b=bOUr+VAQ5/R5A6D2rNv0grwzVWxsou0yqbNRlTrunazX2TVsyhHp+GdwFW2Z3y+/pl6R
+	 8egLOUcewNp0LcCWLKri8apsv9eV9mLLbz1jOPm5DBquUJtg4FghjCZKOM6QzhemMySXG
+	 MpCsc+KXW9Nw7CYYEqFrTEWnfNNPOC+lsEDDvDymWLB1jU21x4wpWOfvml1Q/oYDM0NxL
+	 uV+ObawBNMHgDEl+hwr1IT/TkojnpVd8/danv3oA29d1/kIbf27BeW4hncydJsc2KLF6n
+	 bBD4k+8r1ri3uzL0Cm2hsoZm+mBM2llTTVS9VbJ00ncfkMnZ7BIxpg4R2d6LT3rTKQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="nhd7Tn/G";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="c/YJO4bh";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0741D606B2ED
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 16:27:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46267606C0B3
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 17:23:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nhd7Tn/G
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90CAA1F000C6
-	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 16:27:25 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=c/YJO4bh
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 232FF1F000CE
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 17:23:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794587245;
-	bh=j97SfSaNINREcAUOnX4Ita9v3nTN3dmHaeIvc25MaPY=;
+	s=k20260515; t=1794590600;
+	bh=2c+SwvVe+TYvB1ck0x9BFmui9dOGJzGDRlpiqG9Cfj0=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=nhd7Tn/GnjgtnmAIXpmt3VH/lRxhsFlvKIA1WFp97+DFSDKPw2zptvVl6GiEpLf9K
-	 XKRcm1LTsf/YJQfcBhuaugQmBsd1xKPNEunyd26O1hk+554xAnP9LEHXNJekMQz+CG
-	 RnRb3WEyvXapTEw2ZTgCPJj61jln/91QjB8xV8V82sXxgkUFexbibLt+7rC9VlJhVH
-	 5J+iyqJB7bDPWIWP8beYWnQH57tOJVKP8Lox/bLL9Zp/wlq60nHzyOvjPCeV0SnZ3r
-	 qs0YwsdTDa8KaSW5djmS+Rtp4YG5Ym0FW7GgbHiH6gfIXatJKnLjqWtsZp8z0htQjS
-	 i4OzowCaWJu7A==
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-3acef9307c7so14642571fa.2
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 08:27:25 -0800 (PST)
-X-Gm-Message-State: APuU4Z+3yq5tNjmpmesYK8LFHWqj6FWayZBSdxBJOXW06mnFWZPCG30t
-	rlQR/fxhHWExG18Kw83HuczOdyOtikXeZJYKClgC3jmR06dbjFhViVhvBgpK3WywM+s4paPksre
-	1qxMYRVdiCDa4MCRYwpktGjwsS8SXy8c=
-X-Received: by 2002:a05:651c:b2c:b0:3ab:2a19:862b with SMTP id
- 38308e7fff4ca-3ae2b4b7fd2mr9981721fa.4.1794587244008; Fri, 13 Nov 2026
- 08:27:24 -0800 (PST)
+	b=c/YJO4bhCrQWIhSM6EQGg1502+mq+by4yptqz28H6C2QAcVcxo/sv5SDoxBQPi1+y
+	 rzOHHIcEX1NvwpOu1r8J5FHs0ccpqC1d6zeN0+LYuTvlctR3ztCM8VVjeiVYrgp14C
+	 OIp/N0FawMMtckqcRN4VhblDLHRSNpdrpQQZ/Q6DXwI870gA3SD+bAfI55J58DzlE6
+	 eFLNGmVmhfR9N1sOd/QzaGwqCjAdUSacbRwPOtpTJ4srPN+GGxXELmx6ToYKiOBrJG
+	 WbaEz1fWYfaoaPxTLCGdfIUr3m53hxVLM380qbZboiGT3br3uDUtj6Cf+rlK6qDfip
+	 3Tc71H311BoCQ==
+Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-3ae25c846edso13738401fa.2
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 09:23:20 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErE4OeUHSjfEduJ40tSsa14hwrnlJagJHeo4+yQXUmHwC66KXWR4EUBfI4ykX4/D/vnMOVytyk3Ta3Zy@vger.kernel.org
+X-Gm-Message-State: APuU4Z8/ZNdbvC2YNziZyrWPFVY8hVOSECJDgbyHK8FH+6D71DTqQbPi
+	qnZum29wnd8m6rITruDCSu+nbNla9f9DKdt7jbo8NBNPq3ri+4LEUlRs6KI8iT009f0mX18zRJy
+	UEMHOX1DaW6TOJeecxma0LqsjjgEmiyc=
+X-Received: by 2002:a05:651c:1a2c:b0:3a3:5a01:a794 with SMTP id
+ 38308e7fff4ca-3ae2b48e201mr12006811fa.1.1794590598539; Fri, 13 Nov 2026
+ 09:23:18 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -58,69 +59,87 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <3471545.44csPzL39Z@rafael.j.wysocki>
-In-Reply-To: <3471545.44csPzL39Z@rafael.j.wysocki>
+References: <20261110085125.2535508-1-johan@kernel.org> <20261110085125.2535508-2-johan@kernel.org>
+In-Reply-To: <20261110085125.2535508-2-johan@kernel.org>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 13 Nov 2026 17:27:12 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0gB+ktRht4j8SjSTo-mqmsRR+e5m1sfc6j5gnGop6=BJg@mail.gmail.com>
-X-Gm-Features: AclHuK-loPyRxcKMfF_r6Mj1RdEKPCYy9Gl17nXvlsXJr1eeoXvD_joakaRzCLQ
-Message-ID: <CAJZ5v0gB+ktRht4j8SjSTo-mqmsRR+e5m1sfc6j5gnGop6=BJg@mail.gmail.com>
-Subject: Re: [PATCH v1 0/3] ACPI: glue: Rework ACPI companion lookup related
- to device type
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, 
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, 
-	Andreas Noever <andreas.noever@gmail.com>, Mika Westerberg <westeri@kernel.org>, 
-	Yehezkel Bernat <YehezkelShB@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	dri-devel@lists.freedesktop.org, linux-usb@vger.kernel.org, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Date: Fri, 13 Nov 2026 18:23:06 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0j+GZ_v3=ji4Tcv9mahU3rBvX+WX0H5BwQ6kjhc6HpVpA@mail.gmail.com>
+X-Gm-Features: AclHuK8jFghVnxRICo3FkWZ1EaLI4NGbOw-Xw0BnT0rGkVeLLEHZH-dtxA8z2So
+Message-ID: <CAJZ5v0j+GZ_v3=ji4Tcv9mahU3rBvX+WX0H5BwQ6kjhc6HpVpA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/8] driver core: platform: fix swnode use-after-free
+ on device release
+To: Johan Hovold <johan@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Bartosz Golaszewski <brgl@kernel.org>, 
+	Andi Shyti <andi.shyti@kernel.org>, driver-core@lists.linux.dev, 
+	linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Nov 4, 2026 at 10:12=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.or=
-g> wrote:
+On Tue, Nov 10, 2026 at 9:52=E2=80=AFAM Johan Hovold <johan@kernel.org> wro=
+te:
 >
-> Hi All,
->
-> The ACPI "glue" code is responsible for binding Linux devices (like platf=
-orm
-> devices for one example) to their ACPI companions (represented by struct
-> acpi_device objects).  This is done by acpi_device_notify() when the give=
-n
-> device is registered.
->
-> If the device's ACPI companion is set already at that point, the binding
-> simply adds the device to the list of "physical nodes" associated with it=
-s
-> ACPI companion.  That's the case for PCI devices and platform devices, fo=
-r
-> example.  However, there are cases in which the ACPI companion is not set
-> upfront and it needs to be looked up via "lookup helpers" registered by
-> the subsystems the devices in question belong to.  This series changes
-> the "lookup helpers" representation and handling.
->
-> Before the changes, the "lookup helpers" are represented by struct
-> acpi_bus_type objects which is doubly confusing because they have nothing
-> to do with bus types and because the "acpi_bus_type" name is also used
-> elsewhere.  Patch [1/3] renames struct acpi_bus_type to struct acpi_dev_t=
-ype
-> because all of the existing "lookup helpers" operate on device types.
->
-> Next, the registration and unregistration functions for "lookup helpers"
-> are defined to return an int, but all of their existing users effectively
-> discard their return values (they are discarded right away or passed up t=
-he
-> call chain and then discarded).  Patch [2/3] changes the return type of
-> those functions to void.
->
-> Finally, since all of the existing "lookup helpers" match dev->type to
-> a certain device type, they can be rearranged to point to the device
-> types in question and provide a .find_companion() callback, and an
-> additional .setup() callback in one case.  This is done by patch [3/3]
-> and allows all of the affected code to be simplified quite a bit.
+> When a device has a software node, device_remove_software_node() may
+> drop the last reference and free it during platform_device_release().
+> If the software node is the also the primary node then the device fwnode
 
-In the absence of any feedback I will assume no objections or concerns
-and I'll queue up this lot for 7.5.
+s/is the also/is also/
 
-Thanks!
+> pointer is never cleared.
+>
+> Use a temporary variable to track whether the firmware node is a
+> software node to avoid a use-after-free in is_software_node() and having
+> fwnode_handle_put() call a function pointer via poisoned or reallocated
+> memory when the primary node is a software node.
+>
+> This issue was flagged by Sashiko when reviewing a related fix.
+>
+> Fixes: 7d80509ff0da ("driver core: platform: unify release path")
+> Closes: https://sashiko.dev/#/bug/linux-b860000b-f1d0-46a0-ab52-d47cec8ea=
+b99
+> Cc: stable@vger.kernel.org      # 7.3
+> Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> Signed-off-by: Johan Hovold <johan@kernel.org>
+
+I have not found any issues in it apart from the above, so
+
+Reviewed-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+
+> ---
+>  drivers/base/platform.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> index 979593e5cca1..be5d2f315fdb 100644
+> --- a/drivers/base/platform.c
+> +++ b/drivers/base/platform.c
+> @@ -598,13 +598,14 @@ static void platform_device_release(struct device *=
+dev)
+>  {
+>         struct platform_object *pa =3D container_of(dev, struct platform_=
+object,
+>                                                   pdev.dev);
+> +       bool fwnode_is_software_node =3D is_software_node(dev_fwnode(dev)=
+);
+>
+>         device_remove_software_node(dev);
+>         /*
+> -        * If the primary firmware node is a software node, its reference=
+ count
+> -        * was already decreased by the call to device_remove_software_no=
+de().
+> +        * If the firmware node is a software node, its reference count
+> +        * was decremented by device_remove_software_node().
+>          */
+> -       if (!is_software_node(dev_fwnode(dev)))
+> +       if (!fwnode_is_software_node)
+>                 fwnode_handle_put(pa->pdev.dev.fwnode);
+>         kfree(pa->pdev.dev.platform_data);
+>         kfree(pa->pdev.mfd_cell);
+> --
+> 2.56.0
+>
