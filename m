@@ -1,87 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.52
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794570388;
-	b=eZOKc3b1siFuemuot/smHaFwXLWlgW7Wl8sPBYRBc+/NqeuAx+kGiD2Q4YVRhXAQ7ui0
-	 5Mi/KQLdvMoSLLceJyIHM1XxBEXHVpqYIY3OQjZ7HzdmvmzJuaCRcdOisXowLYxYArbXS
-	 AGZXLAU18n221xxLOFDJQbJ9oyn6Eon5FKJK3uhXKz8LFKOTrImpawn35w+98I6ycaIuv
-	 ezb0MBTCx+aLg387sSRLg/dw/6C8Sp+kcvwb8G4TNNPLSYR3NzUI8Qji1mI8wEmm4mmLj
-	 q62XOXZHVkqhS6dOPx49JLHeaCAqioOJxVDqfFEszspp34F+VvuE90VO3lhT5HYoSTQ==
+	t=1794571508;
+	b=Vbtf45D2tbJQxUVNVBH6UmR7sgvodGXi+Z3Fo5HtYcTmyWkIMDxgKeHR5zbX6TUxSqrc
+	 51UrvXd/y0EYnWiVcqasxIy0oRqx/pR2DFY/ePVUHLOkaf1ptyMWjsWCf9GbeIXe5KfuD
+	 VVRVcO9VMYcTPGY5FBbkyDqBB01Hec8KIGpj+zCDAn4V4gnsOtJ1jA/BzhWRcBe+rPFbf
+	 PX49E+jkWEvbz4i9ERpaOocQ4RDioMhLjrZ5WiHTNufKxIDw8jMH3sKEqevVrVUSXaJ1d
+	 lN5lGjvNYndoUwcd/iDlK5wRh15cOHAP3WkC5egaUCC61GkNkLlECjDYF5eVyqb+JAw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794570388;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:
-	 In-Reply-To:References:Subject:Message-Id:Date:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:X-Mailer;
-	bh=sIKt/11sRIpQoLlnwbdUZPL6D9m4uMaBATJci/erHQ4=;
-	b=TMP12hmUpYbGaWzJajBGeTuWOsnJf1xnf3ouN9IZqiU/mosmdc7lc6DlKWUeg02jatY5
-	 YNP/s2x/6SyK/mndjP/HJD2ex9QXeai8fevN9tAEdi+WQ9wRmDDz0ooSZPTS7XGQGJqtJ
-	 LaltbQahsMRLdvzX2/MuJLVcb8xiciCEgKRa+s2NbUYbriDqo7X7w6Ki+yfXP5aQapyq0
-	 Ko0K1t+fJG+8tro0fw7Tg5mQ32PFfrzJ/6SyamSfEdpzXbokTSN3xvlYQJQyGz4bLtE6/
-	 xwGIvNyFzoxj5OJYkCqTnbsDHWHwops9BT/VhE7q8brDKjkRl3PGjtAK357ow5PCJ/g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794571508;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=SVSumMJf41m2t1kfH4cBo93/dZv3LW/Up6VpBs7ax7k=;
+	b=P6ZuGVvQNac1xD3ECu0f8yYLKcI+buM5L9EMzXvSSM57dJCuDR7iyYByplk4RT+Zfqwo
+	 TxSodWh6EjdjIqZHyC/sUqLmpn0MOJ2JSVX2lruznqAyHdJitCT/wVjxDLTtogkE/p+5t
+	 7IipG+zALl0NRpDdY6JAbu1up/BGY6BTDmZFyXT24EIwCTIxrnAeGzHqV0M/k3QRVtU8D
+	 xJE8mpMIwzUZulRA4QavDLVk/Yuohh8CT1RTK9wBWTmZwKoyGjosHo/oGJiXEQARFszHI
+	 d+sMYscgFK106MgyYF/1/CewR8DKypDSmX4ZkJ+UfrZuC5fayjGZLjY8Te0qEguCpfg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=UPnYWao7;
-	arc=none smtp.remote-ip=192.198.163.8
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=LKM4Kj6k;
+	arc=none smtp.remote-ip=74.125.82.52
+Received: from mail-dl1-f52.google.com (mail-dl1-f52.google.com [74.125.82.52])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A2B1606A323;
-	Fri, 13 Nov 2026 11:46:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9A2B1606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69213606A889
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 12:05:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 69213606A889
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=UPnYWao7
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794570388; x=1826106388;
-  h=from:to:cc:in-reply-to:references:subject:message-id:
-   date:mime-version:content-transfer-encoding;
-  bh=70lA5G/wnfwGcsKQOxEkBPPaTlPMDHLav32v2A0v/Rc=;
-  b=UPnYWao7hiHtsxLmVV6W/5Nv6l1hPukMUlOOFr8nmYlKSdhNcVrYsXd3
-   MjO1vbCRrNOc02ViLCQ010Eulb0SaBwx35Y6D9q/Irp8PGYcLmLigtmTC
-   zFUuI3HBSe/TNECiqkqxJV79/wqWQXRXx7nJ4nnkqC1QzpPwaLVO7GP3i
-   Ctwe4R0DGjIRxektfAAKkNNud9tn2Bc97hScNOVjkAcH9+Be3IOM42VDy
-   ySAMYTMF9als8kGqjM9+XGy9I2e86hwDBgq3AEfYmnc0OwobEVzlxlu3A
-   Nhe/7iJ5uR/SORmAGKKDu/XSeEdz3ia79fJg3A3EEq8/CtAsgQpMbSsFx
-   A==;
-X-CSE-ConnectionGUID: rgwzClnjTiOQBY5YVJ2x5Q==
-X-CSE-MsgGUID: yxOSNn5fThSOj+Ilm1bSaQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11964"; a="3258128"
-X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
-   d="scan'208";a="3258128"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 03:46:27 -0800
-X-CSE-ConnectionGUID: GFXZNQ+AT8iHFNZW2Nec1A==
-X-CSE-MsgGUID: zZ+bSqT8TI2CZpHvQgVWfg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
-   d="scan'208";a="8750533"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.214])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 03:46:20 -0800
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>, 
- Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
- Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
- Hans de Goede <hansg@kernel.org>, Armin Wolf <W_Armin@gmx.de>, 
- Sebastian Reichel <sre@kernel.org>, 
- Andrew Morton <akpm@linux-foundation.org>, 
- Eliav Farber <farbere@amazon.com>
-Cc: linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, 
- linux-input@vger.kernel.org, linux-gpio@vger.kernel.org, 
- linux-pwm@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
- linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>, 
- Andy Shevchenko <andy@kernel.org>, 
- =?utf-8?q?Uwe_Kleine-K=C3=B6nig?= <ukleinek@kernel.org>
-In-Reply-To: <20261113104218.32566-1-farbere@amazon.com>
-References: <20261113104218.32566-1-farbere@amazon.com>
-Subject: Re: [PATCH v6 0/7] notifier: convert remaining drivers to
- device-managed registration
-Message-Id: <179457037547.7575.907664153895239687.b4-ty@b4>
-Date: Fri, 13 Nov 2026 13:46:15 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=LKM4Kj6k
+Received: by mail-dl1-f52.google.com with SMTP id a92af1059eb24-1aefd1bf74aso628406c88.1
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Nov 2026 04:05:07 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794571507; x=1795176307; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=SVSumMJf41m2t1kfH4cBo93/dZv3LW/Up6VpBs7ax7k=;
+        b=LKM4Kj6k+92jKdvI5GTxqjdQpsk7TFvgGgJoS/rmOaYB06loopKAmN9v+BgMBL33H7
+         EsWKdONaY86Al7F/Xh0qUIh0CjPM5BbM2prskdcvJOuKuY/VzfCrF0shfVgUbEGRaA9e
+         EciXOOcm4DZTvlp02zYZlJIDbsgO0d68TREEy30dZKeiKFoPlr4L4ULfAOJk1fcibY9h
+         oM+jEM62FuHmW0WcGwRopgw4yHB2HdZo2dxTPCoKqeJagFplIok2ojp2J9zaRAkl+WV6
+         MJXEBAxb4XwIz6gdFxIPpbYhhNfLLkZnMKyjV4krx4Ohod1indS4xHnerHjHfbLDE06a
+         6s9g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794571507; x=1795176307;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=SVSumMJf41m2t1kfH4cBo93/dZv3LW/Up6VpBs7ax7k=;
+        b=HWVl23f7EbffHA+y5AS9FUKS3zv7py5X0HFHjHh8V0w+14lr9gWxid21dTYFnFwNoZ
+         GwNoQIWhiEL5hbSn7PltuTStb/RW7KM+UOy2e8Bs2vTrkYWW2kkcQSxGIfUc1G+agcKv
+         ZNb0SDy2tvZvCh7cEgE5mLGR6187xYm8uyzb0VFIGksXUgnh2GHiW+eltkVJfGmO3ZTD
+         WaXLuzVtcnTYS08Xak7i8MEweRIYP+7N96V8iLNGkdyd+bmg5mTJyUwni3SRMlt75+HX
+         rI1mx9qbZ06YjQIzWDZygPmtinQXLkLFUWxEcDqwf/usnwhe7WGv05IIq6fe6Bmlj4Od
+         1uXg==
+X-Forwarded-Encrypted: i=1; AL+hErExOQHEf582yYFYgzbj64q3v91RDJCb2X59WZyCs+htsNeJtH6D01mNiXjvQVdlfAzg5Pj/sCOCfGs7@vger.kernel.org
+X-Gm-Message-State: APuU4Z8v6bOyHNTyaDGKZ8lFIRHelYqMLXiE/nhB3eaxa0m3BciU/hqp
+	iaEUzPdnHKniJDrJIYd2sfRefcvByQYOrTN9rgCwV2V4Ld/ydljXo5I=
+X-Gm-Gg: AYBFou0XabYJFf7iW2xgAYLYMEy9jixAS5ozRo+hNpQ2qQeKrgaGAJrrelCmurkevpO
+	3Yf/+tkGQC9syL2X0z55OGeITxdKKot5JUZeZVzWY2WAIxlGJf7TlIGEImNTU0UGRIOPQsKtufP
+	2hpUFgEfAvY1q/3LEd9sJny9SK/gduK4irOkAuzIG5ylePWEIOeVjgyJh7j9mtJy5jiaArbklud
+	+0dP7nmXXqkDNNiDqdIhNd4pH8V+sD0dT3FIplaggfz2Z44IZsQaX4mxFFs4nsVCCNCKEiRQxZk
+	NIhng6wqdHdomii61vhHw4CJPJSNM3yAsN7GWCDlcWyLvhUiv2f3umhl+PtJbJBETf5XyFJsCJr
+	eOXa/lkdYM7PuPdH6mhyBcioPtqaBkJmDHr9onmmo3WQ8GonhFet9SUnDXl2ds1n4YL+nPU9G7T
+	AAiV8vegLkJO3vJQXn603uNdFlAmQowLeQlTewzYiblW/v8XQ3tejKSbCYsYiVu3nB6jPxwc1k3
+	lZ3TBAfaSwE20sq1wGqJq1FVVNHWdj7qLQ7EEfMJ4PFqKMpoH1eyw+0cn0utH6zcp3aByylGxNH
+	wewNv9Qj5TkHBPG6mUhR5FqHOAHJ68tbtsIMEFvtY6wnD8mUPzvFpiwFnHzb6zeAOA==
+X-Received: by 2002:a05:7022:285:20b0:1b2:3e1d:17ee with SMTP id a92af1059eb24-1b4f5f1f212mr4239072c88.9.1794571505635;
+        Fri, 13 Nov 2026 04:05:05 -0800 (PST)
+Received: from at-Standard-PC-Q35-ICH9-2009 ([106.205.242.248])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1b50316e195sm8146246c88.8.2026.11.13.04.05.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 13 Nov 2026 04:05:04 -0800 (PST)
+From: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
+To: rafael@kernel.org
+Cc: atharvatiwarilinuxdev@gmail.com,
+	lenb@kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH RESEND] ACPI: processor: Use Apple-specific methods for P/C-states
+Date: Fri, 13 Nov 2026 07:04:58 -0500
+Message-ID: <20261113120458.1170-1-atharvatiwarilinuxdev@gmail.com>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <CAJZ5v0hHOKFYS4D+CLRiCF0hiRK6SOY=VKJ619rTNauipnHsrA@mail.gmail.com>
+References: <CAJZ5v0hHOKFYS4D+CLRiCF0hiRK6SOY=VKJ619rTNauipnHsrA@mail.gmail.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -91,41 +99,8 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15.2
+Content-Transfer-Encoding: 8bit
 
-On Fri, 13 Nov 2026 10:42:02 +0000, Eliav Farber wrote:
+> Which one is used in older Macs, ACST?
 
-> The devm_atomic_notifier_chain_register() and
-> devm_blocking_notifier_chain_register() helpers this series added in v5
-> are now in mainline, together with 6 of the 11 driver conversions. This
-> revision carries the 6 conversions that were never picked up, plus one
-> new conversion for a driver that grew the old pattern after v5 was
-> posted.
-> 
-> [...]
-
-Thank you for your contribution, it has been applied to my local
-review-ilpo-next branch. Note it will show up in the public
-platform-drivers-x86/review-ilpo-next branch only once I've pushed my
-local branch there, which might take a while.
-
-FYI [if applicable to your patch], as per Linus' policy change, also
-fixes are mostly routed through for-next unless the fix is for a
-commit introduced in the most recent cycle or is clearly a regression
-fix.
-
-The list of commits applied:
-[1/7] platform/x86: bitland-mifs-wmi: use devm_blocking_notifier_chain_register()
-      commit: a362539b42193dcdb17f8fba40031a515c53885c
-[2/7] Input: adp5585: use devm_blocking_notifier_chain_register()
-      (no commit info)
-[3/7] ACPI: APEI: GHES: remove unused ghes_{,un}register_vendor_record_notifier()
-      (no commit info)
-[4/7] ACPI: APEI: GHES: use devm_blocking_notifier_chain_register()
-      (no commit info)
-
---
- i.
-
+Both, APSS and ACST, i think they were discontinued from T1 macs onwards (so 2016+).
