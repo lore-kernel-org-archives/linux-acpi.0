@@ -1,99 +1,78 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794581074;
-	b=lCXvx0BUXaSDyRX3gIsn4FgOdHH/TeVd3fNZM3EDD2ztBakQcr84p+St7bhd4Lioe30T
-	 1xsnNIwicU5dv1zQuYbRnRS9+qzEOWA17gVHVWKjsGBqAvXtNQQnLH2koaGmfcze15gCS
-	 HztKQ3PZ1EgFn5aVnf0pE4QeHtGmfGj5o3nDP91voiVZcmbZ/+Z/SMY4zGIXrzslp8zAR
-	 b/R8xIpUxnKY9d6RpgBNycbDQWtuMgC9gzMNFXTjNv79Wyod0KADeKHBdRAM5DWEVGyPv
-	 3UAaCzQvDR+23395yiRWG4mx7yKHohI7pVr3jqtL3uPKPaCpD3cYwVO7JYGgPlxlKyA==
+	t=1794581202;
+	b=T92S61w4TKdUd50CMtLCdrFq13fSA4sFv6CJtMjU22jXBdGsKcHuS7nhuM77tyQYEn7k
+	 BlrBDCO3hEx+i9IVSCx47CGVePOHrKiDxnPUoRAMd2cCGfyTsJLrmAyJBAkKYB0R7gRdt
+	 7dGmA1Dy9jJ+U5OJ3FNfs0KQBaBq40aOuBsnzxuaMzB2C3Zqif6Fvc2q/YUosMQH2uq1S
+	 XtRjFJVocMtB+8/E1kMRjjdrTGS7HJPM+VC/zDM4m07X57L4f7mtzBFnaxuDQena2As0j
+	 Xd33sQSkX0V6fXs8QY4cJ8FQT7ep4t6FVm/Cpi6D68Q67Ri/mfLED3BxbLdNM5VyzHA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794581074;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794581202;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
 	 Subject:Message-ID:References:MIME-Version:Content-Type:
 	 Content-Disposition:In-Reply-To:Organization;
-	bh=PCohGcK4MbH0+m0C2E2oEI2m0dBP6JKw67OWX2Ixdd0=;
-	b=Um1AvFkCDVvxPuHrHnA5cbLPevxgMLRed3+qaRGVitro1/fzYHmu2hOYxrYEdEYKYx8O
-	 qr7QCO1i4pqzrDNY0WWnSGkU7EsG/Sy5v6c5f5bNTTNAoznqZkO5oK5O29InYxQgDdV24
-	 qCLspYENPSi5gk+FNinpdsXoWrrIb9zNKSBQqswk3hnctac4SKTfBXAicTSLKr/TdiTeW
-	 j4fy60QwnTeQZ3f7VQZ2k0iLTOPSGkfGQtr+xs7+3UnhI0hL/zBxzxs+3fRqxO9E8aWHc
-	 h2QbeozxJU8qUzTZaXGBXWMukZ0rBku7CNPJhQ6V1vOioCzb8+I2piQe5/6K1Vz7R/Q==
+	bh=eFdURxg1ExgwJyMy5pVtoIk7ER5zKiuVuR5kjNIKldg=;
+	b=Nvvft9PpOzSgLjUvGjfqgnEmbVmD+4VNuKHPNLaXWceqDTrPZBK6WlGXmOXVmi6FeO/3
+	 WD6kzylhMUDS+jh5KVcE2K5HzT0/GQdIg9i340G18z+1YQxEx7G0x+B+GMutUkO6TQu4R
+	 Xj/IIXhgPfBg/tIRlj+xqzPB7YH0gvhs5lLZg3qGoNdOMexQgQuyDkSQc5crqfeXP2U/C
+	 fzcop8A4U8vBG8XAbUYTMHaJUlLPH8wk7LShm2RPoXnIu9g1O6dY6Qs1FjT6D+hixm+/O
+	 VHr4+piNwHkScZAuLyicZEHeuQr4q0asE4d+wQOxaZZ1r2MLyKkdYHzlpK5jZ8P3x1w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="QR/RmCXl";
-	arc=none smtp.remote-ip=192.198.163.12
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="PBB5Xzn/";
+	arc=none smtp.remote-ip=198.175.65.18
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAA75606A331;
-	Fri, 13 Nov 2026 14:44:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EAA75606A331
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BBAC606A88C;
+	Fri, 13 Nov 2026 14:46:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9BBAC606A88C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=QR/RmCXl
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=PBB5Xzn/
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794581074; x=1826117074;
+  t=1794581201; x=1826117201;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=DyI5H6asWxx+tH3VejHSQI8D30gWxhl9i+ORCFAvja8=;
-  b=QR/RmCXlP7YeiKs4cIIQlvZUq5MI+AsMQylxmqVHyTMWw7lKwXW1Em/i
-   C8Za6TM3AWBodCXFoxBGHaSr08gZDp/2T1d33OsWoROoCgSzoPvIyAKgL
-   CKrY8ijrn5JUUe8Z3GKLModbDij415qNKB25Fy89aNmCaeMlcfguqUR7h
-   NYkRZ6mO+oCr5Kdd+CHSY9nDKc/X6Cb45xQTBkQvVYxQFzmyNBXJLeWr5
-   mSg01d6+9adGLilgryjfjXeZ5B43nnxQ5S4uwQTqtkv4pi/ChTIU6We76
-   s4RzzQE1maf4u0JUvpoxQhZK0K+cEVM8ZKkIG5WsXfTa1ZVN5prPz1YEZ
-   g==;
-X-CSE-ConnectionGUID: CTgI1O+eQmaJNplK+6hInw==
-X-CSE-MsgGUID: Z2Dq5KRQQLavbU3FEw0CpA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11965"; a="3288677"
+  bh=CtnK1QwBbhYjABQLuei6P7Z+yLRVqDIHpc6xOj09bS8=;
+  b=PBB5Xzn/WR0wtz8p6UHxxZ3xCPJ/++wKdKvqbU7dZstesrD6dBgF/r5+
+   jwq+RvXzPIauCjRsqzx2+blOXlcxPYXMqsf/baIed6Fp3Q7bG4cRAqkOW
+   Zrd3FYl+YsyGAs4bqfQyrgBIC1oU3Tc6uli5tTWetsxU38t51AjG+bzT0
+   CIyQh1yKJCfX4nm2wwaSpQ+sMIqVi6D5chD00nm2gY/ymRqeit1xHYSpD
+   Cv3K7Se0Lh7CckcM9N3mi51d+YsGEoKm3UnS5vXmP4FfjAneDmpEZ1g3q
+   9Zn79mMMH1wL/aiWsR+yHuOmDq1ZwzuRKzpZA337M5n+lYS6y7VXgx0ZH
+   Q==;
+X-CSE-ConnectionGUID: mmu2IbcKTZyuGiZIcfka9g==
+X-CSE-MsgGUID: 1QpwMW0uS0yYejyKeC0a8w==
+X-IronPort-AV: E=McAfee;i="6800,10657,11965"; a="3397718"
 X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
-   d="scan'208";a="3288677"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 06:44:18 -0800
-X-CSE-ConnectionGUID: rwx0kEqrS7KcRwQIohl0qQ==
-X-CSE-MsgGUID: TsUR/GvvQFKYNdvTuscMYQ==
+   d="scan'208";a="3397718"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 06:46:41 -0800
+X-CSE-ConnectionGUID: bPCcqvO2T4W5p7PWVtgPyA==
+X-CSE-MsgGUID: w5CvpsjMS8aBnCpBVrLjJQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
-   d="scan'208";a="8831426"
+   d="scan'208";a="9258228"
 Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.244.148])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 06:44:10 -0800
-Date: Fri, 13 Nov 2026 16:44:08 +0200
-From: Andy Shevchenko <andriy.shevchenko@intel.com>
-To: Alejandro Colomar <alx@kernel.org>
-Cc: linux-hardening@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
-	"Maciej W. Rozycki" <macro@orcam.me.uk>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Andreas Schwab <schwab@linux-m68k.org>,
-	Andy Shevchenko <andy@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>,
-	Kees Cook <kees@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Len Brown <lenb@kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linus Walleij <linusw@kernel.org>,
-	Namhyung Kim <namhyung@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v5 7/7] string: Implement strstarts() with strprefix()
-Message-ID: <avciONW-b_WXoetv@ashevche-desk.local>
-References: <cover.1794574496.git.alx@kernel.org>
- <382a44f7c68672ecead2436d9f569ee23f383830.1794574496.git.alx@kernel.org>
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 06:46:40 -0800
+Date: Fri, 13 Nov 2026 16:46:37 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: penhouse24@proton.me
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Andi Shyti <andi.shyti@kernel.org>,
+	Hans de Goede <johannes.goede@oss.qualcomm.com>,
+	linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH] i2c: acpi: Force Dell XPS 17 9720 touchpad to 100 kHz
+Message-ID: <avcizZOPWqA3r_qA@ashevche-desk.local>
+References: <20261113083940.2583439-1-mika.westerberg@linux.intel.com>
+ <avcBBe428-3Fdonb@ashevche-desk.local>
+ <oyP4Jwe9KmZeViSughKaFgfxdsCa4bOmWguiI5_JlkvEHQ3lSwRAgU48s260tgGXfueLHta38-Zlhq9LQ-oB4aEObhQdAH7mujrH4BFSQ90=@proton.me>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -105,32 +84,43 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <382a44f7c68672ecead2436d9f569ee23f383830.1794574496.git.alx@kernel.org>
+In-Reply-To: <oyP4Jwe9KmZeViSughKaFgfxdsCa4bOmWguiI5_JlkvEHQ3lSwRAgU48s260tgGXfueLHta38-Zlhq9LQ-oB4aEObhQdAH7mujrH4BFSQ90=@proton.me>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Fri, Nov 13, 2026 at 02:11:17PM +0100, Alejandro Colomar wrote:
-> The compiler should be able to optimize out the unused pointer
-> arithmetic done at the end, so performance-wise this shouldn't change
-> anything.
+On Fri, Nov 13, 2026 at 02:17:23PM +0000, penhouse24@proton.me wrote:
+> Hi Andy, 
+> 
+> Yes this post explains this exact problem (I even posted on it). 
+> 
+> Since applying the 100khz patch I have had 0 issue with the touchpad. Not
+> sure why the Dell XPS 17 9720 is so unique in this issue, but amongst all the
+> firmware updates I have received since purchasing this computer, there has
+> been 0 improvement to this. 
+> 
+> I appreciate you all working to resolve this issue. Is there any further
+> information I can provide you all to get a fix pushed to the main Linux
+> kernel?
 
-If strprefix() is not inline how would it be done? Or I missed the point?
+Can you comment on that bug with a link to this thread that your case is fixed
+by this patch, so others also may test it?
 
-> This change de-duplicates the almost-identical implementations,
-> and better shows the relationship between the two functions.
+> On Friday, November 13th, 2026 at 7:22 AM, Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
+> > On Fri, Nov 13, 2026 at 09:39:40AM +0100, Mika Westerberg wrote:
+> > > The Dell XPS 17 9720 touchpad has the same lagging issue as with others
+> > > when run at 400 kHz as the ACPI tables describe. This particular system
+> > > does not use standard ACPI ID but it seems to use "Windows Device ID"
+> > > VEN_04F3 for whatever reason. Add this one to the 100 kHz quirk list as
+> > > well but since this is not a standard ACPI ID match it also via DMI
+> > > strings just to be on the safe side.
 
 ...
 
->  static inline bool strstarts(const char *str, const char *prefix)
->  {
-> -	return strncmp(str, prefix, strlen(prefix)) == 0;
-> +	return strprefix(str, prefix);
->  }
-
-There is no sense to keep strstarts() at this point. Can it be simply
-redefinition? However, after looking at the uses in the kernel, I prefer
-to see the strprefix() be not implemented at all, just optimization against
-strstarts()/strends() if required can be performed.
+> > > Reported-by: penhouse24@proton.me
+> > > Link: https://lore.kernel.org/linux-i2c/20261109104542.GL176724@black.igk.intel.com/
+> > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > 
+> > Isn't this https://bugzilla.kernel.org/show_bug.cgi?id=214597 as well?
 
 -- 
 With Best Regards,
