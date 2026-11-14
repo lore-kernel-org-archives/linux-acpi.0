@@ -1,70 +1,120 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=103.168.172.142
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794685770;
-	b=0cfBeR2ndFs2z/+qMe+rVj9rF3SuQOoJmDReXYBA6QlAPCsY2dr18TwLNUtwk3l2UoVd
-	 ZG+36Y3pVMNwZPSSoq7t3xJqFLmtrDiNon8A08ZiGPCWMjClqO2jA3Tcc/AAHLX2PAykL
-	 NnpTM7OHa15XQle7YThb2Kxv3NX5Yu4HIckI1diowJLVOMawREou4dfjXBTJb68bU0pvk
-	 F+nlqk6V1VkkM9CqqNRXstmzKTH449/teQQmODxjrkmB+QoEPJXxbxaozuG4VMyKb8pPL
-	 4++6a5LjIgdIQ4af7xs0wQSq4m6Jercx9Q4oZTUaNuzawmMxD9+tpsfgoY2Y5hdraig==
+	t=1794694113;
+	b=LMfZwn+bfs2jpF9iqi9n7QHqUH6Y5ozfFyW5VQuXUcmvcgYyL3e9/c2Cw2HUFJMWRBbm
+	 U373RE5CHeXOBAJkyEpkKBtzLR8b7oXXVC706b2dwkA388ARAGmBCev5wjqlFhGyAJhcg
+	 lPXbr5Zukk6pr6LM8csqKc4qmkvfm4E4xp/hPHZkBwyztVaR9D855gnes7K5vcW4syjgM
+	 D4uM2d7HFrcHlQ2fUJBCIVPq10QEKkhzsOKV9nmQiyZO1FsX9RH3ocoGRyk+/sBe2Tcii
+	 CpSadtH5NPwDI+I7tJ4zmdL1D5ZY3zGrmlpsOJAAv14FnKUx55PfMj8sOjz9f0pjkjg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794685770;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=+i5vfUNEuREbfhD/vTTdKxtwJJjI4Spi6fBQPs8xNP4=;
-	b=GCLM/jg4kXOixLrudSNT0I/xB/13i/6D5lYpmAvOS8iibdL2HMGnIMVCFnGCINyu0+M1
-	 guLehEUMPaqR18EVKZj+lZoMZF0QYEv37QRGWFkLfvodY2QgIkKaQJlcM84KYoRhCW6+C
-	 nzmXna5xPS5HoCUZVbu66gDiTD3LiwnD7ofFWVNO1/1qGzLt/hTN1kSFxgKkeLt8bwr4S
-	 kbUM32anWkJ9fvujI4s90gX19LmxTVDRa0BBDAFpI3xFapfzuz8WZnma+sSmJu7V+p246
-	 oXeqsZXG3/ADh9fKFI9c4QUsOAsKrkbV89h0ufx/GgwoVHCRJQ+A75A58ObiEuz5NOw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794694113;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:DKIM-Signature:
+	 X-DKIM2-Info:DKIM2-Signature:X-DKIM2-Info:Message-Instance:
+	 X-ME-Sender:X-ME-Received:X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:
+	 Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=Ug/apgAda5Acmym7YFj02vW4YgAYTbiXYAURle9bFHI=;
+	b=0XTBBYFpkHyf2fIKFkZGEEqB+B+5I/JXb2Ut1q29cYke3EKAgYhH9MfirSW/tW5YRJjN
+	 hXyhYNrr3Z1aOUudgyfegLMTR/9NPjtdMJqyCcBE4vMt3Qd3Bi4CkCBFduaYgg+rmcjKp
+	 txGKpFY40kI1FTTyBKqWcvTv4z6zcbQ7OMZQNc3lvT92ttUVGetVv2baHFIQ9baUZY570
+	 L11Bo0/OhnyQVpfs97Dax5LXdpOjPnjTb7AUDDWvaumSsgaoCxmj1VZY8RdCFYYiqghiR
+	 NPvrOx4ToZSQHnb7kJVFlxfPw9Di7sd/1YDrjEq9glZq467XzSxECdWrHO4y/IoxGdA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=otY8nTnL;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=fastmail.com;
+	spf=pass smtp.mailfrom=fastmail.com;
+	dkim=pass header.d=fastmail.com header.i=@fastmail.com header.a=rsa-sha256 header.s=fm3 header.b=QUJvRXP+;
+	dkim=pass header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=4KKpqMkK;
+	arc=none smtp.remote-ip=103.168.172.142
+Received: from flow-a7-smtp.messagingengine.com (flow-a7-smtp.messagingengine.com [103.168.172.142])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC78F606A329;
-	Sat, 14 Nov 2026 19:49:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91AE1606A32D
+	for <linux-acpi@vger.kernel.org>; Sat, 14 Nov 2026 22:08:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 91AE1606A32D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fastmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fastmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=otY8nTnL
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECF551F000C4;
-	Sat, 14 Nov 2026 19:49:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794685770;
-	bh=+i5vfUNEuREbfhD/vTTdKxtwJJjI4Spi6fBQPs8xNP4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=otY8nTnLe/3TyqJ1DMc6IvhNSaTnS5QPd5VEtkyQ5ydGqleXpsM2+Uw6dnp/95UqD
-	 fSe5LewETi6VWlXb3scDtzRK9ws33bzAlzkAAiu9mPeJILDCdFzkzwJk58WqGybilI
-	 2llxmepWI3m8W5zfSrJk6lFBjtmmQ+HVneUVRDVhzy4BIQxEaDB2uCgyrlsIrsQk6F
-	 wqzf3+2VNsAh3cRUk08CnWb8Q6Ic1beRRXTF9iGgK36AA5rXVmHYC4fnsJwfPji3Af
-	 pVYUD1vkR5DpqKuEcZooGgjAvVSSkqwj/0jmsRQYcltRfuEblwZvRAqFfZM9REVL0L
-	 r6zygl3Aoq58g==
-Date: Sat, 14 Nov 2026 20:49:21 +0100
-From: Alejandro Colomar <alx+linux-hardening@kernel.org>
-To: Hauke Mehrtens <hauke@hauke-m.de>
-Cc: linux-mips@linux-mips.org, Ralf Baechle <ralf@linux-mips.org>, 
-	Joe Perches <joe@perches.com>, Alejandro Colomar <alx@kernel.org>, 
-	linux-hardening@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>, 
-	"Maciej W. Rozycki" <macro@orcam.me.uk>, Geert Uytterhoeven <geert@linux-m68k.org>, 
-	Andreas Schwab <schwab@linux-m68k.org>, Andy Shevchenko <andy@kernel.org>, 
-	Bartosz Golaszewski <brgl@kernel.org>, Daniel Scally <djrscally@gmail.com>, 
-	Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Hans Verkuil <hverkuil-cisco@xs4all.nl>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Johan Hovold <johan@kernel.org>, Kees Cook <kees@kernel.org>, 
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Len Brown <lenb@kernel.org>, 
-	Linus Torvalds <torvalds@linux-foundation.org>, Linus Walleij <linusw@kernel.org>, 
-	Namhyung Kim <namhyung@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Rob Herring <robh@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Saravana Kannan <saravanak@kernel.org>, Steven Rostedt <rostedt@goodmis.org>, 
-	Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: Off-by-one in arch/mips/bcm47xx/time.c (was: [PATCH v6 02/19]
- string: Add strprefix())
-Message-ID: <avi54hgKgovNHfKy@devuan>
-References: <cover.1794667407.git.alx@kernel.org>
- <0eaa4ce73a2b164fd49e3a9f71244a2e3f45b7bb.1794667407.git.alx@kernel.org>
- <c113f651d1ce1b2d42ab9d0c59ae5a0cd17ddb6a.camel@perches.com>
+	dkim=pass (2048-bit key, unprotected) header.d=fastmail.com header.i=@fastmail.com header.a=rsa-sha256 header.s=fm3 header.b=QUJvRXP+;
+	dkim=pass (2048-bit key, unprotected) header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=4KKpqMkK
+Received: from phl-compute-03.internal (phl-compute-03.internal [10.202.2.43])
+	by mailflow.phl.internal (Postfix) with ESMTP id 949EC1381C3D
+	for <linux-acpi@vger.kernel.org>; Sat, 14 Nov 2026 17:08:31 -0500 (EST)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-03.internal (MEProxy); Sat, 14 Nov 2026 17:08:31 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fastmail.com; h=
+	cc:cc:content-transfer-encoding:content-type:date:date:from:from
+	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
+	:to; s=fm3; t=1794694111; x=1794701311; bh=Ug/apgAda5Acmym7YFj02
+	vW4YgAYTbiXYAURle9bFHI=; b=QUJvRXP++LBrm5IOwGRYgskb0dJNHybkgN9Ra
+	EhM1cxMc4efHf7wdlfBROq8VjXFhyggQX89IFqyVDiySPa9dB9xnDV4fLlKHMI2T
+	ltnBnjWpRgpuanNWV/CCTIOIA3Kc3VydoaVaap0cY72X5PuBKHBOSZImoikOWJq/
+	Kqny2BAU6UQr5HJT+g3wZyj+pog1iYX01iiqn9XNpr9QGPdUxSFOJZMkjgTULvOm
+	24kAeug05Hre7eaB7mqfu+cXI+WFwfthAhWSuabLpfsiRoCoRHocT3qYUBz0oVGC
+	n5Id+f/3ZLnAUQ58P1niv4lEbSOZwrP5KnfhuAO0m/TAHakDA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:date:date:feedback-id:feedback-id:from:from
+	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
+	1794694111; x=1794701311; bh=Ug/apgAda5Acmym7YFj02vW4YgAYTbiXYAU
+	Rle9bFHI=; b=4KKpqMkKIe5wC5dCD6LCz4bGesqE11RVca2/cj/yF1pmf69g5gt
+	JIlEfPSCp78M418SMeUNHwmv7nptwx768CVMCcxeNcE2OjQ/e6f8oXNTrC5UqPx7
+	WpS5WPazBG+y5a5PduFdLl58ercQH95sO9ccVH6UPk28YkyU2C8l5sBGlbwfrKtr
+	IL40ABIKVFqLj4zXxRaPt7pNGA6Wo7ZmcVL21115LslIf3FJSQiIdZV1hAQ0nnhM
+	WNTyD8J1YkUA8U0D7SV1kjYJXGX4HfBPxCUM0kN7/qzmZdJ3zecr4m4uKOF5S3uM
+	E0JFkoRCp6WUYub8BMkX0Xf9SKjvzTpMBSQ==
+X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
+	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
+	action=sign d=fastmail.com a=rsa-sha256;
+DKIM2-Signature: i=1; m=1; t=1794694111; d=fastmail.com;
+	mf=PGdyZWVuLmtvYWxhMjk3OUBmYXN0bWFpbC5jb20+;
+	rt=PGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnPg==;
+	s=fm3:rsa-sha256:G3cNKXkMzvHaCyNfr5jIwUbY+TPepIPdM057diuLs2XxGIp
+	mzR0Fli03CB1cPk8OnIgKxV+V9ZCdZKc5//6zsLhXr27jI3/CO4VITpWzYmtVsxP
+	X9TpwXUMQJrj5z8Tez2KBDKkyaDS2cikqUZsmFZXTnhJMUbBr8eu/D8E0XsvyOev
+	I6Afkg8EAPOJo69VowRPH2Tq0/VR3W+KF3umWwrfnej7rVWoJX5X9eswHTMEBz2H
+	WpxmOPkwN+mEK5uJlvhdhYoBt02snQNnJ0wFMYjo/68JqctEEBHoQ7dLIScd9HWG
+	nDhKY7mavLawaIAIzUpvDAvZpFK3aa2NzGtfqMQ==;
+X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
+	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
+	action=mi-m=1; hc=9;
+	hn=cc,content-transfer-encoding,date,feedback-id,from,
+	message-id,mime-version,subject,to;
+Message-Instance: m=1; h=sha256:bMVwpMwupdCv5a7P2o3qZ5L6a5uZykSM1kN4mGRoVLA=:bfUyrCu7q4t5KUyVezGHvAbrac7U/YzxFFt9zw7WK6g=;
+X-ME-Sender: <xms:39v4avGsCpauFV2-z1Q3qk1cIQ1Wvylp5iAe7eR-EYAvbfFCFDhCqw>
+    <xme:39v4anRHSHV3saclplY9BvoAunNZNDMxYg81kuTlzfnN9X1LDtlN0Fmx2QNc2zK3Y
+    NTZtfGlbSNIcSKuide_8RAkbytIJYtLui30FFjSvJAdyg0Ya8otyNXR>
+X-ME-Received: <xmr:39v4agIb8WTCXjBUkHFGPWEQWmMSeGQe9a83DLG8-JoJymgfaAVqNLy0G9jc-WSqws-sZKgNMwUNXyCqI1JqFxwirnPWrMtA1SlBaLJAPTDf2ZI>
+X-ME-Proxy-Cause: dmFkZTGO7qDD20ztsvp8S9i6TU/49ndJrybpS1KO5n6TdTAnyqpsy+ETATuq2hoKGMiNoe
+    sfGBCfIaCTXv+7IVUoN6k0KokiFL/Qy2RWMQwTL05rAoaJ2IcQtmBnhcgVSdP/X53SgHx6
+    Frqz/xlf21fx0WXOKbQn/HdXvMK5/J9xCeO+kIvORkRRIc6B+xlp4CvkNtkPjH4HOY4zR+
+    u3Fm159sFlA+ZChoCaw/hGBnSP9ggsZmSkbce5efhN0uFKVT6+BbQxu5ueepQ/7073sUzF
+    gJClykGmqR2voUmUD5xWNyfu6fJSdQSgpZwZSqLIgdKLg+fg6FWJYZIm+tw+AHB6pruplB
+    AfQdwFw8pFNRnUtMLuYZJ9gRm+5j4Rz+bVnfW4Z4Ct4s7L5d7110cPKPLJV5Tp7nxnGiPl
+    dWZ/ifzjukrgJvXnvZwtRcSWYO638q1FUP08tUbuQ+z54FtTo//TCgmwUSMUF0Ew76CFTy
+    uBJinbqPZf1iLhFbDV6zBfwb8kehrGXEQWh+op/T9Q+EDpUdzYFMx+aBt4q2Arroj47z/I
+    /E+/c1cpuy6k1glpohqqO3mSDtt/zFlaOoBcOf/74Cc/sJNtFPqe+KGJzxuqUr05pgxG27
+    Ynyy7ya0C+uyD51Cb2fHJYOHTWjvyeyvTijqfz/+mhPC0pXIYO7NJC387OZA
+X-ME-Proxy: <xmx:39v4aiZQkjlIS15nWQx8VlJEvx3myQ_FPH9DOdfx4BXb8U3RAYKprA>
+    <xmx:39v4ai8gmrmy-uV_SfZFgIQJEeQGIDY5PK6WA8JJBhZQy5N5maZkGA>
+    <xmx:39v4ajZcjXso2amdtFfVYOTw4tscg6s5_n9E9EF_X373Zmh5uj4AsA>
+    <xmx:39v4amObhblumtMfWig-3fVqRRVAbuy3blqi1DPVmSFawEEZfDdIzw>
+    <xmx:39v4asfSLGzM-3aVbCoyqzb1a84SmLmVqZCH7GvRq23pCkz9ic1Sk8nR>
+Feedback-ID: ib51446d9:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sat,
+ 14 Nov 2026 17:08:30 -0500 (EST)
+From: Ana Veto <green.koala2979@fastmail.com>
+To: rafael@kernel.org
+Cc: Ana Veto <green.koala2979@fastmail.com>,
+	Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH] ACPI: battery: Handle a negated 16-bit discharge rate
+Date: Sat, 14 Nov 2026 22:05:38 +0000
+Message-ID: <20261114220739.10496-1-green.koala2979@fastmail.com>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -74,96 +124,53 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="psztgxc2iosdbtjc"
-Content-Disposition: inline
-In-Reply-To: <c113f651d1ce1b2d42ab9d0c59ae5a0cd17ddb6a.camel@perches.com>
+Content-Transfer-Encoding: 8bit
 
+On the MSI Claw 8 EX AI+ (MS-1T91, BIOS E1T91IMS.10D), _BST reports the
+discharge rate as 0xffff03a6 while 934 mA flow. The DSDT reads the EC's
+signed 16-bit current (0xfc5a, -934 mA) zero-extended, negates it with
+"~Local1 + 1" and does not mask the result to 16 bits. The magnitude is
+left in the low 16 bits (0x03a6) and the upper bits are set, so the
+int rate_now is negative (-64602).
 
---psztgxc2iosdbtjc
-Content-Type: text/plain; protected-headers=v1; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-From: Alejandro Colomar <alx+linux-hardening@kernel.org>
-To: Hauke Mehrtens <hauke@hauke-m.de>
-Cc: linux-mips@linux-mips.org, Ralf Baechle <ralf@linux-mips.org>, 
-	Joe Perches <joe@perches.com>, Alejandro Colomar <alx@kernel.org>, 
-	linux-hardening@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>, 
-	"Maciej W. Rozycki" <macro@orcam.me.uk>, Geert Uytterhoeven <geert@linux-m68k.org>, 
-	Andreas Schwab <schwab@linux-m68k.org>, Andy Shevchenko <andy@kernel.org>, 
-	Bartosz Golaszewski <brgl@kernel.org>, Daniel Scally <djrscally@gmail.com>, 
-	Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Hans Verkuil <hverkuil-cisco@xs4all.nl>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Johan Hovold <johan@kernel.org>, Kees Cook <kees@kernel.org>, 
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Len Brown <lenb@kernel.org>, 
-	Linus Torvalds <torvalds@linux-foundation.org>, Linus Walleij <linusw@kernel.org>, 
-	Namhyung Kim <namhyung@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Rob Herring <robh@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Saravana Kannan <saravanak@kernel.org>, Steven Rostedt <rostedt@goodmis.org>, 
-	Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: Off-by-one in arch/mips/bcm47xx/time.c (was: [PATCH v6 02/19]
- string: Add strprefix())
-Message-ID: <avi54hgKgovNHfKy@devuan>
-References: <cover.1794667407.git.alx@kernel.org>
- <0eaa4ce73a2b164fd49e3a9f71244a2e3f45b7bb.1794667407.git.alx@kernel.org>
- <c113f651d1ce1b2d42ab9d0c59ae5a0cd17ddb6a.camel@perches.com>
-MIME-Version: 1.0
-In-Reply-To: <c113f651d1ce1b2d42ab9d0c59ae5a0cd17ddb6a.camel@perches.com>
+The existing quirk checks only the sign of the low 16 bits, which are
+positive here, so the value passes through: current_now reads about
+-64.6 A while discharging, battery overlays compute about 1055 W from
+it, and upower shows no energy rate and no time to empty.
 
-Hi Hauke,
+Also take abs((s16)rate_now) when rate_now as a whole is negative.
 
-> Date: 2026-11-14 07:53:25-0800
-> From: Joe Perches <joe@perches.com>
->
-[...]
-> And these are all candidates for converted uses to
-> whatever is the function name or steq:
->=20
-> $ git grep -P '[^w]strncmp\s*\(\s*[\w\.\-\>\s]*,\s*\"\w*"\s*,\s*\d+\s*\)'=
- -- '*.[ch]' | wc -l
-> 946
+Tested on the device with a v7.3.3-based kernel: current_now reads
+624000 uA at 14668000 uV while discharging (9.2 W), and battery overlays
+show a normal wattage.
 
-Looking at those, I've seen a bug in BCM47XX, introduced in 2224de9d152b
-(2013-10-29; "MIPS: BCM47XX: Fix clock detection for BCM5354 with 200MHz
- clock").
+Cc: stable@vger.kernel.org
+Assisted-by: Claude:claude-opus-5-5
+Signed-off-by: Ana Veto <green.koala2979@fastmail.com>
+---
+ drivers/acpi/battery.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Look at this line of code:
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 43a7543..45a4db5 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -703,11 +703,13 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
+ 
+ 	/* For buggy DSDTs that report negative 16-bit values for either
+ 	 * charging or discharging current and/or report 0 as 65536
+-	 * due to bad math.
++	 * due to bad math, or that negate the zero-extended 16-bit value
++	 * (0xfc5a becomes 0xffff03a6), which leaves the magnitude in the
++	 * low 16 bits and makes the rate negative.
+ 	 */
+ 	if (battery->power_unit == ACPI_BATTERY_POWER_UNIT_MA &&
+ 		battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
+-		(s16)(battery->rate_now) < 0) {
++		((s16)(battery->rate_now) < 0 || battery->rate_now < 0)) {
+ 		battery->rate_now = abs((s16)battery->rate_now);
+ 		pr_warn_once(FW_BUG "(dis)charge rate invalid.\n");
+ 	}
+-- 
+2.56.0
 
-	$ grep strncmp arch/mips/bcm47xx/time.c
-			if (len >=3D 0 && !strncmp(buf, "200", 4))
-
-That strncmp(3) call is wrong, as it's really behaving as strcmp(3),
-since the 4 is off-by-one.  I'd like to know what was the intention.
-Was it meant to be !strncmp(buf, "200", 3)?  Or was it meant to be just
-!strcmp(buf, "200")?
-
-
-Have a lovely night!
-Alex
-
---=20
-<https://www.alejandro-colomar.es>
-
---psztgxc2iosdbtjc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmr4uzkACgkQ64mZXMKQ
-wqnPmxAAqT7UmP76O2Mq/J5Sa/uqqP5eSBhdUMsMoPaJ9FCc8DOJZJlQptoSNFP8
-WvoQpWn2WYGTI24yXj3+Ag5dUrCKcfBeGZqZBPpYsx7anZFcbWPwp40W9A3WgGme
-TkpkcAZwyrnWlwzrKJ9lKEOh25m6AJXXzntLr59yQB6JwzXTQMCcfgCyaJdw/xH4
-27jqSFHyq5DeFOHrhlXs289J9sfJJpluh5YiQhmmS2sk/lZJwRGEcpZ0y0FB+Lsx
-4UkarFSJsYbdZEF2Bmz3+oVNQFIEiYIslmPntRvaqvtOD85vFYJW4oKmp7yDw/QD
-4XZvO6a1EkYNFhN8/dGWjj5ju5/kk6TfXsbJJzlXsaXP2zH9gwAJlsHda6AAfKNs
-t9Cr+97aGMrnNGDucM6v2dUhEb7wu1I5FIeIEY2H+XdFX8zZXP5TiG10ji3Lo4KW
-96SkNumWGfOTvfSPuvG4uVMX6AP7Nl7/CLD6QwkLLvONwhXtsYsaokMHFD/Uiu3A
-DOSyfiYNoYTwL4MXm9rgQDKJr3pZqCHhl9JqnOVlbhTs4KjEV+yrPLGq9GyC4H2M
-i+T5SGijShofKVgxqnIDCMhQulRthbwhX/36331pru8maHR6bSXorDQiQwUXKPRN
-DW2Fm8RrdXVd+xdU0n7wBonsthXSFJ7adi1+lv7ZyKcUasBglv8=
-=jCr6
------END PGP SIGNATURE-----
-
---psztgxc2iosdbtjc--
