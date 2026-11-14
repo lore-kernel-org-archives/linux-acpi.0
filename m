@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794669849;
-	b=p0AmDhRUvHDi8cef/uhnKyobJN/S3aYT9hKTtKBBSEdjPn3rE3nly0038vW5svVG/fBp
-	 rucpTu3KdF9xamNAJMjbXpIN/iQRzxU0GLnGFMOnOeEvXWN3SkenKdrWaMbAMk/CiFLp/
-	 dkb3KOVMjaE806sAfN3S7UdCFgrARw8P6IpYEC9l0AUMdEqplrqhVy2zlr7BZK/YUaqJA
-	 zDFvmGI3YPPCsWS29fhJQ40W4mZhvcVcYwDeB2yF9xgqiWusI6ZOV9YgU+615v7JHElEN
-	 vDCW8iGha3NzTJPdEW4yiG5bg5Ko7yGx1/X5yv5qx/b+yQReuTP6B67CpcgCtVmNHEw==
+	t=1794669856;
+	b=lukbHQENBUlrekBl/DVvb4zcQFXrUS7/pTZyh/92pnXooNyVMt1SYf+kVxJbWZVE6GY5
+	 vJjSEd1brFpMI7E5Zgx2q4WbR3yhOZJkY6+gWR5ZyB+zfxPzPW9JCyUf8J88Eu3XytIEz
+	 uMNC9A4CXJod2wYJ4T83E+TSdKsZABHgBTepJ/zkpJ/Gz3O4OchsI8bYSMeR/QpvC7vEG
+	 J56vEKf9PDO3/+0KSJHvyfIqM5ioxaPRUTsVL7xrkMxys7r3PedKlaKv+TLhSqTA3Hyiv
+	 HFz9BLhps7x5zTcMACBv5LlYsTxuudZ6f/ikaG3OkjGN4Mw0pa9PGEpqsVdI06/4iFQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794669849;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794669856;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:X-Mailer:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=T2Kcmx3WJSx/Ne5USlaUSCaBRqAq+CXbrA7aH/FsNZw=;
-	b=i0Mdf19EIfArFKaNGDimUw1F3K6IcSxZEdZYq0D7+q4mexYKhYmePXD6wLZR/9E7Rrgk
-	 3EYff9NrRn7Zx+uOLdSaT9OjVr8LZ4Pi8wizpy+ifxDanXnr+Hp1FpI7wol7cwth6qV13
-	 EaZkM+hoboKV2OjKuWcIoMnsXqa/EW/ddCRXP9+o2hIMooiTFJ+2TuvW4CI3orvIdNcMY
-	 xRGBg/ac//m5PFPCEp7Fe/QTd1LR0cM1sveJCtKpTOk1+lUSspXQXrI2GvBW/9EwIQUnF
-	 +lQE49+Z9qVh2jhAAV5ArKyCc+IDHDtQRhLNOA3F34wpNqhiiECyynGmbXmg5amGgvA==
+	bh=658SjM1nmHIXNjrWy5zoXBtxbFVhdAjapTbqQDMWugE=;
+	b=J6K+TM9Cgjv4Z2drzoWSK4zzhKIxS24cZODqWPbTcBWWHL7Uz9KXL4OxzCF7hcl+9bja
+	 Cd0I8s4UIDJ34xZNJbo3mohxCIMuEBAwCiVDFWHEcZa9yoPutaQSsYW21GT2anliNQBjb
+	 FKkFimwxouW3FHQYyAuTVEX4Nopp3KQHC7vndlKaJJd+/k0g+r8oBQSnOwaLVICTwgDuk
+	 stnK+EI/gyOAutBthz/sbBlGFNTdU9LHHvb/nCBhaEVQcVz7YqHTOoyC5bDIsus0E7kXh
+	 84cEYCkXRljAvRlyfNXIyKFwDjlws7IyISltroHO5QZRNIxHPJUckZV0kPEAEArl82Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LdNyczk9;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Jmus1vmC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C050606A32D;
-	Sat, 14 Nov 2026 15:24:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D06DD606A32E;
+	Sat, 14 Nov 2026 15:24:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LdNyczk9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08A281F000C4;
-	Sat, 14 Nov 2026 15:24:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Jmus1vmC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE3E61F000C4;
+	Sat, 14 Nov 2026 15:24:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794669848;
-	bh=T2Kcmx3WJSx/Ne5USlaUSCaBRqAq+CXbrA7aH/FsNZw=;
+	s=k20260515; t=1794669856;
+	bh=658SjM1nmHIXNjrWy5zoXBtxbFVhdAjapTbqQDMWugE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=LdNyczk9Vhx58M26hS9zuZ8OCyU1uGWu67MnAfu4Mpnu+Xn+087ag7/h+cFQbpisS
-	 ctRNt8XH1Pwfwvs9UCbSkNc5zzIK9xquMkB3eiA7FqZbFzZoB+jbzxZJ8Zv/t6UkWj
-	 ODnZTig7ZS5TYf81hwUoRVJgdbGrx69nVzINgKE8OdNLMxttwHxCd9uTUdjZ395wWS
-	 3/h4mRFBLRvIIc18083AeurZEdDGUgAVT2r94veU4zfGmPcj5XuaeMhUpFy6zMNobr
-	 rBEv/HaqgLAzm3k7iXM3GCFAoHkwvCZrMGRRnRmFLDmyd6iPJxYHFrgDFOyB0W0/CH
-	 hM4NmwSxIzp8g==
-Date: Sat, 14 Nov 2026 16:24:01 +0100
+	b=Jmus1vmC604qGFJZ1UjumJhUw8FqG8u+TA39BsnEFj2XJ/eA5Y8bSWLLlH6SjxOnk
+	 yVRayHZp1IlJ6ym7Rlc/A8czYrUF/P1zj1K7WEUOVbu+neiQHwQJhn5okr89GBd79m
+	 DzG33MX7H/+SyYzESQRBV7w+8C49+LKKmAScNbs7VlP78fjpF1lWBgq8cUUgHbGLYw
+	 mBVZnrLYZQljOyL2Z8lZVGjRoOGocA7v0C1UHGGsDpdXgNOm3YNT08wMYbUYepcTfZ
+	 YD/RnkYFvi/Q+EwpBsmmZ1hYz9472w2HpS4hhIEJtEY4ZUf3NouheqITMqNj2T4sw4
+	 rDadSrru+nz3w==
+Date: Sat, 14 Nov 2026 16:24:09 +0100
 From: Alejandro Colomar <alx@kernel.org>
 To: linux-hardening@vger.kernel.org
 Cc: Alejandro Colomar <alx@kernel.org>, 
@@ -57,9 +57,8 @@ Cc: Alejandro Colomar <alx@kernel.org>,
 	Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, 
 	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
 	linux-gpio@vger.kernel.org
-Subject: [PATCH v6 17/19] string: Make strends() a legacy alias for
- strsuffix()
-Message-ID: <8aa3d317d63c7538628b798845dc2092b3f999f8.1794667407.git.alx@kernel.org>
+Subject: [PATCH v6 18/19] treewide: s/\<strends\>/strsuffix/g
+Message-ID: <3cad861d30901777d9bdafec1ccf113e0a3fcfa7.1794667407.git.alx@kernel.org>
 X-Mailer: git-send-email 2.55.0
 References: <cover.1794667407.git.alx@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -72,12 +71,12 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="zlbfher2u4f7fn6l"
+	protocol="application/pgp-signature"; boundary="4by47ec3emphsvqn"
 Content-Disposition: inline
 In-Reply-To: <cover.1794667407.git.alx@kernel.org>
 
 
---zlbfher2u4f7fn6l
+--4by47ec3emphsvqn
 Content-Type: text/plain; protected-headers=v1; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -98,88 +97,142 @@ Cc: Alejandro Colomar <alx@kernel.org>,
 	Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, 
 	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
 	linux-gpio@vger.kernel.org
-Subject: [PATCH v6 17/19] string: Make strends() a legacy alias for
- strsuffix()
-Message-ID: <8aa3d317d63c7538628b798845dc2092b3f999f8.1794667407.git.alx@kernel.org>
+Subject: [PATCH v6 18/19] treewide: s/\<strends\>/strsuffix/g
+Message-ID: <3cad861d30901777d9bdafec1ccf113e0a3fcfa7.1794667407.git.alx@kernel.org>
 References: <cover.1794667407.git.alx@kernel.org>
 MIME-Version: 1.0
 In-Reply-To: <cover.1794667407.git.alx@kernel.org>
 
-strsuffix() is drop-in compatible with strends() --but see caveats
-below--, and provides more functionality for cases where we're
-interested in the position of where the suffix is in the string.
+Except for the changes to "lib/tests/string_kunit.c", this was
+a scripted change:
 
-strsuffix() returns a pointer that can be converted to bool.  This is
-converted implicitly in most places, but if the target type is not bool,
-then it might be problematic and require an explicit conversion with !!.
-I checked that we don't need this anywhere, and also, I expect the
-compiler would likely diagnose in such a case, so this should be safe.
+	$ git ls-files \
+	| grep '\.[ch]$' \
+	| grep -v -e ^tools/ -e ^scripts/ -e ^include/ \
+	| xargs grep -l strends \
+	| xargs sed -i 's/strends/strsuffix/g';
 
 Signed-off-by: Alejandro Colomar <alx@kernel.org>
 ---
- include/linux/string.h | 20 +-------------------
- 1 file changed, 1 insertion(+), 19 deletions(-)
+ drivers/gpio/gpiolib-shared.c |  8 ++++----
+ drivers/of/property.c         |  4 ++--
+ lib/tests/string_kunit.c      | 20 ++++++++++----------
+ 3 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/string.h b/include/linux/string.h
-index 2f7fb2c70662..7469d4634b3e 100644
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -633,6 +633,7 @@ static inline const char *strsuffix(const char *s, cons=
-t char *suffix)
- 	return streq(s + off, suffix) ? s + off : NULL;
- }
- #define strsuffix(s, sfx)  const_cast(CQChar_of(s) *, strsuffix(s, sfx))
-+#define strends(s, sfx)    strsuffix(s, sfx)  // legacy alias
+diff --git a/drivers/gpio/gpiolib-shared.c b/drivers/gpio/gpiolib-shared.c
+index 8c9ac9d93304..677ec27e4e34 100644
+--- a/drivers/gpio/gpiolib-shared.c
++++ b/drivers/gpio/gpiolib-shared.c
+@@ -182,8 +182,8 @@ static int gpio_shared_of_traverse(struct device_node *=
+curr)
+ 		 * them. We can always just export the quirk list and
+ 		 * iterate over it here.
+ 		 */
+-		if (!strends(prop->name, "-gpios") &&
+-		    !strends(prop->name, "-gpio") &&
++		if (!strsuffix(prop->name, "-gpios") &&
++		    !strsuffix(prop->name, "-gpio") &&
+ 		    strcmp(prop->name, "gpios") !=3D 0 &&
+ 		    strcmp(prop->name, "gpio") !=3D 0)
+ 			continue;
+@@ -240,9 +240,9 @@ static int gpio_shared_of_traverse(struct device_node *=
+curr)
+ 				list_add_tail(&entry->list, &gpio_shared_list);
+ 			}
 =20
- /**
-  * str_has_prefix - Test if a string has a given prefix
-@@ -656,23 +657,4 @@ static __always_inline size_t str_has_prefix(const cha=
-r *str, const char *prefix
- 	return strncmp(str, prefix, len) =3D=3D 0 ? len : 0;
+-			if (strends(prop->name, "gpios"))
++			if (strsuffix(prop->name, "gpios"))
+ 				suffix =3D "-gpios";
+-			else if (strends(prop->name, "gpio"))
++			else if (strsuffix(prop->name, "gpio"))
+ 				suffix =3D "-gpio";
+ 			else
+ 				suffix =3D NULL;
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index f0729619a2a0..3a272775a8b7 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -1344,7 +1344,7 @@ static struct device_node *parse_suffix_prop_cells(st=
+ruct device_node *np,
+ {
+ 	struct of_phandle_args sup_args;
+=20
+-	if (!strends(prop_name, suffix))
++	if (!strsuffix(prop_name, suffix))
+ 		return NULL;
+=20
+ 	if (of_parse_phandle_with_args(np, prop_name, cells_name, index,
+@@ -1433,7 +1433,7 @@ static struct device_node *parse_pinctrl_n(struct dev=
+ice_node *np,
+ static struct device_node *parse_gpios(struct device_node *np,
+ 				       const char *prop_name, int index)
+ {
+-	if (strends(prop_name, ",nr-gpios"))
++	if (strsuffix(prop_name, ",nr-gpios"))
+ 		return NULL;
+=20
+ 	return parse_suffix_prop_cells(np, prop_name, index, "-gpios",
+diff --git a/lib/tests/string_kunit.c b/lib/tests/string_kunit.c
+index f603e89866d1..f07a9480cfb1 100644
+--- a/lib/tests/string_kunit.c
++++ b/lib/tests/string_kunit.c
+@@ -712,16 +712,16 @@ static void string_test_memtostr(struct kunit *test)
+ 	KUNIT_EXPECT_EQ(test, dest[7], '\0');
  }
 =20
--/**
-- * strends - Check if a string ends with another string.
-- * @str: NULL-terminated string to check against @suffix
-- * @suffix: NULL-terminated string defining the suffix to look for in @str
-- *
-- * Returns:
-- * True if @str ends with @suffix. False in all other cases.
-- */
--static inline bool __attribute__((nonnull(1, 2)))
--strends(const char *str, const char *suffix)
--{
--	unsigned int str_len =3D strlen(str), suffix_len =3D strlen(suffix);
--
--	if (str_len < suffix_len)
--		return false;
--
--	return !(strcmp(str + str_len - suffix_len, suffix));
--}
--
- #endif /* _LINUX_STRING_H_ */
+-static void string_test_strends(struct kunit *test)
++static void string_test_strsuffix(struct kunit *test)
+ {
+-	KUNIT_EXPECT_TRUE(test, strends("foo-bar", "bar"));
+-	KUNIT_EXPECT_TRUE(test, strends("foo-bar", "-bar"));
+-	KUNIT_EXPECT_TRUE(test, strends("foobar", "foobar"));
+-	KUNIT_EXPECT_TRUE(test, strends("foobar", ""));
+-	KUNIT_EXPECT_FALSE(test, strends("bar", "foobar"));
+-	KUNIT_EXPECT_FALSE(test, strends("", "foo"));
+-	KUNIT_EXPECT_FALSE(test, strends("foobar", "ba"));
+-	KUNIT_EXPECT_TRUE(test, strends("", ""));
++	KUNIT_EXPECT_TRUE(test, streq(strsuffix("foo-bar", "bar"), "bar"));
++	KUNIT_EXPECT_TRUE(test, streq(strsuffix("foo-bar", "-bar"), "-bar"));
++	KUNIT_EXPECT_TRUE(test, streq(strsuffix("foobar", "foobar"), "foobar"));
++	KUNIT_EXPECT_TRUE(test, streq(strsuffix("foobar", ""), ""));
++	KUNIT_EXPECT_NULL(test, strsuffix("bar", "foobar"));
++	KUNIT_EXPECT_NULL(test, strsuffix("", "foo"));
++	KUNIT_EXPECT_NULL(test, strsuffix("foobar", "ba"));
++	KUNIT_EXPECT_TRUE(test, streq(strsuffix("", ""), ""));
+ }
+=20
+ #if IS_ENABLED(CONFIG_STRING_KUNIT_BENCH)
+@@ -914,7 +914,7 @@ static struct kunit_case string_test_cases[] =3D {
+ 	KUNIT_CASE(string_test_strlcat),
+ 	KUNIT_CASE(string_test_strtomem),
+ 	KUNIT_CASE(string_test_memtostr),
+-	KUNIT_CASE(string_test_strends),
++	KUNIT_CASE(string_test_strsuffix),
+ 	KUNIT_CASE(string_bench_strlen),
+ 	KUNIT_CASE(string_bench_strnlen),
+ 	KUNIT_CASE(string_bench_strchr),
 --=20
 2.55.0
 
 
---zlbfher2u4f7fn6l
+--4by47ec3emphsvqn
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmr4fREACgkQ64mZXMKQ
-wqnvQw//Z7yF0JaUo1CyQfP0Fch+vd7ks0v5L8lxZUHICeXrBEV9SzwnXhxYg6G5
-WC2sLIgXL0vUeBr2m77gsJ/Qf9n/UjCdqh+M3R5WxB5+WeiEy2YTzA4BQg0IihWN
-sWbibPt4dm2D8fCGHxCQRv6PauBt1uTWDCx4ngW69aLiyJaGZawvoOJumyeUEMbC
-R4Eownz78AV0VBnW9ABDBZg4wEwYnktM/+8ZxFwcSJvQj33itpgBgoThYMyHkHq6
-/19bzgihkrRU9QRIAUqC0R3PULg8kP/W449z4ET0RSZTl3WU8jglGZgeFohdBMqB
-Wd6rk6R5CY8nfXv+UxWA6qCp3umzIuKAxg9bL5yB1/GBahIFOYGb0VXwU40mrwb+
-s6ybeqP7ucyhJeVBcZwnaC7l9HoE+iw35mbu4M9SyYK1AReosZRai8bHM3TFWtQD
-jI+PLnZP0dNJ6zHXoAfEXLNx/eyxdgQagQtqS0C9kMxmdNI941cfWZ5TtXy08cw8
-o48jPosqSenQj8fvPfaKKQ0KuJTVUfX36wMnNgDeV2WqV1vX6UbFeRaAgpUQ95sX
-MI1EiPkZaErz+SdjMZLSKq7/h5zcDZGIvmTfIQmQcx+zUFagUZ7iRXstUGApE6OU
-aqzSQCVwhL7aLTJNS+dntunplzgq7SA33d5t4dBcXBIAL5YgFr8=
-=w55K
+iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmr4fRkACgkQ64mZXMKQ
+wqme2Q/+J6zIWGP3DDeu4Ql+AzboR/6KGAbaoUciRLRO1TMTefpt+D56heH0Ayu0
+/HnLzv+3hH5rF+VFOlL+NSk2+ehlBBEMgCoDSpLzrfbliMSaVjLPGSA9X6G9Xf1/
+pMjp9AgzcG+N+SAwCBNyUTrjCMx8unzL0uwO+a4ptnwZpYG4oT9l44qS6g5OaHvO
+X6FeiKQ0CAMxuQ/CswEQUIlxkJid0wdV9gUJ+dsOuV817CUNwPjX4R9o5P2Wh/hs
+u6e2V2VK52qUTggAs7hdP/f9dnIhfhOlaeaJI4uL8qk8uY1RBFmrtVlEgaq4XDEU
+vgLRrMzzuN/NCfsU2P9Q8T94CYHH/bFXxm05gW9YtFmTdkNraNWhHr8FlWIFEJ/T
+6iU7Nw2YHaKI6xb851DCvh5qXcyO/XnnfPO5yYiIBmv+xR12ZjCHHgSR99+8BqCV
+hiI0g1+SLhHlN8NwdDF1TkWWmP76y56HnFwO0fu5eUCQ9iGoRA+dQ4GuKhAOCgz7
+QaMb33FR1BnUXQdHjh3dFKsgfMzASlUcqJgAMm8Hq5JDZMxl8OCmRseSZFf7fc2y
+BiJrAWu722upblNWZ9qEYoT+HWutRQEcylI7jmw28acGaWlEh1g/Sy2utMwt4+l3
+e3v9J4vkv5wtMiCVIBP2CZj/1xUy1+pP2imnLrWs2SP9rdIzjUs=
+=5WQ3
 -----END PGP SIGNATURE-----
 
---zlbfher2u4f7fn6l--
+--4by47ec3emphsvqn--
