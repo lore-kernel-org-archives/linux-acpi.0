@@ -1,76 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=141.14.17.11
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794613610;
-	b=eXIGj0eu31Ehs69Bz8fT9IYXBLkNpcPrPB24+MUv9Ezbm8GyzzrnGALKnYqcwtRj4L1/
-	 ZtUaUYd5psxI9yP5/cwi+whX0TIk+jBlz+Oc5CxCGJsfAxypcB0RpUbtcuL08fPVQ/fCB
-	 rjnfo+CwFaQHHkv4BZSQtvKjwQZlma5CKJAnFE+05/AuoYRh1z7q2OOEuvi6qvYiAlZkp
-	 o87zu2DJJZtTs/2G2iu5SQlX7PC/GG9ATy4KEl1z1s+PyE+/5VUSbkWeibB3AGsQIpZuv
-	 P2cNjGAMDbg7XCTi6ZKISOqyw9gwd2zw3BW+ot4q9DqnEQrj2QrfEgYpaagZqxKDEtQ==
+	t=1794616002;
+	b=h62oaUNgAhXEq6KXtGOOi3WFF60/yJ5dXJsaWi//4avIpBdD8xc1UG6C2FX3J5q5tPls
+	 1iNwjP7IZEd0A2b5wg9XkGLrNU53gXAq0nCgTD8cOK3M1yyCVLTET4lLYkSdlJqLo/V0P
+	 ky0MXPpRiDFKkGe2dRn/e9MJIRfhqWzsT/VSAdgToLflJpvd12aYscRE/ZBMw4ROAP6E2
+	 WqzXz4pLmKQtfXMHBX+zmdEK7RHNMef8Zc/WA1KOEPoJ4wJWtfPA51/GUm4qa8zEMi3DI
+	 1Dh/QG5S969E9gl+yeawb9WQ2mxPxQRRxIPDfQY7xJDEDLInBWA8HwkGMbeLNYDd4Ng==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794613610;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:User-Agent;
-	bh=7tJDv5ccq5HJF1ptcKwPh0CmyAFkZnGtAorubG/U1R8=;
-	b=WPR7P/N3ZqQPsoJWFu27o+0i/roYVdCrNRPBjtWf5XDIaKaRWGj0eajAZEn6rdKPCJRu
-	 JylYCnyem/BAuWfc9z7xIS728HsJgvoEETnll7DN6DOAU+VccvcZ1qn6TmKzHDkyF6J5h
-	 9332ND5avg05NDOmIhmr5hLN070SkmCyzPpjQmXTM2KHRDstaz5bt3PFNxBgk4ywvn7lF
-	 Xw/xobv9wZ/y8PknGXBel1NWZOW7h/ipxSVHR9nICQTq3HGiiKI49C3VbrU+r+iR/wNfr
-	 k1gRElcQYbz2Vcke6j0umvzs9ti/lA9LsRZf80zTn7osQCrVEDcg/+sxnzBTKQRZyLw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794616002;
+	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding:DKIM-Signature;
+	bh=Jv6yDs3LTT1v1znBlsGVv5ch1NifUwAZdkQWosCA1T0=;
+	b=H1TtiyWIU1OVNAyKnPJx136WbZGBK0ga8g8TsGGI/ciwCTs5Fif4k7SmgIK3nIiOh+y0
+	 KDuNzegeTwZz5kdGu/jj+xLxMVmRxE/PCMSeiyiDvt6AunnWFZapZAFfb1qRvL+slU0RV
+	 l9rtpenDyWn6I68p5P5YTNm4Fa5KmaHBGOgiOxG9F951GqsQdmXa3AOZGy8J3ipE8Jq+I
+	 MjLwUYdqFC1hiYrFFGLq7D+CfXceXD5kbl+Hks5n60vUbqpP5pRpHGavjvytvgefTNxKA
+	 L0Y6uo/o7sHTMeiM5ikorZXEtPibHyfUY/FdTWpQ8q4a0LUyYuavQNOLjJgio+DGYMw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=dlGtB64I;
-	arc=none smtp.remote-ip=192.198.163.12
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=molgen.mpg.de;
+	spf=pass smtp.mailfrom=molgen.mpg.de;
+	dkim=pass header.d=molgen.mpg.de header.i=@molgen.mpg.de header.a=rsa-sha256 header.s=20260906 header.b=e9wDeplc;
+	arc=none smtp.remote-ip=141.14.17.11
+Received: from mx3.molgen.mpg.de (mx3.molgen.mpg.de [141.14.17.11])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 231A5606A337;
-	Fri, 13 Nov 2026 23:46:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 231A5606A337
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E553606A32D;
+	Sat, 14 Nov 2026 00:26:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6E553606A32D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=molgen.mpg.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=molgen.mpg.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=dlGtB64I
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794613609; x=1826149609;
-  h=date:from:to:cc:subject:message-id;
-  bh=x9wNikM+q/wqcnGV3U1/SGq1gizBJquuYCI53296osI=;
-  b=dlGtB64IeBYMC+S+5YffWHTnCgZ+jcg/Hu/+RgyezNH/A424SK8JE/gs
-   n0uBGG2me/O4JRU+Tu9Soxa/hRx29O+AaujkSBubUqWJvuzKJ8s/oxzwv
-   gAiN+Wg6yOZi74o5HZzLYS66rtZLKYZxmNZpmNl/L04xktR3a1eOQuEmI
-   23RckE0p6a0TqpYT2s23vXfSMplwcu3KVy7S3pFSonUif3fbVvHpEmIJr
-   Sad+OsuUeTcMxZRfAKRlCdwNDJyhRDxtn++i7yAin64lp7xxnZmdXs6fI
-   F/pOenwzGhd1HISnICHsBmCQnNufbaCcFh9Zpzb7jB0IR9IqKFu9cY0lX
-   g==;
-X-CSE-ConnectionGUID: YK+iS1m5SUy3NJePGydNLw==
-X-CSE-MsgGUID: 5IzQwsM0SHewNHp3bZcr9g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11965"; a="3336193"
-X-IronPort-AV: E=Sophos;i="6.27,212,1787036400"; 
-   d="scan'208";a="3336193"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 15:46:49 -0800
-X-CSE-ConnectionGUID: buH+NC02Rnu+IAbRyqnacw==
-X-CSE-MsgGUID: fHWja3LaQp6DOeU4Tjmxcg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,212,1787036400"; 
-   d="scan'208";a="8892270"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by orviesa005.jf.intel.com with ESMTP; 13 Nov 2026 15:46:47 -0800
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xS0yi-000000014S5-37aT;
-	Fri, 13 Nov 2026 23:46:44 +0000
-Date: Sat, 14 Nov 2026 07:46:29 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- 5fcaa701fd2d61b003dff89bbb9dd29ed6123740
-Message-ID: <20261114074629.eyzkUG7I-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=molgen.mpg.de header.i=@molgen.mpg.de header.a=rsa-sha256 header.s=20260906 header.b=e9wDeplc
+Received: from abreu.speedport.ip (p5b13abd5.dip0.t-ipconnect.de [91.19.171.213])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: pmenzel)
+	by mx.molgen.mpg.de (Postfix) with ESMTPSA id 025554C2F3FFF2;
+	Sat, 14 Nov 2026 01:26:33 +0100 (CET)
+From: Paul Menzel <pmenzel@molgen.mpg.de>
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
+Cc: Paul Menzel <pmenzel@molgen.mpg.de>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] ACPI: battery: Refresh the battery asynchronously after system resume
+Date: Sat, 14 Nov 2026 01:26:12 +0100
+Message-ID: <20261114002612.219894-2-pmenzel@molgen.mpg.de>
+X-Mailer: git-send-email 2.55.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -79,205 +57,162 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=molgen.mpg.de; s=20260906; 
+	t=1794615994; 
+	h=from:from:subject:date:message-id:mime-version:content-type:content-transfer-encoding; 
+	bh=Jv6yDs3LTT1v1znBlsGVv5ch1NifUwAZdkQWosCA1T0=; 
+	b=e9wDeplc2GUNVHUN+hNfJis/3FlC1vN7/rDFFc1/k5b6c7LV7xRp2CF1dW1L7YtYhDLbC8xRRKf9
+	Uz+O4+HwncuaJv+fdN0+lK89VXvOG6RnwEbvVLTVWCadwKGWnnepvrrtF/GxcQ8TrpmSclkvXRX53c
+	Mnc/Tyx9QDERhZsxVRrkwWSO3XV3kf7xJG3h6fhFi+PMIPIHYhiYyyUhJKu8kR1RiE2a5EnVZHslIw
+	iUeUeX9wGEku4gPuqyu4dGlPvb+vY5xwW75YZvG7tk2+yzgPwLJb3d+0jp9SG7Qqh5GB3nqhkJ+pPV
+	fPN3t237KfR2S63XT0zKYOLyGW3cF9kA==
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 5fcaa701fd2d61b003dff89bbb9dd29ed6123740  Merge branch 'thermal-intel' into linux-next
+The PM_POST_SUSPEND notifier evaluates _BIX, _BTP and _BST synchronously,
+and the notifier chain is the last step of the system resume: the write to
+/sys/power/state, and so systemd-sleep and everything waiting for it, only
+returns after it.
 
-elapsed time: 1011m
+On a Dell XPS 13 9310 nearly all of the PM_POST_SUSPEND notifier chain is
+battery_notify() (143 ms with the function_graph tracer):
 
-configs tested: 185
-configs skipped: 7
+    @ 143043.5 us |        } /* battery_notify [battery] */
+    @ 143513.1 us |      } /* notifier_call_chain */
+    @ 143536.0 us |  } /* pm_notifier_call_chain */
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+Queue the refresh on system_freezable_wq instead.
 
-tested configs:
-alpha                              allnoconfig    gcc-16.2.0
-alpha                             allyesconfig    gcc-16.2.0
-alpha                                defconfig    gcc-16.2.0
-arc                               allmodconfig    clang-24
-arc                                allnoconfig    gcc-16.2.0
-arc                               allyesconfig    clang-24
-arc                                  defconfig    gcc-16.2.0
-arc                   randconfig-1000-20261113    gcc-10.5.0
-arc                   randconfig-1001-20261113    gcc-10.5.0
-arc                         vdk_hs38_defconfig    gcc-16.2.0
-arm                                allnoconfig    gcc-16.2.0
-arm                               allyesconfig    clang-24
-arm                          assabet_defconfig    gcc-16.2.0
-arm                                  defconfig    gcc-16.2.0
-arm                   randconfig-1000-20261113    gcc-10.5.0
-arm                   randconfig-1001-20261113    gcc-10.5.0
-arm                   randconfig-1002-20261113    gcc-10.5.0
-arm                   randconfig-1003-20261113    gcc-10.5.0
-arm64                             allmodconfig    clang-24
-arm64                              allnoconfig    gcc-16.2.0
-arm64                                defconfig    gcc-16.2.0
-csky                              allmodconfig    gcc-16.2.0
-csky                               allnoconfig    gcc-16.2.0
-csky                                 defconfig    gcc-16.2.0
-hexagon                           allmodconfig    gcc-16.2.0
-hexagon                            allnoconfig    gcc-16.2.0
-hexagon                              defconfig    gcc-16.2.0
-hexagon               randconfig-1000-20261113    clang-24
-hexagon               randconfig-1001-20261113    clang-24
-i386                              allmodconfig    clang-22
-i386                               allnoconfig    gcc-16.2.0
-i386        buildonly-randconfig-1000-20261113    clang-22
-i386        buildonly-randconfig-1001-20261113    clang-22
-i386        buildonly-randconfig-1002-20261113    clang-22
-i386        buildonly-randconfig-1003-20261113    clang-22
-i386        buildonly-randconfig-1004-20261113    clang-22
-i386        buildonly-randconfig-1005-20261113    clang-22
-i386                                 defconfig    gcc-16.2.0
-i386                  randconfig-1000-20261113    clang-22
-i386                  randconfig-1001-20261113    clang-22
-i386                  randconfig-1002-20261113    clang-22
-i386                  randconfig-1003-20261113    clang-22
-i386                  randconfig-1004-20261113    clang-22
-i386                  randconfig-1005-20261113    clang-22
-i386                  randconfig-1006-20261113    clang-22
-loongarch                         allmodconfig    clang-24
-loongarch                          allnoconfig    gcc-16.2.0
-loongarch                            defconfig    clang-24
-loongarch             randconfig-1000-20261113    clang-24
-loongarch             randconfig-1001-20261113    clang-24
-m68k                              allmodconfig    gcc-16.2.0
-m68k                               allnoconfig    gcc-16.2.0
-m68k                              allyesconfig    clang-24
-m68k                                 defconfig    clang-24
-m68k                          nettel_defconfig    gcc-16.2.0
-microblaze                         allnoconfig    gcc-16.2.0
-microblaze                        allyesconfig    gcc-16.2.0
-microblaze                           defconfig    clang-24
-mips                              allmodconfig    gcc-16.2.0
-mips                               allnoconfig    gcc-16.2.0
-mips                              allyesconfig    gcc-16.2.0
-mips                       pic32mzda_defconfig    gcc-16.2.0
-nios2                             allmodconfig    clang-20
-nios2                              allnoconfig    clang-24
-nios2                                defconfig    clang-24
-nios2                 randconfig-1000-20261113    clang-24
-nios2                 randconfig-1001-20261113    clang-24
-openrisc                          allmodconfig    clang-20
-openrisc                           allnoconfig    clang-24
-openrisc                             defconfig    gcc-16.2.0
-parisc                            allmodconfig    gcc-16.2.0
-parisc                             allnoconfig    clang-24
-parisc                            allyesconfig    clang-17
-parisc                               defconfig    gcc-16.2.0
-parisc                randconfig-1000-20261113    gcc-13.5.0
-parisc                randconfig-1000-20261114    gcc-8.5.0
-parisc                randconfig-1001-20261113    gcc-13.5.0
-parisc                randconfig-1001-20261114    gcc-8.5.0
-parisc64                             defconfig    clang-24
-powerpc                           allmodconfig    gcc-16.2.0
-powerpc                            allnoconfig    clang-24
-powerpc                        eiger_defconfig    gcc-16.2.0
-powerpc               randconfig-1000-20261113    gcc-13.5.0
-powerpc               randconfig-1000-20261114    gcc-8.5.0
-powerpc               randconfig-1001-20261113    gcc-13.5.0
-powerpc               randconfig-1001-20261114    gcc-8.5.0
-powerpc                      stx_gp3_defconfig    gcc-16.2.0
-powerpc                       tqm8xx_defconfig    gcc-16.2.0
-powerpc64             randconfig-1000-20261113    gcc-13.5.0
-powerpc64             randconfig-1000-20261114    gcc-8.5.0
-powerpc64             randconfig-1001-20261113    gcc-13.5.0
-powerpc64             randconfig-1001-20261114    gcc-8.5.0
-riscv                             allmodconfig    clang-24
-riscv                              allnoconfig    clang-24
-riscv                             allyesconfig    clang-24
-riscv                                defconfig    gcc-16.2.0
-riscv                 randconfig-1000-20261113    gcc-12.5.0
-riscv                 randconfig-1001-20261113    gcc-12.5.0
-s390                              allmodconfig    clang-17
-s390                               allnoconfig    clang-24
-s390                              allyesconfig    gcc-16.2.0
-s390                                 defconfig    gcc-16.2.0
-s390                  randconfig-1000-20261113    gcc-12.5.0
-s390                  randconfig-1001-20261113    gcc-12.5.0
-sh                                allmodconfig    gcc-16.2.0
-sh                                 allnoconfig    clang-24
-sh                                allyesconfig    clang-17
-sh                                   defconfig    gcc-14
-sh                    randconfig-1000-20261113    gcc-12.5.0
-sh                    randconfig-1001-20261113    gcc-12.5.0
-sh                    rts7751r2dplus_defconfig    gcc-16.2.0
-sparc                              allnoconfig    clang-24
-sparc                                defconfig    gcc-16.2.0
-sparc                 randconfig-1000-20261113    gcc-8.5.0
-sparc                 randconfig-1000-20261114    gcc-12.5.0
-sparc                 randconfig-1001-20261113    gcc-8.5.0
-sparc                 randconfig-1001-20261114    gcc-12.5.0
-sparc64                           allmodconfig    clang-20
-sparc64                              defconfig    gcc-14
-sparc64               randconfig-1000-20261113    gcc-8.5.0
-sparc64               randconfig-1000-20261114    gcc-12.5.0
-sparc64               randconfig-1001-20261113    gcc-8.5.0
-sparc64               randconfig-1001-20261114    gcc-12.5.0
-um                                allmodconfig    clang-17
-um                                 allnoconfig    clang-24
-um                                allyesconfig    gcc-16.2.0
-um                                   defconfig    gcc-14
-um                              i386_defconfig    gcc-14
-um                    randconfig-1000-20261113    gcc-8.5.0
-um                    randconfig-1000-20261114    gcc-12.5.0
-um                    randconfig-1001-20261113    gcc-8.5.0
-um                    randconfig-1001-20261114    gcc-12.5.0
-um                            x86_64_defconfig    gcc-14
-x86_64                             allnoconfig    clang-24
-x86_64      buildonly-randconfig-1000-20261113    clang-22
-x86_64      buildonly-randconfig-1001-20261113    clang-22
-x86_64      buildonly-randconfig-1002-20261113    clang-22
-x86_64      buildonly-randconfig-1003-20261113    clang-22
-x86_64      buildonly-randconfig-1004-20261113    clang-22
-x86_64      buildonly-randconfig-1005-20261113    clang-22
-x86_64                               defconfig    gcc-14
-x86_64                                   kexec    clang-22
-x86_64                randconfig-1000-20261113    clang-22
-x86_64                randconfig-1000-20261114    gcc-14
-x86_64                randconfig-1001-20261113    clang-22
-x86_64                randconfig-1001-20261114    gcc-14
-x86_64                randconfig-1002-20261113    clang-22
-x86_64                randconfig-1002-20261114    gcc-14
-x86_64                randconfig-1003-20261113    clang-22
-x86_64                randconfig-1003-20261114    gcc-14
-x86_64                randconfig-1004-20261113    clang-22
-x86_64                randconfig-1004-20261114    gcc-14
-x86_64                randconfig-1005-20261113    clang-22
-x86_64                randconfig-1005-20261114    gcc-14
-x86_64                randconfig-1006-20261113    clang-22
-x86_64                randconfig-1006-20261114    gcc-14
-x86_64                randconfig-1007-20261113    clang-22
-x86_64                randconfig-1007-20261114    gcc-14
-x86_64                randconfig-1008-20261113    clang-22
-x86_64                randconfig-1008-20261114    gcc-14
-x86_64                randconfig-1009-20261113    clang-22
-x86_64                randconfig-1009-20261114    gcc-14
-x86_64                randconfig-1010-20261113    clang-22
-x86_64                randconfig-1010-20261114    gcc-14
-x86_64                randconfig-1011-20261113    clang-22
-x86_64                randconfig-1011-20261114    gcc-14
-x86_64                randconfig-1012-20261113    gcc-14
-x86_64                randconfig-1013-20261113    gcc-14
-x86_64                randconfig-1014-20261113    gcc-14
-x86_64                randconfig-1015-20261113    gcc-14
-x86_64                randconfig-1016-20261113    gcc-14
-x86_64                randconfig-1017-20261113    gcc-14
-x86_64                                rhel-9.4    clang-22
-x86_64                            rhel-9.4-bpf    gcc-14
-x86_64                           rhel-9.4-func    clang-22
-x86_64                     rhel-9.4-kselftests    clang-22
-x86_64                          rhel-9.4-kunit    gcc-14
-x86_64                            rhel-9.4-ltp    gcc-14
-x86_64                           rhel-9.4-rust    clang-22
-xtensa                             allnoconfig    clang-24
-xtensa                            allyesconfig    clang-20
-xtensa                randconfig-1000-20261113    gcc-8.5.0
-xtensa                randconfig-1000-20261114    gcc-12.5.0
-xtensa                randconfig-1001-20261113    gcc-8.5.0
-xtensa                randconfig-1001-20261114    gcc-12.5.0
+Time from "Restarting tasks: Done" (end of thaw_processes) to "PM: suspend
+exit" for suspend-to-idle cycles of 8 s with sleepgraph, in ms, on Linux
+7.4-rc1 with other resume changes, which do not run in this phase:
 
+                  panel lit at suspend       panel off at suspend
+    before        24.5  26.7  27.3  29.4     58.8  60.4  85.2
+    after         10.7  10.8  15.9  17.7      5.7   8.3   9.3
+    median        27.0 -> 13.4               60.4 -> 8.3
+
+After the change, pm_notifier_call_chain(PM_POST_SUSPEND) takes
+0.7-0.9 ms (function_graph, three cycles, hwrng_pm_notifier() being the
+largest), so the rest of the phase is outside the notifier chain.  The
+refresh still runs after each resume (kprobes, three cycles):
+battery_notify() returns after 4-8 us, acpi_battery_pm_worker() starts
+0.02-0.2 ms later and takes 17.8-18.6 ms, and it ends after rtcwake has
+already returned.
+
+Signed-off-by: Paul Menzel <pmenzel@molgen.mpg.de>
+---
+
+Notes:
+    Assisted-by: claude-opus-5.5 (Claude Code), analysis and patch
+    draft; I reviewed it.
+
+ drivers/acpi/battery.c | 63 +++++++++++++++++++++++++-----------------
+ 1 file changed, 37 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 6edea559a5bce..4e2a79d356ef9 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -105,6 +105,7 @@ struct acpi_battery {
+ 	struct kfifo acpi_notif_fifo;
+ 	struct delayed_work acpi_notif_dwork;
+ 	struct notifier_block pm_nb;
++	struct work_struct pm_work;
+ 	struct list_head list;
+ 	unsigned long flags;
+ 
+@@ -1293,40 +1294,48 @@ static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
+ 	pr_err_ratelimited("too many battery notifications within %dms\n", NOTIF_MERGING_MS);
+ }
+ 
+-static int battery_notify(struct notifier_block *nb,
+-			  unsigned long mode, void *_unused)
++static void acpi_battery_pm_worker(struct work_struct *work)
+ {
+-	struct acpi_battery *battery = container_of(nb, struct acpi_battery,
+-						    pm_nb);
+-
+-	if (mode == PM_POST_SUSPEND || mode == PM_POST_HIBERNATION) {
+-		guard(mutex)(&battery->update_lock);
+-
+-		if (!acpi_battery_present(battery))
+-			return 0;
+-
+-		if (battery->bat) {
+-			acpi_battery_refresh(battery);
+-		} else {
+-			int result;
++	struct acpi_battery *battery = container_of(work, struct acpi_battery,
++						    pm_work);
+ 
+-			scoped_guard(mutex, &battery->property_lock) {
+-				result = acpi_battery_get_info(battery);
+-				if (result)
+-					return result;
+-			}
++	guard(mutex)(&battery->update_lock);
+ 
+-			result = sysfs_add_battery(battery);
+-			if (result)
+-				return result;
+-		}
++	if (!acpi_battery_present(battery))
++		return;
+ 
++	if (battery->bat) {
++		acpi_battery_refresh(battery);
++	} else {
+ 		scoped_guard(mutex, &battery->property_lock) {
+-			acpi_battery_init_alarm(battery);
+-			acpi_battery_get_state(battery);
++			if (acpi_battery_get_info(battery))
++				return;
+ 		}
++
++		if (sysfs_add_battery(battery))
++			return;
+ 	}
+ 
++	scoped_guard(mutex, &battery->property_lock) {
++		acpi_battery_init_alarm(battery);
++		acpi_battery_get_state(battery);
++	}
++}
++
++static int battery_notify(struct notifier_block *nb,
++			  unsigned long mode, void *_unused)
++{
++	struct acpi_battery *battery = container_of(nb, struct acpi_battery,
++						    pm_nb);
++
++	/*
++	 * Evaluating _BIX, _BTP and _BST takes tens of milliseconds on some
++	 * systems, and the PM notifier chain delays the end of the system
++	 * resume, so do it asynchronously.
++	 */
++	if (mode == PM_POST_SUSPEND || mode == PM_POST_HIBERNATION)
++		queue_work(system_freezable_wq, &battery->pm_work);
++
+ 	return 0;
+ }
+ 
+@@ -1516,6 +1525,7 @@ static int acpi_battery_probe(struct platform_device *pdev)
+ 	if (result)
+ 		return result;
+ 
++	INIT_WORK(&battery->pm_work, acpi_battery_pm_worker);
+ 	battery->pm_nb.notifier_call = battery_notify;
+ 	return register_pm_notifier(&battery->pm_nb);
+ }
+@@ -1525,6 +1535,7 @@ static void acpi_battery_remove(struct platform_device *pdev)
+ 	struct acpi_battery *battery = platform_get_drvdata(pdev);
+ 
+ 	unregister_pm_notifier(&battery->pm_nb);
++	cancel_work_sync(&battery->pm_work);
+ }
+ 
+ /* this is needed to learn about changes made in suspended state */
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.54.0
+
