@@ -1,87 +1,46 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=180.76.5.236
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794732165;
-	b=09QgpP98ZxmG6We/s1eh9sFpukNfFxFhr/o9G9fdq5X4oVEIjdMDPn1GtzypewHlAP+N
-	 RZbUg9nq4Hfp6nU+jvFS9BffqanQXdnXA3dYABHEbW/2bv2sIO89QnN1wkGlYNPm9pFOX
-	 LIb5mq6xXvWMckLI82RS/uiqxwqn6moc9i4PWSRh6ZyLvoqm9BDUHjnKad/eUPk6SgDl8
-	 6dJU/haBbbNCxvsROEJub1e/6fw1VQ400qfrZBtf2EEMuNsR5nIDJ4zIduLx10PsWxoPL
-	 LASeARwclEk1N/YBbDxZOjMN2uh/BJV3zsBX6HqKJNeEuqS368wmyYYn/SG8zLoxOvA==
+	t=1794733959;
+	b=rWm7PFJ0TQGmrR/GIdNwnQugRb91F+xoSSp/olRP3YP0rOAWsauCSrLDvPtCfn0bcdnS
+	 reSkcmPNGg2BL9JHky0GshWzeWFpsRjZy2ZeZOjhz6ONK4yfMHQjTm4NebzAPO2oAmjta
+	 3CxqGR1dQaCk8wsNcFi+7lgWiaLh+/g2MnswI+SSnZVLCmxW/jkcK0S3bOthim5XTdhOJ
+	 sAo5WU/zhPfLzisFNVAb7TWEHYSkOJTfuXHFplBKItQsMbPwZu0m1cCRnrcX97C4I1GB4
+	 0SS/71xvqy/jA+gexbJR6K1GhwSnfietYblUOJ7WtYOjTTC1iXX+OLf5h7rJuPuaxVw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794732165;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
-	 Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
-	 References:MIME-Version:Content-Transfer-Encoding:X-QCInternal:
-	 X-QCInternal:X-Proofpoint-Reinject:X-Proofpoint-Spam-Details-Enc:
-	 X-Authority-Analysis:X-Proofpoint-GUID:X-Proofpoint-ORIG-GUID:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-Virus-Version:
-	 X-Proofpoint-Spam-Details;
-	bh=Zgm6AC9G8rNQus0O+sw5aFP5DMV+Di7wzQY+MS72Gh4=;
-	b=WCtvl/WWJRDDQhHxZ5XhLu6DFoMy8PXv3d0d5jtpeVhObybcQokfJICm9faQnujmLY9Q
-	 5jfzedwOX/gf2E5Mm7cxxycI8Sj15/2EVmLCh4a3uObjrG3t5YuB8xJVST2oYc/Scf8SW
-	 OXu/8saUtunewuCDUoVfbhOFmmn7g5UptoczCz43HwUQJg5CZsHpLoiBKfz1supYcAAfB
-	 IQlV1PWqBpl+/qwwuvcIqwY6lo+uqiR78rqdih3pCKzXYAW0Oe/2+T1b8nib5Q0yrHbZO
-	 lanWyPS+gQ6xAxC4sjAU4LmlLtVzyL66bwwG0vd2pgTzrUnBshbYxXBtvrFB6uwn+/w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794733959;
+	h=DMARC-Filter:X-MD-Sfrom:X-MD-SrcIP:From:To:CC:Subject:Date:
+	 Message-ID:X-Mailer:MIME-Version:Content-Type:X-Originating-IP:
+	 X-ClientProxiedBy:DKIM-Signature;
+	bh=Ao1Pq8b1OaSUrXO5PkfeeiPu9V0SdH67hwkSQ67tD2M=;
+	b=cB4sSw16QFW6uUjwbpPtF9JZgUgFywnlx5fxTw6+VsOuzsaUPUxwd96OP/bX0+6G9Nst
+	 asKLhCESeH5HcIHYVQaivNHFSen00aem8enBoyGhJHLDrJklSXWeikt/5PU0vz+7S5K9C
+	 GeOMlU6y9A5ZN3LtsG3iKauPFTqXwYulg3PmOxduHQpFaiZLLUyZG70BpSM9k37fgYMsJ
+	 Qfg2WfrgIzwn0p1qohmLZvsrR6Xv6D1I1gG2rRwEsw9rY/X03ISVNtkAGG2iiQJbQkOv0
+	 YTqkHLMXH4N0pTaw0EAgLgd3n5/bj8GBLGBr/grEnplyjqXYE0uEQgbDCCU4FnaBxPA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.qualcomm.com;
-	spf=pass smtp.mailfrom=qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=AX4X5vsP;
-	arc=none smtp.remote-ip=205.220.168.131
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34363606A323;
-	Sun, 15 Nov 2026 08:42:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 34363606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qualcomm.com
+	dmarc=pass header.from=baidu.com;
+	spf=pass smtp.mailfrom=baidu.com;
+	dkim=pass header.d=baidu.com header.i=@baidu.com header.a=rsa-sha256 header.s=selector1 header.b=aPI5i9lQ;
+	arc=none smtp.remote-ip=180.76.5.236
+Received: from outbound.baidu.com (outbound.baidu.com [180.76.5.236])
+	by smtp.subspace.kernel.org (Postfix) with SMTP id E5C49606A31D;
+	Sun, 15 Nov 2026 09:12:36 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E5C49606A31D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=AX4X5vsP
-Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AF7wFaP1656451;
-	Sun, 15 Nov 2026 08:42:23 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=Zgm6AC9G8rN
-	Qus0O+sw5aFP5DMV+Di7wzQY+MS72Gh4=; b=AX4X5vsPuPrZEB3VrkteijDwYVB
-	WzFB+wj0Wnv0Z3AUjij6RgaqIoNIIX3Gj6lEoXDNblLzRmMB0SwEdckQvNwsG7vl
-	peAfNkuVmdr5UHHRjjx4EOOJMX/bapNN8h8P6F+4Lco/T07STFu8y7mVPht/vBhr
-	TyFJBg1B3QUu2ITmljVMGeBFOCIMqmBU2qLwFnjjsumrg8XaxnhH/e2RO//e0s2G
-	xH3aqot84U0yygVRKTtVcrZqI8mGcIx3hiYQ9vsz3+U8/MzfDCPpyGBFPYDlihXy
-	2xGABwAHnUu4WoaaJUfYaWVPwtFaWxctq2X67psU9G4D49IYEMw9eB9jLwA==
-Received: from apblrppmta01.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com [103.229.18.19])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hxhkwahg3-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Sun, 15 Nov 2026 08:42:22 +0000 (GMT)
-Received: from pps.filterd (apblrppmta01.qualcomm.com [127.0.0.1])
-	by APBLRPPMTA01.qualcomm.com (8.18.1.11/8.18.1.11) with ESMTP id 6AF8gKIZ113008;
-	Sun, 15 Nov 2026 08:42:20 GMT
-Received: from hu-devc-blr-u24-a.qualcomm.com (hu-anuppate-blr.qualcomm.com [10.131.36.165])
-	by APBLRPPMTA01.qualcomm.com (PPS) with ESMTPS id 6AF8gJFZ113000
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Sun, 15 Nov 2026 08:42:20 +0000 (GMT)
-Received: by hu-devc-blr-u24-a.qualcomm.com (Postfix, from userid 486687)
-	id 4F9B522B8E; Sun, 15 Nov 2026 14:12:19 +0530 (+0530)
-From: Anup Patel <anup.patel@oss.qualcomm.com>
-To: Sunil V L <sunilvl@oss.qualcomm.com>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Atish Patra <atish.patra@linux.dev>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Alexandre Ghiti <alex@ghiti.fr>, Len Brown <lenb@kernel.org>,
-        Anup Patel <anup@brainfault.org>, Will Deacon <will@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, linux-acpi@vger.kernel.org,
-        linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Anup Patel <apatel@ventanamicro.com>,
-        Sunil V L <sunilvl@ventanamicro.com>,
-        Andrew Jones <ajones@ventanamicro.com>,
-        Atish Patra <atishp@rivosinc.com>, Nutty Liu <nutty.liu@hotmail.com>
-Subject: [PATCH v8 1/1] RISC-V: Add common csr_read_num() and csr_write_num() functions
-Date: Sun, 15 Nov 2026 14:12:18 +0530
-Message-ID: <20261115084218.951411-2-anup.patel@oss.qualcomm.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261115084218.951411-1-anup.patel@oss.qualcomm.com>
-References: <20261115084218.951411-1-anup.patel@oss.qualcomm.com>
+	dkim=pass (2048-bit key, unprotected) header.d=baidu.com header.i=@baidu.com header.a=rsa-sha256 header.s=selector1 header.b=aPI5i9lQ
+X-MD-Sfrom: lirongqing@baidu.com
+X-MD-SrcIP: 172.31.50.47
+From: lirongqing <lirongqing@baidu.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>, <linux-acpi@vger.kernel.org>,
+	<linux-pci@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC: Li RongQing <lirongqing@baidu.com>
+Subject: [PATCH v2] PCI/ACPI: Check the found handle in acpi_get_rc_resources()
+Date: Sun, 15 Nov 2026 17:12:21 +0800
+Message-ID: <20261115091221.2217-1-lirongqing@baidu.com>
+X-Mailer: git-send-email 2.17.1
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -91,381 +50,60 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-QCInternal: smtphost
-X-QCInternal: smtphost
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE1MDAzNCBTYWx0ZWRfX/gwAe1XYk3FM
- bfof2rBWyf5uERL0C8y0zuuOtoHup/KaIof/uDDAZHlX3ii1jWtc/FJeYStybzrmUn1GSxKr5Ls
- E3cQ3WdxCjQA8rwbWpzKbw/0nS7TzgY9tCRhBFtmz2sg8xXmtrWvf5y2jLpy7Di95tXLnU1aQwn
- XGKwQ3+JJYvZgrezGzivLh0vy0gjN+hZnm5SvHvdyfw3v+03E0kseJnEZXCAJyAiWSpbqbfE453
- lZqpS21+9t8gANGxxuUpOza3U1thoHjVOq4Qi4p9Bs/Xay4tx4oVvMu4vRU0EhODyLW6zVFZsJu
- Rs7uuKURGYCLn6usKAvdf//8/crOhYf8ds2Tkr2ChS3F5DS4BhgogogYlTEZRbWR5RTNsMLuaPp
- l2ZNh2qlihIiudCICmMdD1RcnZ1cwiO5Law1e+iSL6xh3Kxr9f4OJymn/BEDHNYqC0yv6QXE8zq
- kbyJlw34TWV8R0CXWSA==
-X-Authority-Analysis: v=2.4 cv=YPYKWhGx c=1 sm=1 tr=0 ts=6af9706f cx=c_pps
- a=Ou0eQOY4+eZoSc0qltEV5Q==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
- a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=_K5XuSEh1TEqbUxoQ0s3:22 a=bDdBU3oEAAAA:8 a=h0uksLzaAAAA:8 a=69EAbJreAAAA:8
- a=CXTO6nDrRgnfr-njzm8A:9 a=DN7SgORnOiO7RqxRx1GC:22 a=MSi_79tMYmZZG2gvAgS0:22
-X-Proofpoint-GUID: UIC4YMuhqyNf7_6TYddJu8XSNiH3cLHZ
-X-Proofpoint-ORIG-GUID: TFZgPfOICaKl5ePm9VH4_LDu84JYx22w
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE1MDAzNCBTYWx0ZWRfX7QiqJgB1REBW
- F4rzMCdtkOJGzN8J95EIJM68264S194Nz1d3rbUjkQLRibx9aiHNIs/IINqFfsH6sgtaAgBzs1Z
- tvRMabndb2kR2EsMdrdZB3YiM4P4DDY=
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-15_03,2026-11-11_03,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 suspectscore=0 clxscore=1015 spamscore=0 adultscore=0
- lowpriorityscore=0 impostorscore=0 phishscore=0 bulkscore=0 malwarescore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611150034
+Content-Type: text/plain
+X-ClientProxiedBy: bjkjy-exc9.internal.baidu.com (172.31.50.19) To
+ bjkjy-exc3.internal.baidu.com (172.31.50.47)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
+	s=selector1; t=1794733953;
+	bh=Ao1Pq8b1OaSUrXO5PkfeeiPu9V0SdH67hwkSQ67tD2M=;
+	h=From:To:CC:Subject:Date:Message-ID:Content-Type;
+	b=aPI5i9lQMUrdGogMepPFA+7l2aojQR0L1HVWPN0heIpnu6BiV3Pm5y0czZjWrHFTn
+	 6v1pdny1xwv+HNW6XVpTxlJbtyitDOnHWRxSjtTR8QvvqNtfAwpC9n+/DD90zXsFCa
+	 xRf0BkNHwk0T1cBjgQSd84teOYHov8n0657uHaWHzAlqX0RfZVWBwQMe8NdH9p5psb
+	 k0/uavGDFU2swtn7VomGQbWA6fNURD5oOjsLG2EiAXfK8VJ4RAt/9XuKLH5VMB+iHS
+	 XKdFPdu/DcYO3Qy3NpRA5yIsABUJgUlFqTXyfypeAZuUn6jokcf3aMwuVYFJHNL5vH
+	 heVGig3cuQJfA==
 
-From: Anup Patel <apatel@ventanamicro.com>
+From: Li RongQing <lirongqing@baidu.com>
 
-In RISC-V, there is no CSR read/write instruction which takes CSR
-number via register so add common csr_read_num() and csr_write_num()
-functions which allow accessing certain CSRs by passing CSR number
-as parameter. These common functions will be first used by the
-ACPI CPPC driver and RISC-V PMU driver.
+acpi_get_devices() returns AE_OK even when the namespace walk finishes
+without a match, in which case the return_value argument is not written.
+The caller passes an uninitialized acpi_handle and hands it to
+acpi_fetch_acpi_dev(), which dereferences it as an ACPI node.
 
-Also, the RISC-V ACPI FFH specification allows arbitrary CSR number
-as CPPC register and the RISC-V SBI specification allows arbitrary
-CSR number as PMU hardware counter. This means ACPI CPPC driver and
-RISC-V PMU driver no longer need to do sanity checks on CSR number
-which are now done by the common csr_read_num() and csr_write_num()
-functions.
+Initialize the handle and reject a missing match.
 
-Signed-off-by: Anup Patel <apatel@ventanamicro.com>
-Reviewed-by: Sunil V L <sunilvl@ventanamicro.com>
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-Reviewed-by: Atish Patra <atishp@rivosinc.com>
-Reviewed-by: Nutty Liu <nutty.liu@hotmail.com>
+Fixes: 169de969c018 ("PCI/ACPI: Provide acpi_get_rc_resources() for ARM64 platform")
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
 ---
- arch/riscv/include/asm/csr.h |   3 +
- arch/riscv/kernel/Makefile   |   1 +
- arch/riscv/kernel/csr.c      | 167 +++++++++++++++++++++++++++++++++++
- drivers/acpi/riscv/cppc.c    |  17 ++--
- drivers/perf/riscv_pmu.c     |  52 +++--------
- 5 files changed, 188 insertions(+), 52 deletions(-)
- create mode 100644 arch/riscv/kernel/csr.c
+Diff with v1: add fixes tag
 
-diff --git a/arch/riscv/include/asm/csr.h b/arch/riscv/include/asm/csr.h
-index 621f84d1898f..ebd82043430b 100644
---- a/arch/riscv/include/asm/csr.h
-+++ b/arch/riscv/include/asm/csr.h
-@@ -672,6 +672,9 @@
- 			      : "memory");			\
- })
- 
-+unsigned long csr_read_num(unsigned long csr_num, int *out_err);
-+void csr_write_num(unsigned long csr_num, unsigned long val, int *out_err);
-+
- #endif /* __ASSEMBLER__ */
- 
- #endif /* _ASM_RISCV_CSR_H */
-diff --git a/arch/riscv/kernel/Makefile b/arch/riscv/kernel/Makefile
-index f54c336bf547..7f52ae724225 100644
---- a/arch/riscv/kernel/Makefile
-+++ b/arch/riscv/kernel/Makefile
-@@ -51,6 +51,7 @@ obj-y	+= soc.o
- obj-y	+= alternative.o
- obj-y	+= cpu.o
- obj-y	+= cpufeature.o
-+obj-y	+= csr.o
- obj-y	+= entry.o
- obj-y	+= irq.o
- obj-y	+= process.o
-diff --git a/arch/riscv/kernel/csr.c b/arch/riscv/kernel/csr.c
-new file mode 100644
-index 000000000000..8413055abf3f
---- /dev/null
-+++ b/arch/riscv/kernel/csr.c
-@@ -0,0 +1,167 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (c) 2025 Ventana Micro Systems Inc.
-+ */
-+
-+#include <linux/err.h>
-+#include <linux/export.h>
-+#include <linux/types.h>
-+#include <asm/csr.h>
-+
-+#define CSR_CUSTOM0_U_RW_BASE		0x800
-+#define CSR_CUSTOM0_U_RW_COUNT		0x100
-+
-+#define CSR_CUSTOM1_U_RO_BASE		0xCC0
-+#define CSR_CUSTOM1_U_RO_COUNT		0x040
-+
-+#define CSR_CUSTOM2_S_RW_BASE		0x5C0
-+#define CSR_CUSTOM2_S_RW_COUNT		0x040
-+
-+#define CSR_CUSTOM3_S_RW_BASE		0x9C0
-+#define CSR_CUSTOM3_S_RW_COUNT		0x040
-+
-+#define CSR_CUSTOM4_S_RO_BASE		0xDC0
-+#define CSR_CUSTOM4_S_RO_COUNT		0x040
-+
-+#define CSR_CUSTOM5_HS_RW_BASE		0x6C0
-+#define CSR_CUSTOM5_HS_RW_COUNT		0x040
-+
-+#define CSR_CUSTOM6_HS_RW_BASE		0xAC0
-+#define CSR_CUSTOM6_HS_RW_COUNT		0x040
-+
-+#define CSR_CUSTOM7_HS_RO_BASE		0xEC0
-+#define CSR_CUSTOM7_HS_RO_COUNT		0x040
-+
-+#define CSR_CUSTOM8_M_RW_BASE		0x7C0
-+#define CSR_CUSTOM8_M_RW_COUNT		0x040
-+
-+#define CSR_CUSTOM9_M_RW_BASE		0xBC0
-+#define CSR_CUSTOM9_M_RW_COUNT		0x040
-+
-+#define CSR_CUSTOM10_M_RO_BASE		0xFC0
-+#define CSR_CUSTOM10_M_RO_COUNT		0x040
-+
-+unsigned long csr_read_num(unsigned long csr_num, int *out_err)
-+{
-+#define switchcase_csr_read(__csr_num)				\
-+	case (__csr_num):					\
-+		return csr_read(__csr_num)
-+#define switchcase_csr_read_2(__csr_num)			\
-+	switchcase_csr_read(__csr_num + 0);			\
-+	switchcase_csr_read(__csr_num + 1)
-+#define switchcase_csr_read_4(__csr_num)			\
-+	switchcase_csr_read_2(__csr_num + 0);			\
-+	switchcase_csr_read_2(__csr_num + 2)
-+#define switchcase_csr_read_8(__csr_num)			\
-+	switchcase_csr_read_4(__csr_num + 0);			\
-+	switchcase_csr_read_4(__csr_num + 4)
-+#define switchcase_csr_read_16(__csr_num)			\
-+	switchcase_csr_read_8(__csr_num + 0);			\
-+	switchcase_csr_read_8(__csr_num + 8)
-+#define switchcase_csr_read_32(__csr_num)			\
-+	switchcase_csr_read_16(__csr_num + 0);			\
-+	switchcase_csr_read_16(__csr_num + 16)
-+#define switchcase_csr_read_64(__csr_num)			\
-+	switchcase_csr_read_32(__csr_num + 0);			\
-+	switchcase_csr_read_32(__csr_num + 32)
-+#define switchcase_csr_read_128(__csr_num)			\
-+	switchcase_csr_read_64(__csr_num + 0);			\
-+	switchcase_csr_read_64(__csr_num + 64)
-+#define switchcase_csr_read_256(__csr_num)			\
-+	switchcase_csr_read_128(__csr_num + 0);			\
-+	switchcase_csr_read_128(__csr_num + 128)
-+
-+	*out_err = 0;
-+	switch (csr_num) {
-+	switchcase_csr_read_32(CSR_CYCLE);
-+#if defined(CONFIG_32BIT)
-+	switchcase_csr_read_32(CSR_CYCLEH);
-+#endif
-+	switchcase_csr_read_256(CSR_CUSTOM0_U_RW_BASE);
-+	switchcase_csr_read_64(CSR_CUSTOM1_U_RO_BASE);
-+	switchcase_csr_read_64(CSR_CUSTOM2_S_RW_BASE);
-+	switchcase_csr_read_64(CSR_CUSTOM3_S_RW_BASE);
-+	switchcase_csr_read_64(CSR_CUSTOM4_S_RO_BASE);
-+	switchcase_csr_read_64(CSR_CUSTOM5_HS_RW_BASE);
-+	switchcase_csr_read_64(CSR_CUSTOM6_HS_RW_BASE);
-+	switchcase_csr_read_64(CSR_CUSTOM7_HS_RO_BASE);
-+#ifdef CONFIG_RISCV_M_MODE
-+	switchcase_csr_read_64(CSR_CUSTOM8_M_RW_BASE);
-+	switchcase_csr_read_64(CSR_CUSTOM9_M_RW_BASE);
-+	switchcase_csr_read_64(CSR_CUSTOM10_M_RO_BASE);
-+#endif
-+	default:
-+		*out_err = -EINVAL;
-+		break;
-+	}
-+
-+	return 0;
-+#undef switchcase_csr_read_256
-+#undef switchcase_csr_read_128
-+#undef switchcase_csr_read_64
-+#undef switchcase_csr_read_32
-+#undef switchcase_csr_read_16
-+#undef switchcase_csr_read_8
-+#undef switchcase_csr_read_4
-+#undef switchcase_csr_read_2
-+#undef switchcase_csr_read
-+}
-+EXPORT_SYMBOL_GPL(csr_read_num);
-+
-+void csr_write_num(unsigned long csr_num, unsigned long val, int *out_err)
-+{
-+#define switchcase_csr_write(__csr_num, __val)			\
-+	case (__csr_num):					\
-+		csr_write(__csr_num, __val);			\
-+		break
-+#define switchcase_csr_write_2(__csr_num, __val)		\
-+	switchcase_csr_write(__csr_num + 0, __val);		\
-+	switchcase_csr_write(__csr_num + 1, __val)
-+#define switchcase_csr_write_4(__csr_num, __val)		\
-+	switchcase_csr_write_2(__csr_num + 0, __val);		\
-+	switchcase_csr_write_2(__csr_num + 2, __val)
-+#define switchcase_csr_write_8(__csr_num, __val)		\
-+	switchcase_csr_write_4(__csr_num + 0, __val);		\
-+	switchcase_csr_write_4(__csr_num + 4, __val)
-+#define switchcase_csr_write_16(__csr_num, __val)		\
-+	switchcase_csr_write_8(__csr_num + 0, __val);		\
-+	switchcase_csr_write_8(__csr_num + 8, __val)
-+#define switchcase_csr_write_32(__csr_num, __val)		\
-+	switchcase_csr_write_16(__csr_num + 0, __val);		\
-+	switchcase_csr_write_16(__csr_num + 16, __val)
-+#define switchcase_csr_write_64(__csr_num, __val)		\
-+	switchcase_csr_write_32(__csr_num + 0, __val);		\
-+	switchcase_csr_write_32(__csr_num + 32, __val)
-+#define switchcase_csr_write_128(__csr_num, __val)		\
-+	switchcase_csr_write_64(__csr_num + 0, __val);		\
-+	switchcase_csr_write_64(__csr_num + 64, __val)
-+#define switchcase_csr_write_256(__csr_num, __val)		\
-+	switchcase_csr_write_128(__csr_num + 0, __val);		\
-+	switchcase_csr_write_128(__csr_num + 128, __val)
-+
-+	*out_err = 0;
-+	switch (csr_num) {
-+	switchcase_csr_write_256(CSR_CUSTOM0_U_RW_BASE, val);
-+	switchcase_csr_write_64(CSR_CUSTOM2_S_RW_BASE, val);
-+	switchcase_csr_write_64(CSR_CUSTOM3_S_RW_BASE, val);
-+	switchcase_csr_write_64(CSR_CUSTOM5_HS_RW_BASE, val);
-+	switchcase_csr_write_64(CSR_CUSTOM6_HS_RW_BASE, val);
-+#ifdef CONFIG_RISCV_M_MODE
-+	switchcase_csr_write_64(CSR_CUSTOM8_M_RW_BASE, val);
-+	switchcase_csr_write_64(CSR_CUSTOM9_M_RW_BASE, val);
-+#endif
-+	default:
-+		*out_err = -EINVAL;
-+		break;
-+	}
-+#undef switchcase_csr_write_256
-+#undef switchcase_csr_write_128
-+#undef switchcase_csr_write_64
-+#undef switchcase_csr_write_32
-+#undef switchcase_csr_write_16
-+#undef switchcase_csr_write_8
-+#undef switchcase_csr_write_4
-+#undef switchcase_csr_write_2
-+#undef switchcase_csr_write
-+}
-+EXPORT_SYMBOL_GPL(csr_write_num);
-diff --git a/drivers/acpi/riscv/cppc.c b/drivers/acpi/riscv/cppc.c
-index 74a5e484f809..da1a849ddc29 100644
---- a/drivers/acpi/riscv/cppc.c
-+++ b/drivers/acpi/riscv/cppc.c
-@@ -65,24 +65,19 @@ static void sbi_cppc_write(void *write_data)
- static void cppc_ffh_csr_read(void *read_data)
+ drivers/pci/pci-acpi.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index e260089..e90e749 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -82,7 +82,7 @@ int acpi_get_rc_resources(struct device *dev, const char *hid, u16 segment,
  {
- 	struct sbi_cppc_data *data = (struct sbi_cppc_data *)read_data;
-+	int err;
+ 	struct acpi_device *adev;
+ 	acpi_status status;
+-	acpi_handle handle;
++	acpi_handle handle = NULL;
+ 	int ret;
  
--	switch (data->reg) {
--	/* Support only TIME CSR for now */
--	case CSR_TIME:
--		data->ret.value = csr_read(CSR_TIME);
--		data->ret.error = 0;
--		break;
--	default:
--		data->ret.error = -EINVAL;
--		break;
--	}
-+	data->ret.value = csr_read_num(data->reg, &err);
-+	data->ret.error = err;
- }
- 
- static void cppc_ffh_csr_write(void *write_data)
- {
- 	struct sbi_cppc_data *data = (struct sbi_cppc_data *)write_data;
-+	int err;
- 
--	data->ret.error = -EINVAL;
-+	csr_write_num(data->reg, data->val, &err);
-+	data->ret.error = err;
- }
- 
- /*
-diff --git a/drivers/perf/riscv_pmu.c b/drivers/perf/riscv_pmu.c
-index 8e3cd0f35336..f85264b7eb5c 100644
---- a/drivers/perf/riscv_pmu.c
-+++ b/drivers/perf/riscv_pmu.c
-@@ -16,6 +16,7 @@
- #include <linux/smp.h>
- #include <linux/sched_clock.h>
- 
-+#include <asm/csr.h>
- #include <asm/sbi.h>
- 
- static bool riscv_perf_user_access(struct perf_event *event)
-@@ -88,58 +89,27 @@ void arch_perf_update_userpage(struct perf_event *event,
- 	userpg->cap_user_time_short = 1;
- }
- 
--static unsigned long csr_read_num(int csr_num)
--{
--#define switchcase_csr_read(__csr_num, __val)		{\
--	case __csr_num:					\
--		__val = csr_read(__csr_num);		\
--		break; }
--#define switchcase_csr_read_2(__csr_num, __val)		{\
--	switchcase_csr_read(__csr_num + 0, __val)	 \
--	switchcase_csr_read(__csr_num + 1, __val)}
--#define switchcase_csr_read_4(__csr_num, __val)		{\
--	switchcase_csr_read_2(__csr_num + 0, __val)	 \
--	switchcase_csr_read_2(__csr_num + 2, __val)}
--#define switchcase_csr_read_8(__csr_num, __val)		{\
--	switchcase_csr_read_4(__csr_num + 0, __val)	 \
--	switchcase_csr_read_4(__csr_num + 4, __val)}
--#define switchcase_csr_read_16(__csr_num, __val)	{\
--	switchcase_csr_read_8(__csr_num + 0, __val)	 \
--	switchcase_csr_read_8(__csr_num + 8, __val)}
--#define switchcase_csr_read_32(__csr_num, __val)	{\
--	switchcase_csr_read_16(__csr_num + 0, __val)	 \
--	switchcase_csr_read_16(__csr_num + 16, __val)}
--
--	unsigned long ret = 0;
--
--	switch (csr_num) {
--	switchcase_csr_read_32(CSR_CYCLE, ret)
--	switchcase_csr_read_32(CSR_CYCLEH, ret)
--	default :
--		break;
--	}
--
--	return ret;
--#undef switchcase_csr_read_32
--#undef switchcase_csr_read_16
--#undef switchcase_csr_read_8
--#undef switchcase_csr_read_4
--#undef switchcase_csr_read_2
--#undef switchcase_csr_read
--}
--
- /*
-  * Read the CSR of a corresponding counter.
-  */
- unsigned long riscv_pmu_ctr_read_csr(unsigned long csr)
- {
-+	unsigned long val;
-+	int rc;
-+
- 	if (csr < CSR_CYCLE || csr > CSR_HPMCOUNTER31H ||
- 	   (csr > CSR_HPMCOUNTER31 && csr < CSR_CYCLEH)) {
- 		pr_err("Invalid performance counter csr %lx\n", csr);
- 		return -EINVAL;
+ 	status = acpi_get_devices(hid, acpi_match_rc, &segment, &handle);
+@@ -92,6 +92,9 @@ int acpi_get_rc_resources(struct device *dev, const char *hid, u16 segment,
+ 		return -ENODEV;
  	}
  
--	return csr_read_num(csr);
-+	val = csr_read_num(csr, &rc);
-+	if (rc) {
-+		pr_err("Failed to read performance counter csr %lx (error %d)\n", csr, rc);
-+		return rc;
-+	}
++	if (!handle)
++		return -ENODEV;
 +
-+	return val;
- }
- 
- u64 riscv_pmu_ctr_get_width_mask(struct perf_event *event)
+ 	adev = acpi_fetch_acpi_dev(handle);
+ 	if (!adev)
+ 		return -ENODEV;
 -- 
-2.43.0
+2.9.4
 
