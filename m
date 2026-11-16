@@ -1,52 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794853358;
-	b=r8ytkTrUPd9HUd+UP+gwp8WKDjwPu14PNNWem1x7sS93nl1jXLOrXraR9CEcXxKFchFC
-	 jlTj5csIZZ28s9OhFiGqqSFpbA+tJj/eOta6Uz8uRX5QdrglGdvrG5fV6Exs7ZDy2dc5g
-	 9/52Cs3tdSHvMUfeYimnRuj7ojPZBjlEk4wZhNLp5Bckdt1sIUsamG0/5gz6ixEraVQ78
-	 7PUHGTYBd+Jr+O/BwKSXrcWhAhhFs703FnF1JYZ72uEaUMV3SOSjKGJO9ndj1qDCMwSxZ
-	 nLvGHzntIg9g+FveKR/rGtQ/FXFXuld7oi4IHMG6EhLhBnJqMF88IMlbwfDsz8HywGg==
+	t=1794853366;
+	b=j+xp6WjURL9gHfaSgVaxadg3G0sT0tHBWzzpHwr8rVFqeSC1qI45GGwCFP/0s4k7g+3N
+	 EloV4B4Qkw1cVnt2jZnRbpfJmzuBSFT1ZmTqtW4TdBjedDtMYqy+rmcTbVwaLv29jLVJQ
+	 +v5SJDwjIJ+VCYWU6ZUDXPDceo3jvihIGXLxTK0s+Ftfo014j4oLibSLvUVV52ofYBp6Z
+	 dOzW/KJwSWKe/TR4U+4KtuCNuNJK57vVBIN+YKF5InbGVCmw0H7i+nUqhJwVyLvm4JPWN
+	 V/5Xz4IjXMUzaCDjIq2POYfVL/tqQfZxqzW8T4XE/ltPzWegJ3Vyp/OuMwJ9fAgIInA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794853358;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794853366;
 	h=DMARC-Filter:Received:Received:DKIM-Signature:From:Date:Subject:
 	 MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:
 	 References:In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:
 	 X-Developer-Key;
-	bh=2bZRBD0wre9l5Uxa72CBRjeS+PAIZqErv0ZXJe2eO5U=;
-	b=RM+U7bozyH37EuZjzC4pcYMDfql6U5Qntiv/vznVdxU6nHLrk4k3uS2kGG/bVMtzbiEI
-	 Xq3Hs3uhU2epFoUpJ4fhhcD19IKhRxksCBoKvarQNiFPL8BxIv5QAoGz2OpPOV6CdLa8S
-	 dT//Z2M0ofLNk1Ed5wga4WzQXNDdRMwluM/cjTjIGVtCyxGMyINZCoYz4QRHEz5bKVx4b
-	 Ovbfvz9L+3h7mUv/0cxywiTCc8Tnezkx3fR7HVUIPS4qJCfyTIm0k/633OWj3PwWnBdYS
-	 CrXYBA+V92FASfvG2gRPyef9Q3EA6JMvabsvT1pLuduR/X6I5V8lnwqj2Nnta/aLCqg==
+	bh=bqJvB6enP/okPPxSerhwa6fogTBDV5fNQyKcgjywQTM=;
+	b=B9dv5+YXt+ufHZkN2kVxrWMssElVGssL9n1MqN1ugqVK/ypHpQPABapCj5wRuj9tSpNU
+	 wPy4xBWs530xcdS6CIGEj4XH4wwrrMCuf1W2Z62oIgVV10yx3HjSgixkcvDp9cY2xKYNG
+	 Nai6flhInhtfwl+g/q1Wg945CDRCwpbClOWuTm5euh92sOT1sNtCzPbvaLxWPK+TrlDuD
+	 LQtdG7qRRF2Kh4fV2GzB4HPD3o/Y5+WuaCRBWvC+YR1foDJ5lBdN9g/HQF5DwXwa8IFdX
+	 XbygmAmJesSZ2F7NGjQMOWGI3VzhzEI9Hdje5D3MF7mCB8OtPxKQQWlOSkPBvCnyiuw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=arm.com;
 	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=cus0c2qa;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=vJjzGIwh;
 	arc=none smtp.remote-ip=217.140.110.172
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id EEC38606A884;
-	Mon, 16 Nov 2026 18:22:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EEC38606A884
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 70A09606A884;
+	Mon, 16 Nov 2026 18:22:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 70A09606A884
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=cus0c2qa
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=vJjzGIwh
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6D9261BB0;
-	Mon, 16 Nov 2026 10:22:34 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0B63F1684;
+	Mon, 16 Nov 2026 10:22:43 -0800 (PST)
 Received: from e132581.arm.com (unknown [10.2.196.114])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 61EDC3F632;
-	Mon, 16 Nov 2026 10:22:33 -0800 (PST)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F247C3F632;
+	Mon, 16 Nov 2026 10:22:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1794853357; bh=Aq1hd5G15aLQCabTVDHrfLBjHUdHyPvPeCgENM9JxZw=;
+	t=1794853366; bh=3HQbqbNQTpF6lOh0eDAnhrgV5w1oEbiu/SzFYvPoCoQ=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=cus0c2qa2Ecxo+mz3w6U9I3zCheFuro12aVZ+5uKULdZQZpeKWWHXwMRXUg20kErT
-	 FDbxvOLB12TXFVUrOs1kqBYIeHR9eeu/vQYt2mzI8xZbwShRbyJDyRBbqI0bozrr81
-	 ugiu0+kQCoP0rvkUTME3+2QTomCc3WLuKAb3T+Qw=
+	b=vJjzGIwhpoGP+617+yXgzDJiFrNJCUg8COsq6eqpx7JRpW6wo53CMiGuWRAHhQQR7
+	 VtywxfvpEAkxZAwI7M9ljvphkHEfNAritXEXLAelFAf4kAm7r+qY0z6YlkSS6GskKZ
+	 OZJ9KBKWXxiwyUEcLbjbhPe8zs5erqg9i1StmMdQ=
 From: Leo Yan <leo.yan@arm.com>
-Date: Mon, 16 Nov 2026 18:21:33 +0000
-Subject: [PATCH 6/8] perf/arm_pmu: Support ACPI devices in the platform
- probe
+Date: Mon, 16 Nov 2026 18:21:35 +0000
+Subject: [PATCH 8/8] ACPI: arm64: Move PMU device registration to
+ drivers/acpi/arm64/
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -58,7 +58,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261116-acpi_arm_pmu_registration_hmp-v1-6-0371d4eca626@arm.com>
+Message-Id: <20261116-acpi_arm_pmu_registration_hmp-v1-8-0371d4eca626@arm.com>
 References: <20261116-acpi_arm_pmu_registration_hmp-v1-0-0371d4eca626@arm.com>
 In-Reply-To: <20261116-acpi_arm_pmu_registration_hmp-v1-0-0371d4eca626@arm.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
@@ -84,101 +84,103 @@ Cc: Suzuki K Poulose <suzuki.poulose@arm.com>,
  devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
  linux-perf-users@vger.kernel.org, Leo Yan <leo.yan@arm.com>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794853327; l=2895;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794853327; l=3632;
  i=leo.yan@arm.com; s=20250604; h=from:subject:message-id;
- bh=Aq1hd5G15aLQCabTVDHrfLBjHUdHyPvPeCgENM9JxZw=;
- b=0Reaa4MK3RHMtWJ2Gcdtr4xhMwqc5ow3o5yOZzpav///I6ftHy1L2DMc0fSWDt296egC0/1Ga
- puiB9wFPJIcCHOXnBQhVp1Cf/as+M4OzW2q5EBhITjIv+bGUjDZqFBk
+ bh=3HQbqbNQTpF6lOh0eDAnhrgV5w1oEbiu/SzFYvPoCoQ=;
+ b=X1LNld2n0QV0BE/yEJT3EFjRd/pSftFLxS6q+LckxMovIMspt6ojlw4avaXkuq6s/KkLjpzCC
+ We8c6U5F43KAt6ZSBQrXO1VU2Z3enb4zhQKneze/7rbzX+WkYWT6n+A
 X-Developer-Key: i=leo.yan@arm.com; a=ed25519;
  pk=k4BaDbvkCXzBFA7Nw184KHGP5thju8lKqJYIrOWxDhI=
 
-Add pmu_get_match_data() to select the initialization callback for DT
-and ACPI devices. Use OF match data for devices with a DT node, and
-match the platform device name against the existing compatible table
-otherwise. This also handles devices described by software nodes.
+The ACPI PMU code now registers platform devices for the CPU PMU, SPE
+and TRBE. Move it to drivers/acpi/arm64/pmu.c with the other Arm ACPI
+device enumeration code.
 
-Return -ENODEV when no initializer or fallback probe table is available.
-Append the platform device ID to numbered PMU names, leaving unnumbered
-DT device names unchanged.
+Move its Kconfig entry alongside it and rename the hidden ARM_PMU_ACPI
+symbol to ACPI_PMU. Drop the ARM_PMU dependency: enumeration does not
+use the CPU PMU framework, and each device type is guarded by its driver
+configuration. This allows SPE and TRBE enumeration with ARM_PMU disabled.
+
+Keep the default-y setting, update the build guard and retain PMU
+maintainer coverage for the new path.
 
 Signed-off-by: Leo Yan <leo.yan@arm.com>
 ---
- drivers/perf/arm_pmu_platform.c | 33 ++++++++++++++++++++++++++++++++-
- 1 file changed, 32 insertions(+), 1 deletion(-)
+ MAINTAINERS                                       | 1 +
+ drivers/acpi/arm64/Kconfig                        | 4 ++++
+ drivers/acpi/arm64/Makefile                       | 1 +
+ drivers/{perf/arm_pmu_acpi.c => acpi/arm64/pmu.c} | 0
+ drivers/perf/Kconfig                              | 4 ----
+ drivers/perf/Makefile                             | 1 -
+ 6 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/perf/arm_pmu_platform.c b/drivers/perf/arm_pmu_platform.c
-index 1c9e50a13201528edf4cfbdc2504d305b49d4913..397fdb148dc9b6be083e654e091ecc6a95c4905b 100644
---- a/drivers/perf/arm_pmu_platform.c
-+++ b/drivers/perf/arm_pmu_platform.c
-@@ -20,7 +20,9 @@
- #include <linux/perf/arm_pmu.h>
- #include <linux/platform_device.h>
- #include <linux/printk.h>
-+#include <linux/slab.h>
- #include <linux/smp.h>
-+#include <linux/string.h>
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ccbcdc0799b9fb8cc2b4dc139906e1584e096c46..f12a37cf20e13583c949b6fa7d9f5eb08e260566 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2445,6 +2445,7 @@ F:	arch/arm*/include/asm/hw_breakpoint.h
+ F:	arch/arm*/include/asm/perf_event.h
+ F:	arch/arm*/kernel/hw_breakpoint.c
+ F:	arch/arm*/kernel/perf_*
++F:	drivers/acpi/arm64/pmu.c
+ F:	drivers/perf/
+ F:	include/linux/perf/arm_pmu*.h
  
- static int probe_current_pmu(struct arm_pmu *pmu,
- 			     const struct pmu_probe_info *info)
-@@ -185,6 +187,23 @@ static void armpmu_free_irqs(struct arm_pmu *armpmu)
- 	}
- }
+diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
+index f2fd79f22e7d836b07401eb055725b2632ba624c..b4dd7f4d257e005b32d34012169ac595dcdee468 100644
+--- a/drivers/acpi/arm64/Kconfig
++++ b/drivers/acpi/arm64/Kconfig
+@@ -24,3 +24,7 @@ config ACPI_APMT
  
-+static const void *pmu_get_match_data(struct platform_device *pdev,
-+				      const struct of_device_id *of_table)
-+{
-+	const struct of_device_id *match;
+ config ACPI_MPAM
+ 	bool
 +
-+	if (pdev->dev.of_node)
-+		return of_device_get_match_data(&pdev->dev);
-+
-+	/* ACPI platform devices use a compatible string as their name */
-+	for (match = of_table; match && match->compatible[0]; match++) {
-+		if (!strcmp(pdev->name, match->compatible))
-+			return match->data;
-+	}
-+
-+	return NULL;
-+}
-+
- int arm_pmu_device_probe(struct platform_device *pdev,
- 			 const struct of_device_id *of_table,
- 			 const struct pmu_probe_info *probe_table)
-@@ -205,7 +224,7 @@ int arm_pmu_device_probe(struct platform_device *pdev,
- 	if (ret)
- 		goto out_free;
++config ACPI_PMU
++	depends on ACPI
++	def_bool y
+diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
+index 9390b57cb56481c547ebb896c58cf3e37a980827..f09e4506954d897caa44481a83f81ca65cfb7d96 100644
+--- a/drivers/acpi/arm64/Makefile
++++ b/drivers/acpi/arm64/Makefile
+@@ -5,6 +5,7 @@ obj-$(CONFIG_ACPI_FFH)		+= ffh.o
+ obj-$(CONFIG_ACPI_GTDT) 	+= gtdt.o
+ obj-$(CONFIG_ACPI_IORT) 	+= iort.o
+ obj-$(CONFIG_ACPI_MPAM) 	+= mpam.o
++obj-$(CONFIG_ACPI_PMU)		+= pmu.o
+ obj-$(CONFIG_ACPI_PROCESSOR_IDLE) += cpuidle.o
+ obj-$(CONFIG_ARM_AMBA)		+= amba.o
+ obj-y				+= dma.o init.o
+diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/acpi/arm64/pmu.c
+similarity index 100%
+rename from drivers/perf/arm_pmu_acpi.c
+rename to drivers/acpi/arm64/pmu.c
+diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
+index 245e7bb763b9947afc0330689b15d1b73d567f25..e9d61d5dbd1f174cc3862cf7f7823896df9d07d6 100644
+--- a/drivers/perf/Kconfig
++++ b/drivers/perf/Kconfig
+@@ -129,10 +129,6 @@ config ANDES_CUSTOM_PMU
  
--	init_fn = of_device_get_match_data(dev);
-+	init_fn = pmu_get_match_data(pdev, of_table);
- 	if (init_fn) {
- 		pmu->secure_access = of_property_read_bool(dev->of_node,
- 							   "secure-reg-access");
-@@ -220,6 +239,8 @@ int arm_pmu_device_probe(struct platform_device *pdev,
- 	} else if (probe_table) {
- 		cpumask_setall(&pmu->supported_cpus);
- 		ret = probe_current_pmu(pmu, probe_table);
-+	} else {
-+		ret = -ENODEV;
- 	}
+ 	  If you don't know what to do here, say "Y".
  
- 	if (ret) {
-@@ -227,6 +248,16 @@ int arm_pmu_device_probe(struct platform_device *pdev,
- 		goto out_free;
- 	}
- 
-+	/* Append instance suffix (for only ACPI devices) */
-+	if (pdev->id >= 0) {
-+		pmu->name = devm_kasprintf(dev, GFP_KERNEL, "%s_%d",
-+					   pmu->name, pdev->id);
-+		if (!pmu->name) {
-+			ret = -ENOMEM;
-+			goto out_free;
-+		}
-+	}
-+
- 	ret = armpmu_request_irqs(pmu);
- 	if (ret)
- 		goto out_free_irqs;
+-config ARM_PMU_ACPI
+-	depends on ARM_PMU && ACPI
+-	def_bool y
+-
+ config ARM_SMMU_V3_PMU
+ 	 tristate "ARM SMMUv3 Performance Monitors Extension"
+ 	 depends on ARM64 || (COMPILE_TEST && 64BIT)
+diff --git a/drivers/perf/Makefile b/drivers/perf/Makefile
+index eb8a022dad9a7a78433d42e9424c632d187debea..ddbae5f627ad8bcbe9d7e6c29293429562d85037 100644
+--- a/drivers/perf/Makefile
++++ b/drivers/perf/Makefile
+@@ -5,7 +5,6 @@ obj-$(CONFIG_ARM_CMN) += arm-cmn.o
+ obj-$(CONFIG_ARM_DSU_PMU) += arm_dsu_pmu.o
+ obj-$(CONFIG_ARM_NI) += arm-ni.o
+ obj-$(CONFIG_ARM_PMU) += arm_pmu.o arm_pmu_platform.o
+-obj-$(CONFIG_ARM_PMU_ACPI) += arm_pmu_acpi.o
+ obj-$(CONFIG_ARM_PMUV3) += arm_pmuv3.o
+ obj-$(CONFIG_ARM_V6_PMU) += arm_v6_pmu.o
+ obj-$(CONFIG_ARM_V7_PMU) += arm_v7_pmu.o
 
 -- 
 2.34.1
