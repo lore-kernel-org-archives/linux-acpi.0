@@ -1,62 +1,77 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=180.76.5.236
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=78.133.224.34
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794798322;
-	b=wqmdQiNOFHKJk57xbD1vVSiIHDEGnfOjtmw3grl6hJoXdeQ/nZLl3lg2kstUGzUStULK
-	 4VL1KTAyBnZZyBWUqoeBwA/ffGR3tOXr992eplbPAbGz/jI7NNSQzY0YuE0yxJ5hRIsNB
-	 unZ1bYzn7l/5f2qRwShoEy3i4ySV0kp40enn+viQUEKG1le4aD8sqaq7+CfHgJudSYkQ1
-	 JL0UAswiSPEy16doyrguiBpvbe9cyk/w8JQb1pJwRSDWg2Wm24ecfOWFMC2H6ZaD/nmOo
-	 cqjzbnrJGlTZnbD+lklqwnILn+JDm5n1ReveeQlCXbbnndcXIFNmIkWzldZ51dP5tEQ==
+	t=1794812947;
+	b=ePYLK8Y++vV92rE1O+zSZCs4lo87Otb4FfAJWiDs70cEphLaB2Y96yBMFN3hxfG6Wu7S
+	 ID1wO3/s7IRKmfszS6ass9rVS/NkT+0IEKNclHH6Na5A1XglLvVX89hw6EX3OTizXWw11
+	 XaY2Vq2klq+DvtRoTGG5+ExU/nDQ1RsbCFoZ8eimZrSHXVAtAp/S1UOfts+Fre8by4a0k
+	 75Ao4/kAVxy2XfqfbsSPh5jyAdGfMPBkfJKDBLVoPGrY+SF+4T5MKQQKPRboRM10D4ihZ
+	 XGbgoYXU6qr45whCoELyMp4Xzt4TGUiDdtmlGclm984F6gQjikei6KsKoZ/5SsaMAvg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794798322;
-	h=DMARC-Filter:X-MD-Sfrom:X-MD-SrcIP:From:To:CC:Subject:Thread-Topic:
-	 Thread-Index:Date:Message-ID:References:In-Reply-To:Accept-Language:
-	 Content-Language:X-MS-Has-Attach:X-MS-TNEF-Correlator:
-	 x-originating-ip:Content-Type:Content-Transfer-Encoding:MIME-Version:
-	 DKIM-Signature;
-	bh=3h/hJhe2m7bMzYPZBQs2LlpH/xz1SgYRRDuDOQgzgJU=;
-	b=dZVYd4YK19xuWupZipt2KTK/cFFO8DTCWvCITn9a9pjYK6nGrbsEoOvvoLJobVianW85
-	 Y7BQD/GxvOX4waWVVobiawyj2JHM+i271Fr00XQECrjegMrB1wXgwDM7iUQQXBbvZIZxL
-	 UpOHgixzOLWQP5d5V0mLMbPNxc7UVzbOMY4Q1b5VfgXXgZaWOOLNyk+bfpl1fXQl/mKFb
-	 Fv6bzb+CkbCDjxtyURhpA+p4XVtdHwP5NVQDwSXdmysGVHkHsshaMl4lKYftjHdFhTFRv
-	 hEiG2QMqBdKp1KiG0tteztX1Em5ReVz8k7SEBMKe7T0jOcz8sVEYO8sqWNMDMY4tlXA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794812947;
+	h=DMARC-Filter:Received:Received:Date:From:To:cc:Subject:In-Reply-To:
+	 Message-ID:References:User-Agent:MIME-Version:Content-Type;
+	bh=1mHmG9IJHtIMld4ZeRanDjKIMZUQxx8f0ptnWkrCv+U=;
+	b=0i8RahmNidBKHbWBeQckX6v4j9iCyuvVL/fZe/BEsPc/Xoe2nv+21TKq8Z9boKNYHrYK
+	 TotB7T80Z1D6oFXyUkcSsAhoCh3IC2ARjY/i+UN6pi3dNYn0B76azB/X9E/tIfcdqgcSB
+	 9AKBwpQFVyOBZwo6poe7axdA/vqIytMUUML/LMiEAVafmfqLwAHbYtegV4ihhnpc2LQN1
+	 1aZBowjXeK5BftnnOth8JJo70ZfTNBNImfEeyD/SSoOHs0mtHF983Xw9qw+XNmuv9T2VO
+	 QrXYqlONvEBxO/uVPvcWVve8MQ3C5gxmDeM/Gca8NoKmNnPn6fkxMNR6i7ZoQw4/UxQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=baidu.com;
-	spf=pass smtp.mailfrom=baidu.com;
-	dkim=pass header.d=baidu.com header.i=@baidu.com header.a=rsa-sha256 header.s=selector1 header.b=BOHm6Nro;
-	arc=none smtp.remote-ip=180.76.5.236
-Received: from outbound.baidu.com (outbound.baidu.com [180.76.5.236])
-	by smtp.subspace.kernel.org (Postfix) with SMTP id 37D39606A337;
-	Mon, 16 Nov 2026 03:05:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 37D39606A337
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=baidu.com header.i=@baidu.com header.a=rsa-sha256 header.s=selector1 header.b=BOHm6Nro
-X-MD-Sfrom: lirongqing@baidu.com
-X-MD-SrcIP: 172.31.3.14
-From: "Li,Rongqing" <lirongqing@baidu.com>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-CC: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: =?utf-8?B?562U5aSNOiBb5aSW6YOo6YKu5Lu2XSBSZTogW1BBVENIIHYyXSBQQ0kvQUNQ?=
- =?utf-8?B?STogQ2hlY2sgdGhlIGZvdW5kIGhhbmRsZSBpbiBhY3BpX2dldF9yY19yZXNv?=
- =?utf-8?Q?urces()?=
-Thread-Topic: =?utf-8?B?W+WklumDqOmCruS7tl0gUmU6IFtQQVRDSCB2Ml0gUENJL0FDUEk6IENoZWNr?=
- =?utf-8?B?IHRoZSBmb3VuZCBoYW5kbGUgaW4gYWNwaV9nZXRfcmNfcmVzb3VyY2VzKCk=?=
-Thread-Index: AQHddOFxtRU/PxmmZk61qzZICDwANLcu14WAgAEtJ2A=
-Date: Mon, 16 Nov 2026 03:05:07 +0000
-Message-ID: <0b5ce94eb1bf496781dd89c12295d229@baidu.com>
-References: <20261115091221.2217-1-lirongqing@baidu.com>
- <CAJZ5v0hBVwOksptV2ThK9iCpHbSZDh0Z+R3dtojCtkze4_0eQg@mail.gmail.com>
-In-Reply-To: <CAJZ5v0hBVwOksptV2ThK9iCpHbSZDh0Z+R3dtojCtkze4_0eQg@mail.gmail.com>
-Accept-Language: zh-CN, en-US
-Content-Language: zh-CN
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+	dmarc=none header.from=orcam.me.uk;
+	spf=none smtp.mailfrom=orcam.me.uk;
+	arc=none smtp.remote-ip=78.133.224.34
+Received: from angie.orcam.me.uk (angie.orcam.me.uk [78.133.224.34])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 364A6606A332;
+	Mon, 16 Nov 2026 07:09:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 364A6606A332
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=orcam.me.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=orcam.me.uk
+Received: by angie.orcam.me.uk (Postfix, from userid 500)
+	id 39D8A92009C; Mon, 16 Nov 2026 08:09:04 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by angie.orcam.me.uk (Postfix) with ESMTP id 376CC92009B;
+	Mon, 16 Nov 2026 07:09:04 +0000 (GMT)
+Date: Mon, 16 Nov 2026 07:09:04 +0000 (GMT)
+From: "Maciej W. Rozycki" <macro@orcam.me.uk>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+cc: David Laight <david.laight.linux@gmail.com>, 
+    Christian Brauner <brauner@kernel.org>, 
+    Geert Uytterhoeven <geert@linux-m68k.org>, linux-fsdevel@vger.kernel.org, 
+    Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
+    Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, 
+    NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
+    Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
+    Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
+    Greg Kroah-Hartman <gregkh@suse.de>, 
+    Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, 
+    Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
+    linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
+    linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+    linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+    linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
+    linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, 
+    ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
+    coreteam@netfilter.org, kexec@lists.infradead.org, 
+    linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
+    netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+    ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
+    linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+    linux-cifs@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+    linux-hwmon@vger.kernel.org, linux-mm@kvack.org, linux-sh@vger.kernel.org, 
+    linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
+    sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+    linux-doc@vger.kernel.org, linux-serial@vger.kernel.org, 
+    linux-atm-general@lists.sourceforge.net, Takashi Iwai <tiwai@suse.de>, 
+    linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+    linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
+    linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>
+Subject: Re: [PATCH RESEND v2 14/23] proc: let procfs copy in writes before
+ pinning the entry
+In-Reply-To: <CAHk-=whsA3tKcUCBJDj_vmJ11rVGT9rivgnKjGRgMO21CPmCxg@mail.gmail.com>
+Message-ID: <alpine.DEB.2.21.2611160657470.17804@angie.orcam.me.uk>
+References: <20261104-work-procfs-core-v2-14-76ace653a773@kernel.org> <CAMuHMdVfakapgBK6TBhO1iWX8qzvLDk8jzRS=t2MVa5G=MCUeg@mail.gmail.com> <20261107-akteur-gemieden-eckdaten-21304d085e35@brauner> <20261108185953.28054fb3@pumpkin>
+ <alpine.DEB.2.21.2611090504170.17804@angie.orcam.me.uk> <20261109214558.0d9d5228@pumpkin> <CAHk-=whsA3tKcUCBJDj_vmJ11rVGT9rivgnKjGRgMO21CPmCxg@mail.gmail.com>
+User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -66,53 +81,21 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
-	s=selector1; t=1794798310;
-	bh=3h/hJhe2m7bMzYPZBQs2LlpH/xz1SgYRRDuDOQgzgJU=;
-	h=From:To:CC:Subject:Date:Message-ID:Content-Type;
-	b=BOHm6NroPpLdqm5zBykgI6UseH1BCSOxS9Ah024JoVRHZy4uQkJsrXIzhx8cImx4S
-	 Kg7BHWNpYyIuTtDwVdL4gZjGs3lgt5zTYCrdUMNR/4gWaAciqwE74PH5QWTDfXlG/Q
-	 dc2Rb5+EXZhmUf8Z7fHX3WfPtuU1jYtZp3VrCKoNVv+HUYT6p3VypEF9ITb5zLKQYR
-	 1S67aRGmj+AvnB0SI4ZiY4uSomd2eD6WEJDDEFUGC3J/owl3LJI5wdx8Vlm76eWVbW
-	 MNwo9Vs/pFyMC0SCBxZMr/SMQVNhm+PNBElgttXLSr9Efmvnm2PibaoAWEzBYJAbiB
-	 rRGiLIQCLmI/w==
+Content-Type: text/plain; charset=US-ASCII
 
-PiA+IEZyb206IExpIFJvbmdRaW5nIDxsaXJvbmdxaW5nQGJhaWR1LmNvbT4NCj4gPg0KPiA+IGFj
-cGlfZ2V0X2RldmljZXMoKSByZXR1cm5zIEFFX09LIGV2ZW4gd2hlbiB0aGUgbmFtZXNwYWNlIHdh
-bGsgZmluaXNoZXMNCj4gPiB3aXRob3V0IGEgbWF0Y2gsIGluIHdoaWNoIGNhc2UgdGhlIHJldHVy
-bl92YWx1ZSBhcmd1bWVudCBpcyBub3Qgd3JpdHRlbi4NCj4gPiBUaGUgY2FsbGVyIHBhc3NlcyBh
-biB1bmluaXRpYWxpemVkIGFjcGlfaGFuZGxlIGFuZCBoYW5kcyBpdCB0bw0KPiA+IGFjcGlfZmV0
-Y2hfYWNwaV9kZXYoKSwgd2hpY2ggZGVyZWZlcmVuY2VzIGl0IGFzIGFuIEFDUEkgbm9kZS4NCj4g
-Pg0KPiA+IEluaXRpYWxpemUgdGhlIGhhbmRsZSBhbmQgcmVqZWN0IGEgbWlzc2luZyBtYXRjaC4N
-Cj4gPg0KPiA+IEZpeGVzOiAxNjlkZTk2OWMwMTggKCJQQ0kvQUNQSTogUHJvdmlkZSBhY3BpX2dl
-dF9yY19yZXNvdXJjZXMoKSBmb3INCj4gPiBBUk02NCBwbGF0Zm9ybSIpDQo+ID4gU2lnbmVkLW9m
-Zi1ieTogTGkgUm9uZ1FpbmcgPGxpcm9uZ3FpbmdAYmFpZHUuY29tPg0KPiA+IC0tLQ0KPiA+IERp
-ZmYgd2l0aCB2MTogYWRkIGZpeGVzIHRhZw0KPiA+DQo+ID4gIGRyaXZlcnMvcGNpL3BjaS1hY3Bp
-LmMgfCA1ICsrKystDQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDEgZGVs
-ZXRpb24oLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3BjaS9wY2ktYWNwaS5jIGIv
-ZHJpdmVycy9wY2kvcGNpLWFjcGkuYyBpbmRleA0KPiA+IGUyNjAwODkuLmU5MGU3NDkgMTAwNjQ0
-DQo+ID4gLS0tIGEvZHJpdmVycy9wY2kvcGNpLWFjcGkuYw0KPiA+ICsrKyBiL2RyaXZlcnMvcGNp
-L3BjaS1hY3BpLmMNCj4gPiBAQCAtODIsNyArODIsNyBAQCBpbnQgYWNwaV9nZXRfcmNfcmVzb3Vy
-Y2VzKHN0cnVjdCBkZXZpY2UgKmRldiwgY29uc3QNCj4gPiBjaGFyICpoaWQsIHUxNiBzZWdtZW50
-LCAgew0KPiA+ICAgICAgICAgc3RydWN0IGFjcGlfZGV2aWNlICphZGV2Ow0KPiA+ICAgICAgICAg
-YWNwaV9zdGF0dXMgc3RhdHVzOw0KPiA+IC0gICAgICAgYWNwaV9oYW5kbGUgaGFuZGxlOw0KPiA+
-ICsgICAgICAgYWNwaV9oYW5kbGUgaGFuZGxlID0gTlVMTDsNCj4gPiAgICAgICAgIGludCByZXQ7
-DQo+ID4NCj4gPiAgICAgICAgIHN0YXR1cyA9IGFjcGlfZ2V0X2RldmljZXMoaGlkLCBhY3BpX21h
-dGNoX3JjLCAmc2VnbWVudCwNCj4gPiAmaGFuZGxlKTsgQEAgLTkyLDYgKzkyLDkgQEAgaW50IGFj
-cGlfZ2V0X3JjX3Jlc291cmNlcyhzdHJ1Y3QgZGV2aWNlDQo+ICpkZXYsIGNvbnN0IGNoYXIgKmhp
-ZCwgdTE2IHNlZ21lbnQsDQo+ID4gICAgICAgICAgICAgICAgIHJldHVybiAtRU5PREVWOw0KPiA+
-ICAgICAgICAgfQ0KPiA+DQo+ID4gKyAgICAgICBpZiAoIWhhbmRsZSkNCj4gPiArICAgICAgICAg
-ICAgICAgcmV0dXJuIC1FTk9ERVY7DQo+IA0KPiBhY3BpX2ZldGNoX2FjcGlfZGV2KCkgd2lsbCBy
-ZXR1cm4gTlVMTCBpZiBoYW5kbGUgaXMgTlVMTCwgd29uJ3QgaXQ/DQo+IA0KDQpBZ3JlZWQgdGhh
-dCBhY3BpX2ZldGNoX2FjcGlfZGV2KE5VTEwpIGlzIHNhZmUgdG9kYXkg4oCUIGFjcGlfZ2V0X2Rh
-dGFfZnVsbCgpIHJlamVjdHMgTlVMTCB1cCBmcm9udC4gQnV0IHRoYXQgc2FmZXR5IGlzIGluY2lk
-ZW50YWwsIG5vdCBjb250cmFjdHVhbDogdGhlIGhhbmRsZSBsYXllciBkb2Vzbid0IHVuaWZvcm1s
-eSByZWplY3QgTlVMTCAoYWNwaV9uc192YWxpZGF0ZV9oYW5kbGUoKSBldmVuIG1hcHMgaXQgdG8g
-dGhlIHJvb3Qgbm9kZSksIHNvIHJlbHlpbmcgb24gaXQgbWFrZXMgdGhlIGZpeCBmcmFnaWxlIHRv
-IGZ1dHVyZSBjaGFuZ2VzLiBUaGUgZXhwbGljaXQgY2hlY2sgc3RhdGVzIHRoZSAibm8gbWF0Y2gg
-4oeSIC1FTk9ERVYiIGludGVudCBkaXJlY3RseSBhbmQgY29zdHMgMyBsaW5lcy4gSWYgeW91IHBy
-ZWZlciB0aGUgbWluaW1hbCBkaWZmLCBJIGNhbiBkcm9wIGl0IOKAlCB0aGUgaW5pdGlhbGl6YXRp
-b24gYWxvbmUgaXMgYWxzbyBjb3JyZWN0LiANCg0KVGhhbmtzDQoNCg0KW0xpLFJvbmdxaW5nXSAN
-Cg0KDQo+ID4gKw0KPiA+ICAgICAgICAgYWRldiA9IGFjcGlfZmV0Y2hfYWNwaV9kZXYoaGFuZGxl
-KTsNCj4gPiAgICAgICAgIGlmICghYWRldikNCj4gPiAgICAgICAgICAgICAgICAgcmV0dXJuIC1F
-Tk9ERVY7DQo+ID4gLS0NCg==
+On Mon, 9 Nov 2026, Linus Torvalds wrote:
+
+> > Just that the cast would have to be:
+> >         u8 *foo = (u8 *)bar;
+> > where 'bar' is 'char *', and I don't think you need a cast there when
+> > char is unsigned.
+> 
+> .. and just to clarify: 'char' is always unsigned in the kernel on all
+> architectures since commit 3bc753c06dd0 ("kbuild: treat char as always
+> unsigned") back four years ago...
+
+ Thanks, yes, that's the piece of the context I was missing.  I've since
+actually come across this commit while investigating which Linux ports 
+have plain `char' signed in the psABI (MIPS for sure).
+
+  Maciej
