@@ -1,55 +1,52 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794852963;
-	b=px8EYZkQqLieW/ZNKgcSUUDNUuDaP3SjHAQ2p54syrTe4b87CfIk55OWy6bgJiOGXvLQ
-	 nLKCdV7jSkTjCehcIoJAtufBi5YdWCFHoUcStrnae7bRw15ITQRsinAOnwmRansd3yMmI
-	 AGHTlTMK0ia8pp9iQ9va4rx+8hIq6nsv55AfoFvKuB3eI260qtgPfIuu9e21fxAMoKOJq
-	 fe/uIJMmeVL4cFGuupGCMQ7WQy9gnEqEY3tPVy00g0Nk9NixECHCUKaJGT+MIIQZFVO33
-	 uXEJeV6ARvjbIaI0oXkPH5v+9hanXoNT3N7Avl/pJ9CVRa7z/WQ/wdr0kh6mbBnYzKA==
+	t=1794853333;
+	b=ySL31mFHeTktWKL6lkbiij9GjVpu3gJzVRNQD5zykddKu2inMrMLg1f2Gxy3yS0Z1iiW
+	 pXWSb83fCPDFrUeaYOS2Wq0a7vss5OfTUOcdE1D/XXN8oh3Ct2+mYYYWT4QWJJ9yoiG0F
+	 k/NE3nlkQ3XurOLSNDoLrLqmyvdez70UBDEuSLnQDV8mFcgfkxUJN1AQC74Nkl7bwCAlM
+	 GN70pCne0ANrNnw2HjEZiH3m5yWyIJ+tI6cKG2GM6Zpg7Bj+8RpaWcm3PoOyJ5vj8DnQf
+	 bvzYldkrTDFdO1IoR/NpW8A/o1QAj6uS0L3Z0rpRM/2lDUcjUesTpwNKbYzdwjztA+g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794852963;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=ZzX9V4TTBmSlkYz6J8Lbn80e+REH2S26Di72JYTGVqM=;
-	b=jHDqWaEmYxy+m5KWGEj8YsJ10IvydrBbyaIU16WpJ9uc21yHJh6MxFv8WwTsNj24CZRH
-	 KsCULonkyOJj50UwyAKxMMRCrVgSu7DWvpKoNhNI40DMiRg2ZIbGil8TPvwPRWBtD9O6q
-	 c7BWt3YwkiIbku4YQpfihfc/UIcOkKLL0t5Iebsa4J8z7hRVLEfrVPZX6PQq0oEPivfz3
-	 ZaMGByNauh8kPkTxwZrP8hYGuiRQPu18PdI9BjBfddbYEPl1Bkws2njgwooE5V3JbQM1v
-	 TfMZ5BUOxjbFOPV7R/Yvx8pSrYWCy9qQ/zWXBW/tQjppzXgEyi2nSCAmrYn4UmCxFjw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794853333;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:From:Subject:Date:
+	 Message-Id:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:X-Developer-Signature:
+	 X-Developer-Key;
+	bh=Bx9BFmE1wLXw81GEy8xTvfh2DHQC7Qib0epoWWtsHZg=;
+	b=OZXKOj/b4fdbbGuB7xhnu/Jvl00vNhUtoGKUryEG8Q+r1R4YG3ecf38uUVa+gSIqBk7u
+	 6qJss6NDt18gcbqne7p/53bdnoiL8Qwb7AhoxKFSfFVTk0PJ8THjZutcLqfiwhrlhy1X+
+	 FEQHMl7bKczaYUCXVGQ/rVpUWV76MjvLrHN/QjZ/UD4KbzHzDYyrupftS5tEi/6iBESSE
+	 yHh7dR8WBPFbGWfwyqP+7iw2n7VaMJJs5nAfAzc3W4lc2cwTIXff5NngIQFlYfV7WxG9L
+	 IJKOYLjhpBZKE3gq+s6s7A8RNIkWS3fHll3NhNRYRzsd8uJzfhq3KNobgboHpqoWm7Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mCzVDl+y;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A30E606A31C
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 18:16:03 +0000 (UTC)
+	dmarc=pass header.from=arm.com;
+	spf=pass smtp.mailfrom=arm.com;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=UlTR1XYG;
+	arc=none smtp.remote-ip=217.140.110.172
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 64050606A31C;
+	Mon, 16 Nov 2026 18:22:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 64050606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mCzVDl+y
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26BD01F000CD
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 18:16:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794852963;
-	bh=ZzX9V4TTBmSlkYz6J8Lbn80e+REH2S26Di72JYTGVqM=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=mCzVDl+yp3QvxGGoIjHphlloyP6gjkTnuxpM2RxkYOo/ep9guqhucHVwPPvPJGxNA
-	 rtFCxx/KcWPxELoKUCqQmsifn4XZnuibROwGxzkD/eROMt7okJNbOUHiTSzIBS10BV
-	 iuGOXWSM0bno7C9iqM5+X7rB12dJ0XEvDTdUkNPDfd1Bywm3i/KWbUz3xFxtgJwV0Z
-	 NgBEGKNWYmWkeEf+0x6MLhZ1voYpMXemD8SmaBqjrLIHfzV62AEbTTrweiex8JfjNW
-	 TTrx9UjJQhRWWpos6Di4eagD4qqGz66bOjSOLYQKSq/os5JQJki75W1b9OapwBZIsY
-	 td6rcOdbZlyTw==
-Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-3adfcafaabbso38979491fa.3
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 10:16:03 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErFjgw6eeUBEMia7gTKNforUQ2R0kWZQoszeC5D10tIQQqR0HBCmD7gW1FUj5QwmmDyIHRlYk3IhDWMT@vger.kernel.org
-X-Gm-Message-State: APuU4Z+MTJ/Jp4VxJeIwrho7Qr4sUMtfN7juhgPj70156KQFnTbxOrex
-	qpIWAilASy8Gnhg5KjU4YkDxJ3Oej2fgzRXp1LSM81YBxhbtVGm94Aba81z5A+pBvMy2/AAn9Al
-	QCUFKwmCOiel8zwdV5RyxNPHovdaRqWM=
-X-Received: by 2002:a05:651c:e0a:b0:3ab:3bf3:1604 with SMTP id
- 38308e7fff4ca-3ae2b522732mr39554201fa.26.1794852961071; Mon, 16 Nov 2026
- 10:16:01 -0800 (PST)
+	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=UlTR1XYG
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A07C41684;
+	Mon, 16 Nov 2026 10:22:08 -0800 (PST)
+Received: from e132581.arm.com (unknown [10.2.196.114])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 925C03F632;
+	Mon, 16 Nov 2026 10:22:07 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1794853331; bh=goJwv/swJu68Y9hAS2XUupq7PiPrjIfLYlStZrGMjm0=;
+	h=From:Subject:Date:To:Cc:From;
+	b=UlTR1XYGFmGx57WHb+xFLIaoTlc9SWjhRZzd27Td4eV42hOpsw40LqOrDG/7iSgtX
+	 TIy5sLSf7nHcRqzEqquUlPfxvS3l7C/ndYlKT1Bksy+6Ls6eVuiaC7x0rgmD9F2mZQ
+	 5O//L1uzfYhNyp1/14QAlVJM4YW73pn/rIJ954G4=
+From: Leo Yan <leo.yan@arm.com>
+Subject: [PATCH 0/8] ACPI: arm64: Support PMU on Heterogeneous Systems
+Date: Mon, 16 Nov 2026 18:21:27 +0000
+Message-Id: <20261116-acpi_arm_pmu_registration_hmp-v1-0-0371d4eca626@arm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,62 +56,119 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <cover.1794567577.git.ukleinek@kernel.org> <CAJZ5v0jC5YXsLgB6Qd55KNCU0oCsN86X5WpRfL+Ycz0MJ8vGqA@mail.gmail.com>
- <avs5thXfoZA4TBnE@monoceros>
-In-Reply-To: <avs5thXfoZA4TBnE@monoceros>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Mon, 16 Nov 2026 19:15:48 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0iSJVszOCLCuK+ifCzTgx1RgDAExaYUbij=jaWmaTsb8Q@mail.gmail.com>
-X-Gm-Features: AclHuK94GxXVADZ_eYaxYKF2omkpVW60DdECEGw9yQWKt3TSZ2-Rx4HqR0isNuY
-Message-ID: <CAJZ5v0iSJVszOCLCuK+ifCzTgx1RgDAExaYUbij=jaWmaTsb8Q@mail.gmail.com>
-Subject: Re: [PATCH v1 0/4] ACPI: Use named initializers for acpi_device_id arrays
-To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, 
-	Sudeep Holla <sudeep.holla@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Will Deacon <will@kernel.org>, Dan Williams <djbw@kernel.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Alison Schofield <alison.schofield@intel.com>, Ira Weiny <iweiny@kernel.org>, 
-	Bjorn Helgaas <bhelgaas@google.com>, Zhang Rui <rui.zhang@intel.com>, 
-	"Mario Limonciello (AMD)" <superm1@kernel.org>, Saranya Gopal <saranya.gopal@intel.com>, 
-	Gergo Koteles <soyer@irl.hu>, Jakob Riemenschneider <riemenschneiderjakob@gmail.com>, 
-	Yauhen Kharuzhy <jekhor@gmail.com>, Pawel Zalewski <pzalewski@thegoodpenguin.co.uk>, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, nvdimm@lists.linux.dev, 
-	linux-pci@vger.kernel.org, Kai-Heng Feng <kaihengf@nvidia.com>, 
-	Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, 
-	Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>, 
-	Alexandre Belloni <alexandre.belloni@bootlin.com>, Dave Hansen <dave.hansen@linux.intel.com>, 
-	Chu Guangqing <chuguangqing@inspur.com>, Andy Shevchenko <andy@kernel.org>, 
-	Mika Westerberg <westeri@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAKdJ+2oC/4WNwQqDMBBEf0X23JSsEKk99T+KhDRZdQ/RsLHSI
+ v57U+m9xzfMvNkgkzBluFYbCK2ceZ4K4KkCP7ppIMWhMNS6bhB1q5xPbJ1Em+LTCg2cF3FLWdk
+ xJtV40xrf63AJBMWRhHp+Hf57V3gs9Vnex92K3/RnRvxjXlFp9WiDN7rHQGRupXr2c4Ru3/cP5
+ yuevMgAAAA=
+X-Change-ID: 20261109-acpi_arm_pmu_registration_hmp-6c595cf0d8de
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>, 
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+ Daniel Scally <djrscally@gmail.com>, 
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+ Sakari Ailus <sakari.ailus@linux.intel.com>, 
+ Bartosz Golaszewski <brgl@kernel.org>, 
+ Saravana Kannan <saravanak@kernel.org>, Will Deacon <will@kernel.org>, 
+ Thomas Gleixner <tglx@kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, 
+ Hanjun Guo <guohanjun@huawei.com>, Jeremy Linton <jeremy.linton@arm.com>, 
+ Marc Zyngier <maz@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+ Sudeep Holla <sudeep.holla@kernel.org>, Rob Herring <robh@kernel.org>, 
+ Catalin Marinas <catalin.marinas@arm.com>
+Cc: Suzuki K Poulose <suzuki.poulose@arm.com>, 
+ Mike Leach <mike.leach@arm.com>, James Clark <james.clark@linaro.org>, 
+ Anshuman Khandual <anshuman.khandual@arm.com>, Al Grant <al.grant@arm.com>, 
+ "Johnny.Fan" <johnny.fan@cixtech.com>, linux-acpi@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, driver-core@lists.linux.dev, 
+ devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ linux-perf-users@vger.kernel.org, Leo Yan <leo.yan@arm.com>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794853327; l=3514;
+ i=leo.yan@arm.com; s=20250604; h=from:subject:message-id;
+ bh=goJwv/swJu68Y9hAS2XUupq7PiPrjIfLYlStZrGMjm0=;
+ b=56hWmS+3xC7LmrbBWUKHF9DrbRdWd6N36Fs78LtUwPpuAQFmSQns9f24Hao9oUvCm380XIMCE
+ jwOjkO90ZeDBQMKP870C1FH435FZioX3FoPWaALnB24SOlEKVFsakAy
+X-Developer-Key: i=leo.yan@arm.com; a=ed25519;
+ pk=k4BaDbvkCXzBFA7Nw184KHGP5thju8lKqJYIrOWxDhI=
 
-On Mon, Nov 16, 2026 at 6:16=E2=80=AFPM Uwe Kleine-K=C3=B6nig (The Capable =
-Hub)
-<u.kleine-koenig@baylibre.com> wrote:
->
-> Hey Rafael,
->
-> On Fri, Nov 13, 2026 at 05:17:30PM +0100, Rafael J. Wysocki (Intel) wrote=
-:
-> > > Uwe Kleine-K=C3=B6nig (The Capable Hub) (4):
-> > >   ACPI: Unify acpi_device_id list terminators
-> > >   ACPI: Drop unused .driver_data initializers in acpi_device_id array=
-s
-> > >   ACPI: Use named initializers for acpi_device_id arrays
-> > >   ACPI: Unify *_device_id list terminators
-> >
-> > All patches applied as 7.5 material, thanks!
->
-> While rebasing these patches (as part of my wip tree that contains a lot
-> more similar patches) to next-20261113 I hit some merge conflicts. If
-> you tell me where you applied it, I can take a look and provide my merge
-> conflict resolution to allow double checking.
+This series follows Johnny Fan's SPE/TRBE work [1], which requires
+ACPI-specific IRQ affinity handling in the drivers. It provides a common
+way to describe PPI affinity for devices created from the MADT.
 
-I've rebased a couple of patches on some material merged previously.
+Register one platform device for each group of CPUs with the same MIDR.
+Associate a software node with each device to expose its CPU mask through
+platform_get_irq_affinity(). SPE and TRBE drivers can then obtain affinity
+without ACPI-specific handling or a processor-container companion.
 
-Please see
+Grouping by MIDR allows CPU PMU events to follow tasks across compatible
+CPUs, including CPUs in different processor containers. SPE and TRBE
+require a shared GSI within each group. CPU PMUs can also use per-CPU SPIs
+and reuse the platform probe path used for DT. Move the common ACPI device
+registration to drivers/acpi/arm64/.
 
-https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/commit/=
-?h=3Dlinux-next&id=3D58d4ba8979133c41cd491dff1dab40626daa924a
+This series has been tested on Orion O6, with four little Cortex-A520
+cores (CPUs 2-5) and eight big Cortex-A720 cores (CPUs 0-1 and 6-11).
+It exposes the following PMU devices:
+
+  # ls /sys/bus/event_source/devices/
+  arm_spe_0  armv8_pmuv3_0  armv8_pmuv3_1  breakpoint  cs_etm  kprobe  software  tracepoint  uprobe
+  # cat /sys/bus/event_source/devices/armv8_pmuv3_0/cpus
+  0-1,6-11
+  # cat /sys/bus/event_source/devices/armv8_pmuv3_1/cpus
+  2-5
+  # cat /sys/bus/event_source/devices/arm_spe_0/cpumask
+  0-1,6-11
+  # ls /sys/bus/event_source/devices/cs_etm/sinks/
+  trbe0  trbe1  trbe10  trbe11  trbe2  trbe3  trbe4  trbe5  trbe6  trbe7  trbe8  trbe9
+
+The CPU PMU masks match the MIDR groups: eight A720 CPUs and four A520
+CPUs. SPE uses the A720 mask, and TRBE exposes one sink per CPU.
+
+[1] https://lore.kernel.org/linux-arm-kernel/20261102084153.3975282-1-johnny.fan@cixtech.com/
+
+Signed-off-by: Leo Yan <leo.yan@arm.com>
+---
+Johnny.Fan (1):
+      perf/arm_pmu: Register ACPI SPE and TRBE devices with software nodes
+
+Leo Yan (7):
+      device property: Add firmware node IRQ affinity callbacks
+      device property: Add software-node IRQ affinity masks
+      perf/arm_pmu: Prepare ACPI registration for per-CPU interrupts
+      perf/arm_pmu: Register ACPI CPU PMUs as platform devices
+      perf/arm_pmu: Support ACPI devices in the platform probe
+      perf/arm_pmu: Use ACPI CPU affinity in IRQ handling
+      ACPI: arm64: Move PMU device registration to drivers/acpi/arm64/
+
+ MAINTAINERS                     |   1 +
+ arch/arm64/include/asm/acpi.h   |   3 +
+ drivers/acpi/arm64/Kconfig      |   4 +
+ drivers/acpi/arm64/Makefile     |   1 +
+ drivers/acpi/arm64/pmu.c        | 393 +++++++++++++++++++++++++++++++++++
+ drivers/acpi/property.c         |   8 +
+ drivers/base/platform.c         |   7 +-
+ drivers/base/property.c         |  15 ++
+ drivers/base/swnode.c           |  53 +++++
+ drivers/of/property.c           |   7 +
+ drivers/perf/Kconfig            |   4 -
+ drivers/perf/Makefile           |   1 -
+ drivers/perf/arm_pmu.c          |   3 +-
+ drivers/perf/arm_pmu_acpi.c     | 438 ----------------------------------------
+ drivers/perf/arm_pmu_platform.c |  62 +++++-
+ drivers/perf/arm_pmuv3.c        |   5 +-
+ include/linux/cpuhotplug.h      |   1 -
+ include/linux/fwnode.h          |   5 +
+ include/linux/perf/arm_pmu.h    |  12 +-
+ include/linux/property.h        |   6 +
+ 20 files changed, 552 insertions(+), 477 deletions(-)
+---
+base-commit: aebb7274476403040d582c61478df8f4a7bf9cd3
+change-id: 20261109-acpi_arm_pmu_registration_hmp-6c595cf0d8de
+
+Best regards,
+-- 
+Leo Yan <leo.yan@arm.com>
+
