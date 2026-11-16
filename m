@@ -1,119 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.42
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794829984;
-	b=U1/IM/rs6kBdMwy9j/X7mqzlZPMpRFaqV8vwyiRP1Gm8pj1THaukkdsUPGYenELlrrvc
-	 xliIErGrMAxRLKq7ko+na7/ESuYIALRJaLt+fUdptG26SuIUI6/wbByXH5OXVqvWYD1/S
-	 EHokU7jbciMNkJ2UEGugRk9NbwnatDYrJktLVXzF+p2MM+vl9FQmawZvlEqVXBKRs3U75
-	 GsFiZNoqwBrYC1jQCYjrS4DxlR3zGBcBuSFSVCa/n418c+35k6CMRXNOSwDBIQNpi7c3o
-	 Wm3NexsqUwarVRk6HuVcWQZTtYSkYAlzckE6MHOfNSvUUMvcWyB6QbMt2eoNdLK1gFQ==
+	t=1794830424;
+	b=MQBQMnAuDdfPyWjLy1FKogaGHg2c29s6FGe5bALs6agq98oT6DG44owEp9OSUayUazSC
+	 AWaBHUIcmu+y5MHDKGLvCj/P46SbGufpQcuKZN+U/K3Zi0mb6bxjabwtgt1KnsT77QLQ+
+	 vUwTnVtZLKQhLRkHYxfa8jK2GUsyfq1VC2dutWs3wIteNPpSjfb5J0YAAakDdeVxvYJ5F
+	 0c3KDGTjhx1BfO56LzeqjEIWWshQURJZjyejPTbiiWfP6EsR3/2BukCCHortF4DoJpCzC
+	 5tx+Nb8A2SDbWs0cyRb2rSOsbZQ2dyXlZCVP8BYn+c+1MRh+FkKZD6PVKkNy07OlzCw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794829984;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:X-Mailer:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=pO7ejxuisYFiK67OM4MpgvsVQ7/7ICx6J2Ag4S25/oU=;
-	b=HoI1YY68NNJLsCPZqnewK4HN4+mUJacMuWVU+v13xazsVJaxnjBo51zUc5maCJyemBCR
-	 zl3OKq/o+fZZ7Y+GA9eJ3PJ2gKjFkx1aVGObKhF/l9yE3MOuZ2TfOBZwrULoDgKS5b0xm
-	 WliirMFkZ0H50GT1nP/HjGIfMorHHFIzdTu7ZTYDCXm8NUkswX1bLH891aF5VkduTP8MI
-	 2NsstQAEUN9f6s87tCOf37gtOQq+pEbrCU09D1yn6ZWOjmtgRuV2ACjDNEejzAAsRnVOb
-	 o9waz+2T+/Gr/4CdWBlhkX8HXOFUvLyDDdwNsfE4xwCYu1/HHElyDKSxy07SKAHEIOw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794830424;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=7goVgkpwYKmj8484XOYewoBUT5Y28TtB/xzaeGJiua0=;
+	b=u6yZhqNmGNwCz7oQq5TW8ORl0GEMA/cPhsqEE7/EUaOx3t3knhoKt8I1NxMC8K6jt/4A
+	 6m6rO+HOxf7kA1G/y1piZg3m7/i7j1TRhdHw4TiB/9jIlukr+uMNt+YODwnja5bOR3oe8
+	 B2PDcvZtXGqrgLbH3g+BtD93B8Gbw5fLq2oRndLPofvj5XPbg6S0s17yQR6myZ0rMf81L
+	 A69KVzvaH1qgaaPJqdPI2BBiKtm2v6aK9vTUOp9qggbeV68kzcm85BYrx7C1crQLDDc40
+	 KHQJ9F71MLqOR6UTFmaiDec8h8gLLlGvet5mPmWt7pD+6q+AUWm+UW7j5vTJIIvbo2A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="EQorfjr/";
-	arc=none smtp.remote-ip=209.85.221.42
-Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RQcLI6Zr;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86ECB606A337
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 11:53:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 86ECB606A337
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8606360A260F
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 12:00:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=EQorfjr/
-Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-48e10a70540so1815928f8f.1
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 03:53:04 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794829983; x=1795434783; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=pO7ejxuisYFiK67OM4MpgvsVQ7/7ICx6J2Ag4S25/oU=;
-        b=EQorfjr/le+xrt6rRx0aqewV5C/72AyI7slViP9I2mMqrY2frCMiC9eA2kU6PldTfe
-         d2ppNxxBW57kub0UzJYDi2m1bmxBnaQkiv+DBn7m73b82wtWpXZge2XEBVq8Yj5BdyiG
-         YuY+Hzn4cGfJDC2pvnbKrEDdfYWt2Z2iBDbH4ycXbvMHzeqt/2lqu3i70CUXVOK26kmu
-         GVLINhavriOSnCa0I1E/mKgT9MiAv+t0eJFkLeN7vlyZTXhcdbFV3CpeBKR3d8JeJxZI
-         3rV3PATeMttVTD4o/HvUX4HGKlhQviYoK1XMcV4K8Zc9LjGTSHhnLxeKxHdxvvktLTto
-         fhhQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794829983; x=1795434783;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=pO7ejxuisYFiK67OM4MpgvsVQ7/7ICx6J2Ag4S25/oU=;
-        b=XNfkxuCO43JPyLNnF47ZwHBgvg2zyzOE2a1ndXyIrvpYc1a9dxMepMgl1iEvqTsH4H
-         4rTRLHUzoXTxX6SM6pqP97X1UQF+SQxCNn9jC1rEWZwIIbGX8orpomOxCI3apKYBs5LB
-         hIsWgQIvSNOa5Qrzc+QZw37DUeBMNh93Vw8STCUcFWGYDVk8HMCCU/Bqbly0SmpJImow
-         w29OgywQuuftZcBQfyhFbnDn8eP80A8vYCtEBvcfNiU08gTW4uq92tWrwHqRCQKzNA/4
-         EF5BUVUwNTZg9Oi3ezPedCj0n9IlObenJ0cVc3bycnfT1MwGb8uvBbXuYykHVVjw42fv
-         MOtg==
-X-Forwarded-Encrypted: i=1; AL+hErEhqVp8w9vPXSuhl24Ecp9Zd9MgGprngbladvx0Eyypb7hEAK2alaAJQx3Ven7let5106DP8yY3hxie@vger.kernel.org
-X-Gm-Message-State: APuU4Z+anr3rafC+Rv/rmLmwC1AtVFS4ghQCFIpzF8iHblHTkK/YG9As
-	7qLm44vTvbfDjnxbmzciDdfgeb7PIpmQ2BDsUpNA5ua7VNFSUTg4kkEs
-X-Gm-Gg: AZFdTZcEx13Y31H57O7NsAI/Oa6/rGrUIQ2hzz7SUwpFAtZKIoF+JkVJa9Ez2uZbpgc
-	jlzbTMDmgZBsQgaQTc3J2QvvWET60EcDUB8rXwXkB4AcBkkUsOVqG0ZJIyoeYp8x/UByBcnrkoJ
-	Ip84kUiIO5ijeCJ12NFWRD8BZbQXIuCTsGYOyjx82YwE7gqk/LXm+Lf41nRsP4/cy+yjeESV0FR
-	qHEzu+EtM3kv8/NcIlg8pywLTsDKUHACvVFOnIQAn+Bt1ZuGHOsQi7T+6Rp3jQq+AH57LpyhQnF
-	V0+gMp/n8k0c6NevxeF9pnoNmMH4Cx9l9xw5G4MfMi+9CCYM3/Gd6ZG6L9DQFYVEDl/i7sFWmKO
-	F3pxYWn3LjJjAClj32CKzL0OQHuYQs9JZshufzG1poZiKb6RcLEh0lPGHs0c51Zr5HQWak8/uJX
-	8dFm9XkqHjVupXti1xoWaHmZb0sONKdfkkTK8vQSTyqhb9emxxUgoDVoCGWr+O+cSZqmvp9RJss
-	pmZFhYLEAaL4airqGcgQLeOqMwOc6rkMUZm5sAirbMGBF8ucI6d1ClcvtcT2mpxGAY3+VlQxCH4
-	YFp3DOWw+x4EEcp/Irep3jS+TW54OkOB8z73qbkQ1fv/QmFyMbM2n9nlO8a5wDc8vA==
-X-Received: by 2002:a05:6000:2c01:b0:499:1c0d:4568 with SMTP id ffacd0b85a97d-49c741b14a0mr24577066f8f.48.1794829982872;
-        Mon, 16 Nov 2026 03:53:02 -0800 (PST)
-Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-49c5a32d336sm23686370f8f.0.2026.11.16.03.53.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Nov 2026 03:53:02 -0800 (PST)
-Date: Mon, 16 Nov 2026 11:53:00 +0000
-From: David Laight <david.laight.linux@gmail.com>
-To: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: Alejandro Colomar <alx+linux-hardening@kernel.org>, Hauke Mehrtens
- <hauke@hauke-m.de>, linux-mips@linux-mips.org, Ralf Baechle
- <ralf@linux-mips.org>, Joe Perches <joe@perches.com>, Alejandro Colomar
- <alx@kernel.org>, linux-hardening@vger.kernel.org, Krzysztof Kozlowski
- <krzk@kernel.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>, Geert
- Uytterhoeven <geert@linux-m68k.org>, Andreas Schwab
- <schwab@linux-m68k.org>, Andy Shevchenko <andy@kernel.org>, Bartosz
- Golaszewski <brgl@kernel.org>, Daniel Scally <djrscally@gmail.com>, Danilo
- Krummrich <dakr@kernel.org>, Greg Kroah-Hartman
- <gregkh@linuxfoundation.org>, Hans Verkuil <hverkuil-cisco@xs4all.nl>,
- Heikki Krogerus <heikki.krogerus@linux.intel.com>, Johan Hovold
- <johan@kernel.org>, Kees Cook <kees@kernel.org>, Laurent Pinchart
- <laurent.pinchart@ideasonboard.com>, Len Brown <lenb@kernel.org>, Linus
- Torvalds <torvalds@linux-foundation.org>, Linus Walleij
- <linusw@kernel.org>, Namhyung Kim <namhyung@kernel.org>, "Rafael J.
- Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, Sakari Ailus
- <sakari.ailus@linux.intel.com>, Saravana Kannan <saravanak@kernel.org>,
- Steven Rostedt <rostedt@goodmis.org>, Tom Zanussi <zanussi@kernel.org>,
- linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
- linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
- linux-gpio@vger.kernel.org, Bartosz Golaszewski
- <bartosz.golaszewski@oss.qualcomm.com>
-Subject: Re: Off-by-one in arch/mips/bcm47xx/time.c (was: [PATCH v6 02/19]
- string: Add strprefix())
-Message-ID: <20261116115300.544a33ec@pumpkin>
-In-Reply-To: <avriaVSTl4jL0OEo@ashevche-desk.local>
-References: <cover.1794667407.git.alx@kernel.org>
-	<0eaa4ce73a2b164fd49e3a9f71244a2e3f45b7bb.1794667407.git.alx@kernel.org>
-	<c113f651d1ce1b2d42ab9d0c59ae5a0cd17ddb6a.camel@perches.com>
-	<avi54hgKgovNHfKy@devuan>
-	<avriaVSTl4jL0OEo@ashevche-desk.local>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RQcLI6Zr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DCC71F00931
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 12:00:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794830424;
+	bh=7goVgkpwYKmj8484XOYewoBUT5Y28TtB/xzaeGJiua0=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=RQcLI6ZrMq6dV82dw5oYMjwM1Qqk9yku14O9eRoQnFZOMZ6NB+O+ri0AYaxZo+6YV
+	 zi0cxGicR4oaHrgiFM8AAawitT667yr3cLmV+BFEHEd0FKc1cXlyVFH3q7km5pPeKC
+	 /jPnQHjeScl0KH8wjtJL35NiZaqtn+zju1p8OgVoqnsR2dMGW7hnxgoZ8afbE+Rvtb
+	 tHxKhZtXpCqxLwLcUk2C++p+5GqpUlSju+4TGGq3FnjoSjyl9L+ywWjHcNpxIpwOZM
+	 Ql9t6qM8jPGgohBZ+ruvLRnIgHyGdFUfjAl8cK5PCpK3xYCOjDyIBZWWunQshNPDF6
+	 IY1UIoFqqdE6A==
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5be3d5927ceso4189192e87.3
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 04:00:24 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErEi4wVfgU9sr0DWuCFvvCIetun/uZKziGqza4406TRA0oDgp29EKszT90GWd8DgIpFy5jH2KADnbKQg@vger.kernel.org
+X-Gm-Message-State: APuU4Z+F8JIy4/r9h4sdeRLepLnKFCiziZ6xYceiid25p/MVIVRsx8v9
+	yq5QEOhdVgv4Qfuhs0xSAgqN3lvUQE7ut1xsJOEYroXVC3AAejM1yKpZPhmEFCGb9VgL/TjZulj
+	0R++DiUs96hTWM0SszeMth4nAtdjfxqQ=
+X-Received: by 2002:a05:6512:33cb:b0:5c1:5a83:4285 with SMTP id
+ 2adb3069b0e04-5c1709dbe47mr3567729e87.60.1794830422511; Mon, 16 Nov 2026
+ 04:00:22 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -123,39 +59,78 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+References: <20261115091221.2217-1-lirongqing@baidu.com> <CAJZ5v0hBVwOksptV2ThK9iCpHbSZDh0Z+R3dtojCtkze4_0eQg@mail.gmail.com>
+ <0b5ce94eb1bf496781dd89c12295d229@baidu.com>
+In-Reply-To: <0b5ce94eb1bf496781dd89c12295d229@baidu.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Mon, 16 Nov 2026 13:00:08 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0iEBtR3npi9nG9C6gX9yERmNfMT898G4yW-WEK5AQyrRg@mail.gmail.com>
+X-Gm-Features: AclHuK_nKEEaz8R2XMkBiWNICEsQXg3qgnHzMgyulq4CuqWWBjmI7y2CipbF3Mo
+Message-ID: <CAJZ5v0iEBtR3npi9nG9C6gX9yERmNfMT898G4yW-WEK5AQyrRg@mail.gmail.com>
+Subject: =?UTF-8?B?UmU6IFvlpJbpg6jpgq7ku7ZdIFJlOiBbUEFUQ0ggdjJdIFBDSS9BQ1BJOiBDaGVjayB0aA==?=
+	=?UTF-8?B?ZSBmb3VuZCBoYW5kbGUgaW4gYWNwaV9nZXRfcmNfcmVzb3VyY2VzKCk=?=
+To: "Li,Rongqing" <lirongqing@baidu.com>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Bjorn Helgaas <bhelgaas@google.com>, 
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, 
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, 16 Nov 2026 13:00:57 +0200
-Andy Shevchenko <andriy.shevchenko@intel.com> wrote:
+On Mon, Nov 16, 2026 at 4:05=E2=80=AFAM Li,Rongqing <lirongqing@baidu.com> =
+wrote:
+>
+> > > From: Li RongQing <lirongqing@baidu.com>
+> > >
+> > > acpi_get_devices() returns AE_OK even when the namespace walk finishe=
+s
+> > > without a match, in which case the return_value argument is not writt=
+en.
+> > > The caller passes an uninitialized acpi_handle and hands it to
+> > > acpi_fetch_acpi_dev(), which dereferences it as an ACPI node.
+> > >
+> > > Initialize the handle and reject a missing match.
+> > >
+> > > Fixes: 169de969c018 ("PCI/ACPI: Provide acpi_get_rc_resources() for
+> > > ARM64 platform")
+> > > Signed-off-by: Li RongQing <lirongqing@baidu.com>
+> > > ---
+> > > Diff with v1: add fixes tag
+> > >
+> > >  drivers/pci/pci-acpi.c | 5 ++++-
+> > >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > >
+> > > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c index
+> > > e260089..e90e749 100644
+> > > --- a/drivers/pci/pci-acpi.c
+> > > +++ b/drivers/pci/pci-acpi.c
+> > > @@ -82,7 +82,7 @@ int acpi_get_rc_resources(struct device *dev, const
+> > > char *hid, u16 segment,  {
+> > >         struct acpi_device *adev;
+> > >         acpi_status status;
+> > > -       acpi_handle handle;
+> > > +       acpi_handle handle =3D NULL;
+> > >         int ret;
+> > >
+> > >         status =3D acpi_get_devices(hid, acpi_match_rc, &segment,
+> > > &handle); @@ -92,6 +92,9 @@ int acpi_get_rc_resources(struct device
+> > *dev, const char *hid, u16 segment,
+> > >                 return -ENODEV;
+> > >         }
+> > >
+> > > +       if (!handle)
+> > > +               return -ENODEV;
+> >
+> > acpi_fetch_acpi_dev() will return NULL if handle is NULL, won't it?
+> >
+>
+> Agreed that acpi_fetch_acpi_dev(NULL) is safe today =E2=80=94 acpi_get_da=
+ta_full() rejects NULL up front. But that safety is incidental, not contrac=
+tual: the handle layer doesn't uniformly reject NULL (acpi_ns_validate_hand=
+le() even maps it to the root node), so relying on it makes the fix fragile=
+ to future changes. The explicit check states the "no match =E2=87=92 -ENOD=
+EV" intent directly and costs 3 lines. If you prefer the minimal diff, I ca=
+n drop it =E2=80=94 the initialization alone is also correct.
 
-> On Sat, Nov 14, 2026 at 08:49:21PM +0100, Alejandro Colomar wrote:
-> 
-> [...]
-> 
-> > > And these are all candidates for converted uses to
-> > > whatever is the function name or steq:
-> > > 
-> > > $ git grep -P '[^w]strncmp\s*\(\s*[\w\.\-\>\s]*,\s*\"\w*"\s*,\s*\d+\s*\)' -- '*.[ch]' | wc -l
-> > > 946  
-> > 
-> > Looking at those, I've seen a bug in BCM47XX, introduced in 2224de9d152b
-> > (2013-10-29; "MIPS: BCM47XX: Fix clock detection for BCM5354 with 200MHz
-> >  clock").
-> > 
-> > Look at this line of code:
-> > 
-> > 	$ grep strncmp arch/mips/bcm47xx/time.c
-> > 			if (len >= 0 && !strncmp(buf, "200", 4))
-> > 
-> > That strncmp(3) call is wrong, as it's really behaving as strcmp(3),
-> > since the 4 is off-by-one.  I'd like to know what was the intention.
-> > Was it meant to be !strncmp(buf, "200", 3)?  Or was it meant to be just
-> > !strcmp(buf, "200")?  
-> 
-> When in doubts, preserve current behaviour over refactoring.
-> 
-
-That entire function is strange...
-
-David
+Yes, please!
