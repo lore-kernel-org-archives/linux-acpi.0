@@ -1,55 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.171.202.116
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.84.56
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794837159;
-	b=Qi1OdLRrdf9fLFCGSr+2Lt1upFaC6sZiG+/kojFtNm/Yu1QaGtxl4BwSH+bcgaIDHhyo
-	 lDUuv+bTXYLAZXLiHHbp+R/tnsp49p4PxWsNfu5J41tMZoUTUZaI67ZWioTdhf1T5lVv/
-	 U82RrzLSfjmiytHZZigr4XOID6wxkJSXu8faQSG5qTNwiqTjQbpe938P+6Kk7CEhEjJTW
-	 avZSzEpwsoi9K1zCxsLU0Wbj6sGeiCFMOksJxTbhOQ7l/IWlu96DLacjzJevxQgT/kVz6
-	 SJDATJytKF0MwUptrhB4ZVSV7twr0jRSWblYjXFdGK8D+/Rk5wmmKupOlFGA2pmck0A==
+	t=1794837160;
+	b=jf/ebBdeyi+dRSVpQdpXZYViABojILiDdIsSpMiPM4LQ/iET5XJUn5AEV0j4bmqbNFch
+	 3WL2AQN5KCvwv2oDM2TFmORXZzxEvmOYQDE+4FRaIlrdTVemQi48GkFmBO8QjFNIKB/k4
+	 7ho5U8jCcyl7Py2+4sT3z7tPbvEURh1ORM4YS1mSITug1i8LKMMj9ahsb/VWwc2B12h3G
+	 F18Kd0yAbMUypMT42TVKAjExMcwBLnH87TJFZl2DPSOiDcyOLrD89CRyazqqPjZDFTy/5
+	 55iA5RrLaPHbf43MtWj2thvqXDuwvfhkUKwBvJLPsEQtECk3P+nj3X4xkzWmn0OBpjw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794837159;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794837160;
 	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:From:To:Cc:
 	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Last-TLS-Session-Version;
-	bh=Io1BI6qoNCZuXyB0hpVKaDQ4e+kSz3Jj0EHD4cdk5bI=;
-	b=2y+38TCaEjL/CcZ0z7bcTxWiHOx6J86d++s+3L9aoHzvBJGFXFPKl/OfcOHfjK2vz4+D
-	 Mdsy2XoVOhoTW1GkAH4+invbUyrJwj3qQTG4Pu3UOGmqtdB3Yz3hMJEqEhzsWe7ITJJaj
-	 n/XuSqOVjar4JZfVBQeUWzSudB+f1hTCx9++tP2P2vq2SxDnJWOzZe4MycIJDJkx0FgFz
-	 z7Es4YpssfhsHeid6jyHkP1gGN8KtyPpGqgB1kXzsRewC0wlSxtpsLNtbBDtsYOiwzops
-	 aZCuosO8e6ZAxCny79ukSChc9G3qwQ8v7d0CTT3+VSE5kRbE3PatFN6zyDyglZAP84Q==
+	bh=10tSiQq9qCU62IQsmnIT5keO6pddi/erCeijrEXvMUI=;
+	b=IsdSCnTBaQUwMQ1jlJ33XJ4WIXOcqzF12PZpiHGhpvpihmTUrUOMo4wz6UwARJxB4p+8
+	 i9ecbSi5X/bMwLyAxQ3CEpqPsTMtMc0GFtw6+V3oGF3B2zi/gtQ1wWjeG6QZpYkvYGg+z
+	 wQElso/Afg+E1B/bGJ1uvZ1TL5pMytjWhr0lcbQlTkxWUvZ1afK4b318wZm/jdiqAfL/u
+	 PCJ3FhLvUv1wxDUlGsFoBx2EVZ8bQR38+Ac3AJtr3cG5YoVUR06Lqamhve5kG+aP4C0Ly
+	 zlh9MN3eQqU7HC11IdgvpS7HEQcKHfzxm1CNh6aIQGg9jYOzYOTyQxqN6Au0Ij3/4wQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=bootlin.com;
 	spf=pass smtp.mailfrom=bootlin.com;
-	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=uTzXgKX7;
-	arc=none smtp.remote-ip=185.171.202.116
-Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
+	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=OLlXulJj;
+	arc=none smtp.remote-ip=185.246.84.56
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B56B606A32A
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 13:52:38 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0B56B606A32A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E08D606A335
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 13:52:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5E08D606A335
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=uTzXgKX7
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=OLlXulJj
 Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-04.galae.net (Postfix) with ESMTPS id AC799C4EFD8;
-	Mon, 16 Nov 2026 13:52:41 +0000 (UTC)
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 2F19E1A168E
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 13:52:39 +0000 (UTC)
 Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id B45B26023F;
-	Mon, 16 Nov 2026 13:52:37 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 7814D11BC0465;
-	Mon, 16 Nov 2026 14:52:30 +0100 (CET)
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 056976023F;
+	Mon, 16 Nov 2026 13:52:39 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id CDA3011BC183B;
+	Mon, 16 Nov 2026 14:52:36 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1794837155; h=from:subject:date:message-id:to:cc:mime-version:
+	t=1794837158; h=from:subject:date:message-id:to:cc:mime-version:
 	 content-transfer-encoding:in-reply-to:references;
-	bh=Io1BI6qoNCZuXyB0hpVKaDQ4e+kSz3Jj0EHD4cdk5bI=;
-	b=uTzXgKX7TZ5HexcBNzk+bN4X/4RHGFmVz7b7qxT4jii4fbopEUoC9Mv2zUCyQ8NT7CEFYH
-	p6Q4yVi0RnR2wv+HC5VGmn2Z+Dtv6P239jvLZWQ3Tgu9k8n+nshgcD5o0Cf5pQf3Yuyu5Y
-	ElKLGT8JOuQEvLk1sKwSBN4LD1Fc3B87JBteLSb5OlhcZxKmu+iydgkoH739pOza4Q6gQ9
-	kaUAcRFeRglYg9GIhgcE5TBVp0xdRmH8nhHK3HqbNM3bZ4bBxtrN3bcJYMnwo2858qThjp
-	kdcp04d9jxkzoxwHPbcsTYdX/hHWaFddmQ1l9ieYbMtx003M7bv9Hcgff7lQ4w==
+	bh=10tSiQq9qCU62IQsmnIT5keO6pddi/erCeijrEXvMUI=;
+	b=OLlXulJju5sf2hao84stt3rkKFJvqK95+EnO56KnPj2rNCAJZbDrz8dJRMcR5dD+OJxtwK
+	IHT0DgrX6R77Z/1uodoHDoinyx3ZlpqbY2rqS+kx3oR1BM4ZtwACOriuJwlY7U/rambTGA
+	8DcPfFvTFu/cIIrvK0gWMBmdie0Hq+j380SAkFwKSZUIx5LuWdeyFEAOpDYQnPi3gsucvu
+	1kcuDgKAXO66QcX+cNp/JOJrv+d0673nutQcuZMiDeZ8QXkTLmPMJN9k5DJXLBWmKR/Fcd
+	pzO4+6uxAys6CSEmg0q45kmxTUCFtB6ogB0XbLCEIEkHOPwIn6iFf9+Tx6X0aA==
 From: Paul Cercueil <paul.cercueil@bootlin.com>
 To: "Rafael J . Wysocki" <rafael@kernel.org>,
 	Len Brown <lenb@kernel.org>,
@@ -59,9 +59,9 @@ Cc: linux-acpi@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
 	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
 	Paul Cercueil <paul.cercueil@bootlin.com>
-Subject: [PATCH v3 1/2] clkdev: Improve clock discovery with clk_find()
-Date: Mon, 16 Nov 2026 14:52:16 +0100
-Message-ID: <20261116135217.37038-2-paul.cercueil@bootlin.com>
+Subject: [PATCH v3 2/2] ACPI: platform: Add basic support for ACPI 6.5 fixed clock resources
+Date: Mon, 16 Nov 2026 14:52:17 +0100
+Message-ID: <20261116135217.37038-3-paul.cercueil@bootlin.com>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261116135217.37038-1-paul.cercueil@bootlin.com>
 References: <20261116135217.37038-1-paul.cercueil@bootlin.com>
@@ -77,48 +77,136 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Last-TLS-Session-Version: TLSv1.3
 
-With a setup where a clock provider registers a clock with a device name
-"mydev" and a clock name "myclk", calling clk_find("mydev", NULL) would
-not actually return any match.
+ACPI 6.5 introduced a clock input resource descriptor, which allows to
+specify in the ACPI tables what clocks are connected to a given device.
 
-Update the code so that we can support this while maintaining the
-existing behaviour:
-
-- clk_find("dev", "con") matches in order of priority ("dev", "con"),
-  ("dev", *) and (*, "con");
-- clk_find(NULL, "con") matches (*, "con");
-- clk_find("dev", NULL) matches the first case of ("dev", *).
-  Note that in that case we don't handle wildcards for the device name
-  or it would end up matching everything.
+This patch adds support for the most basic clock resource, which is the
+one that represents a fixed clock. The new code will then create a
+clk_hw for each fixed clock resource, which is then made available to
+the device drivers, that can obtain it through a regular call to
+clk_get(NULL).
 
 Signed-off-by: Paul Cercueil <paul.cercueil@bootlin.com>
 
 ---
 
-v3: New patch. Imported from
-    https://lore.kernel.org/linux-arm-kernel/20261103084915.8405-1-paul.cercueil@bootlin.com/T/
+v3: No change
 
-    Originally sent separately to go through different trees, but the
-    context was lost which didn't help reviewing.
+v2:
+- Use the calculated clock name in devm_clk_hw_register_fixed_rate()
+  instead of the device name
+- Make sure clkres->scale is <= 2. The field is 2 bits but the value
+  clkres->scale == 3 is not defined in the spec.
+- Compute the fraction numerator using 64-bit math, to make sure it
+  won't overflow on 32-bit systems.
+- Initialize clocks only when the device_type matches
+  ACPI_BUS_TYPE_DEVICE.
+- Use a shorter name for clocks as the hard limit is 16 characters
+  including the terminator.
 ---
- drivers/clk/clkdev.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/acpi/acpi_platform.c | 64 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
-index 919fc680ae4d..ee6c0afd6ec0 100644
---- a/drivers/clk/clkdev.c
-+++ b/drivers/clk/clkdev.c
-@@ -53,7 +53,9 @@ static struct clk_lookup *clk_find(const char *dev_id, const char *con_id)
- 			match += 2;
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index 80ea7121744d..71322cdcf0dd 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -10,17 +10,27 @@
+ 
+ #include <linux/acpi.h>
+ #include <linux/bits.h>
++#include <linux/clk-provider.h>
++#include <linux/clkdev.h>
+ #include <linux/device.h>
+ #include <linux/err.h>
+ #include <linux/ioport.h>
++#include <linux/kconfig.h>
+ #include <linux/kernel.h>
++#include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/pci.h>
+ #include <linux/platform_device.h>
++#include <linux/units.h>
+ 
+ #include "internal.h"
+ 
++struct acpi_clk_data {
++	struct device *dev;
++	unsigned int idx;
++};
++
+ /* Exclude devices that have no _CRS resources provided */
+ #define ACPI_ALLOW_WO_RESOURCES		BIT(0)
+ 
+@@ -130,6 +140,57 @@ static unsigned int acpi_platform_resource_count(struct acpi_resource *ares, voi
+ 	return AE_CTRL_TERMINATE;
+ }
+ 
++static int acpi_add_fixed_clock(struct acpi_resource *res, void *d)
++{
++	static const unsigned long clk_scale[] = { 1, HZ_PER_KHZ, HZ_PER_MHZ };
++	struct acpi_resource_clock_input *clkres;
++	struct acpi_clk_data *data = d;
++	struct device *dev = data->dev;
++	struct clk_hw *clk;
++	unsigned long rate;
++	char name[64];
++	int err;
++
++	if (res->type == ACPI_RESOURCE_TYPE_CLOCK_INPUT) {
++		clkres = &res->data.clock_input;
++
++		if (clkres->mode) {
++			dev_warn(dev, "Only fixed rate clocks supported for now.\n");
++			return 1; /* keep going */
++		}
++
++		if (clkres->frequency_divisor == 0 || clkres->scale > 2)
++			return -EINVAL;
++
++		rate = DIV_ROUND_UP_ULL((u64)clkres->frequency_numerator * clk_scale[clkres->scale],
++					clkres->frequency_divisor);
++
++		snprintf(name, sizeof(name), "%s-%u", dev_name(dev), data->idx++);
++
++		clk = devm_clk_hw_register_fixed_rate(dev, name, NULL, 0, rate);
++		if (IS_ERR(clk))
++			return PTR_ERR(clk);
++
++		err = devm_clk_hw_register_clkdev(dev, clk, name, dev_name(dev));
++		if (err)
++			return err;
++	}
++
++	return 1;
++}
++
++static void acpi_platform_init_clocks(struct acpi_device *adev)
++{
++	struct device *dev = &adev->dev;
++	struct acpi_clk_data data = { .dev = dev };
++	LIST_HEAD(list);
++	int ret;
++
++	ret = acpi_dev_get_resources(adev, &list, acpi_add_fixed_clock, &data);
++	if (ret < 0)
++		dev_err(dev, "Failed to add clock resources: %d\n", ret);
++}
++
+ /**
+  * acpi_create_platform_device - Create platform device for ACPI device node
+  * @adev: ACPI device node to create a platform device for.
+@@ -196,6 +257,9 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+ 			}
+ 			acpi_dev_free_resource_list(&resource_list);
  		}
- 		if (p->con_id) {
--			if (!con_id || strcmp(p->con_id, con_id))
-+			if (!con_id && !p->dev_id)
-+				continue;
-+			if (con_id && strcmp(p->con_id, con_id))
- 				continue;
- 			match += 1;
- 		}
++
++		if (IS_ENABLED(CONFIG_COMMON_CLK))
++			acpi_platform_init_clocks(adev);
+ 	}
+ 
+ 	memset(&pdevinfo, 0, sizeof(pdevinfo));
 -- 
 2.47.3
 
