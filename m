@@ -1,113 +1,129 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.42
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794835054;
-	b=IR+5Nosr4+CSeC2jPxLA6UPO7wVLnNs3K8iabXPjD+suU8SPJ3Vic/DPjVjTceyW06ZZ
-	 6CDZ4/OyKCmkFPAZHqI+heRIpAzdCbQMW6M0W3Q454UB9vY2qJlaqXZeKQ8ms6lcvuug7
-	 8b6dh4saVga0JlaXFLwIL6iI7GoyYccWy9PgRFK1nfvSjUDa1YCqBkWQrpnXnf1JXYhTg
-	 L4Zy3osiW0tm1q6etwBk8BLxYrxvCETqtRNmjRrthh3yRtjD3POz8wqxs71pZpBtEAE66
-	 N/mwPx42hhx6kAQghR3w3SrbQlhjlqWstoQw0SXXAvhzvFnRJfOqOLSgtSGeHYqtuLg==
+	t=1794835249;
+	b=0oeaYEzPLfIuQ/hNy0XYn5D9NLbJ+WEgo4/4dHnROBHVpGJ+7KOgxS1D/ro8KuthxNh8
+	 hCuKXZFmspKBDgZG0R2eZBCWdRZeNfLgs4rFHVrr8ln/cBTGxMjvsYKe/FSKHxrTOOask
+	 LAA3bdQnYJvn1VLR0Ce9JVTq81mc8i9ECDCr1meIcj9gamF3lsH8GGR2zKVE2OEfUz9xm
+	 p/ExXz2vlqZDsdMB1536Nd6xl2jA9drz1yvtSZh1D/gMHGzdv6zCLfnHu6z/l/pnjjLOR
+	 aYtfzC2/HEMcjDrcjvy6dNm+RwBsluyYeAlp9d6mapn392Nrhv6Ag3Q/GrKDrn73kIg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794835054;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:From:To:Cc:
-	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding:X-Authority-Analysis:X-Proofpoint-ORIG-GUID:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
-	 X-Proofpoint-GUID:X-Proofpoint-Virus-Version:
-	 X-Proofpoint-Spam-Details;
-	bh=DPgzSife+0fN3cYNF4exo/t+D88hj6Kyh9t5FaVY7H4=;
-	b=NvsBzdsw5qMwuoxL70qyLI+YWr5OawUWfI+EN4XhDx10orp0mQvHC0/vmSbBEdYnDj8M
-	 nzKeB8bp06Hu6ycaq23SyNNMybSmSFT9Ktl3COKauW6JHFptrNBmB0Jc85aTkjyYKAm5B
-	 MTI/EDsB6NTqugYV1THTMirr4pmyja4eFpfVi9OKXIBxx4+5kUAFRkmXx+RQWNwHF2GQ/
-	 5U8Dp77HClfTMNuEq6EmTlJQJrL4qHbM8RSEWTUAm0GRlvnuT+mhW0jM2VSx6mLaZJTTF
-	 +RJ3KrAJT3K5Op/IBG6paXhQtTcexWYaMma7KCZdNF2E96Eo11y6QPBR2P9NdI46ekQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794835249;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To;
+	bh=pW6Ljdl+VPjn0HqbJ5aXeG19kylCTPtUMbKY6fBA+PE=;
+	b=AzkkQilUbNT18RH/QPguQWRwPYyK/m4icxdEZbd4r8VOJMCf8G4ZdNDWdN5Zr5NWF0UH
+	 owIQhEHbIe0ybRM0za6qpZ51b7dc50X/3ci6NHKSKjkWhOKp3GFusJkRKVZrKc4Qqv01B
+	 aQqxi+omlwY9hP7hxqtrAyGgMzjFZdU/Up+bNHRX+n9BiANund0OCBPVBHfGciJrT+cqm
+	 5bZcdbBlV6iJ1kRqxqgqz4RRDoznvqVUOK6QOlE52y9beaiErt2uSI3ZoOm4bBhu1LGfZ
+	 ihL53vuPEeHNFnfIrb3dnrao6ZSHW6lkEPKN3iBg53mnRcq2VSUBjkf+ZCGV3l1uvGQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.qualcomm.com;
-	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=OzUBbxY9;
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=bNQJtYPU;
-	arc=none smtp.remote-ip=205.220.168.131
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=none header.from=ziepe.ca;
+	spf=pass smtp.mailfrom=ziepe.ca;
+	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=F00eXo5h;
+	arc=none smtp.remote-ip=209.85.219.42
+Received: from mail-qv1-f42.google.com (mail-qv1-f42.google.com [209.85.219.42])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBE59606A31C
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 13:17:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CBE59606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F21D606A329
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 13:20:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3F21D606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=OzUBbxY9;
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=bNQJtYPU
-Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AGC15Do1483045
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 13:17:33 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=qcppdkim1; bh=DPgzSife+0fN3cYNF4exo/t+D88hj6Kyh9t
-	5FaVY7H4=; b=OzUBbxY9455L0kqJw+6OIBDy1w1W3FHAYOFUO3dop4sBnlj56vn
-	wAqBDfdy6KFRtSk5EDOJLr/q6gkMWEYkBWn+PAhNWUYwuDJSifF78yf9ylUKwulF
-	+Y7T2Kl+oLTqthi/stro6yYVXxiiPYloTqs2+sfsnq84TJXks5Y/J0jSJ+mwV9kU
-	4CGhNxF95FAhb8XxYAnde27J24LezWqemOXD7PfpiQkBnpROBD6NtiyRutb9bi9V
-	k4xxcMnlS36xxHH7Jx5FJ4TmHG9G78XQlqkOm+Eao2LkPWWCjC3RApTZ08aXGtNX
-	xPbyjJNlfZ/Lf9eauncuf18Zz8PwVzOVdmw==
-Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com [209.85.222.199])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hyyrqgnjq-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 13:17:32 +0000 (GMT)
-Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-93f26dd2165so1067961785a.3
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 05:17:32 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=F00eXo5h
+Received: by mail-qv1-f42.google.com with SMTP id 6a1803df08f44-91f11161831so21486056d6.1
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 05:20:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1794835052; x=1795439852; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=DPgzSife+0fN3cYNF4exo/t+D88hj6Kyh9t5FaVY7H4=;
-        b=bNQJtYPUpkb9YYL2WJRJkH9OuESwlPZf1giibvWT7pfvQUYF17XhfWFoWhsgMbIy7O
-         45nMSNRGQ8cEwEXMz1RCLVYXuQFPUYr7xEfkETGLKqPja+9vBVjl4rP7eOii3JETrzJc
-         aHQ30uJTabEcPD0h4ezfyZ9hbDoFFQlhLrJhbqZfzI3lT628YelFbvgVsQ0FsaFWG6kk
-         P8GNN+hur+fQXuHkHhbIp/1npHgh8GhquNCcjjBnOoErLOm4PE8PP93brLhJOEXuQp52
-         uGNoxk6vPcf7YPUwn/BtG0htzsBzxZe3cFiqluNUXcit8aQ7LEqRoR5cQ6vaJMRpdfQj
-         Hl0A==
+        d=ziepe.ca; s=google; t=1794835248; x=1795440048; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=pW6Ljdl+VPjn0HqbJ5aXeG19kylCTPtUMbKY6fBA+PE=;
+        b=F00eXo5hK7MhiGIzcy2xEZvXaOlU++0SsxWdg8F2eYgLj0IP/wqxNHSj70WYC1UCbD
+         vmKPyn8zqLHpLHOvxkTPyXLn/laMAvSaSbXM05SN4tjv6Cx+GcVaR0GxUXpMgXzGykx3
+         FokKvpAfMx6w/qg4Q5h79shuv6MexzGsY/vmut+9b8A8pQsaE0GfSqy0kYc2aGWEaEae
+         3xYzyobXgBsc03sh3wdT6H/0kLtFYOlPUaVehm8clJUf4d9zj9Hfn5kvjyTiGQDD3sEC
+         6wk4kHeXw7a4jDhfFMIm7aNEb1ZQhwAt5xztT2KrBS1HRA1ERCFKDcAKt5g1NH70HZ/q
+         daJg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794835052; x=1795439852;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=DPgzSife+0fN3cYNF4exo/t+D88hj6Kyh9t5FaVY7H4=;
-        b=lDWDosu5McYAej9xZO8VN91wDEdFjIIv+3Am0u2dM9qdgCS4gl8uR0lIIfEDSJLtVT
-         6T7ysDPotzDAwlSBtm/LdEC7n1lCA5V4sqVw3vkt/uIa7ItOdzsHoPpIXDsqCLgkOfmd
-         RTxJvN1WCF3V445jNEfRV9UIuVv9uLyExv/HMpZcg40yLNTa3HQtm9+Mun6hUI17nA2v
-         XGecV+R8GfMu3TIMqYkpppsDcAl3EVoEEnX1ng4rComSP1kcPnf6oK5putwLq136lpw+
-         F+v+9v4eVnJel1g9R42jgAfa0A5QUZWLStZazvENdW38Cr1Bg15ekGqXjzYZekQrZW6m
-         NbuQ==
-X-Forwarded-Encrypted: i=1; AL+hErF9o9F3CMA/gc56x9/KQURI2SxNN1/SSbYsZisbnSKfz9wWUc2yknFfgtzt7IPpKdOQos+y+blcg3MA@vger.kernel.org
-X-Gm-Message-State: APuU4Z/G+e/UdZMRD2pKrTxdD+6NgwJJfKOdoBTHLytyMo7nCpPJ2hHP
-	AXu5GnQEwnKqSOotzTk3RGh2ZJN7svbKPqsDtb2Vqu1xL6CaWaioeCLdeP/WgRpxnQnBNgbvlkY
-	tGKOQIUZdaJeJOlLWpJdb+ntWffOcwsl9Nnnj6+Z2FbDVtZAQuoUx3MQgxCfIT8d4
-X-Gm-Gg: AYBFou2wa3PoK6fHnluUxY5Kj5k59agbMRyqWMCdIGhoIZUWr0ZqfQMd9dvne0EGQGL
-	xEq6gvN6OdN4DOI5SPYzfDumZGIiEVE7vMBObdsXzTx60p6m9RCgQlpSz95J4O0eVNGUXWILYz2
-	6SNGTmLuZ33kKRR+1lT/bJLYYjSg95dRW2DvV9SdN+H/JwQ8TAInTjQ7fbyAe1I8q4e+BZ4UHuT
-	L0wOslum/JnLAkYXomAgYd0mp7X6ztvqYM6dEkQfdbu5xUvtrehVUY4wZjVdNGSBu2oMgQMjuvB
-	Ib60r+vGsg3euPlgzw9VmIM8xwQC//sOoYftZiafcINt+5dYkoUzOsEY2hsLUKTF4YonNWdmmQW
-	hl3oPdNOKFMe6JHrPkP0DR+z+xSXhZrpYDR8x/9Z/UFOkOIt8ak/FeiBxSeSV52c42QmJYXAh2l
-	aCVk4WTKKbmMyvBqkqgNleQw==
-X-Received: by 2002:a05:620a:29d1:b0:949:723d:f7ce with SMTP id af79cd13be357-949723e1190mr783586985a.30.1794835051860;
-        Mon, 16 Nov 2026 05:17:31 -0800 (PST)
-X-Received: by 2002:a05:620a:29d1:b0:949:723d:f7ce with SMTP id af79cd13be357-949723e1190mr783580785a.30.1794835051206;
-        Mon, 16 Nov 2026 05:17:31 -0800 (PST)
-Received: from t14s (195-200-21-10.mclarenap.oninferno.net. [195.200.21.10])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-49c5d03b10fsm24878915f8f.1.2026.11.16.05.17.29
+        d=1e100.net; s=20260707; t=1794835248; x=1795440048;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=pW6Ljdl+VPjn0HqbJ5aXeG19kylCTPtUMbKY6fBA+PE=;
+        b=1wEQI3HdRnBhxNj0WjkLo0oDBSC6O9pjMjokXoIV+Jvs/UEi2XlALkYvmtyUESpGef
+         +NFp7YQMygpc8pP35jF5BaIeSe3+EHvF+zEVaHTsJvjr+Tg384mXH/GsoaUE8mtT8OQk
+         AjL4Y4QN0K1732BErwKohwF0tYso7ArlqE9iUKb1rnz3P6aVnpYfGn1Lel2S750cZOzB
+         xGqb/mUDr/c778GgdplMl216C7iAmioRV+Mi3DoKjCFCCrODYTFt5MrkRzAa1AOJXISI
+         pUZ8EwZxPTcBfzCb/+IZWjcBJNGPrRo3Uz6j7JPUjzvqG0Z2dO0D63DexOPucSn6XWke
+         IkLg==
+X-Forwarded-Encrypted: i=1; AL+hErFBAaSEt3YWSpTe0n2gOfdxYRRBIdcEXL4eoBgURYgXigcC200dOBaKZckKN9BDF72ulMw5X7+icZE7@vger.kernel.org
+X-Gm-Message-State: APuU4Z/2+Wuvlm67pHi1eZCn8h/fBKPWOc57Nr5xbanRnrk6ID6XYsBo
+	DGM+5rLJVA4PzFz1uJe19z56WtNdY80i0HysUktaz9JfeGrNkXJIfAor+twcovf+fDE=
+X-Gm-Gg: AZFdTZdu6UiQGKD2uRdShmjaWyWAZ1E4lSWgB29iF4FOB3IbZG1yFFYKWCYrt0funni
+	FUgrFgcWqrIA8kWjV8kKXDrT+ZAPc+Kbv4WD1gSGLR4PiVY06e45GoYjoLrprPsGR8wSABTYuGf
+	hWNMrZ5FnmB7iIp+ASN6Z9wj8eUcssxESRlnJTVNVLkLOEmlZ1BcXCN5BG84TqRnjUXiJ1SKDIc
+	5Iu229OUNP70T7qQTwgK89Pwl14SelUgqbDcxDsCvZqTp5jhiqkJ6Gpbx2/LwB3SDmoMy/ZCtwE
+	3I850ybFgNlFNiVxb9CT0kDq3HkMcjgK9+Vnn98MVhFP56oMil4ZUjCdUmSB6XJVeL8NTZe3DdC
+	AhdaIB23ggjfQdQDI1qFiJFmcJv9drq7GkGZiKKETmzW/GdoIxqWqdRYWWXZH5P80N4EIjBjgln
+	Q1CROegiuQ/bVR5uTKcvS7aQuWUoMh3Djoz/OCtQYWzhVOWjFaFWtu0QP/14jpoVXr/XN5o9nSB
+	J/IP5jqVinJggJgB4FRDTleTMWLy1XzxVJXzcHhjlQmd8C1VdP6uhO7VilPy4tR9z0mJLY4GHxT
+	A3uYFw==
+X-Received: by 2002:ad4:5744:0:b0:91f:3230:2a4 with SMTP id 6a1803df08f44-91f32300351mr126741416d6.53.1794835247815;
+        Mon, 16 Nov 2026 05:20:47 -0800 (PST)
+Received: from ziepe.ca ([142.166.156.71])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91f23d7ba48sm85758876d6.28.2026.11.16.05.20.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Nov 2026 05:17:30 -0800 (PST)
-From: Hans de Goede <johannes.goede@oss.qualcomm.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>,
-        linux-acpi@vger.kernel.org
-Subject: [PATCH v2] ACPI: scan: Skip acpi_scan_dep_init() for processor devices
-Date: Mon, 16 Nov 2026 14:17:20 +0100
-Message-ID: <20261116131720.75103-1-johannes.goede@oss.qualcomm.com>
-X-Mailer: git-send-email 2.56.0
+        Mon, 16 Nov 2026 05:20:47 -0800 (PST)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1xSwda-00000009KhK-1awf;
+	Mon, 16 Nov 2026 09:20:46 -0400
+Date: Mon, 16 Nov 2026 09:20:46 -0400
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Leon Romanovsky <leon@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Andrew Lunn <andrew@lunn.ch>,
+	Heiner Kallweit <hkallweit1@gmail.com>,
+	Russell King <linux@armlinux.org.uk>,
+	"David S. Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
+	Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Lu Baolu <baolu.lu@linux.intel.com>,
+	Johan Hovold <johan@kernel.org>, Eric Dumazet <edumazet@kernel.org>,
+	Marcel Holtmann <marcel@holtmann.org>,
+	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
+	Nipun Gupta <nipun.gupta@amd.com>,
+	Nikhil Agarwal <nikhil.agarwal@amd.com>,
+	Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
+	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
+	linux-input@vger.kernel.org, netdev@vger.kernel.org,
+	linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-pci@vger.kernel.org,
+	iommu@lists.linux.dev
+Subject: Re: [PATCH 17/17] PCI: Replace untrusted state with device trust
+Message-ID: <20261116132046.GI2532299@ziepe.ca>
+References: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
+ <20261105-device-trust-core-v1-17-1e536825b4eb@nvidia.com>
+ <yq5amrr8yldi.fsf@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -117,64 +133,68 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Authority-Analysis: v=2.4 cv=VcJir1p9 c=1 sm=1 tr=0 ts=6afb026d cx=c_pps
- a=HLyN3IcIa5EE8TELMZ618Q==:117 a=LwtOfSRbDNzKn4Mtwg6Q5A==:17
- a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=yOCtJkima9RkubShWh1s:22 a=EUspDBNiAAAA:8
- a=vHvZn-9Z5xfy6IYPFUwA:9 a=bTQJ7kPSJx9SKPbeHEYW:22
-X-Proofpoint-ORIG-GUID: _RBpablwHUt3YWE2B4FPl7dw7Dm67BqW
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE2MDA1MiBTYWx0ZWRfX0NKLerCb6GKr
- 2ylS25L8Fizau++IQcnILQQmsgClXk/1o61PhAIMQHb6umpGGhKw3ebnFNTtSQcpimqm5/K3FZT
- JtfViwdphzoiDhcFyWPOp2nRrgYdu0tknolGCI505tN60KKSA9I3Dzm9bkhrEcIOUF5iEVOtLuo
- vsdAAuXBrsywp0GOnH07mAF221jD07ilVqIImJRq8unrjkftPU3DAH1Ym1UUAaQg9wSx/26mr1Y
- p5gi71ZWPsZcLze0bBRCQUvWxYV085TTLCW/hfd35xErfWaBhWkIkkfUHjNgk8fwT8hhbx3V3yq
- U4XbD2cNCNBdTX0d8M6t+MBgeyd2l20Q+C1qYMEAh7CJX4HnA4aHO7KJmhPLaG8YeVB8TFI6H9q
- xHR6XIiOLeVv8Zl5RdGzT62s12GpkTzJb2hIviNB+gjKffSQYOuiVmMCy4YKLhqEbFBEm4vwE/y
- 52lsRXrV6Ex2k59idzw==
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE2MDA1MiBTYWx0ZWRfX/r+LD9HHQylE
- vqYbDtuYDZOTUsJAmuxpG4mL/ghDkWEEhaXY1e6r89NoTSiLiZXw4G+HE4JSnCGb39ahcmlXKuU
- MEYkWgya/BFRTkJkD7kMo3vUQDvjmHg=
-X-Proofpoint-GUID: _RBpablwHUt3YWE2B4FPl7dw7Dm67BqW
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-16_04,2026-11-16_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- spamscore=0 adultscore=0 clxscore=1015 suspectscore=0 lowpriorityscore=0
- bulkscore=0 phishscore=0 malwarescore=0 priorityscore=1501 impostorscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611160052
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <yq5amrr8yldi.fsf@kernel.org>
 
-acpi_bus_check_add() only calls acpi_scan_add_dep() for devices of
-the ACPI_TYPE_DEVICE type. So the dep list of processor devices will
-never contain any deps for that device, making the acpi_scan_dep_init()
-call a no-op.
+On Mon, Nov 16, 2026 at 06:38:25PM +0530, Aneesh Kumar K.V wrote:
+> > +static inline bool
+> > +pci_dev_default_is_restricted(const struct pci_dev *pdev)
+> > +{
+> > +	enum device_trust_policy policy = READ_ONCE(pdev->dev.trust_policy);
+> > +
+> > +	return policy == DEVICE_TRUST_POLICY_DISABLED ||
+> > +	       policy == DEVICE_TRUST_POLICY_ADVERSARY;
+> > +}
+> > +
+> 
+> Could you clarify how this series will work alongside device acceptance
+> and private-memory access?
+> 
+> In particular, what should callers of device_cc_accepted() use under
+> this model?
 
-Make acpi_add_single_object() only call acpi_scan_dep_init() for devices
-with the ACPI_TYPE_DEVICE type matching acpi_bus_check_add().
+Who is calling device_cc_accepted? I thought we were keeping that
+internal to the DMA PI?
 
-Signed-off-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
----
-Changes in v2:
-- Turn this into a oneline change instead of adding separate top-level
-  if statements for the device and processor cases.
----
- drivers/acpi/scan.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> My understanding is that trust describes the operating
+> policy, not TDISP acceptance or DMA access to private memory.
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 96b8b0dfe339..28563becfadd 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1881,7 +1881,7 @@ static int acpi_add_single_object(struct acpi_device **child,
- 	 * this must be done before the get power-/wakeup_dev-flags calls.
- 	 */
- 	if (type == ACPI_BUS_TYPE_DEVICE || type == ACPI_BUS_TYPE_PROCESSOR) {
--		if (dep_init) {
-+		if (type == ACPI_BUS_TYPE_DEVICE && dep_init) {
- 			mutex_lock(&acpi_dep_list_lock);
- 			/*
- 			 * Hold the lock until the acpi_tie_acpi_dev() call
--- 
-2.56.0
+Right.
 
+> Therefore,
+> neither FULL nor ADVERSARY alone indicates whether a device can access
+> private memory?
+
+Right.
+
+Once you turn on TDISP you effectively activate DMA, just like turning
+on the IOMMU.
+
+Userspace then gets to choose how the rest of the system behavess. You
+can still run a strict viommu with an adversarial driver even if you
+enabled TDISP and can DMA to all memory.
+
+I don't know if many people would choose that combination, but it is
+there.
+
+> You also mention that once a trust level other than DISABLED is set, it
+> cannot be changed during the device's lifetime. If a device initially
+> operates in ADVERSARY mode and later attestation justifies FULL
+> operation, is that transition intentionally unsupported for the existing
+> device object? As documented, unbind/rebind and reset preserve the
+> committed level.
+
+I think it should only be for the duration of a bound driver?
+
+> It would help to describe how the trust framework fits together with
+> those separate mechanisms, including which pieces are left for follow-up
+> series.
+
+The main thing it brings is the pause to allow userspace to measure
+the device and put it into RUN if it so chooses before any driver is
+bound.
+
+It doesn't change how any of the DMA or TDSIP flows work.
+
+Jason
