@@ -1,57 +1,68 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=220.197.31.3
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794786071;
-	b=F/Mo0Kd3GKQOg7o7Oiwd5xxQhNMqSEFJzZIuBveRhKPpAlEMrKuwm3cpw0aqDqNb1zc5
-	 DzvHdt2YCqN725EPG+BelKCUHHM+tM13hWMvRsVgiY3Vf5SfisrArlzXHdYKfGWBvlpWc
-	 5dzx7wpCMOhc/yADsNd/RiRbfI1dzTVrNFXcU+ICiq4OZVIhri0xHUkRnJOiCM3FT+wMp
-	 JfpvDAcxKkLnATjYJHg83QBjx7GVCTi9CDZrRWi7bNFXU9hDFkBbk7NPOdwUshDWDSExW
-	 eK9AZeGpQejPra3PQlmsV+onKg7I2qdax4qNOvIdjkTczzStwX06PjXkcy5/vyL4yaQ==
+	t=1794796430;
+	b=ppKnz1zimY7JpmxWkhul7gOAo16Kd8Cj9oPovZkgWXSn9ocEcRSO+oa/aVYOlc63duiJ
+	 a4nqOEMpWmrW0Nf/yeLCUiSukYVJbWlf97yqvFnJ7vGYC60RLPvdvM/BUiOLXCCnhfCgS
+	 11z87wxEMtuqxJwDesjOHp0D5eqrSOU2J5XenKeUezKgGbfFVJUC3+infvD1SveMqZO7d
+	 suCgw5Gu4wcGwIur4BQP1+1ML3VQRTp69ThnxbjAGXbPClF/p2RSujJgM/b1bxdEJkFNr
+	 5vfPuVIE/YOyTOgd+9ENzG+zAQEIZ1fDQ+LVo50ePBpa1d05PqbGMh7tjmmC/f8089g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794786071;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=jk5MxHtazUjnLt0cgF87tkF1nMMgbWI4c7p97JcFQIg=;
-	b=smPsWODPRyCOR6UwHLMS0g9A2iYKG1mYxKpt+bWGEZUfqn/fBqUJpxRnDR8EdfUuyB+y
-	 /l83iwc94v14a9TX6SfVHUihLsf1cMzFznNVDlEmudQ8ZyCyBzDNL1T6bKd1A4TKmayzr
-	 gOXYeX1xn83UufEtmGIbv85+h1MiztfFxSKhrTwxuv82gnmIw1qrl2WXvZ+eJOLPZWZ24
-	 4bwNOZDc305rTiMUUQSADDCbv/0p1juGGvBUxioWqA+IRwKEapz3Sl9VWKpphL7hUA4n1
-	 LxLfJ9eCVwCzLuhNs4Y2ApoQ/+lMlKQXsMG7hkgzX0d8OGjSbPj0+gzh6yGQV2b5qbg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794796430;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-CM-TRANSID:X-Coremail-Antispam:Sender:
+	 X-CM-SenderInfo;
+	bh=Ti8JYA4Z3TWNM+zPcnTnSa7F5ZqJFQvbSsqIlfWXtR4=;
+	b=Zh1lJpu3HjIM1fXC5tFk5ACvPtTfvKEcYkFPlhHTR3MKHztukZ041ciM0EtcnMU49DAE
+	 3S22lePMH9HD209CKIoOnmQM+qaD0/ClkhKchgdpdvTEv8HF8yC7xzt33cRlkUFaU0ztm
+	 VO+HHrfLbfSDcTVc+6yR++INBK7sA6kfnxHH4kLrB0VyFcQmH2BLZyjmA10jaag5fsiK7
+	 vymtVRF16VxReAiBe5400qmq3ARng/+aps8WSRTt+g68dM2eudOFQsii99vM928RRJPTc
+	 OBQnf9o67dJXN5qNWHL519R9YRzvwHxIjEqH7HJNUEfCm6Rz2g8WhrVYHZj3oh7g2KA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GaVfo879;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=kylinos.cn;
+	spf=pass smtp.mailfrom=163.com;
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=FnJQew4u;
+	arc=none smtp.remote-ip=220.197.31.3
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.3])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B3C1606A31F;
-	Sun, 15 Nov 2026 23:41:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8EDC606A31F;
+	Mon, 16 Nov 2026 02:33:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C8EDC606A31F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GaVfo879
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAD7E1F000C4;
-	Sun, 15 Nov 2026 23:41:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794786070;
-	bh=jk5MxHtazUjnLt0cgF87tkF1nMMgbWI4c7p97JcFQIg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=GaVfo879l6Q0tDc/K7TTSvJIbSEaHuAuXk8mYH4kzaRGCxsAQtSDcOAkpexKQ/erA
-	 1F56JJSUCOhots0X0K14zoG9ulNad5GfvVsF8nfsEjf+nlR6D/KXhVUMCNALH/N9cI
-	 4MU0tPmDkAIRuLY6hn3Auh796WEcjn4+YL4H3pzdpsxDZHjszIfua0lEo11T5zZ40P
-	 VysBBfxPTjI5SR1CA0H5pbQlxQuryUbB7SC1K+BfrM1G4Bi/bFGblrVlcUSVOP7N2H
-	 TNzpmORnuyio4FnPVDGn0ml+CCKnqlkDprFagc+HaOzE0GZ+ZzuxfrRmms4I9Ng4vn
-	 vMUXzap4Zj/qQ==
-From: Sasha Levin <sashal@kernel.org>
-To: Florian Wagner <florian@wagner-flo.de>
-Cc: Sasha Levin <sashal@kernel.org>,
-	stable@vger.kernel.org,
-	regressions@lists.linux.dev,
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=FnJQew4u
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=Ti
+	8JYA4Z3TWNM+zPcnTnSa7F5ZqJFQvbSsqIlfWXtR4=; b=FnJQew4u1jquCMlZ6d
+	5WmPSs8k6lH+hADSGHf2klCxtPKHAKbqC4TpbE9HS5kAHkrV3+MliA2Qv/kKyNKR
+	dZMbG/3oj8iZ9Gw5aGhH/rvmOQ1oiuUwRXnHn53CSqp6udnsu3Z//vRBJ5OtvUOD
+	mspZ2TTlzLLTa8p4zvdE2+5so=
+Received: from localhost.localdomain (unknown [])
+	by gzsmtp1 (Coremail) with SMTP id PCgvCgDnT35ca_pqXIoiFg--.2350S2;
+	Mon, 16 Nov 2026 10:33:11 +0800 (CST)
+From: Yongxin Yang <yangyongxin@kylinos.cn>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: Ben Cheatham <benjamin.cheatham@amd.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Dan Williams <djbw@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Tony Luck <tony.luck@intel.com>,
+	linux-cxl@vger.kernel.org,
 	linux-acpi@vger.kernel.org,
-	rafael@kernel.org
-Subject: Re: [REGRESSION 6.18.y] ACPI: button: lid events lost since 6.18.57, please backport a004b8f0d3bc
-Date: Sun, 15 Nov 2026 18:41:02 -0500
-Message-ID: <2026-11-15-1-daily-reply-0001-acpi-button-618@kernel.org>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20261114164947.2ffb5ce8@teclador>
-References: <20261114164947.2ffb5ce8@teclador>
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v7] cxl/core: Create EINJ debugfs files regardless of EINJ init order
+Date: Mon, 16 Nov 2026 10:33:00 +0800
+Message-Id: <20261116021300.7308635-ping-yangyongxin@kylinos.cn>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20261104061256.1449275-1-yangyongxin@kylinos.cn>
+References: <1a5ceda1-f039-4946-b8d7-2bc97ed48c00@amd.com> <20261104061256.1449275-1-yangyongxin@kylinos.cn>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -62,14 +73,21 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:PCgvCgDnT35ca_pqXIoiFg--.2350S2
+X-Coremail-Antispam: 1Uf129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7v73
+	VFW2AGmfu7bjvjm3AaLaJ3UbIYCTnIWIevJa73UjIFyTuYvjxUogAwDUUUU
+Sender: yang_yongxin123@163.com
+X-CM-SenderInfo: 51dqwsp1rqw5tlqrjji6rwjhhfrp/xtbDAAdN6mr6a2djtwAA3o
 
-> Oh; shame on me. Here's the missing attachment.
+Hi Dave,
 
-Thanks for testing. The patch came as a MIME attachment, which our tooling
-can't pick up, and it has no Signed-off-by from you. Could you resend it as a
-regular [PATCH 6.18.y] mail with the upstream commit tag, the adjustment note
-and your Signed-off-by?
+A gentle ping on this one -- is it still on your radar?  Nothing has
+changed since v7, and it still applies cleanly to the current mainline.
 
--- 
-Thanks,
-Sasha
+Ben's only comment on v6 was to drop the RCH mention from the commit
+message, which v7 does; his Reviewed-by is included.  If there's anything
+else you'd like changed, please let me know and I'll send a new version.
+
+Thanks!
+Yongxin
+
