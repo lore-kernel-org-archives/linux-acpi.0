@@ -1,131 +1,107 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.42
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.129.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794844785;
-	b=xRXu2f6qJPfXCr7rzMc8nWBUiRdD8IfJDMSOfJxTw38FOtZZfHjaTsyiQBSqDS9mfz8d
-	 by2jH+F0SmVfyIHvztcYaW2OGfTtas23QSKvFm+581FmSBrkB1hsjGU9lIc837vl/qxBf
-	 i8HeyBBDj8FAjHt2U5xxjoX7jze1rlt5LGJhdJs7NCr/3WRuczT6Yo8YzlchAYjbtbcuw
-	 kaX9fdlgU0YZK8f4v3xy8nOPN1LNgwLuI9+e+sOEzbQSCRVp/jajqwtbaPj7J5WwRuPbq
-	 e2LrzftnUvgE2m3gFrw7BuRFSBvxpYmyLcT/meUWeFv8zxgtnKJMejHCCxcRUe7w9nQ==
+	t=1794847952;
+	b=ZpOaQ7FEfDHpLsdAnhM9XE9v2s7zKFe/D+EXHgwNokCdbQI89uRZ5Zvc1g+s41sgnKCS
+	 VkCK0+xE/DP7KYre4/735QofrrjcwTennNgc/3wQwXpAkmPrlnjTXHzPNoUk3/z56uAes
+	 Z43SFB1Ik3UbVX5U+RGrtF53ysZnD5/KpaWswVu9K8FUvdMv1w6KqCNB7hdR2xCulExhv
+	 w+NH8Emq5+cX/D9jNxo7Pgx4ai9n1KBvO3Xz1rXkUsXLeKhoEF2Jn1mQ3uRdCUofdECIq
+	 88F2YpWjzKZY9ea3NTvu95zVzB2GCArzUoQVAmGUFUvZ6hHbATh988725IY3P7VoK7A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794844785;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=8zt6BKnr5OMQnoN+jLF5J5ZxUIjEZ6DGHzLguvsf5vs=;
-	b=sJrweyNDoeSQfSjsa4w1s0cKGnfMypmbZaecQ/TtPvju0Y6T0i3y8FpyFzXOdrtO4nmf
-	 AJGJm0PO5rn8dUrmhnw5z3SPXnuzb6DbDpLzraRrzv7GFe/DJxisNO6Tq6BfpyHw4wdut
-	 p2cFTAlhBNRhjA5fDJXKZ6MkvlxXnA8GiuABv668NFXW990ct8//3wSwhdW4ZVhfi/mfe
-	 pu/ky80IFboEDuHn8K7VdxbOxvlYjc92HNZ4+5Get+gb9qUMRKIbFx3i+ma5JoPG92nhP
-	 aHufShbRbnyXpRenMT1rpUVKFsfXqG5o6FzEnXKdW3Wo1af0LgiOKQj7182L+j1d42Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794847952;
+	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
+	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Date:From:
+	 To:cc:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=lkky0MHcMsr2IU399Y8ejtHfxWCRsa9hqZWRLib6U2A=;
+	b=kqzQPDn9I1u2rDJ06r82yXRQAK7FW4g+JcS3Z2sY63VJSulLU50QyAkVzo/a46keYAUt
+	 vgJxRlcLnK4JIX5gT5q24pdMKbq+FoWN+s5rPPBDYR5rk1Dcm6Cw4KztKnrvhpGYQVfp4
+	 vVc4LclHi74UHZN4RjwHmprGfDeWeNoZXI/bYjdanStKxKGrmdqmbwygZUFRgbbDo/B6Q
+	 IPyl4OBrgm7eOR1v0ZMu7FKocXPt/68WPPU21AJUdUIKvUR1zYRcC5kHX3hT4fV9EQqL9
+	 YB4Rhubj1mu/YI0yqvquMgamjZE1UjNwWgE0GlSeYzCoejI0vhyzdh4xOkbIlrwc4+Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=ziepe.ca;
-	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b="T4EaFVj/";
-	arc=none smtp.remote-ip=209.85.219.42
-Received: from mail-qv1-f42.google.com (mail-qv1-f42.google.com [209.85.219.42])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=redhat.com;
+	spf=pass smtp.mailfrom=redhat.com;
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=FJXTzkTw;
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=Z9Bq3kgT;
+	arc=none smtp.remote-ip=170.10.129.124
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 093AE606A331
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 15:59:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 093AE606A331
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09C51606A31C
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 16:52:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 09C51606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=T4EaFVj/
-Received: by mail-qv1-f42.google.com with SMTP id 6a1803df08f44-91eb3fea2a9so42080366d6.3
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 07:59:44 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=FJXTzkTw;
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=Z9Bq3kgT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1794847951;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type;
+	bh=lkky0MHcMsr2IU399Y8ejtHfxWCRsa9hqZWRLib6U2A=;
+	b=FJXTzkTwkbGi/96/r3L4Q4ywEV2YChHWqfWTMTuZz2S03B2qt78rmLXtj7OPxtJqh5yzHJ
+	QNRHfrgbXuDz7INy0YVsAM0Bo7nvR3wKNrSNFyYASRiHPhZedu7gP5b0k0XzFxUljdzmw4
+	/wfFZPbFzF1dDZrrQ/eQmKKA9bKSTZU=
+Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
+ [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-459-eTg5v2C7N1-VgE6yfwEBVA-1; Mon, 16 Nov 2026 11:52:28 -0500
+X-MC-Unique: eTg5v2C7N1-VgE6yfwEBVA-1
+X-Mimecast-MFC-AGG-ID: eTg5v2C7N1-VgE6yfwEBVA_1794847947
+Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-4a359c7f47bso31283905e9.2
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2026 08:52:27 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1794844784; x=1795449584; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=8zt6BKnr5OMQnoN+jLF5J5ZxUIjEZ6DGHzLguvsf5vs=;
-        b=T4EaFVj/Db2Oh0QQIN6fEsneaLWasSmYdaomNevHcWQV9XfC0eku9uiWRA8yiTc/gq
-         beN2zhlEBUDpPwvlJXNnJXYG7SLeGP2RUl/CIxz8vHb+CRPGvwOGP84P37zc/ASqwdCv
-         a2ZImH/j9PEIljcRTrH9YjQx1m9XzvHX9w4v1GGAYhpr16oDLUf0JwGEJPe+tOCosZjE
-         d53ULE5uBklWCIuWvycUfx9hIvJ8w6anXEcNacgC3MbLl4k/Apkhq6kLpk0rmKpAkcTv
-         Trqjo9GQ8ASe6EH/m27mrq6sK/GeD3Uc4wVkpatMXBaBSojYeEkRpq+DgrGx3awVmJv/
-         hg9A==
+        d=redhat.com; s=google; t=1794847947; x=1795452747; darn=vger.kernel.org;
+        h=content-type:mime-version:message-id:subject:cc:to:from:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=lkky0MHcMsr2IU399Y8ejtHfxWCRsa9hqZWRLib6U2A=;
+        b=Z9Bq3kgTw0DCa6pe676LPIqnNDt/9WjraZ8G8Xa+5UDdxR7RDHiETX7y0P0rXYvM/n
+         H22ZSGbgsInFe4/12Hd67R4wKKFNrCCa9UwM5oQvzDLfDFD0uK6F8omJo+TGF12vrOMF
+         g+p4oM4EE6sP9gtfCyRpjHU05O+sVCgFMUnGOng9wzueevjy0OYTfYd9gG60dq7OyDjs
+         k1Ngq9rIYsvwDyzcVYH1N3NGwilFL6QEEjGkYeYcDgkwnS5I2gWfB1j7o8E/QdjKFTv9
+         dWKqhBrlVlDGmmJws3Wt6VcJsljbwC29/kkRETWZC1mHZHfHczKk6NNMXyT7Abkp/Jsb
+         Iufw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794844784; x=1795449584;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=8zt6BKnr5OMQnoN+jLF5J5ZxUIjEZ6DGHzLguvsf5vs=;
-        b=0+rWF86EY4XYLH0KEX3o++kTa8osoRgo306GieZ0WKz7Uf8hBRpY5VHA2HPNbFMVYh
-         HFoWmVtkd/unNMnTCwypmZmdZnRubGiN+RKkt+eDYa3iuyGU9VnqxlGc7dv7xcTVSp/u
-         DKcb7rUtyAI+8ac9nEexh7o2v3lIJxrC3yd38qSME1u3t1dF9gUHJwo79MnAjJ4KhdyZ
-         kWiwSNeo+q0WUBs5NnFRebumDoMrluJUhYe2XrO5dBuKPLUo1vO/4aII9dfZv6njEhTo
-         tfXxnkrOy6BHsf/keyHvvIueJ54FDMUBoggXYgIZCU/BCqhtz3uYfwT0mdMxGNsIDb7W
-         kogQ==
-X-Forwarded-Encrypted: i=1; AL+hErFINWAplP4UWJk2eZG8Q4/N3Wyynl4eaBXbNeF4VXgkeLN3WqeqadUuRPLR7m+mqLhoagD9O2DH+ETc@vger.kernel.org
-X-Gm-Message-State: APuU4Z+k6bX3lTxegpZ/jC0FMaHm3GsOM6FSAyhSqDdrTL+8afQiAt+D
-	eQ7zJAf0kdWaMfuAjzL+T4st3KuFkicCIRCSU6hwHeNRJXLYYgJ0TeuJ+oAjVYBUaE8=
-X-Gm-Gg: AZFdTZdGUAKlqHfVPq4UC/Kqfz4ZM1NjPT+OJBW9335yM1Ct48k9EW+3b6aunaFF1Ez
-	fMKK8E1Uns2jNUj9BNN5hxg61CGPa/sKMOyanZDJeBhXFUW0SXY6kOQxKhWhO7mDxI8YIRJ2i0u
-	8qgtuwLWUKFm+hbPQn/SJkP1J3351FtGv3Vn+5x1tfgbOPgvy2ydQplW9Yt/f1jO/yOKDzQMik3
-	e0oU4GRySfWOaqiROXnGlNPK0q0G8k2o9s9HisrkBTM+RVYfOlffHrLxwnfsK6vJirQwjSfpjSx
-	iqJuiXRLvQcb9gfFwjGVaXAHOEq54IVjzESDjL9YAtzzGYKJAvyorDsHF+Q3qhIIuz5HZMIHilR
-	1ou5zxhC4+tmCbJ01go7/DcNeIBjQhurOmciXxvxGtXf1Eg50o/WKJu30XnaFuR33LQZ8CfwbKB
-	6vhqsmftKV9p3/doWp9/FN5Rmwje+m/7ptT5xQOluqcW2Ax3Z2ikrKeFECOzvsum+9RJNPnuzF9
-	zYpW9aWN9WWwvOlVxKSaQilRUSmgTLr/2hfZuZGn8VErARjx2owgcvw7iyuW9U9ql3YOqV+HuR+
-	vb3q0A==
-X-Received: by 2002:a05:6214:2467:b0:91c:7f1f:2c9e with SMTP id 6a1803df08f44-91f24209db6mr171122396d6.55.1794844783992;
-        Mon, 16 Nov 2026 07:59:43 -0800 (PST)
-Received: from ziepe.ca ([142.166.156.71])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91f23d93f10sm87735096d6.30.2026.11.16.07.59.43
+        d=1e100.net; s=20260707; t=1794847947; x=1795452747;
+        h=content-type:mime-version:message-id:subject:cc:to:from:date
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=lkky0MHcMsr2IU399Y8ejtHfxWCRsa9hqZWRLib6U2A=;
+        b=wHmc+cguXnGHxFomUlGnMMH9ZtoAIKm83A6PNpjh2nYNRp3wSdJ9CqMT7htDrFgp0N
+         Zf4KNaVka4eVp8tGWDe9YbnqFXpI4uxTHvOZ+WMhjpm6s8EEjJI2ubSmCf/hbmDLL5JO
+         5HIqg4ucu9WpDalXXH87x6BGTFjg5D9UjXDGE+6xdMzA6P7Lj6zOn9r3v7y4FiqrtenQ
+         llAgABCBlBe+c05oTR2Rk0bi269AhhV4iv/muSla+efqerwT5UzQlh65ZoSIsdrTVYGU
+         dLUxFFbMZyrO8vEPIRZJrY4FALH1VJFkEJsmpR5Y13ZDcQHzmdVFHBh1xGK0OfjRPGlF
+         fN6Q==
+X-Gm-Message-State: APuU4Z9ObmPlicke95EDBrOPotHRX53Dhej4YLMadD3l0JFkRHEN/vGF
+	kR3mzeqTAqdP0ECom4RpENBvao+k873JXbTakfh9c1rGXMxkIvAVyqYLizt0B8jAUUfAFHeNjw+
+	B8EmP/B13cKmJII8Lh/G1RVNPsE8YytbcSyH81a10ABsx8ORhE3nzCZFgcBEUshc=
+X-Gm-Gg: AYBFou2TXC/pWNlVQmNuhouX3759p4rUqoDxNTVPEu3hJ+jRSO7wZ4iHfNUHCUu/kya
+	NdLnGmJZOWuIs6hUXRgJPv/aerKj4H3PU0v51/YlTrh8HWBSnPG4feBBq9/Vw8pplUgfHlQe/Te
+	kw/8TV+ZdxySFJc0QHzRRXfHbnl2kJF/Igz5opFkpdSC18twtKjCYPVUVuSAAUb10dCcK12mSZH
+	r8+xHgZLZ9DxXoUAtm23rp3LLU5VycXjkOBHQqJTo5XtSSA5uvlqXtwGV+yPNB4TB7WZ20YJ3Qi
+	7rHR22YjiKjYfDT4eL0aTkNaHDhBbrK+9CgixcXnRcWZRyyyTGKCoxlx/SnMFA+hkxI7n1zUuM3
+	7FKfHbm+RMeWucm8c/kHeawjsjnUlMuH3RkLrgRHadPScF/gAY031yC1WczMxdQsusUbbJxhjHN
+	CwxabTtE3Dh97qjpdSoifEJvxDIzCpzV5ShswX/g==
+X-Received: by 2002:a05:600c:3509:b0:4b4:262b:88a2 with SMTP id 5b1f17b1804b1-4bb559f3633mr216665815e9.1.1794847946740;
+        Mon, 16 Nov 2026 08:52:26 -0800 (PST)
+X-Received: by 2002:a05:600c:3509:b0:4b4:262b:88a2 with SMTP id 5b1f17b1804b1-4bb559f3633mr216665155e9.1.1794847946032;
+        Mon, 16 Nov 2026 08:52:26 -0800 (PST)
+Received: from seott-rh (p200300f6af3d8001f2fecaef96c12e29.dip0.t-ipconnect.de. [2003:f6:af3d:8001:f2fe:caef:96c1:2e29])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb783965d4sm1390415e9.7.2026.11.16.08.52.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Nov 2026 07:59:43 -0800 (PST)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1xSz7O-00000009eOI-3Mx3;
-	Mon, 16 Nov 2026 11:59:42 -0400
-Date: Mon, 16 Nov 2026 11:59:42 -0400
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Leon Romanovsky <leon@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Heiner Kallweit <hkallweit1@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
-	Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Lu Baolu <baolu.lu@linux.intel.com>,
-	Johan Hovold <johan@kernel.org>, Eric Dumazet <edumazet@kernel.org>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-	Nipun Gupta <nipun.gupta@amd.com>,
-	Nikhil Agarwal <nikhil.agarwal@amd.com>,
-	Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
-	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-input@vger.kernel.org, netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-pci@vger.kernel.org,
-	iommu@lists.linux.dev
-Subject: Re: [PATCH 17/17] PCI: Replace untrusted state with device trust
-Message-ID: <20261116155942.GA2299285@ziepe.ca>
-References: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
- <20261105-device-trust-core-v1-17-1e536825b4eb@nvidia.com>
- <yq5amrr8yldi.fsf@kernel.org>
- <20261116132046.GI2532299@ziepe.ca>
- <yq5aa4n8ydsk.fsf@kernel.org>
+        Mon, 16 Nov 2026 08:52:24 -0800 (PST)
+Date: Mon, 16 Nov 2026 17:52:23 +0100 (CET)
+From: Sebastian Ott <seott@redhat.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+    Bjorn Helgaas <bhelgaas@google.com>, "Michael S. Tsirkin" <mst@redhat.com>, 
+    Igor Mammedov <imammedo@redhat.com>, Fiona Ebner <f.ebner@proxmox.com>
+cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Subject: [RFC] Unrevert "PCI: acpiphp: Reassign resources on bridge if
+ necessary"
+Message-ID: <c7f58d1f-3dd6-1456-31bf-7b62641c6e5c@redhat.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -135,26 +111,43 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <yq5aa4n8ydsk.fsf@kernel.org>
+Content-Type: text/plain; format=flowed; charset=US-ASCII
 
-On Mon, Nov 16, 2026 at 09:22:11PM +0530, Aneesh Kumar K.V wrote:
-> > Once you turn on TDISP you effectively activate DMA, just like turning
-> > on the IOMMU.
-> 
-> We considered two options for doing this:
-> 
-> 1. Via the ->accept() callback in pci_tsm_ops.
-> 2. Via pci_dma_configure(), based on a combination of device trust and device acceptance.
-> 
-> If I understand correctly, you are suggesting that we stick with the
-> former?
+Hej Folks,
 
-It should still be done in #2, just with nothing to do with device
-trust.
+using ACPI PCI hotplug with qemu on ARM for a device with a
+BAR > 2M fails because of a resource allocation failure in the
+guest kernel.
 
-You can't run a TDISP run device at all if DMA_ENABLE is not done,
-there is no half step here so it has nothing to do with device trust.
+Without ACPI hotplug the same usecase works because the native
+PCIe hotplug controller would increase the resource window of
+the parent PCI bus.
 
-Jason
+X86 shows the same behavior but default resource window sizes
+are different and qemu can use ACPI DSM #5 to hint the guest
+to keep larger (predefined) resource windows.
+
+Efforts to adapt that behavior in qemu on ARM failed [1]
+because they've caused regressions elsewhere and maintainers
+thought that Linux hotplug controller should be changed.
+
+But this also has been tried before:
+40613da52b13 ("PCI: acpiphp: Reassign resources on bridge if necessary")
+
+Unfortunately that led to regressions as well [2] and the patch was
+reverted:
+5df12742b7e3 ("Revert "PCI: acpiphp: Reassign resources on bridge if necessary"")
+
+I've tried the reproducer mentioned in [2] using recent kernels for a
+couple 1000 times and didn't ran into issues.
+
+Could we give this patch another shot? Or does someone have another idea
+on how to make ACPI PCI hotplug work with large BARs without breaking
+something else.
+
+[1] https://lore.kernel.org/qemu-arm/0de640a2-8807-69cf-4429-672263e3e759@redhat.com/ 
+[2] https://lore.kernel.org/all/9eb669c0-d8f2-431d-a700-6da13053ae54@proxmox.com/
+
+Thanks,
+Sebastian
+
