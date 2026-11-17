@@ -1,68 +1,78 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794941858;
-	b=4w6RZCyMkYz5mdOvWAD4fcqKH64GEFMLf6m1ZQA4esjhXsz9nImjUdfBjs+ybzyuKeO2
-	 E7/TgQ0u50UmVxHk3cYMoKoqnlbiGfpuyHGI7GtuOThyy2/yoBx1wK7G1OiLpD02jcLzO
-	 /Y+Qw159FrqgoDf37fwKfsWn2EpByA++N6vgNyXG8p3N4MpQVXLoQD/Khy685Fi+p9FQz
-	 CdgWVdrA/xXyb8j1SskEbFgTOeurJXgtk60CDTWMHeRuS7QybbMMaGkqZfedM9+X6y7iP
-	 KQGJo2IvfD6gNfnevtryc15n4vcGAX24AS/OG5LAHumpB784SujnX+zaYzGcDpv4RsQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794941858;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=HdkDes0ncCU4WGhgyR7YXxDGwX38qel+esSZ7Ve7TMg=;
-	b=CduaPRnsKMVt/L6gHk2bNd+cQdU+DKnFJy+4RcBvxrNDuHsBBJn6ALRl9Jq9zLKsE0mI
-	 EjE2j4I8O6COwVie3bWa5+A1+eQWnMC0IveoxJfu/8HF41PKWcV5D9k4Y/b3cVOr0KYEt
-	 K/M2Z8f4epTb/nyjZid5VG/aeRHtAFBLoycsgW7H2cwk1dHgc6oa3lUaITBEBsGxpoDV9
-	 QJBUE22Q8Cue67ooD6YJCQkOyGz66Ia6uTvFG7xGAmg65orsT1LB+WTVLfD4jg7sxU+PV
-	 085i2fSIvAK8vrdZ6uEK/Q2LpNN3GoZlS/4X4noPDyiGnyH5E4yrttyybE1iSPxOVng==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=klSK5K0f;
-	arc=none smtp.remote-ip=192.198.163.18
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794942091;
+	b=daDuq8Ihkki0b5jOx+42cGrmgS1S+zDaeuBwTtQT7OU3ogpME3kdJgOqA28KStekercK
+	 MUOwQ65HBDkfukirw860VkK+V0NzcykMO+vkKQWzzOWSThxwjzcO/1wgFzO7tHL1PZ/Nw
+	 AluPOESX8weUo6JBdvhN94gByxvblDq1XDQ4OAnMd8oPN6KelsRWacnIir8hcIMdA+Wxl
+	 6zQU++WV6VBdGx8rdI8S2p3TBFwji6rQj7R1GpC8yOcH9g15CBI94hmFHPUYtw06XZRjL
+	 ncd+5EWj8oPXB8luzxZnguaztCC8NdfUn3dv41wltvdTxg6lLE+DmftfmOnRyMPdLUw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794942091;
+	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
+	 Content-Type:Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=NhoMDskPLY9jxDsoC7+1in5zPVLsgP3Ep+b9hOyyowE=;
+	b=EygQsPk/+rcsVGwCSZIywiBKKJXGVtvFUTPJS5Sxaba+PTRDBdKls4Gu0vr2bAS8pXL+
+	 aNc3zN6tfhXdhNLiSGlu4xivdXG+c6f2uEiW7u5J7evQ9MPB9FflLzk+mq9F6YODuugPr
+	 0YOVTA85M1KUJ0MzhuBiZMrJ4R/A8wMa//zes20gAu/Z6NC3VzlEO2hCqOutbgb+Ij9dU
+	 ziQFMu2Ml8+CNMITqJ6oN2/0bazfiTlz+pPLEEFevIl/AlbA8PaQoemTiScxKrH+wGvVC
+	 av6I1HmVDDP/UXcbeNzvLCZSygbAVhFGvZHK6TjWgTSEaFcnOLX3najcuadvrlmKFpg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=g2n0RKeB;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74698606A31C;
-	Tue, 17 Nov 2026 18:57:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 74698606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE561606A31C;
+	Tue, 17 Nov 2026 19:01:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=klSK5K0f
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794941857; x=1826477857;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=v1NsJvl2MeAn+U0ELjw0P121EwhLfFQaHMoHS8YBAvw=;
-  b=klSK5K0f0e3+1quJ7DkyIFQuOFiFpnnIy6p0e27w4zes6se1eYYIj1g/
-   7HdWUdl9/xggNSP3k2OM/8sSsdUPRZSluyFqh10kQS1wzjotVTS1C58Kg
-   YV64PwdvW3btFMNeCsNmcOaH467m8nt4zxHNLd4PExb43NCVoW6JQ+8cc
-   Z9CpIeyBhE/hIOUeS5eNZfEFVXpeXJ0oeP/XzsQgUu6lujc6ykOdiCdlB
-   eIZ2UmSbx5C4BPEaU0NXKV616bplFNi3xEvv+u877gdZRuYjEfZpyV+n+
-   EC1UfN2y549bMcOL9r72QYr+C5Zyh/O+JnOZvIziXahK0kdl9DTYGwRlj
-   A==;
-X-CSE-ConnectionGUID: wh1Km1HVR5+D2kr1ZGNjNA==
-X-CSE-MsgGUID: UsCCO0d7QQKUE7NlVHcGgg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11969"; a="3753801"
-X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
-   d="scan'208";a="3753801"
-Received: from fmviesa011.fm.intel.com ([10.60.135.151])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2026 10:57:34 -0800
-X-CSE-ConnectionGUID: DPWAMEErR3Kxtj4lkE/CAw==
-X-CSE-MsgGUID: y3FAroW/Sx6yGrYcfClEAA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
-   d="scan'208";a="11733291"
-Received: from skuppusw-desk1.jf.intel.com (HELO [10.24.80.125]) ([10.24.80.125])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2026 10:57:34 -0800
-Message-ID: <28da8229-99f9-47c7-b2d6-d301ae34253f@linux.intel.com>
-Date: Tue, 17 Nov 2026 10:57:33 -0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=g2n0RKeB
+Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
+ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
+	t=1794942091;
+	b=GRnZ1rhk6whY5MSCpjqa9MextloGbi3Yl1zzj7kaU7qn5lKdAlqR60t/5YYr2R5vpTue
+	 IczjBX3nqW9mYjjOlj72NPnieqCyKIdZBvagsC3TW5rOE1m5YKisiiV0Ls2B2zmyeEpIG
+	 cBYNJNq56ad7I9edJu66ajQBbUh/JpDqFQNlfMt9r5N3gcBGJTKEKoHl7ufCw4Nvu2D3P
+	 RJ39mX0FHUqhiKze4Chw5fqr5FwO8BzVzA57BgjJiz1TWJJVo6+itye86nfNFwG2UgRjd
+	 10Lcft5uBD7rvgt8nzFmCUOYnRjQ5fZAJAh02nFmK5dRku3kPfeOgEplWNWlREOs3Pg==
+ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
+	c=relaxed/relaxed; t=1794942091;
+	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
+	 Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=NhoMDskPLY9jxDsoC7+1in5zPVLsgP3Ep+b9hOyyowE=;
+	b=yr9k3OldwlCbwQCtcoz5RpZpV3kGIGBePGbHEDgsvxQnzvpTrTW9d4sAZKb+/WYGYBGR
+	 Xs0zSdT2uwJwvWe8eg92uVyMGRPCOMguX9TM/nV5B7kAMFDxZBS0KLxazyZcGhwf9perl
+	 T6i2xDBbdcqnr6o1xEZVuKAQ20gR0r1I/wxrjLOybGn+IdvWDdltKmyVVScRgCVtMxHOU
+	 mRyaGaSVyiY+BBE6RjOGnLhhUJsETEzO3TC1ElpGsziFPrduJGaJb6aKfpGcX2uemtkWQ
+	 jxeEbVhdf8cdnHgT6KBJQU5mAHSgLv6GgyuU5JxNMVWpufb3aqPYqI2trhJyJati8Wg==
+ARC-Authentication-Results: i=1; smtp.kernel.org; 
+	arc=none smtp.remote-ip=100.80.115.77
+Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.kernel.org (Postfix) with ESMTPS id 38B891F000C5;
+	Tue, 17 Nov 2026 19:01:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794942091;
+	bh=NhoMDskPLY9jxDsoC7+1in5zPVLsgP3Ep+b9hOyyowE=;
+	h=From:Date:Subject:To:Cc:Reply-To;
+	b=g2n0RKeBDfrAH0Hzm5jNnbMpthJvjaxMLNTCILM10iucJYPO8xUlEgKiAJjuc3B/P
+	 uLx+h2dHt3Oe+vf3NK7dwFqx2rb+3gVXbwkMkdI+U8JHH/m2wncf4CJ8g82d2B0EQm
+	 9aXpoNQmGuFnsxGTvnlBh6rhZGw9jsHh8RRWRKaVBSf7MwrNmsObCd/JEO0jpX1UsA
+	 YW2i/jIuF4jFYh19pjXEN4vZAapKeokZfE87u/90WJuvgJSGLieuoc2ULg/PtMAVjo
+	 YddS4BbyGgn1hbov51H7XPSdEadsfwSYnj9znoywa/8f7cq5jlZTLpo1UDFnphE1lW
+	 5nkYbPLoL/ozw==
+Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
+	by lkml.kernel.org (Postfix) with ESMTP id 84EDE4AA65;
+	Tue, 17 Nov 2026 19:01:29 +0000 (UTC)
+From: Wondertan via B4 Relay <devnull+hlibwondertan.gmail.com@kernel.org>
+Date: Tue, 17 Nov 2026 23:00:03 +0400
+Subject: [PATCH] cpuidle: Do not reinstall the idle handler while paused
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -72,70 +82,167 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 19/19] PCI/ERR: Avoid NULL bridge pointer
-To: Lukas Wunner <lukas@wunner.de>, Pierre Gondois <pierre.gondois@arm.com>
-Cc: linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@oss.qualcomm.com>,
- James Morse <james.morse@arm.com>, Mark Brown <broonie@kernel.org>,
- Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
- x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- Tony Luck <tony.luck@intel.com>, Hanjun Guo <guohanjun@huawei.com>,
- Mauro Carvalho Chehab <mchehab@kernel.org>,
- Shuai Xue <xueshuai@linux.alibaba.com>,
- Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
- Oliver O'Halloran <oohall@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>,
- Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
- Pawel Chmielewski <pawel.chmielewski@intel.com>,
- Yazen Ghannam <yazen.ghannam@amd.com>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>,
- Avadhut Naik <avadhut.naik@amd.com>, Radu Rendec <radu@rendec.net>,
- Jonathan Cameron <jic23@kernel.org>, Dave Jiang <dave.jiang@intel.com>,
- Kai-Heng Feng <kaihengf@nvidia.com>,
- "Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
- Breno Leitao <leitao@debian.org>, Terry Bowman <terry.bowman@amd.com>,
- linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org,
- acpica-devel@lists.linux.dev
-References: <20261117111444.4185512-1-pierre.gondois@arm.com>
- <20261117111444.4185512-20-pierre.gondois@arm.com>
- <avw_daENKPcY7_04@wunner.de>
-Content-Language: en-US
-From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-In-Reply-To: <avw_daENKPcY7_04@wunner.de>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <20261117-cpuidle-pause-fix-v1-1-b2789fce4c16@gmail.com>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yWMywrCMBBFf6XM2oGmWCP+irjIY7QjGkOmKULpv
+ 3eiy3PuYwWhwiRw6VYotLDwJymYQwdhculByFEZhn44GWMshlw5vgizq0J45y+ex2OIGvbRWtB
+ dLqT693m9/Vmqf1KY21FreKdTX1wKU1NvJzMV2LYd3Br3k44AAAA=
+X-Change-ID: 20261117-cpuidle-pause-fix-854cd6110d77
+To: "Rafael J. Wysocki" <rafael@kernel.org>, linux-pm@vger.kernel.org
+Cc: Daniel Lezcano <daniel.lezcano@kernel.org>, 
+ Christian Loehle <christian.loehle@arm.com>, linux-acpi@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, Thorsten Leemhuis <linux@leemhuis.info>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5859;
+ i=hlibwondertan@gmail.com; h=from:subject:message-id;
+ bh=yzxZl4KPDFCwZKGEVvZatYF9Wv9r4O4+T52r9pIWSHE=;
+ b=owGbwMvMwCW230B11izXCXcYT6slMWT9WdKRcFPlaeqtVcvzZ61rmpT7qLWNwVj8fzKnxm7Ta
+ VnzfH8ydZSyMIhxMciKKbKwvTBVs2NQkD0zUbQFZg4rE8gQBi5OAZjIaT5Ght+ar1QmH1jKbeje
+ YLrwh9FMvgk/ah1i30j+/KvyzePojkZGhrlSAn3elev1DlflXLhf7/l3xtaP+0xqNgsfWqJR/pB
+ PjxcA
+X-Developer-Key: i=hlibwondertan@gmail.com; a=openpgp;
+ fpr=B881FDA34AD04D090E7E995C82711D6CF6F29BEC
+X-Endpoint-Received: by B4 Relay for hlibwondertan@gmail.com/default with
+ auth_id=1553
+X-Original-From: Wondertan <hlibwondertan@gmail.com>
+Reply-To: hlibwondertan@gmail.com
 Content-Transfer-Encoding: 7bit
 
+From: Wondertan <hlibwondertan@gmail.com>
 
+The PM core pauses cpuidle before taking secondary CPUs offline during
+system-wide transitions and resumes it after bringing them back online
+(pm_sleep_disable_secondary_cpus()/pm_sleep_enable_secondary_cpus()), so
+that CPUs do not enter cpuidle-managed idle states in that window.
 
-On 11/17/26 03:50, Lukas Wunner wrote:
-> On Tue, Nov 17, 2026 at 12:10:29PM +0100, Pierre Gondois wrote:
->> Return PCI_ERS_RESULT_DISCONNECT when no upstream bridge is available,
->> avoiding a NULL pointer dereference in pci_walk_bridge().
-> 
-> How can that happen?  If it can happen (which I doubt), why isn't this
-> patch tagged for stable?
+However, with acpi_idle, acpi_soft_cpu_online() calls
+acpi_processor_hotplug() for every CPU brought back online, and that
+function brackets its update with cpuidle_pause_and_lock() and
+cpuidle_resume_and_unlock().  The latter reinstalls the idle handler
+unconditionally, so cpuidle is effectively resumed as soon as the first
+secondary CPU is back online.  The remaining CPUs are then brought up,
+and cache_aps_init() runs stop_machine(), with idle CPUs entering deep
+ACPI C-states.  cpuidle_register_device() and cpuidle_switch_governor()
+can undo the pause in the same way.
 
-One way I can see is a device without a PCIe capability on a root bus.
-pci_pcie_type() returns 0, which is PCI_EXP_TYPE_ENDPOINT, and
-pci_upstream_bridge() returns NULL. Native AER never gets there. Only
-firmware-first can, through aer_recover_work_func(), and only if
-firmware reports a PCIe error section for such a device. If that is
-the case, skipping recovery for !pci_is_pcie(pdev) in
-aer_recover_work_func() seems a better fit than a check in
-pcie_do_recovery().
+On a Framework Laptop 16 (AMD Ryzen AI 9 HX 370, BIOS 04.01), whose
+_CST exposes C2/C3 with the SystemIO entry method, this intermittently
+hangs hibernation after the image has been created: a CPU idling in
+io_idle() does not respond to an IPI and another CPU soft-locks waiting
+for it, either in smp_call_function_many_cond() (text poking from
+sched_cpu_activate() while an SMT sibling is onlined) or in
+multi_cpu_stop() (the MTRR rendezvous in cache_aps_init()).  The image is
+never written and the next boot reports "PM: Image not found (code -22)":
 
-> 
-> Why is it at the end of this series?  Does the series somehow make it
-> possible that there's no upstream bridge?  Which patch does that?
-> If the preceding patches are not the cause of a potential NULL
-> pointer deref, why isn't this patch submitted separately from the series?
-> 
-> Thanks,
-> 
-> Lukas
+  watchdog: BUG: soft lockup - CPU#12 stuck for 22s! [cpuhp/12:89]
+  RIP: 0010:smp_call_function_many_cond+0x147/0x520
+   on_each_cpu_cond_mask+0x24/0x40
+   smp_text_poke_batch_finish+0xe2/0x380
+   arch_jump_label_transform_apply+0x1a/0x30
+   static_key_slow_inc_cpuslocked+0x4f/0xa0
+   sched_cpu_activate+0x13c/0x150
+  ...
+   thaw_secondary_cpus.cold+0x5e/0xd2
+   hibernation_snapshot+0x231/0x530
+  NMI backtrace for cpu 0 skipped: idling at io_idle+0x3/0x30
 
--- 
-Sathyanarayanan Kuppuswamy
-Linux Kernel Developer
+  watchdog: BUG: soft lockup - CPU#3 stuck for 22s! [migration/3:37]
+  Stopper: multi_cpu_stop+0x0/0x140 <- __stop_cpus.constprop.0+0x6d/0xb0
+  (23 CPUs in multi_cpu_stop)
+  NMI backtrace for cpu 2 skipped: idling at io_idle+0x3/0x30
+
+Online CPUs can only be in io_idle() via cpuidle, so cpuidle was not
+paused at that point.  Tracing power:cpu_idle across the transition on
+6.18.59 confirms it: while CPUs 1-23 were being brought online (between
+the first and the last CPU_ON "end" events, about 35 ms), idle CPUs
+entered C2 263 times and C3 305 times on all 24 CPUs, the first C3 entry
+coming 0.6 ms after CPU1 was onlined.  The failure rate was about one in
+four hibernations, higher on battery; disabling C2/C3 via sysfs around
+hibernation made it go away.
+
+Fix this by recording that cpuidle has been paused by cpuidle_pause()
+and not reinstalling the idle handler until cpuidle_resume() is called.
+All callers of cpuidle_install_idle_handler() hold cpuidle_lock, which
+also protects the new flag.
+
+With this change on top of 6.18.62 and 7.3.4, the same trace across a
+real hibernation and resume with C2/C3 enabled shows no C2/C3 entries
+in that window (only C1), hibernation completes, and C2/C3 are used
+again once the transition is over.
+
+The root cause analysis, the fix, the tracing used to verify it and
+this changelog were produced with an AI coding assistant (Claude Code,
+model claude-opus-5-5), working from pstore dumps, ftrace captures and
+the kernel sources.  All builds and tests were run on the affected
+machine as described above.
+
+Fixes: 8651f97bd951 ("PM / cpuidle: System resume hang fix with cpuidle")
+Cc: stable@vger.kernel.org
+Signed-off-by: Wondertan <hlibwondertan@gmail.com>
+---
+Tested only on the one affected machine (AMD, acpi_idle, BIOS 04.01
+and 04.02): built and run-tested on 6.18.62 and 7.3.4 (Arch linux-lts
+and linux configs, x86_64).  drivers/cpuidle/cpuidle.c in 7.3.4 is
+identical to mainline apart from this change.  On mainline
+(141b164bbe18) drivers/cpuidle/ was only built (W=1, no warnings), not
+booted.  Not tested with intel_idle or other cpuidle drivers.
+
+Earlier report of the hangs, before the root cause was known:
+"[REGRESSION?] hibernation soft lockup in migration/0 after image
+creation", linux-pm, 2026-07-09.
+---
+ drivers/cpuidle/cpuidle.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index 2d2f40a2c..3e26b1760 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -39,6 +39,7 @@ LIST_HEAD(cpuidle_detected_devices);
+ static int enabled_devices;
+ static int off __read_mostly;
+ static int initialized __read_mostly;
++static bool paused;	/* Protected by cpuidle_lock */
+ 
+ int cpuidle_disabled(void)
+ {
+@@ -465,7 +466,12 @@ __cpuidle u64 cpuidle_poll_time(struct cpuidle_driver *drv,
+  */
+ void cpuidle_install_idle_handler(void)
+ {
+-	if (enabled_devices) {
++	/*
++	 * Do not reinstall the idle handler while cpuidle is paused for a
++	 * system transition, even if a nested cpuidle_resume_and_unlock()
++	 * (e.g. from the ACPI processor CPU online callback) asks for it.
++	 */
++	if (enabled_devices && !paused) {
+ 		/* Make sure all changes finished before we switch to new idle */
+ 		smp_wmb();
+ 		initialized = 1;
+@@ -515,6 +521,7 @@ EXPORT_SYMBOL_GPL(cpuidle_resume_and_unlock);
+ void cpuidle_pause(void)
+ {
+ 	mutex_lock(&cpuidle_lock);
++	paused = true;
+ 	cpuidle_uninstall_idle_handler();
+ 	mutex_unlock(&cpuidle_lock);
+ }
+@@ -523,6 +530,7 @@ void cpuidle_pause(void)
+ void cpuidle_resume(void)
+ {
+ 	mutex_lock(&cpuidle_lock);
++	paused = false;
+ 	cpuidle_install_idle_handler();
+ 	mutex_unlock(&cpuidle_lock);
+ }
+
+---
+base-commit: 141b164bbe186423e295b139e40e8e2d11cf1341
+change-id: 20261117-cpuidle-pause-fix-854cd6110d77
+
+Best regards,
+--  
+Wondertan <hlibwondertan@gmail.com>
+
 
