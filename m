@@ -1,79 +1,67 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=83.223.95.204
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794916222;
-	b=3jYiKeUP4dBXklKSrizRbHxDh7OF3DlwqWh/RJUTZsv+KrWpscmSoU0mRx5NUEE4nCVI
-	 KBp1qMVUyzdq2ylfw+96NCG8SC5W2WDSs2GeBxGnqwLgYxrHXaMvy3TYA+UjLwP2ohIXA
-	 BjsjJIL2yzItNYxwaottrQQr7UrbbIQuck/6xomTLAYSua8Y8Z+VQ2r2KzsWKBQjPBgZJ
-	 XWt/qzWJKJcAtFH4DRhDs7bS1lW7n8na1v5k+hlGPLmz2WgUWVZjnbrMVX4gEWQ0UwzvR
-	 K28i38Qi75Ijsryv8LRFwlb/7yVmLYiPq7zbvc6rY2nRJ6cAaFOt21gETIvRjkk+ptQ==
+	t=1794917405;
+	b=lXbvW7fUq5I6VQ6tix+CJlKp/HY0TA2Xa4obrIZ+02Jme3YOnGRvktG/NInfSOusluqC
+	 CelO4eTNUlUNxM/nNve5r/pdctfr8jtg8MxCGf8hFZUY5x8VfpBeiqJvfodATYjQxKdCU
+	 FrnhAXU77P55xq/VTNFpAfa8X+NfPC87Rtn9GutAsuA5qfiS/9iY1RhcPZ//4bBcxQqtr
+	 NDSh9ZNZO2mpj3fWiDvF0qJNTK9V/QjEmYkYP/RJEmuCZdlaY2RO94zJxzwMTX9ijSOFa
+	 LBUyJw+6RGAnpJ7Ubt4gXGdlH+f3PBK1KDzp92QmOI6GzBeU6qGQr0iXpwhhUXbdyIg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794916222;
-	h=DMARC-Filter:Received:Received:Date:From:To:Cc:Subject:Message-ID:
+	a=rsa-sha256; c=relaxed/relaxed; t=1794917405;
+	h=Received:DKIM-Signature:Received:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=EwfpX7pGND05sD8odESGTeZ36nfl99+U15YYrIY2qBE=;
-	b=tJDNc6/f1geH4k98fwrbbzUrodyD+i+XyGKhMa+PMdxPcqER8fy0Xd+OdUM+PgDDX27M
-	 tMS8DkMvD5qiKfK3LU+eBWTgIBVfshM8IoZbar1nbIkUDwYN9gXF0s9JlYqfltoyoa9aA
-	 1nZL0WTyAQv6kPG7NWu9Ow60pFxRVDwUlRibN8lmmGKzOhoSDBcxA48ZxscxBDZM9eTAX
-	 LgBPPVb7o2OXbHmt0ItUpzC6ajBkYHlGc9pbo5yKqEgxS/RtFV07KKKWnxdqBHRoGy+XH
-	 aFMeZjO9UUrAPND/wB7PsS5G/FTptg5b3TMd92BjsAx4WIT3qxZMhD58hy4zzjfZqXQ==
+	bh=z23KUivcgsPQdbsSbdcK9l9mI4AN6C05hWnHHj+0i8s=;
+	b=5kgxD1NeBlvB6KMTq2rXkVRZsJbDn4LSfb+LHvd8pSWmtonyfY+bpRwkSeGiWMWNPm1d
+	 40d0PbqHIPmsssSCfgnOB9JZzpHgSHmrZ4SAdN8YXoVvD9PDfgpovJMDHkfizhru/R5O+
+	 zEoAzjQu/YBbsevfXXmXF6YJ0fvgziFqBs4xbwMEGSi5irdhJUB8Y0lDihg1YErS+0DtY
+	 Lu/UrkI5t759cFEICgeXGdWeTVgo+303lcm3vd1cex0ay9QRMjaay7sTinPT7npkXkgIm
+	 g+HlTkvQvtBo7SXdRd0LA9/hdISlBCgiL5wEBrgbj4tiBOlDjV5xzFp8WJg1N25VHXw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=wunner.de;
-	spf=pass smtp.mailfrom=wunner.de;
-	arc=none smtp.remote-ip=83.223.95.204
-Received: from mailout1.hostsharing.net (mailout1.hostsharing.net [83.223.95.204])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f84GBbx3;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B91C8606A329;
-	Tue, 17 Nov 2026 11:50:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B91C8606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wunner.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wunner.de
-Received: from h08.hostsharing.net (h08.hostsharing.net [83.223.95.28])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature ECDSA (secp384r1) server-digest SHA384
-	 client-signature ECDSA (secp384r1) client-digest SHA384)
-	(Client CN "*.hostsharing.net", Issuer "GlobalSign GCC R6 AlphaSSL CA 2025" (verified OK))
-	by mailout1.hostsharing.net (Postfix) with ESMTPS id 145D31A07;
-	Tue, 17 Nov 2026 12:50:14 +0100 (CET)
-Received: by h08.hostsharing.net (Postfix, from userid 100393)
-	id F2DAC6039C25; Tue, 17 Nov 2026 12:50:13 +0100 (CET)
-Date: Tue, 17 Nov 2026 12:50:13 +0100
-From: Lukas Wunner <lukas@wunner.de>
-To: Pierre Gondois <pierre.gondois@arm.com>
-Cc: linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@oss.qualcomm.com>,
-	James Morse <james.morse@arm.com>, Mark Brown <broonie@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A298D606A31C;
+	Tue, 17 Nov 2026 12:10:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f84GBbx3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 379C31F000C6;
+	Tue, 17 Nov 2026 12:10:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794917405;
+	bh=z23KUivcgsPQdbsSbdcK9l9mI4AN6C05hWnHHj+0i8s=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=f84GBbx3MvXsoiFV4Ab0bKtjj1R6VPH/xR0oaGsFWFwlKLP9N2cgR+ROtnh+V5acF
+	 EWXaZM89jnxscfUCsQZydqsGilgF+QXVyXKSNNsqlP6SLsPITGvtBca1Bask0U1xcU
+	 UkEACo2J7VxwjW1VocqgCnya0SPgg/eLtPlleGQYNAda33X9XqLmMDBe+DOFC7e/7M
+	 n0kk4emJdBmM3i0S09CNdjQbcPHKLvW5XpPA2q/rMAMT53ZVTalPfBsk+RONOqklDU
+	 vb7d1/HEE6uFDFX9pIVCDOTYIwfdR4rKKgvt2fbnYS4JeD64/LmFWK1KeSTJJEkprE
+	 RQ6ofso9fHDxw==
+Received: from johan by xi.lan with local (Exim 4.100.1)
+	(envelope-from <johan@kernel.org>)
+	id 1xTI0g-00000004A4M-2IOB;
+	Tue, 17 Nov 2026 13:10:02 +0100
+Date: Tue, 17 Nov 2026 13:10:02 +0100
+From: Johan Hovold <johan@kernel.org>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
-	Oliver O'Halloran <oohall@gmail.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>,
-	Yazen Ghannam <yazen.ghannam@amd.com>,
-	Qiuxu Zhuo <qiuxu.zhuo@intel.com>,
-	Avadhut Naik <avadhut.naik@amd.com>, Radu Rendec <radu@rendec.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Kai-Heng Feng <kaihengf@nvidia.com>,
-	"Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
-	Breno Leitao <leitao@debian.org>,
-	Terry Bowman <terry.bowman@amd.com>,
-	Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>,
-	linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org,
-	acpica-devel@lists.linux.dev
-Subject: Re: [PATCH v1 19/19] PCI/ERR: Avoid NULL bridge pointer
-Message-ID: <avw_daENKPcY7_04@wunner.de>
-References: <20261117111444.4185512-1-pierre.gondois@arm.com>
- <20261117111444.4185512-20-pierre.gondois@arm.com>
+	Danilo Krummrich <dakr@kernel.org>,
+	Linus Walleij <linusw@kernel.org>,
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH] software node: make swnodes hold their own references on
+ parents
+Message-ID: <avxEGiacULc2eciv@hovoldconsulting.com>
+References: <20261106-swnode-kobject-parent-ref-v1-1-77dbd7213dd0@oss.qualcomm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -85,20 +73,66 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261117111444.4185512-20-pierre.gondois@arm.com>
+In-Reply-To: <20261106-swnode-kobject-parent-ref-v1-1-77dbd7213dd0@oss.qualcomm.com>
 
-On Tue, Nov 17, 2026 at 12:10:29PM +0100, Pierre Gondois wrote:
-> Return PCI_ERS_RESULT_DISCONNECT when no upstream bridge is available,
-> avoiding a NULL pointer dereference in pci_walk_bridge().
+On Fri, Nov 06, 2026 at 12:13:28PM +0100, Bartosz Golaszewski wrote:
+> In swnode_register(), swnode->parent is assigned before calling
+> kobject_init_and_add(), which normally acquires a reference on
+> parent->kobj via kobject_add_internal() that is held until after
+> software_node_release() completes. However, if kobject_init_and_add()
+> fails before acquiring the parent reference or drops it on error in
+> kobject_add_internal(), swnode->kobj holds no reference on parent->kobj
+> while swnode->parent remains set.
+> 
+> With CONFIG_DEBUG_KOBJECT_RELEASE enabled, the random delay in
+> kobject_delayed_cleanup() may create a situation where - when
+> unregistering the child node and then the parent - the parent object
+> gets released before the child who's left with a dangling pointer.
+> 
+> Acquire a refernce to the parent swnode when registering the child and
+> drop it on child's release.
+> 
+> Cc: stable@vger.kernel.org
+> Fixes: 59abd83672f7 ("drivers: base: Introducing software nodes to the firmware node framework")
+> Closes: https://sashiko.dev/#/bug/linux-82933c14-d212-49f1-bd2f-d4ab1e16fed7
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> ---
+>  drivers/base/swnode.c | 10 +++++++---
+>  1 file changed, 7 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+> index 84a77ffa3dc4bbcca62bbe67c3390693500b01ea..986dcb933d2c9274e9000968f115d7fccc2d103f 100644
+> --- a/drivers/base/swnode.c
+> +++ b/drivers/base/swnode.c
+> @@ -843,11 +843,12 @@ static void software_node_free(const struct software_node *node)
+>  static void software_node_release(struct kobject *kobj)
+>  {
+>  	struct swnode *swnode = kobj_to_swnode(kobj);
+> +	struct swnode *parent = swnode->parent;
+>  
+>  	fwnode_links_purge(&swnode->fwnode);
+>  
+> -	if (swnode->parent) {
+> -		ida_free(&swnode->parent->child_ids, swnode->id);
+> +	if (parent) {
+> +		ida_free(&parent->child_ids, swnode->id);
+>  		list_del(&swnode->entry);
 
-How can that happen?  If it can happen (which I doubt), why isn't this
-patch tagged for stable?
+Why not simply
 
-Why is it at the end of this series?  Does the series somehow make it
-possible that there's no upstream bridge?  Which patch does that?
-If the preceding patches are not the cause of a potential NULL
-pointer deref, why isn't this patch submitted separately from the series?
+		swnode_put(swnode->parent);
 
-Thanks,
+here?
 
-Lukas
+>  	} else {
+>  		ida_free(&swnode_root_ids, swnode->id);
+> @@ -858,6 +859,9 @@ static void software_node_release(struct kobject *kobj)
+>  
+>  	ida_destroy(&swnode->child_ids);
+>  	kfree(swnode);
+> +
+> +	if (parent)
+> +		swnode_put(parent);
+>  }
+
+Johan
