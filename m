@@ -1,55 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794929185;
-	b=nsYAnNEGzNJt6J60jWGbRX6yI9W+j60a3aMqrl8ZNl/4iIbAAv8zneTOkuHKmv1tZlKk
-	 zVLxgdczRLyDQSzVmv9KbirwgoCg7Ep0iFYeKM4hgIBr0o+KJDiOivIWKF6eaATWnK7of
-	 4bEaNxrneMcuXmLBRKH5y2kZwHKti4yOWAlC1UxBdTPKlOW9JWiG5vdK4Y7ok58jEqJse
-	 QxoQU4R0X8rCcda9p+8D7ubpoy99T5n87wUYEWx45RtAwl4NXYWpmIJvsV0gZOnG9ayRB
-	 eJeC09JUqFOvuFZbDLtNNXwRpcVrchEQ/hhvAxGo5HMOyUngIh8ypvtmNHY+29fBNLA==
+	t=1794929582;
+	b=FxWfsu3vjdqTalVbJ5M4tXpj5pRaNQQdmgy2Joc6QOrySPZccZP9qOND6RZJHk/rbCqP
+	 Cw/QROnN7HBOS3b3G9omicFvZaGE0cwmflC+Tee4TU2Pvi/zMAErxtglC5N51InUD/qpW
+	 Jnmyh1n4rU8M93ldQgv0mogEuE2jdHn0Er9s2GNYx1sJIvnrd8S+jH7j46J4IEmiHuET2
+	 /42TcybPBEQcD35eh2eLXgkbjmlCO9QhfWiNabMEfkxAYpBpfEt5++ICDU5XnVlhgNQUT
+	 zexhkcWhD9wltW7KITLnjwU3YWr+REqoJQRYlKbL2Q9HgLfIpGHbUKPA+M+ATnOvxAA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794929185;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=++06PQJflKig+6hQln7vv+bAUJFdci8/kWBunR+qCrE=;
-	b=T4xPwGo5ZO2obhk4FIkvujseGxNHNmCd24rjngdhWwvnLRbOV2dqOUfejiX2tuj7MFnd
-	 Vwr+C6zkoODsAwIZWq7Fgz0Fn76/NvfnXLxLvMvMqq+5ojCDeACYTalBlZ2YsK7DHsKkz
-	 g0EKrflKo3S1A45U1Jc9+qUwwZJMAuQ1Sxs5P50idawh+VVLH7d04yE0FFaXjjNXSmJ90
-	 GDhK/2BocAgk5ZoSGM7lIdl8WVVYJklXHMxMvdqzeVqG5vNudmfFQylyYnxgjOKk7LfKS
-	 5hiMpFuPM83D24Q5hb+VDRBX3QZ6BZJ4I/kUT0TSyruQPFy/Pb3Ft040qpQh1iGxVlA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794929582;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 Organization:MIME-Version:Content-Transfer-Encoding:Content-Type;
+	bh=PCcoQbJlx1RYc6bQEWqrDO84aljJTHxUH08ZR34fWtQ=;
+	b=Oz5DpK4hKsHF5Nj5GFPWhVvwpW9XPfT7KneZA5qpiOEL8ieChLeglb98git5Q+CG/BGk
+	 fiK9ETNtt/ECpmXgDY0lOYeXcLtp/1KDCLu7GfKbzg2A9ber7CBiJzFu7mEx4sGQaXEbe
+	 gNqY5dqd6/Q6ycaR+KEIYwYZ1G5Lbva1I4B3QMjcbZhxsj7ddAG0rniRY2p4NfzfuQEYy
+	 yHjSi4dwTzlxPPhl2skq9fZ/JPLuyVFzZcDc0TteDsvUcVt/pWhDhS4JWpbGbraLdfYJi
+	 KZfw3yUl6l5PwU3tjzh8rQjG5Xf5F8Hmyo+iVpJTnGyXOzRRtYLOntH7aekdFuUHlYQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="fDiYjYi/";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YtQh5jMG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1AB8606A31C
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Nov 2026 15:26:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F518606A32A;
+	Tue, 17 Nov 2026 15:33:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fDiYjYi/
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCBF91F000C8
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Nov 2026 15:26:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YtQh5jMG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E61491F000C8;
+	Tue, 17 Nov 2026 15:33:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794929184;
-	bh=++06PQJflKig+6hQln7vv+bAUJFdci8/kWBunR+qCrE=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=fDiYjYi/FXrZfOf7lvpYHSAFwq4OjV9SzMBCOyo2K4WmqTSeimz6j1Tx1tIRCxepQ
-	 mCvUm3tXyn40runumrRvF5U9+SaLcr25EIDkyei+b2NJxIFhpeGYX9ceM3xFsDDiuM
-	 7mkq8Cu0w4nk/tuIJo923Gb81kHrTArg2fHdcNQsgp+y6dXaw1bi0yLGiQJGlWu2l0
-	 /brXR7qNzzzlZW3+dgjUFFYxQ0gwhi/v2hm2o1+KioIgw3wVwQ8HXZcaNS6DVGJQnf
-	 lQ3Lu8TQ8C8rb6wG22bN5RgxCEqYQUyUTK0szeg1V23W7N7QrYYocAn3taegaCuWyQ
-	 RFcMQv7Ci0NQg==
-Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-5c08539c827so3750721e87.2
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Nov 2026 07:26:24 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErFrOveohIFLT7PEIn+JLrM/ifxaNx3R1I4zPCRu0nRIfHfBw/gtVBG8fW45GashILzQMtJFKlzToqwM@vger.kernel.org
-X-Gm-Message-State: APuU4Z+L6fcXkJ4GNYad9lfasTr+u0/rfkhPTu45SgsLWPwkiYOq1AXu
-	ZgWmml83kM0N7Awaq6Mz1GJG5aXU3482tJrRXcz0r9Bs6UdUc1oP/DtVgTB+5IhkeTcvxBwFsjv
-	11MdXRj/WN60Y4K2AcLcB7bVgEUJl8hg=
-X-Received: by 2002:ac2:4bd3:0:b0:5c1:4f8a:8f5 with SMTP id
- 2adb3069b0e04-5c170771fbamr6263013e87.25.1794929183274; Tue, 17 Nov 2026
- 07:26:23 -0800 (PST)
+	s=k20260515; t=1794929581;
+	bh=PCcoQbJlx1RYc6bQEWqrDO84aljJTHxUH08ZR34fWtQ=;
+	h=From:To:Cc:Subject:Date;
+	b=YtQh5jMGYMLu78trYUFtG9/RGW1/XDpfkVfmEw5JftOyWnNl9MV4QGMgvgF8PUtaW
+	 995lAC0ucuH26uyA2G0xldbVb8ggVmb69Fy2Owrv3LceSnDX1wPkswBXXKOElPp3S8
+	 ZfitZUgaFDyr/9Sr4Vp5sFQ4bKrUveGsS8vd4UCcKv34e1ND2c9g+oCtZYM/RQ1V4G
+	 UgevCBsOIVZUzqvGlBQZdZXoftKIauMQBypVl6eYPtYYWH0DXjdizwaxSXDkrH1HZb
+	 KEyjDLNQQgBa+qtVx3zNBrN8rIjPu2ieUt6HKIxb8sglki85MaY4jXOS3CKTTEH9gx
+	 p77MO4FluQguw==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>,
+ Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <westeri@kernel.org>,
+ Alan Borzeszkowski <alan.borzeszkowski@linux.intel.com>
+Subject:
+ [PATCH v1] ACPI: PM: Avoid initializing power management for absent devices
+Date: Tue, 17 Nov 2026 16:32:58 +0100
+Message-ID: <6047463.DvuYhMxLoT@rafael.j.wysocki>
+Organization: Linux Kernel Development - Intel
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,80 +58,81 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261117101336.980216-1-johan@kernel.org> <20261117101336.980216-9-johan@kernel.org>
-In-Reply-To: <20261117101336.980216-9-johan@kernel.org>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 17 Nov 2026 16:26:08 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0ipadLX1yUwi6Ei4o8+b9YtsyXsprXfA-8xDaE5uY4+7A@mail.gmail.com>
-X-Gm-Features: AclHuK9P-eL5qUVo7UHG-qeLLKO9_Qsiw7_oDS5I9OT8qh0o6GqsYRVlxAXrvE4
-Message-ID: <CAJZ5v0ipadLX1yUwi6Ei4o8+b9YtsyXsprXfA-8xDaE5uY4+7A@mail.gmail.com>
-Subject: Re: [PATCH v3 8/8] device property: fix fwnode_get_next_child_node() comments
-To: Johan Hovold <johan@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Bartosz Golaszewski <brgl@kernel.org>, 
-	Andi Shyti <andi.shyti@kernel.org>, Wolfram Sang <wsa+renesas@sang-engineering.com>, 
-	driver-core@lists.linux.dev, linux-acpi@vger.kernel.org, 
-	linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Xu Yang <xu.yang_2@nxp.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 
-On Tue, Nov 17, 2026 at 11:13=E2=80=AFAM Johan Hovold <johan@kernel.org> wr=
-ote:
->
-> The parent pointer in fwnode_get_next_child_node() may not point to a
-> primary firmware node so update the comments to reflect that.
->
-> While at it, fix an indefinite article in an earlier comment.
->
-> Fixes: 190069255582 ("device property: fix infinite loop in fwnode_for_ea=
-ch_child_node()")
-> Cc: Xu Yang <xu.yang_2@nxp.com>
-> Signed-off-by: Johan Hovold <johan@kernel.org>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-LGTM
+Commit 2f4ddf2bd1ba ("ACPI: scan: Stop calling acpi_bus_init_power()
+early") removed a device presence check from acpi_bus_init_power() which
+in some cases causes power management to be initialized for an ACPI
+device object and never used going forward.  That in turn may prevent
+power management from working as expected for other devices.
 
-Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+Namely, if a given ACPI device object is not enabled according to its
+_STA, find_child_checks() will return an error for it which will prevent
+it from being used as an ACPI companion for a PCI device.  Thus if
+acpi_device_init_power() initializes power management for it and its
+initial power state turns out to be different from D3cold, it may stay
+in that power state forever.  If it has power resources and they are
+"on" during the initialization, they may be reference-counted and never
+turned off.  If they are shared with other devices, they will prevent
+power from going down after attempting to put the other devices into
+low-power states.
 
-> ---
->  drivers/base/property.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index 51109794d727..bfc424a193b8 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -810,7 +810,7 @@ fwnode_get_next_child_node(const struct fwnode_handle=
- *fwnode,
->
->         /*
->          * If this function is in a loop and the previous iteration retur=
-ned
-> -        * an child from fwnode->secondary, then we need to use the secon=
-dary
-> +        * a child from fwnode->secondary, then we need to use the second=
-ary
->          * as parent rather than @fwnode.
->          */
->         if (child) {
-> @@ -822,12 +822,11 @@ fwnode_get_next_child_node(const struct fwnode_hand=
-le *fwnode,
->         if (IS_ERR_OR_NULL(parent))
->                 return NULL;
->
-> -       /* Try to find a child in primary fwnode */
->         next =3D fwnode_call_ptr_op(parent, get_next_child_node, child);
->         if (next)
->                 return next;
->
-> -       /* When no more children in primary, continue with secondary */
-> +       /* When no more children, continue with any secondary node */
->         return fwnode_get_next_child_node(parent->secondary, NULL);
->  }
->  EXPORT_SYMBOL_GPL(fwnode_get_next_child_node);
-> --
-> 2.56.1
->
->
+To prevent that from happening, restore the device presence check in
+acpi_bus_init_power(), but also adjust find_child_checks() to return
+an error for absent devices (instead of doing that for disabled devices)
+in accordance with acpi_bus_init_power() and the existing check in
+acpi_bus_attach().
+
+Fixes: 2f4ddf2bd1ba ("ACPI: scan: Stop calling acpi_bus_init_power() early")
+Reported-by: Alan Borzeszkowski <alan.borzeszkowski@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c |    3 +++
+ drivers/acpi/glue.c      |    8 ++------
+ 2 files changed, 5 insertions(+), 6 deletions(-)
+
+--- a/drivers/acpi/device_pm.c
++++ b/drivers/acpi/device_pm.c
+@@ -360,6 +360,9 @@ int acpi_bus_init_power(struct acpi_devi
+ 	if (device->power.state != ACPI_STATE_UNKNOWN)
+ 		return 0;
+ 
++	if (!acpi_device_is_present(device))
++		return -ENXIO;
++
+ 	/*
+ 	 * The ACPI device power state can be only initialized once.  If this
+ 	 * fails, ACPI power management will not be used for the device going
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -109,14 +109,10 @@ static bool acpi_dev_has_children(struct
+ 
+ static int find_child_checks(struct acpi_device *adev, bool check_children)
+ {
+-	unsigned long long sta;
+-	acpi_status status;
+-
+ 	if (check_children && !acpi_dev_has_children(adev))
+ 		return -ENODEV;
+ 
+-	status = acpi_evaluate_integer(adev->handle, "_STA", NULL, &sta);
+-	if (status == AE_NOT_FOUND) {
++	if (!acpi_has_method(adev->handle, METHOD_NAME__STA)) {
+ 		/*
+ 		 * Special case: backlight device objects without _STA are
+ 		 * preferred to other objects with the same _ADR value, because
+@@ -128,7 +124,7 @@ static int find_child_checks(struct acpi
+ 		return FIND_CHILD_MIN_SCORE;
+ 	}
+ 
+-	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_DEVICE_ENABLED))
++	if (!acpi_device_is_present(adev))
+ 		return -ENODEV;
+ 
+ 	/*
+
+
+
