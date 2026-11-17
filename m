@@ -1,76 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.178
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794933544;
-	b=wSP7YDwQFXt0D3g10w5jbJ9dSLU/OBZ4aC4rcuhW47CpQl/SL4Vaz4LR1/nJUoARIpjz
-	 yoQz7415iwSqVVNh9/hL9NwDXnyf7bb1MqPRPtI4uTSR34QNe3XLPW/pB6gghVe/ohphq
-	 Iqd5RSxBSIwjr48yDovtxosR8osctZN/ZUQbyRlcfM0+Dt+PdJDyB58c8R9f10uTjL53d
-	 Jfu9UzF2aXxAxgZ2irf8r8lPlQtnXe79xnSe63G3SkRR2xlLoclieID7EhmX5qIgpwuXr
-	 oI3+FwuiL4SioGO0Y315wXASX8kXJ7myL+b9YTu3PD9IE3skN47WPHX2++mK0z4o8xQ==
+	t=1794938297;
+	b=1P1VBKcZ9n9tecpYEdt6BfyPeVYLuQtu6EsgwdifthoEmooyGC+PA6j4Y0NTsNiQaUOg
+	 +l1GRhtgkDQyOLAOse1T55444ZyKvc9HoDFEgDL9hPk9W7/mrPtJFL8TTplsuOXgs5/ga
+	 3yoXofv/bRqpkS2xy4XFueQYiGQkVmtw2VcQUwj1bOG3HS5KTkNNj0DjhczwvOW1O7CjV
+	 BQKUXhDWyJ4bbr94NSnobeRjQySimab64G1meuc0fdOmP4RXujQicYulz+uBWc6eYzuMU
+	 5eMeIuu2FP6wE+wKjxdYhSXrE+2E964+dEHpBj7BbJ7LoA9UkLC6JaT2TKR+zCRrSIQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794933544;
-	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Received:
-	 X-Forwarded-Encrypted:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type;
-	bh=Z/XV0mK39zFS7JOXvDWInmC0g759RMa7DDlWP4M3P5A=;
-	b=fH7V735hFB/AmA14x+7VdRmNafiSBYvCM32UEvOfOU7PbN6kOwuwd+elbO/MaR7k7iKu
-	 So7fgF2IJTLbZxJnTbbz+h1MsiDOL0zztsIq56DyCDyERmOdcRESb+6wQeuFeGhbjYRyX
-	 6uq3Rito+yNO4G757dAR4bFybf7dDjZWdGSz3COoecrnwWIlITArrXLb9EJrbfQlOV4uR
-	 MyJ+14jJRie/PFaZeNlC1/NkRqz9hLW6CCEQABYUbVexeHUnHR9A4PMzF/1mR4OdMhtpo
-	 5yJEoxa/lUuNf6yjjxYILWl3GK4VnFRlnJC/kOsuJQD6J06SPJw1POW1nx1p9P3sdRg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794938297;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 Organization:MIME-Version:Content-Transfer-Encoding:Content-Type;
+	bh=Ao0/3OZje4TLYy53qVbs1Ocrd9OTD/q4KEFpbVJakG8=;
+	b=FDkLhIuAJsIg2B2n1B6krKfpylHEoGOpMa2o4UfU4zIveT+gBZt3YWCk3y++Lj813re6
+	 T0B5wm/3rbkeOVl8H3i5HrkaauL5OtA8yzu5VMXrCF9K579NfEn2mjOsaL9mTABBEXwML
+	 R7d+RsDT01Vccmsx9OYjK0w7uKgMx5wLxw0SdHO2hBqKB0tTu+npyuZgU/3tlGg5Gddal
+	 DYtGYzSzFkCQEAVX/rCQMZE5aHUrQ9O5OxCO5yVHv2PeG2WXDZCCw8Vf86QZJHXhp8wL9
+	 RkrOaioLK+YzjbOewVvKzAV+B+n/pNZOup2n64/7oG7rgYxy43mqv2KfSVnF6xDru0w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=linux-m68k.org;
-	spf=pass smtp.mailfrom=gmail.com;
-	arc=none smtp.remote-ip=209.85.221.178
-Received: from mail-vk1-f178.google.com (mail-vk1-f178.google.com [209.85.221.178])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=W0AYM1um;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70D36606A31C
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Nov 2026 16:39:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 70D36606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-vk1-f178.google.com with SMTP id 71dfb90a1353d-5ece3ab2e91so1657031e0c.2
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Nov 2026 08:39:03 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794933542; x=1795538342;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=Z/XV0mK39zFS7JOXvDWInmC0g759RMa7DDlWP4M3P5A=;
-        b=ClXR414nr+MyQJWrFib+cHbGXq0VZ3T32rAtlqwEa7dn0Dio/79Na+FrW8ISnBPGNf
-         j1Df8zis1bJfpioNDYSIH4lSYhjHvPpzy8wXOmmsUCkrWWaT+uDJnGmuRvTvA6raAL2J
-         3YpiIILStftq3NiQKfpD8SmjRau3DH+myM+ynDDMuGzVQeH1ICN98MLU7kTHFH6/aGVf
-         X+uiOVaWpUFpXAmwNqmJDh3epkq4GKgkSDP9na4hDqWgtEhIhiRcW2GEJg7b2mjyz4Li
-         Nyt7vlZWPo1GKGGn9d8iOvGvwUU1qRCvkXYlq+Tg2UkrIlBCcCKUVSynXH4MUeaIzAH2
-         Uzvw==
-X-Forwarded-Encrypted: i=1; AL+hErHMwf9sMKWZkDOq9MsqrLtpsCDML/t1Gd79xDOBJ3DejyqriLJ7p2/YpPZCJhFgbAsNCotNHpWTlfuM@vger.kernel.org
-X-Gm-Message-State: APuU4Z8lKiWFjyOtkam50vPK2g/D41gDyu7DgoTa86R2uorFmmJPpAGY
-	BjGPTqRgU9JysgBq9Bo/1XBzJkMKNE7zbDnoqL717QYWrM1JRct7sV/8Wi61g3Wp
-X-Gm-Gg: AYBFou3hHJvBCD6eoHqII9m+oqYbrqoSANLQ7yvYUyaT+HjeamWdR8QPlcggsg9EM8p
-	nA66M+eCEqtmxCVlNBB+DSnxrsCQRnDSHy+NVPC2/elSoJbVQIudjVUbp9UxZfNEUhl1oUxGGXP
-	FK01xViGKGZaJi8Kw1G8bUxvGshcfOi+S3kePFR5TYbPmv+OXMavtFh3Auphugu1L4ydnqoUjQD
-	wY+hrzUJZKjyHRXJISarHzh88Aot11SzgZ7ZURssWMM0E4rT2/FRWdAEfxgUZV9Oi4ThVVYTlUx
-	7YRLkKMA7+7Mf6YBqDABjW8KV5zaK82LfLmDRD1z8iPy6DCwzJjCgArwH641WmSsLMlDPOvbYQY
-	EK0N+wKUCixtTlA+a1vJSOETV7iKgb2ggp57G8OSTc+LOmSjKYFUhhwFlFQSeTxfJnxQtX5mGmE
-	Kz2pkFxbZGW+gVxOiyFAw8BJcuynvLvMIZ44mboFMIHakxCTRPp/3KynrG0mt4aK5AkDHtzQH7p
-	evUHjBVMkeRFDRbLTVPGSZKz/JNLJeqWYkgKsZ+R8AVu4ALX3gdnBIV3QW+PgFZqcQezoeckm06
-	HVRWmFSeBefVstM0H3/VrDLAafaAs5or1muWPaThc0ZAVGLn/YzT+3ps9esHB/WVv7Q=
-X-Received: by 2002:a05:6102:2911:b0:7ce:78f9:adf2 with SMTP id ada2fe7eead31-7d64d7047e1mr4086552137.9.1794933542179;
-        Tue, 17 Nov 2026 08:39:02 -0800 (PST)
-Received: from mail-vs1-f48.google.com (mail-vs1-f48.google.com. [209.85.217.48])
-        by smtp.gmail.com with ESMTPSA id a1e0cc1a2514c-99e49c6299fsm132166241.0.2026.11.17.08.39.00
-        for <linux-acpi@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Nov 2026 08:39:01 -0800 (PST)
-Received: by mail-vs1-f48.google.com with SMTP id ada2fe7eead31-7cc3eb09dd2so1347175137.2
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Nov 2026 08:39:00 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErEKPkhjLvA6nsQ8xUohi7Gn80bpdtOd17W9IhtZRQtMMbXGI3zGKAs8MwUQ9BYKvNZjhLE41ng8r05Y@vger.kernel.org
-X-Received: by 2002:a05:6102:50a4:b0:7cc:1ace:fd06 with SMTP id
- ada2fe7eead31-7d64d7a9d5amr4459124137.20.1794933540494; Tue, 17 Nov 2026
- 08:39:00 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CD64606A31C;
+	Tue, 17 Nov 2026 17:58:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=W0AYM1um
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31C721F000C4;
+	Tue, 17 Nov 2026 17:58:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794938297;
+	bh=Ao0/3OZje4TLYy53qVbs1Ocrd9OTD/q4KEFpbVJakG8=;
+	h=From:To:Cc:Subject:Date;
+	b=W0AYM1umlEGiOYfBNug3kk1QM+13JWZ2JM7hhqcxCZOji/FGcI5rnVjnHlheoacCa
+	 pL03czVIJuhttMKR7ymLg8kOD6d4wfSzGOuIaMqVFkzPJp2zFcn9t+E06J3kznCqPV
+	 Pyez5l/72r2BAHpmFE/aUhwrvm7nLdhHtVJiYO9l3qvBPNLuU2gY+32FgPEh1C8Jrg
+	 BvLGeRrhOhdWyYPfVCKBj8+DLH1pW9vh8v1aKPNIbwIOs2kCuHV76X8wA+r+Y/MNEo
+	 7bBKGgV1c2xqCbMDVWYwm+6+RuIuwWnNlMv92mZbmTm4+tNVRAHHHnvlODTfxhcg1U
+	 AqXRpn8JqbKiA==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>,
+ Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <westeri@kernel.org>,
+ Alan Borzeszkowski <alan.borzeszkowski@linux.intel.com>
+Subject:
+ [PATCH v2] ACPI: PM: Avoid initializing power management for absent devices
+Date: Tue, 17 Nov 2026 18:58:14 +0100
+Message-ID: <2859265.mvXUDI8C0e@rafael.j.wysocki>
+Organization: Linux Kernel Development - Intel
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -80,86 +58,96 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261024223501.1420953-1-daniel.lezcano@oss.qualcomm.com>
- <20261024223501.1420953-2-daniel.lezcano@oss.qualcomm.com>
- <CAMuHMdXJOpcC3a6wMXF_m=uNjuqSO1Z3kyM7Az1uP_2GBurOvA@mail.gmail.com> <0de1444a-a0ba-4e16-a480-74a39c865ab6@oss.qualcomm.com>
-In-Reply-To: <0de1444a-a0ba-4e16-a480-74a39c865ab6@oss.qualcomm.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 17 Nov 2026 17:38:49 +0100
-X-Gmail-Original-Message-ID: <CAMuHMdWfH+_4ijxko=LS_P6b1Y76WWDc8m4xL6qW1H+qKRQ98A@mail.gmail.com>
-X-Gm-Features: Aa3M54oLa7UUmy4CFc0JRC-Lz0IWxEH7iP1kR67WyO7NUNvhNNuybpNvCvDbePk
-Message-ID: <CAMuHMdWfH+_4ijxko=LS_P6b1Y76WWDc8m4xL6qW1H+qKRQ98A@mail.gmail.com>
-Subject: Re: [PATCH v3 1/4] platform profile: Extract the core from ACPI
-To: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
-Cc: rafael@kernel.org, Len Brown <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>, 
-	Shuah Khan <skhan@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, 
-	Viresh Kumar <viresh.kumar@linaro.org>, Hans de Goede <hansg@kernel.org>, 
-	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	Maximilian Luz <luzmaximilian@gmail.com>, Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, 
-	Mark Pearson <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>, 
-	Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>, 
-	Lukasz Luba <lukasz.luba@arm.com>, Armin Wolf <W_Armin@gmx.de>, 
-	Jai Luthra <jai.luthra@ideasonboard.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jack Wu <jackbb_wu@compal.com>, 
-	"Mario Limonciello (AMD)" <superm1@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 
-Hi Daniel,
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-On Tue, 17 Nov 2026 at 17:03, Daniel Lezcano
-<daniel.lezcano@oss.qualcomm.com> wrote:
-> On 11/17/26 12:48, Geert Uytterhoeven wrote:
-> > On Sun, 25 Oct 2026 at 00:56, Daniel Lezcano
-> > <daniel.lezcano@oss.qualcomm.com> wrote:
-> >> Platform profile providers already use device-based callbacks and do not
-> >> need ACPI types. The core is nevertheless confined to the ACPI build and
-> >> refuses to initialize when ACPI is disabled.
-> >>
-> >> Move the implementation to drivers/platform/profile and introduce the
-> >> firmware-independent PLATFORM_PROFILE symbol. Update all provider
-> >> selectors. Keep provider-specific ACPI dependencies and the
-> >> platform_profile module name.
-> >>
-> >> Isolate access to the legacy ACPI kobject in an optional compatibility
-> >> object linked into the same module. Retain the legacy ABI on active ACPI
-> >> systems, and initialize the class even when ACPI is absent or disabled.
-> >>
-> >> Use subsys_initcall_sync so the class is ready before built-in thermal
-> >> and CPUFreq providers, but after ACPI has initialized its compatibility
-> >> kobject.
-> >>
-> >> Signed-off-by: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
-> >
-> > Thanks for your patch, which is now commit 699041135f75b13a
-> > ("platform profile: Extract the core from ACPI") in pm/linux-next/
-> >
-> >> --- a/drivers/platform/Kconfig
-> >> +++ b/drivers/platform/Kconfig
-> >> @@ -1,4 +1,20 @@
-> >>   # SPDX-License-Identifier: GPL-2.0-only
-> >> +config PLATFORM_PROFILE
-> >> +       tristate "Platform profile support"
-> >
-> > I guess this can be invisible (perhaps "... if COMPILE_TEST"?), as
-> > you have updated all provider selectors?
-> >
-> > If not, I guess this needs a "depend on X86 || COMPILE_TEST", so people
-> > configuring kernels for different architectures do not see this option?
->
-> The goal of this series is to make the platform profile firmware
-> agnostic so it is available for all architectures
+Commit 2f4ddf2bd1ba ("ACPI: scan: Stop calling acpi_bus_init_power()
+early") removed a device presence check from acpi_bus_init_power() which
+in some cases causes power management to be initialized for an ACPI
+device object and never used going forward.  That in turn may prevent
+power management from working as expected for other devices.
 
-Sure... Are there any users of it on these architectures?
+Namely, if a given ACPI device object is not enabled according to its
+_STA, find_child_checks() will return an error for it which will prevent
+it from being used as an ACPI companion for a PCI device.  Thus if
+acpi_device_init_power() initializes power management for it and its
+initial power state turns out to be different from D3cold, it may stay
+in that power state forever.  If it has power resources and they are
+"on" during the initialization, they may be reference-counted and never
+turned off.  If they are shared with other devices, they will prevent
+power from going down after attempting to put the other devices into
+low-power states.
 
-Gr{oetje,eeting}s,
+To prevent that from happening, restore the device presence check in
+acpi_bus_init_power(), but also adjust find_child_checks() to return
+an error for absent devices (instead of doing that for disabled devices)
+in accordance with acpi_bus_init_power() and the existing check in
+acpi_bus_attach().
 
-                        Geert
+Fixes: 2f4ddf2bd1ba ("ACPI: scan: Stop calling acpi_bus_init_power() early")
+Reported-by: Alan Borzeszkowski <alan.borzeszkowski@linux.intel.com>
+Tested-by: Alan Borzeszkowski <alan.borzeszkowski@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+v1 -> v2:
+   * Clear power_manageable when returning an error early from
+     acpi_bus_init_power() (Sashiko)
+   * Print debug message when that happens
+   * Added Tested-by from Alan (thanks!)
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Quick turnaround because it fixes a recent regression.
+
+---
+ drivers/acpi/device_pm.c |    7 +++++++
+ drivers/acpi/glue.c      |    8 ++------
+ 2 files changed, 9 insertions(+), 6 deletions(-)
+
+--- a/drivers/acpi/device_pm.c
++++ b/drivers/acpi/device_pm.c
+@@ -360,6 +360,13 @@ int acpi_bus_init_power(struct acpi_devi
+ 	if (device->power.state != ACPI_STATE_UNKNOWN)
+ 		return 0;
+ 
++	if (!acpi_device_is_present(device)) {
++		device->flags.power_manageable = 0;
++		acpi_handle_debug(device->handle,
++				  "Device not present, ACPI PM disabled\n");
++		return -ENXIO;
++	}
++
+ 	/*
+ 	 * The ACPI device power state can be only initialized once.  If this
+ 	 * fails, ACPI power management will not be used for the device going
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -109,14 +109,10 @@ static bool acpi_dev_has_children(struct
+ 
+ static int find_child_checks(struct acpi_device *adev, bool check_children)
+ {
+-	unsigned long long sta;
+-	acpi_status status;
+-
+ 	if (check_children && !acpi_dev_has_children(adev))
+ 		return -ENODEV;
+ 
+-	status = acpi_evaluate_integer(adev->handle, "_STA", NULL, &sta);
+-	if (status == AE_NOT_FOUND) {
++	if (!acpi_has_method(adev->handle, METHOD_NAME__STA)) {
+ 		/*
+ 		 * Special case: backlight device objects without _STA are
+ 		 * preferred to other objects with the same _ADR value, because
+@@ -128,7 +124,7 @@ static int find_child_checks(struct acpi
+ 		return FIND_CHILD_MIN_SCORE;
+ 	}
+ 
+-	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_DEVICE_ENABLED))
++	if (!acpi_device_is_present(adev))
+ 		return -ENODEV;
+ 
+ 	/*
+
+
+
