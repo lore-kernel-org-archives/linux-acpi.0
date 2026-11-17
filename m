@@ -1,69 +1,85 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.10
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794923229;
-	b=gaolA/VeDK5ALLajMleTlG/ufuTpXAvZIs+9UEd0T8TRdsgFgs2+4177Q6A30ZZBs3ia
-	 33JJ6/0S/whl1DsRancEzF9ls68Z3zTWEq06Z0VHf+GrQ09sEah4SOupZKWvL9Tnu58UV
-	 gkQCxC/Lexjv5ygwP8NTSFrL7OYBuWTmx3xBs9mROOgjXHb95S+JZYRCCoWqBsi3HZ+Hu
-	 oursNNzXCX1LrPAi3LxmivA/OOt3Wbrvl0eZcobOmFMAm+SaaQHXl2OrszmGHfC/SDgbb
-	 oMhe8N4ggSLgow8e/OF9WZUM4BZui1zGvfnDH4/bKDq28RLzmDQ9xJsnDNeJNSI1HnA==
+	t=1794924117;
+	b=x3bBqXRVSZtlzs643rUwRZ2yOHz8Fm9WMGd44i9x7lDDLg3E69z9WB2L6ynHXWFkkeDN
+	 vbRPywT9VppMpXHHYD+0Qx4dHL/yo3grpGSB78Op4vq1SCgxtrpYprrppNJu/Hhd6V6av
+	 7NlnYpsE40o1WxlHxQ7057aAFwnUN7sHzZULCivbjB6DURn6Y+JyXwrAeM9SowlQDAlzg
+	 E2MfeiLnZzmBEzZnDixszGEs1lCNguquSlYSTBMiIGRqZ4bIX2pMmTgCVkfJMnTamWjo1
+	 i6K8kFRLFYIK1iU8wtqvldMpPpZ6jy1S8BcwlA24TjyEeHuG98b0TG/wV9w0+oE05rg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794923229;
-	h=Received:DKIM-Signature:Received:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=8ymDBll+m8njIQXnZhzBbLu14ANrEaXlecK0b9Ys2iA=;
-	b=bLsWuH83oua0wqVDzsGQ3GJgOs6QbMqPSlGnpeOIffFMqLWXKQrkgCI0Y6kwdgPJZiEA
-	 GQsCS/cdCzFn1CA33eA9/UWAX3mG+Um4k7APmKD08fAd6gu1x+3UMJbHQ6tP+W1bTnoEB
-	 fu16QyZ0PaP8ttiyBHtkNNP6SPtEejcCHWVIpQH5zRsQAInDH99ETW0DkOWaVtCNXD+o2
-	 9t8CSKQo5hU64wRp8molZVV2Adko+ldXH3IcjEczBPY+d97LLOqdVyREd+YafYLUTsy1M
-	 7nebjLWlVmTugANeRisNbxhRNa1WpNg0ijlbiAp6OUT4PacMYy73zPNil3qH4NAzIPw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794924117;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To:Organization;
+	bh=wklAdo9fsmG1vi/8V3+fsdO+VswPQOF0aXlmPk0xS70=;
+	b=dc56iw6yxsIOeJg46bThaKTjrhJH3E33LbUFiUhgC+QHOi+m52JjqrB9K8aAhi+046ru
+	 h46VK3HbFsNvxYLcDb+1qoo1qubMxl4MEe3su5/ld5lX92IvU6JuV8etfcVGA6qLD/5pk
+	 M7epDSFoLLR55v+2pVlX+RLnxBR9PH1OK/xNUDX5ShWIMCgPBhs4oRxoNeP+5D95F2VHt
+	 giy1N8S94yjz3hLQFHK16bXfMzGpBKiMcqsNldtRDp22lCFmRDHZzxkuy5wIznsm65RH1
+	 hljMcZmMEln5RuaVkwCUm/X2bFsrDLlrgEtEgd2eVJDuaRZ8UqtzLxuWo7ThimXmxow==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YZ5dD1TX;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=VWUHkgOw;
+	arc=none smtp.remote-ip=198.175.65.10
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D51F606A31C;
-	Tue, 17 Nov 2026 13:47:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 754D5606A31C;
+	Tue, 17 Nov 2026 14:01:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 754D5606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YZ5dD1TX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2AFD1F000C4;
-	Tue, 17 Nov 2026 13:47:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794923228;
-	bh=8ymDBll+m8njIQXnZhzBbLu14ANrEaXlecK0b9Ys2iA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=YZ5dD1TXczNz8vy5JFg/Cbdwz8n5zn4twRanmeNYDUkn/gzKNyoewoS6v31CeqFGA
-	 EeHo/w3G7pPaDdZIb3kfKf+GV3SgmOzi/DNjF7MKyS/FaHqpvzBUE1DwQ/+cMQ94oY
-	 rAsdzN4Y2G2qUAB1OQIwmz3hvBdYDy8Y83PGxKBHh2+lrMy3OVK8RpMgxwVb+oVfQE
-	 00xxwNOOiQr1cFltlgVkGiFdaPqcuz20LvUmrghFa7lagRSgg+tCaWK527M3vf3g+K
-	 PGR9/7t6VmRuwUfybQLduE1GK1P1voR4Q3J5Nw6VEbr8xWBgl4OUybiGgMoEG6EH1k
-	 BD+X1ME5MKaSg==
-Received: from johan by xi.lan with local (Exim 4.100.1)
-	(envelope-from <johan@kernel.org>)
-	id 1xTJWc-00000004N0p-0reK;
-	Tue, 17 Nov 2026 14:47:06 +0100
-Date: Tue, 17 Nov 2026 14:47:06 +0100
-From: Johan Hovold <johan@kernel.org>
-To: Bartosz Golaszewski <brgl@kernel.org>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=VWUHkgOw
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794924117; x=1826460117;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=hQtNoJIvapJzSVlZr2rMSsBksKgND1LoTr8mQ5HNUgc=;
+  b=VWUHkgOwwcJl+MOgBfbwM+n6Ucxblz6Njb6eblPFFKQrJiRbGtFKQc+V
+   M9YpfN/ufZdCJRCqox7qLX0qjX5lvD6lpuZwUTGKUES6uC5JiMGTv1aqB
+   307aROSD+lw+HU9NTXmLrS26D8gF+TIgja8BGKt2ey2N6hZDuXP3omTE5
+   0dc6Xl4fxMB9KJz+4BXQfpsHyOdxw9wMcIMoMAtAW1WPd9AlrsGgypVzI
+   wugil+gYydhuI/LZnpHyciyvFQrFzDPLzJdjA3PRTk0lk2vH2zpK29vCa
+   FIJkuvytk4tEeJGB8gv5UuaEGhPbj2rHJ3Clys8zkbHA2tY7jqi3FAij6
+   w==;
+X-CSE-ConnectionGUID: 2pzK0p+GTZGdh5dpXWThog==
+X-CSE-MsgGUID: 5hVpBumpSWeZG4wKQ83cHA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11969"; a="3608214"
+X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
+   d="scan'208";a="3608214"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2026 06:01:56 -0800
+X-CSE-ConnectionGUID: ebJxEv4mSSuqYQ28KYTkIA==
+X-CSE-MsgGUID: B6s3qoPjS2enZdGv4KQpPA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
+   d="scan'208";a="10021245"
+Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.254])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2026 06:01:52 -0800
+Date: Tue, 17 Nov 2026 16:01:50 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Johan Hovold <johan@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
 	Daniel Scally <djrscally@gmail.com>,
 	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
 	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Linus Walleij <linusw@kernel.org>,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH] software node: make swnodes hold their own references on
- parents
-Message-ID: <avxa2k9HyHX9CvYl@hovoldconsulting.com>
-References: <20261106-swnode-kobject-parent-ref-v1-1-77dbd7213dd0@oss.qualcomm.com>
- <avxEGiacULc2eciv@hovoldconsulting.com>
- <k3yo7tpvb33prcuuw2a2qthvuww2edb7tsszj5hxlkcfaurt7k@m2czeig46clb>
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Andi Shyti <andi.shyti@kernel.org>,
+	Wolfram Sang <wsa+renesas@sang-engineering.com>,
+	driver-core@lists.linux.dev, linux-acpi@vger.kernel.org,
+	linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 4/8] software node: ignore primary nodes in
+ device_remove_software_node()
+Message-ID: <avxeTnaEG_FnBhck@ashevche-desk.local>
+References: <20261117101336.980216-1-johan@kernel.org>
+ <20261117101336.980216-5-johan@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -75,36 +91,54 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <k3yo7tpvb33prcuuw2a2qthvuww2edb7tsszj5hxlkcfaurt7k@m2czeig46clb>
+In-Reply-To: <20261117101336.980216-5-johan@kernel.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Tue, Nov 17, 2026 at 02:39:27PM +0100, Bartosz Golaszewski wrote:
-> On Tue, Nov 17, 2026 at 01:10:02PM +0100, Johan Hovold wrote:
-> > On Fri, Nov 06, 2026 at 12:13:28PM +0100, Bartosz Golaszewski wrote:
-
-> > > @@ -843,11 +843,12 @@ static void software_node_free(const struct software_node *node)
-> > >  static void software_node_release(struct kobject *kobj)
-> > >  {
-> > >  	struct swnode *swnode = kobj_to_swnode(kobj);
-> > > +	struct swnode *parent = swnode->parent;
-> > >  
-> > >  	fwnode_links_purge(&swnode->fwnode);
-> > >  
-> > > -	if (swnode->parent) {
-> > > -		ida_free(&swnode->parent->child_ids, swnode->id);
-> > > +	if (parent) {
-> > > +		ida_free(&parent->child_ids, swnode->id);
-> > >  		list_del(&swnode->entry);
-> > 
-> > Why not simply
-> > 
-> > 		swnode_put(swnode->parent);
-> > 
-> > here?
-> >
+On Tue, Nov 17, 2026 at 11:13:32AM +0100, Johan Hovold wrote:
+> device_remove_software_node() should only be used to remove secondary
+> firmware nodes added by device_add_software_node() but will currently
+> drop a reference also if a device has a primary software node.
 > 
-> Because swnode_put() doesn't accept NULL. I have it on my TODO list to
-> add it but this is a fix, so I want to keep it minimal.
+> Bail out early if device_remove_software_node() is called for a device
+> whose primary firmware node is a software node and fix up the two
+> callers that currently work around this themselves.
 
-swnode->parent is not NULL here in the conditional block.
+...
 
-Johan
+> +++ b/drivers/i2c/i2c-core-base.c
+
+>  void i2c_unregister_device(struct i2c_client *client)
+>  {
+>  	struct fwnode_handle *fwnode;
+> -	bool fwnode_is_software_node;
+>  
+>  	if (IS_ERR_OR_NULL(client))
+>  		return;
+
+> -	fwnode_is_software_node = is_software_node(fwnode);
+>  	device_remove_software_node(&client->dev);
+>  	/*
+> -	 * If the firmware node is a software node, its reference count
+> -	 * was decremented by device_remove_software_node().
+> +	 * Must be done after device_remove_software_node() which may have
+> +	 * freed a secondary firmware node and cleared the fwnode pointer.
+>  	 */
+> -	if (!fwnode_is_software_node)
+> -		fwnode_handle_put(fwnode);
+> +	fwnode_handle_put(client->dev.fwnode);
+
+We have fwnode getter, so better use it
+
+	fwnode_handle_put(dev_fwnode(&client->dev));
+
+Same can be applied to the platform device case above (in this patch).
+
+>  	device_unregister(&client->dev);
+>  }
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
