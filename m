@@ -1,64 +1,71 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794909042;
-	b=dzEx4zPWi/Y5CrO3Fs+ErK33wKRYSZcht/T1Y8lSfoQkIY0Nrr0YkhiSZV9X+fr3oU+H
-	 Pj64EKJICDBr1dWYnHdy/uqIS6G3Qj0Cq4HPN9RG5z/grZ9SEi8DlUHMVFYHVxyfH8mjJ
-	 t40s/oeGVGttmELrHpbMUx90YQrHmNdsTaHyiskQXpesMA2xWyMnJUlsEIoeVTqBhDuvM
-	 7eAvlNB+1inxfoyCih23iIz1Ebu0/nlZhLr40bAAfVbI10sd0oR/FTlzgK3xxfgG/MO27
-	 BtYsstxMt/N2mA1K4Qkgb7t32E/mjfmQJ76Cfxt0Rn05ej/kqUedUCxmN7j0XuBu20g==
+	t=1794910435;
+	b=XJvRIqDQlMCihdgriqyMGhnSHRd5waAD70+Uk0ax9W533iPG80QIYdHwiF0hy9qO5Up3
+	 01+zow6E2g8zHJQHmSF5twCQiYplARjVSwkd0DttxYscHbIHJqxZlew7c5MfJaTWUz42o
+	 XUyMMldmzYYTrzOAMIbyzjORkOMHI6deFaDqULapx7xUYgAZhr5jfiq6YV8KYgBhf70x5
+	 jggJqXqkR19OuYmFrqp9ljjq4zNcMC0cQdPt2JTfKFk/Wh+teAxVzuQYWquMdxboEGzWK
+	 s3YeBliIkv9Zw1y++45WkDw99002JoZmVA7eijYaflUpvWina5Ljhms6VStjl2DDmuA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794909042;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=/Tjr3NK2jnP3mAfz+NG3DFEwrc05uLjvR2FDaflNUl4=;
-	b=uBGNGuqIZgrn0w1KbL+jXFRja3Z02ZAyLdrqddStSyLmX1H/cLBgv8b/oQYfES5GsKQ6
-	 quTow5i2rHrKnkqmtFaqbn7zIimBa+7zpXQDPr1pRoQ6Y+gG8Gx/W/6TS6fKVTlsO0kPm
-	 bGCZuT2qwV6g2ZwEic4w9oMHxzVjaLX2P3XcCBhstf0oPMgWExyVh2Hd0ZxH+3oHZnCv9
-	 FrOYECmzEltVEYs3CdTpErBE8S3qfe55V8YpWHCqgMpnXJZUGJai9hhz2iWk4xAgnvs23
-	 A4Veua1HQJke7I8S5USaHJa8+m8c4hERVl49vv1MgC+DICESpewWCFDu5bb7K3K6rhg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794910435;
+	h=Received:DKIM-Signature:Received:From:To:Cc:Subject:Date:Message-ID:
+	 X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=QjDGLtqha/cHdnXW5I0ZL32wkEI+9zARmUCyRqpihY0=;
+	b=f4Q7QwTSqMO7QUNnybCac6r7NVARyo9Mf22i8xrjROktZWFYkASGhYvaDU49h3XyCZgk
+	 nmIKXF6axQg0vRw6vtOiG/Nv7OAkcTAomzDqRUQkC9Tu07ru+HW/TMn81LI4btGGCIBCb
+	 gO0XWFU4m8V19TGTQg8GxnzTZ5g1Alb//+kIFx6+INeahW6ufxq+JbWSN/ibbWm7LG0E0
+	 REPtXDRZ7i7NK/VK6e4GGq6MyTfB9TiEX4IjJNBhqTL3+HTnUwsYMJGaimCzD912+jTuu
+	 1B7d1SarJBAHuK0YLb+XwfG1baY7EUZjwdjHuvdPq5i0bNv0PBd9GpXPpIZwGMaEW+g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kW9yl6+m;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SrfsZQnQ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id F1041606A32C;
-	Tue, 17 Nov 2026 09:50:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C1E7606A31C;
+	Tue, 17 Nov 2026 10:13:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kW9yl6+m
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id E53C61F000C6;
-	Tue, 17 Nov 2026 09:50:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SrfsZQnQ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF6F81F000C7;
+	Tue, 17 Nov 2026 10:13:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794909041;
-	bh=/Tjr3NK2jnP3mAfz+NG3DFEwrc05uLjvR2FDaflNUl4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=kW9yl6+m69jWFKGambjdBHYkZBthgb1qoNYcD8yrVSvgLh9/l3MuUEq7XYr6ZB7Au
-	 bMLeDulxAfuDSo7vnSukfqrjpIt1IRkC3N7mD0oe0S3DrAZjwF4iTMgWE1twr4GTXM
-	 9cR0lo4OaRQyDEO7KK+PyCU5/Snkb4aqcrAdgDStofsn2ftLaley0+2GLHBSCWcATM
-	 4YemSy4FxJam4QVpWUGlgEDhYdAxmAGb4FQWw+nu5rBuXgQQC9VENs0aQ4gzPbRzCk
-	 nHu6aXf//rJLeQXs3/5zkeib95aQoONVMBdjiATPzA14P1aoznSTjo14EmstNiA/1v
-	 71QT52NZW9CmQ==
-Date: Tue, 17 Nov 2026 10:50:38 +0100
-From: Bartosz Golaszewski <brgl@kernel.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
-	Johan Hovold <johan@kernel.org>, Hans Verkuil <hverkuil@kernel.org>, 
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Kees Cook <kees@kernel.org>, Andy Shevchenko <andy@kernel.org>, 
-	Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Saravana Kannan <saravanak@kernel.org>, Linus Walleij <linusw@kernel.org>, 
-	Andrew Morton <akpm@linux-foundation.org>, "Gustavo A. R. Silva" <gustavoars@kernel.org>, 
-	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	linux-hardening@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v2 10/10] gpio: shared: generalize most code to firmware
- nodes
-Message-ID: <riqrrdjxaygsphy2mxe5xbsrokjtw6kyrneiyzsh7kld4qnrwf@iaa73bchswrz>
-References: <20261113-fwnode-for-each-prop-v2-0-4edc23d5cf50@oss.qualcomm.com>
- <20261113-fwnode-for-each-prop-v2-10-4edc23d5cf50@oss.qualcomm.com>
- <avc4g9cbAOEElzRX@ashevche-desk.local>
+	s=k20260515; t=1794910434;
+	bh=QjDGLtqha/cHdnXW5I0ZL32wkEI+9zARmUCyRqpihY0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=SrfsZQnQM0pDXE13ETnnK92O6M4fhhjmkDWSdzv9Mt7TB1COZ6ysr/Qy+NzN3ch7x
+	 ofybs/5XfaQ0w0WVSLoYseCwra4/ZRwX96nPpX7UND/09qJAJR0aDJBL6kqBzAO6Qy
+	 CjQ3be2+txUdWcrBKZSQC8YXc3TDG19gPZSdvFraFgMDpKg8CP3/ZwtQXGh9LFGX/1
+	 /kPgCWOM7lImiQFg+xiStMWRw/V9hqiCQqk+GVD6aQhneMPHR4BLc0pnmziJAj+dxx
+	 LmvH/ZKoiyOraSk9I+/+WlA+CmjnwCSicmnpLjd2AFPOM2DrfTvHjEd2xMeIqRD61t
+	 TND6W2YMrZuMw==
+Received: from johan by xi.lan with local (Exim 4.100.1)
+	(envelope-from <johan@kernel.org>)
+	id 1xTGCG-0000000470b-14mI;
+	Tue, 17 Nov 2026 11:13:52 +0100
+From: Johan Hovold <johan@kernel.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Johan Hovold <johan@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Andi Shyti <andi.shyti@kernel.org>,
+	Wolfram Sang <wsa+renesas@sang-engineering.com>,
+	driver-core@lists.linux.dev,
+	linux-acpi@vger.kernel.org,
+	linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v3 3/8] software node: fix device_add_software_node() kernel doc
+Date: Tue, 17 Nov 2026 11:13:31 +0100
+Message-ID: <20261117101336.980216-4-johan@kernel.org>
+X-Mailer: git-send-email 2.56.1
+In-Reply-To: <20261117101336.980216-1-johan@kernel.org>
+References: <20261117101336.980216-1-johan@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -68,59 +75,51 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <avc4g9cbAOEElzRX@ashevche-desk.local>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Nov 13, 2026 at 06:19:15PM +0200, Andy Shevchenko wrote:
-> On Fri, Nov 13, 2026 at 04:47:10PM +0100, Bartosz Golaszewski wrote:
-> > Ahead of adding support for sharing of GPIOs for other types of firmware
-> > nodes, convert as much code in gpiolib-shared.c as possible to using
-> > fwnode APIs and guard the remaining OF-specific bits with CONFIG_OF
-> > guards.
-> 
-> ...
-> 
-> > -static int gpio_shared_of_scan(void)
-> > +static __maybe_unused int gpio_shared_fwnode_traverse(struct fwnode_handle *curr)
-> >  {
-> > -	if (of_root)
-> > -		return gpio_shared_of_traverse(of_root);
-> > +	int ret;
-> > +
-> > +	if (gpio_shared_fwnode_ignore(curr))
-> > +		return 0;
-> > +
-> > +	ret = gpio_shared_fwnode_scan_properties(curr);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	fwnode_for_each_child_node_scoped(curr, child) {
-> > +		ret = gpio_shared_fwnode_traverse(child);
-> > +		if (ret)
-> > +			return ret;
-> > +	}
-> >  
-> >  	return 0;
-> >  }
-> > -#else
-> > +
-> >  static int gpio_shared_of_scan(void)
-> >  {
-> > +#if IS_ENABLED(CONFIG_OF)
-> > +	if (of_root)
-> > +		return gpio_shared_fwnode_traverse(of_fwnode_handle(of_root));
-> > +#endif
-> > +
-> >  	return 0;
-> >  }
-> > -#endif /* CONFIG_OF */
-> 
-> Hmm... What do you exactly get from the compiler without this uglyfication?
->
+Software nodes added to a device by device_add_software_node() are
+always secondary firmware nodes even if they may be stored in the
+dev->fwnode pointer.
 
-The alternative is an empty stub for gpio_shared_of_scan() and keeping
-CONFIG_OF around most of the code in that file. I think it looks better
-this way.
+Fix the kernel doc which incorrectly claims that a software node added
+using this interface "could become the primary node".
 
-Bart
+Also clarify that device_remove_software_node() should only be used to
+remove software nodes added by device_add_software_node().
+
+Fixes: e68d0119e328 ("software node: Introduce device_add_software_node()")
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Signed-off-by: Johan Hovold <johan@kernel.org>
+---
+ drivers/base/swnode.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index ce4efc506b9c..b2593b2fcada 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -1048,9 +1048,8 @@ EXPORT_SYMBOL_GPL(fwnode_remove_software_node);
+  * @dev: The device the software node is meant for.
+  * @node: The software node.
+  *
+- * This function will make @node the secondary firmware node pointer of @dev. If
+- * @dev has no primary node, then @node will become the primary node. The
+- * function will register @node automatically if it wasn't already registered.
++ * Register @node if it was not already registered and make it the secondary
++ * firmware node of @dev.
+  */
+ int device_add_software_node(struct device *dev, const struct software_node *node)
+ {
+@@ -1091,7 +1090,8 @@ EXPORT_SYMBOL_GPL(device_add_software_node);
+  * device_remove_software_node - Remove device's software node
+  * @dev: The device with the software node.
+  *
+- * This function will unregister the software node of @dev.
++ * Remove a software node added by device_add_software_node() and
++ * deregister it if this is the last reference.
+  */
+ void device_remove_software_node(struct device *dev)
+ {
+-- 
+2.56.1
+
