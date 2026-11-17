@@ -1,77 +1,76 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=83.223.78.233
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.41
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794915897;
-	b=ZQiBm1Nei/VZh0ZCVuhU9M/8OpISTeRvOq+7DEMuv7MSDsljAUdF0GZyRiITa81t1OWf
-	 WyovlgOOei/me1aszotfnsBiVVHabE2DjMD7E1E3hDJpBXQfo9tGYrwHIygIszylU0W07
-	 K8gF422ZkUkYku1RdzDGhcg27kuIWA/sMfuVE1XL9BGoO8yR9TZj3BzEzWL1cR0frQNyY
-	 eBSo/J21l/wM6AWdqInMU9tNt7Tg1fc6cAbSIRtz8oBxlXmpwwUqxQADHWtRYmzmOhpJV
-	 cF7EbOC/wxPuWom19zgkrDae50TS5ANJX6KXhLtdWAMi2qGz99StOwhm68unQ8swsTg==
+	t=1794916108;
+	b=03pnkas42iYUky/fxbW9APBI7MZ1utjWTkS6llPAwDfiy6ztV4IYkAkZG2H+08S1S0ly
+	 ovIIiACz7szZhY3XRXvmEYKxNrUIQgOJt3H2PQ8MXhYdCDBRSgrFu88imeJc32CFWEm6x
+	 9CBCV8QiDHLqTmb9qIVPX+kGK5LVulYV36GSiVLkEqy2WEaoCyByk6opnk83Gi5DRlhn4
+	 I80ecDFf3wxoa9ZY4lgKHk/D2rJ56DP2dJdbkXa5lGuvrD/bwvnU7myYoPY4fNRGqAReC
+	 dReRO1fWbx9EP/p943I3UQVtuqk3mJPzYIWEc2RTWlH92x44I/qwSyzjsSOL1IU+6XQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794915897;
-	h=DMARC-Filter:Received:Received:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=n6w3cO92Rq3N51GC+FtnyfKYSdVpvLf9WR3UZ2ynCHA=;
-	b=YdU6sEE8dXbp190teEVF5xgGw85k90ggQ8uWKl2nECtY8WLo6ICFopCDcEoj1QyFuEPc
-	 ISpaYSsvPcpUxSGJ3XKV5yCez1efJ5jI1lH1OcNb59EzNoXDJKnwwppfnVl7afoYev1ud
-	 OS5tAFaahNG49UcXbXS5ebtkNhQgxHcHS5+z5Nxrh0ZkPgveW75uWPfJemsBrVCcrOm/w
-	 fKEzDMm3HrayVFcoFK6rySjgR+FyIUg7mgvWoLKSpAr/VpQImk+FCHRjUuXZM6sD1yWWf
-	 29Q4PCfPfqcx+OM6iBCDYUufiXAcIK4E7dvcp0u6jsl58az3FXN8oVxnfruHnBHne9A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794916108;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Received:
+	 X-Forwarded-Encrypted:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type;
+	bh=fCqZ0Zd4HVCI/jRgXBSCy8S8OFyXtFOLF3BsI1zh8Sg=;
+	b=RyUwxjfMOofyeUJOouTht3eEsizXO3ZZiXOjRhnG2zY2EZNTQIV54lj889/5aVxQfDjz
+	 zmeUhwVEDzOVvm/4J6Z24g/KKv9gwK9dpTjaq+0b2mr5V6Uq5kCK+E0Vtj2e60qlb2Epl
+	 NcoHo2oHTxipz9USopBFAUnJLmL7hS9CDqOM1gFQuzGV8NJJV1Mv0PXCw27rWaawWIqm2
+	 kz+PLSWkfzZJ6mvSxKsoEk7G5QIDpbrK6vSLX2jnwn/0JmHCuKChdzl4tC+ndk9Vz6Lqc
+	 5gTYMlWc2aIln/6YQvD0gG0WpzUQedp61xrQyAbMmXqnwhiDTlE+kLF+716pLOmDb3w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=wunner.de;
-	spf=pass smtp.mailfrom=wunner.de;
-	arc=none smtp.remote-ip=83.223.78.233
-Received: from mailout2.hostsharing.net (mailout2.hostsharing.net [83.223.78.233])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=none header.from=linux-m68k.org;
+	spf=pass smtp.mailfrom=gmail.com;
+	arc=none smtp.remote-ip=209.85.222.41
+Received: from mail-ua1-f41.google.com (mail-ua1-f41.google.com [209.85.222.41])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B489606A323;
-	Tue, 17 Nov 2026 11:44:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7B489606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wunner.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wunner.de
-Received: from h08.hostsharing.net (h08.hostsharing.net [83.223.95.28])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature ECDSA (secp384r1) server-digest SHA384
-	 client-signature ECDSA (secp384r1) client-digest SHA384)
-	(Client CN "*.hostsharing.net", Issuer "GlobalSign GCC R6 AlphaSSL CA 2025" (verified OK))
-	by mailout2.hostsharing.net (Postfix) with ESMTPS id 107EE2825;
-	Tue, 17 Nov 2026 12:44:53 +0100 (CET)
-Received: by h08.hostsharing.net (Postfix, from userid 100393)
-	id EFB5E6039C25; Tue, 17 Nov 2026 12:44:52 +0100 (CET)
-Date: Tue, 17 Nov 2026 12:44:52 +0100
-From: Lukas Wunner <lukas@wunner.de>
-To: Pierre Gondois <pierre.gondois@arm.com>
-Cc: linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@oss.qualcomm.com>,
-	James Morse <james.morse@arm.com>, Mark Brown <broonie@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
-	Oliver O'Halloran <oohall@gmail.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>,
-	Yazen Ghannam <yazen.ghannam@amd.com>,
-	Avadhut Naik <avadhut.naik@amd.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Kai-Heng Feng <kaihengf@nvidia.com>,
-	"Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Breno Leitao <leitao@debian.org>,
-	Terry Bowman <terry.bowman@amd.com>, Dan Williams <djbw@kernel.org>,
-	linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org,
-	acpica-devel@lists.linux.dev
-Subject: Re: [PATCH v1 05/19] PCI/AER: Embed aer_capability_regs copy in
- struct aer_recover_entry
-Message-ID: <avw-NChMgIjwFuv1@wunner.de>
-References: <20261117111444.4185512-1-pierre.gondois@arm.com>
- <20261117111444.4185512-6-pierre.gondois@arm.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26DBE606A323
+	for <linux-acpi@vger.kernel.org>; Tue, 17 Nov 2026 11:48:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 26DBE606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-ua1-f41.google.com with SMTP id a1e0cc1a2514c-990703f817fso3433810241.1
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Nov 2026 03:48:27 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794916107; x=1795520907;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=fCqZ0Zd4HVCI/jRgXBSCy8S8OFyXtFOLF3BsI1zh8Sg=;
+        b=CkMdYZXZQr7l+R7y4W5H3Kwef1egaI1KMpep4+7reiLTmm1zVfT5Z5FyZKl5IETEy7
+         8YvfQd9sGvmGXRGXL5culhcyoAmtnjHhiEJ2VuLYOCHWMZtaHhxMtVXA5gIJs58SqRWy
+         chD3a4H+lD1vhDNctZTlXMpvr4z+Z5BOelK1E2DuJRi5oySKwvhl5EmTN4vlVoqJ3bmY
+         jwXC80ysl6Lc+vJcPBLi/TSuAa/5wmYPWbJtS/CfItFQNZV5TYMFEz1ES9MEe9UqSjjf
+         rqKSFHeGC+yBYo76OK3s0pUbFs6d7LLv0D0ZlX/DW/IV/WWyvavqJ6vY+9sV3DIPzRtE
+         eEGQ==
+X-Forwarded-Encrypted: i=1; AL+hErFxX9nFLRrtOcrKVrndO0Oyyj5RiKjDhBcQhNtWaa7ZNcUmD6IwIbVIXM//TQgzlOe3xNprAP7mga0a@vger.kernel.org
+X-Gm-Message-State: APuU4Z9tiOq3vpmLiW8xrsblpcN4s/EtLLTIX+6P8pCeyFeEMzfrsOgi
+	c8gV9JGlVy3touCYt5XsOqy1FKLE2mNYJJV0J1v7PvuUCFMQ4RFqKnKh39SDfVVD
+X-Gm-Gg: AYBFou0GPqeIdt8fu7F7f+Qf5ypEE/emRdVE2erTsbazaO7zaXu6dTulQZZyDRfl7+d
+	XGziJF4rFjh8kqOq0hteFWJ36uQui1pmZyR3N3ZpSqyKZiCgCtttsumClKHYDDsl5w4XMiCA6A+
+	nKT3IA1E6sWtxMXLbBTjgyWubiWy44BUfObcxF906Od7KImG1PXnMeUUXZOwrXpC199bthwNNyo
+	Cnptl/lVA+q/7gHCFC0A5AuHAiUXAvAeS8VUDKKPzlM2cIVvl0HUBoxLHWLwxB68cN6xyxOx+JT
+	Cj2iEzLp64G9b2z77rJVDyjylP93ADx3YKF3Z+tD5t0Ysf9dMZFWBkQISaCMZqZ7QmluOs2yXjm
+	AOuKg2IK0LrHUrXwD01pRYa0fbaAKiY1QeDFdu0sZVpgEB3FtDEyXqPriE5M5LiA6QtbekHAAci
+	dHsD/5k3JOCHw3j9lpxDjpbXmn9oUQEVYTiHadtdnAM8O2AA3f9JcI4VsGt5zbCRewwK5yCoDQj
+	g0FxkHjUmHcUV4L5OFh57B4D45P3t+gLZt2EldZNKhk7dFhxbTO+I4jlWxi04TrYdCBDdO8ZtQP
+	HjkSpO+55hrwzaLPnlGSGe2NUtmJZi+8/5sZrazgIBN1cwbuXg6fhbBRaM9tMpdySx0=
+X-Received: by 2002:a05:6102:e0a:b0:7d5:c1e0:2482 with SMTP id ada2fe7eead31-7d64d69dca2mr5108720137.11.1794916105740;
+        Tue, 17 Nov 2026 03:48:25 -0800 (PST)
+Received: from mail-vs1-f41.google.com (mail-vs1-f41.google.com. [209.85.217.41])
+        by smtp.gmail.com with ESMTPSA id ada2fe7eead31-7d69dfa2e66sm2188802137.3.2026.11.17.03.48.24
+        for <linux-acpi@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 17 Nov 2026 03:48:24 -0800 (PST)
+Received: by mail-vs1-f41.google.com with SMTP id ada2fe7eead31-7d2bf046d7fso3630573137.3
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Nov 2026 03:48:24 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErF7tSuTgwQVOc06bQCwY3FgfhQWRah7JxdxOTKMPy0gy5lizDa9kp+4DZv/7sI9+vjQ/gU5FawIehJd@vger.kernel.org
+X-Received: by 2002:a05:6102:578c:b0:7d2:c786:5a95 with SMTP id
+ ada2fe7eead31-7d64d69dc95mr4808481137.13.1794916104363; Tue, 17 Nov 2026
+ 03:48:24 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -81,80 +80,94 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261117111444.4185512-6-pierre.gondois@arm.com>
+References: <20261024223501.1420953-1-daniel.lezcano@oss.qualcomm.com> <20261024223501.1420953-2-daniel.lezcano@oss.qualcomm.com>
+In-Reply-To: <20261024223501.1420953-2-daniel.lezcano@oss.qualcomm.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 17 Nov 2026 12:48:13 +0100
+X-Gmail-Original-Message-ID: <CAMuHMdXJOpcC3a6wMXF_m=uNjuqSO1Z3kyM7Az1uP_2GBurOvA@mail.gmail.com>
+X-Gm-Features: Aa3M54o4xtj3bYccvEv51xwUP0A3vPBfjxtiJtpZqQUGyQco56wW9LsC221L5Po
+Message-ID: <CAMuHMdXJOpcC3a6wMXF_m=uNjuqSO1Z3kyM7Az1uP_2GBurOvA@mail.gmail.com>
+Subject: Re: [PATCH v3 1/4] platform profile: Extract the core from ACPI
+To: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
+Cc: rafael@kernel.org, Len Brown <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>, 
+	Shuah Khan <skhan@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, 
+	Viresh Kumar <viresh.kumar@linaro.org>, Hans de Goede <hansg@kernel.org>, 
+	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+	Maximilian Luz <luzmaximilian@gmail.com>, Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, 
+	Mark Pearson <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>, 
+	Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>, 
+	Lukasz Luba <lukasz.luba@arm.com>, Armin Wolf <W_Armin@gmx.de>, 
+	Jai Luthra <jai.luthra@ideasonboard.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jack Wu <jackbb_wu@compal.com>, 
+	"Mario Limonciello (AMD)" <superm1@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Nov 17, 2026 at 12:10:15PM +0100, Pierre Gondois wrote:
-> commit e2abc47a5a1a ("ACPI: APEI: Fix AER info corruption when error
-> status data has multiple sections") passed to aer_recover_queue() a
-> newly allocated copy of pcie_err->aer_info instead of providing a
-> pointer to the ghes struct. This prevented corruptions of the ghes
-> record (in case the ghes record was re-used for a new error before
-> the previous error was logged).
+Hi Daniel,
 
-Since commit eddba19b8b5f ("PCI/AER: Support Advisory Non-Fatal Errors"),
-aer_regs is modified for a recursive invocation of __pci_print_aer().
-The copy is necessary because we don't want to modify a buffer owned by
-platform firmware.
+On Sun, 25 Oct 2026 at 00:56, Daniel Lezcano
+<daniel.lezcano@oss.qualcomm.com> wrote:
+> Platform profile providers already use device-based callbacks and do not
+> need ACPI types. The core is nevertheless confined to the ACPI build and
+> refuses to initialize when ACPI is disabled.
+>
+> Move the implementation to drivers/platform/profile and introduce the
+> firmware-independent PLATFORM_PROFILE symbol. Update all provider
+> selectors. Keep provider-specific ACPI dependencies and the
+> platform_profile module name.
+>
+> Isolate access to the legacy ACPI kobject in an optional compatibility
+> object linked into the same module. Retain the legacy ABI on active ACPI
+> systems, and initialize the class even when ACPI is absent or disabled.
+>
+> Use subsys_initcall_sync so the class is ready before built-in thermal
+> and CPUFreq providers, but after ACPI has initialized its compatibility
+> kobject.
+>
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
 
-> +++ b/drivers/pci/pcie/aer.c
-> @@ -1352,7 +1352,7 @@ struct aer_recover_entry {
->  	u8	devfn;
->  	u16	domain;
->  	int	severity;
-> -	struct aer_capability_regs *regs;
-> +	struct aer_capability_regs regs;
->  };
+Thanks for your patch, which is now commit 699041135f75b13a
+("platform profile: Extract the core from ACPI") in pm/linux-next/
 
-This increases stack usage significantly in aer_recover_queue(),
-which is not good.  A kzalloc() allocation may be better suited
-for such a large struct, instead of relying on the stack.
+> --- a/drivers/platform/Kconfig
+> +++ b/drivers/platform/Kconfig
+> @@ -1,4 +1,20 @@
+>  # SPDX-License-Identifier: GPL-2.0-only
+> +config PLATFORM_PROFILE
+> +       tristate "Platform profile support"
 
-> @@ -1374,24 +1374,14 @@ static void aer_recover_work_func(struct work_struct *work)
->  					   PCI_SLOT(entry.devfn),
->  					   PCI_FUNC(entry.devfn));
->  		else
-> -			pci_print_aer(pdev, entry.severity, entry.regs);
-> +			pci_print_aer(pdev, entry.severity, &entry.regs);
->  
-> -		regs = entry.regs;
-> +		regs = &entry.regs;
->  		if (entry.severity == AER_CORRECTABLE)
->  			err = regs->cor_status & ~regs->cor_mask;
->  		else
->  			err = regs->uncor_status & ~regs->uncor_mask;
->  
-> -		/*
-> -		 * Memory for aer_capability_regs(entry.regs) is being
-> -		 * allocated from the ghes_estatus_pool to protect it from
-> -		 * overwriting when multiple sections are present in the
-> -		 * error status. Thus free the same after processing the
-> -		 * data.
-> -		 */
-> -		ghes_estatus_pool_region_free((unsigned long)entry.regs,
-> -					    sizeof(struct aer_capability_regs));
-> -
+I guess this can be invisible (perhaps "... if COMPILE_TEST"?), as
+you have updated all provider selectors?
 
-So you're removing the call to ghes_estatus_pool_region_free() from the
-worker...
+If not, I guess this needs a "depend on X86 || COMPILE_TEST", so people
+configuring kernels for different architectures do not see this option?
 
-> @@ -1441,17 +1431,18 @@ void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
->  		.devfn		= devfn,
->  		.domain		= domain,
->  		.severity	= severity,
-> -		.regs		= aer_regs,
-> +		.regs		= *aer_regs,
->  	};
->  
-> +	ghes_estatus_pool_region_free((unsigned long)aer_regs,
-> +				      sizeof(struct aer_capability_regs));
+> +       help
+> +         Provide a common sysfs interface for selecting platform power,
+> +         performance and cooling profiles. Platform-specific provider drivers
+> +         map their operating modes onto standard profile names, independently
+> +         of the firmware interface they use.
 > +
+> +         The core exposes per-provider controls under /sys/class/platform-profile/.
+> +         A provider driver must register before profile attributes become
+> +         available. ACPI is not required; on ACPI systems the legacy system-wide
+> +         interface under /sys/firmware/acpi/ is also provided.
+> +
+> +         To compile this as a module, choose M here: the module will be called
+> +         platform_profile.
+> +
+>  source "drivers/platform/mips/Kconfig"
+>
+>  source "drivers/platform/loongarch/Kconfig"
 
-... and instead call it earlier, before even launching the worker.
-So where's the benefit?  You've traded less memory usage in the
-pool for higher stack usage.  How is that useful?
+Gr{oetje,eeting}s,
 
-Thanks,
+                        Geert
 
-Lukas
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
