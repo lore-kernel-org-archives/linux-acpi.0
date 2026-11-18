@@ -1,83 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795025844;
-	b=dkAa5aIP57txaX9vrdNJNNGnzDnDU37yRlVFOdqZeAEKfX25si+bnsafiolUMzZVP9CB
-	 F9CpyB4Dk4g5jUcqSeGzPVoS69Y4m7gGBI5ASQ421m2UeoVMJbD3j27nshPyLwtLPQB1x
-	 4oJRAYueWZuYJIYZFLYKQRKl7uE1KIxbt3I5guxCPCoStaGsf1YTwE5iKtwP7qgnRkcxZ
-	 7j7boaQjVjZZ6BV9o4rKIkmLjbfh3WMEjTftgpimj36UApLt42X1T6mvD13B39D2x++uu
-	 EdRTNw2aFevaXrG8rKfw9rV2YfuiLuYJ21IVzeo8H7C6SJmjCcV9ZJk5JwjWm0iEa3A==
+	t=1795028061;
+	b=lgbAfyEKrnQO9L8JbdmxYmjfZhdV0Uow7gIsJBWYrGT4M9V7KMJEpIq0kA5ydUOsshmy
+	 IYn1yqbJoYMQNl78kWtIaabb07hB5r6wSiXGIp1kW+Oy8qGO8+ZyjD7XNOM5k9QR02w/N
+	 HgiJd/O3v+MUCz2ax3lQDQRnwdsgTvnsFgGVtCutHN9FzQOiYU1FqH0Oe1hUNNQUypxv9
+	 vKq7sUAHnboghaa8xfM+DOCh5sCiYgiDvTFQ7I9A1g6z+NusXZQ9yQsJbNov8wUP2VU9k
+	 J8FvLRGccuFM1k9GPvhYZe8DURYl10y1DpVg9IObxISZLH1KkXyl22qKsRB40FyQP4w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795025844;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	a=rsa-sha256; c=relaxed/relaxed; t=1795028061;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=CAJHnZz8kdb3FQSnfzf7qsriL7II6F/IEUv4jMm3iQ8=;
-	b=2Nuxea3rDbA++7FUekBXI4AfJP1RSMhWjt+wqp/plJZqXPLRAACduuWYMHFg/xcxgv1f
-	 MumHjmNCkOwCuMZmtS5ajH/nIzY2ddnTxU0GODVuQ6Z1g29QIIFDf9nMgz7NXELbq8Gzc
-	 pM8F4JC27Lb6ywjmP8CbxnIr3J5DaXzHztt/b543JhFyHCrUVlC8bcIynTHecYbZj9mEe
-	 IGvTbRGVY+QWyoGJOJSm0tNu446eij2W2/32phIqVE1nbNw1EaOM8IM0Jep8T6mlpxXRT
-	 PWw3rrTJWi75CuERnxkuS2Krn20E6LCilL8+R3YNp/7OYl2/XQfPNl3QdSDw0sfyCRA==
+	bh=TZsTikxfxLhewEbP2xR/h7zJwb5pgHnbb8uIv7AdPeo=;
+	b=tG/lmY27jSfnj/P60XHkWRjR9zrfF7yzzPfi1ol+vycfptBO8Gee3qxmasTAEReTWB7e
+	 a6/graVdojNoiKCLyGJT8BOUCxAK7jZ/lVtzCNc1j/gFtsupQ5otB8NVgGi9QCP83elR/
+	 K7mV72qwvV4/98aS0d1/HiLmamaNXmPfwagsTStuA3xMsQcYNb0vQz2GNvVtzqxwSiUDE
+	 b/+AtzpFWhQudUPyV4SDhskXfM2vyW9Idc+G85bGYDqgqw1b8LPOVzqHribMDl0iMX6+Z
+	 VXRLj1bB6Ih5gDeAu+HK/Q449mffBxzVsBoAaq/HP7+o/udHIkxrD63ZpttkNuQm6yw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=YcSDufuf;
-	arc=none smtp.remote-ip=192.198.163.10
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CAVBtdBK;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97E8D60A2609;
-	Wed, 18 Nov 2026 18:17:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 97E8D60A2609
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52F7A606A325;
+	Wed, 18 Nov 2026 18:54:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=YcSDufuf
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795025844; x=1826561844;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=lryHKCrwcyLuKb+d1wrkUxuhWHmFj7BB0mgOMG0W0GQ=;
-  b=YcSDufufDjki7WwT7fgU5/JapBcuVRSLNj5nrWS0/qqd/MudW7LaMpFt
-   WvgaU9thqJNQ21BO59QzMXX3kfBdwUKR3KpK7wUGEtz/hthgbEOVBZkH/
-   w8+4Pm2jscgqiATFfgwIPh4tBDwcYhX89uxTsIWOMrVI80HXpczeIFvIB
-   PslV/qRLQLRfS6T4hWRUaWtlkJGhZU3eRY7E8QAmyh7N3oApmb2+Gb3Ni
-   8yjWGPzyBYxzUIgkpBaqnLENfKr5SY8HIGLJcMVzgnM/rKxi+g15wRnae
-   A5XHG28cmlKSfNNsrEzXutS4SP3jIi9NxtUMnof7hR6ZQsQgM7MCVhPby
-   A==;
-X-CSE-ConnectionGUID: oiRvxdUlQP6pxgU+dEUNdw==
-X-CSE-MsgGUID: 9LHHMqhbSVyCYmRU0IV0Nw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11970"; a="3744967"
-X-IronPort-AV: E=Sophos;i="6.27,219,1787036400"; 
-   d="scan'208";a="3744967"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Nov 2026 10:17:21 -0800
-X-CSE-ConnectionGUID: xNmsrO6YRhSawcUnuWsrMg==
-X-CSE-MsgGUID: CkF4heJOTv2zMAWZ7zjvgA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,219,1787036400"; 
-   d="scan'208";a="10087026"
-Received: from skuppusw-desk2.jf.intel.com ([10.165.154.101])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Nov 2026 10:17:21 -0800
-From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Lukas Wunner <lukas@wunner.de>,
-	Yazen Ghannam <yazen.ghannam@amd.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
-	Oliver O'Halloran <oohall@gmail.com>,
-	Len Brown <lenb@kernel.org>,
-	linux-pci@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v3 4/6] PCI/portdrv: Don't require AER to bind DPC service
-Date: Wed, 18 Nov 2026 10:17:16 -0800
-Message-ID: <20261118181718.3907441-5-sathyanarayanan.kuppuswamy@linux.intel.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261118181718.3907441-1-sathyanarayanan.kuppuswamy@linux.intel.com>
-References: <20261118181718.3907441-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CAVBtdBK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DD461F000C4;
+	Wed, 18 Nov 2026 18:54:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795028060;
+	bh=TZsTikxfxLhewEbP2xR/h7zJwb5pgHnbb8uIv7AdPeo=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=CAVBtdBKiBua6AQR1YohOwJUX4aO/2Q0tv9TEF+7XlxUgb8/hTMAcTjU1BRo9mNhM
+	 vXlXljYJ68uR0nta3BcJzXxhizkEaFpau8HtwwTpAMB9EpYrh7caZXxus/c58QuuJY
+	 OxQVkJTcj1AU9jmeUw5z+Xmix19MT+e/a7VRcvEgtTgCWDxrCx5CLRGY2oJVGilPrG
+	 aIR6R36xz2meISdE12Fj3Lz8mjYuedoWR31zdi66bRgzItaXpNzih99tvTnHEOYx4z
+	 3XvTuBvys9gsXyDPTo2lbtBEFr+VVVG264RmidGpNQZXHyWiy/OI5CEwB/o4aShiAP
+	 GkmDQRva+xv1A==
+Date: Wed, 18 Nov 2026 18:54:06 +0000
+From: Jonathan Cameron <jic23@kernel.org>
+To: Pierre Gondois <pierre.gondois@arm.com>
+Cc: linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@oss.qualcomm.com>,
+ James Morse <james.morse@arm.com>, Mark Brown <broonie@kernel.org>, Thomas
+ Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov
+ <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rafael@kernel.org>,
+ Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Hanjun Guo
+ <guohanjun@huawei.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai
+ Xue <xueshuai@linux.alibaba.com>, Mahesh J Salgaonkar
+ <mahesh@linux.ibm.com>, "Oliver O'Halloran" <oohall@gmail.com>, Bjorn
+ Helgaas <bhelgaas@google.com>, Maciej Wieczor-Retman
+ <maciej.wieczor-retman@intel.com>, Pawel Chmielewski
+ <pawel.chmielewski@intel.com>, Yazen Ghannam <yazen.ghannam@amd.com>, Qiuxu
+ Zhuo <qiuxu.zhuo@intel.com>, Radu Rendec <radu@rendec.net>, Avadhut Naik
+ <avadhut.naik@amd.com>, Dave Jiang <dave.jiang@intel.com>, "Fabio M. De
+ Francesco" <fabio.m.de.francesco@linux.intel.com>, Kai-Heng Feng
+ <kaihengf@nvidia.com>, Breno Leitao <leitao@debian.org>, Dan Williams
+ <djbw@kernel.org>, Terry Bowman <terry.bowman@amd.com>,
+ linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org,
+ acpica-devel@lists.linux.dev
+Subject: Re: [PATCH v1 01/19] x86/APEI: Extract common CPER memory error
+ reporting helper
+Message-ID: <20261118185406.21700e81@jic23-hlaptop>
+In-Reply-To: <20261117111444.4185512-2-pierre.gondois@arm.com>
+References: <20261117111444.4185512-1-pierre.gondois@arm.com>
+	<20261117111444.4185512-2-pierre.gondois@arm.com>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -87,60 +79,95 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-get_port_device_capability() binds the DPC service only if
-pci_aer_available() is true.  pci_aer_available() is false with
-"pci=noaer" or when MSI is disabled.
+On Tue, 17 Nov 2026 12:10:11 +0100
+Pierre Gondois <pierre.gondois@arm.com> wrote:
 
-The DPC driver does not need either of these.  pci_aer_available()
-depends on MSI only because the AER driver does not work with INTx
-(commit 3e77a3f7895e ("PCI: Disable AER with pci=nomsi")).  The DPC
-driver does not depend on MSI or on the AER driver, and it works on
-ports without an AER capability.
+> Prepare for reporting CPER Memory Error Section 2 records through MCE
+> by extracting apei_mce_report_mem_error_common().
+> 
+> No functional change.
+> 
+> Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
+One curious question + trivial comment inline.
 
-PCIe r7.0 sec 6.2.11 recommends that the OS link control of DPC to
-control of AER.  PCI Firmware r3.3, sec 4.5.2.4, requires the same for
-_OSC.  Both are about ownership, not about using the AER driver.
-host->native_aer and the _OSC negotiation already cover ownership.
+Otherwise, this is a simple refactor and seems clean to me.
+Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
 
-Drop the pci_aer_available() check.
+> ---
+>  arch/x86/kernel/cpu/mce/apei.c | 31 +++++++++++++++++--------------
+>  1 file changed, 17 insertions(+), 14 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/cpu/mce/apei.c b/arch/x86/kernel/cpu/mce/apei.c
+> index 0a89947e47bc8..b993ac78a3b36 100644
+> --- a/arch/x86/kernel/cpu/mce/apei.c
+> +++ b/arch/x86/kernel/cpu/mce/apei.c
+> @@ -26,24 +26,15 @@
+>  
+>  #include "internal.h"
+>  
+> -void apei_mce_report_mem_error(int severity, struct cper_sec_mem_err *mem_err)
+> +static void apei_mce_report_mem_error_common(int severity, u64 physical_addr,
+> +					     u64 physical_addr_mask)
+>  {
+>  	struct mce_hw_err err;
+>  	struct mce *m;
+>  	int lsb;
+>  
+> -	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
+> -		return;
+> -
+> -	/*
+> -	 * Even if the ->validation_bits are set for address mask,
+> -	 * to be extra safe, check and reject an error radius '0',
+> -	 * and fall back to the default page size.
+> -	 */
+> -	if (mem_err->validation_bits & CPER_MEM_VALID_PA_MASK)
+> -		lsb = find_first_bit((void *)&mem_err->physical_addr_mask, PAGE_SHIFT);
+> -	else
+> -		lsb = PAGE_SHIFT;
+> +	/* Missing or zero masks default to page granularity. */
+> +	lsb = find_first_bit((void *)&physical_addr_mask, PAGE_SHIFT);
 
-The changes in behavior are:
+Silly question.  What stops it being bigger than a page?  I appreciate you
+aren't changing what is already here but it made me curious.  It's 8 bytes
+so limiting it to page size seems odd.
 
-  - ACPI systems booted with "pci=noaer" or with MSI disabled, and with
-    "pcie_ports=native" or "pcie_ports=dpc-native".  The OS now uses DPC
-    there, which is what those options ask for.  Without them nothing
-    changes, because the OS does not request AER control in _OSC, so
-    host->native_aer is not set.
+That larger usecase came up last year for how to handle error injection
+into a VM that was running smaller pages than the host.
 
-  - Non-ACPI systems booted with "pci=noaer" or with MSI disabled.
-    host->native_aer is set there, so the OS now uses DPC.  An
-    uncorrectable error that used to be ignored with "pci=noaer" now
-    triggers DPC, which takes the link down and resets the devices below
-    the port.
+I guess on x86 it simply isn't ever bigger than one page?
 
-Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-Reviewed-by: Yazen Ghannam <yazen.ghannam@amd.com>
----
-Changes since v2:
- - Add Reviewed-by from Yazen
 
- drivers/pci/pcie/portdrv.c | 1 -
- 1 file changed, 1 deletion(-)
+>  
+>  	mce_prep_record(&err);
+>  	m = &err.m;
+> @@ -60,9 +51,21 @@ void apei_mce_report_mem_error(int severity, struct cper_sec_mem_err *mem_err)
+>  		m->tsc = rdtsc();
+>  	}
+>  
+> -	m->addr = mem_err->physical_addr;
+> +	m->addr = physical_addr;
+>  	mce_log(&err);
+>  }
+> +
+> +void apei_mce_report_mem_error(int severity, struct cper_sec_mem_err *mem_err)
+> +{
+> +	u64 mask = 0;
+> +
+> +	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
+> +		return;
 
-diff --git a/drivers/pci/pcie/portdrv.c b/drivers/pci/pcie/portdrv.c
-index 32fc623dd410..b77680fd3b75 100644
---- a/drivers/pci/pcie/portdrv.c
-+++ b/drivers/pci/pcie/portdrv.c
-@@ -263,7 +263,6 @@ static int get_port_device_capability(struct pci_dev *dev)
- 	 * permission to use AER.
- 	 */
- 	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_DPC) &&
--	    pci_aer_available() &&
- 	    (pcie_ports_dpc_native || host->native_aer))
- 		services |= PCIE_PORT_SERVICE_DPC;
- 
--- 
-2.43.0
+I'd add a blank line here given that return is a mite hard to spot.
+
+> +	if (mem_err->validation_bits & CPER_MEM_VALID_PA_MASK)
+> +		mask = mem_err->physical_addr_mask;
+> +
+> +	apei_mce_report_mem_error_common(severity, mem_err->physical_addr, mask);
+> +}
+>  EXPORT_SYMBOL_GPL(apei_mce_report_mem_error);
+>  
+>  int apei_smca_report_x86_error(struct cper_ia_proc_ctx *ctx_info, u64 lapic_id)
 
