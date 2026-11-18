@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795030078;
-	b=tCLDYYrC6gbIvMsybsDQrQZONgU++BFzm2vPAYQtcJ3e/h5wCiYD9tkQDdfft4SqN2La
-	 qelWx8vmkGEXY58yt3vpLM4VkdKVePOrI6EoUSBhlP7ZX3uv4Crc4/QxJ8QLUh63RAvQ+
-	 wUNaUUy+VxU84DfnTw2MiirCQeUwjbcCmMeK6012w+vdmzD10scYYyrsdAJ9jzN5JPk5h
-	 9Mmit8z6a1hD6FxsQ4gJqf5nN+PxWq/tG8uefI3YVJGwHTUeJizHs4CmRLpru8o6M29Vh
-	 lYKxbO3F87sCC2ddqnnE72b48JSRBr3T2dHNzIWERkfkXLCQmz0d8AUiHf9uDKL4z5Q==
+	t=1795030094;
+	b=1Ek/5YasNNmBKIPHuwbmt+VnAlhWnoqi4GuXaK1E/dYFKoa10wHyQOFFQ7qV+XZiDWdm
+	 Zn2a3344WZQT3VSnIC6AVIbuSHy62iuu5zBYeE8Kugq48hj+e6jXRdTXDdizqnHHdrZvB
+	 yiDSsXtrem3NEbEblw3bFWCe6IzK9TgKOVWR1EYc4Bh9UuhNkZv7KnPqvOOV02FkQibEY
+	 RqGEJ9gqaTxA2eZXMytJ6HOZDqt4JO3c/sb1vbYgmMfsqn+MR7c+oKezDsOuXyGQVdEQ0
+	 3RF/cnc2Yqov0MoMdhS0BH5LAgSyIBpUyi/4/UnLyGFicrBXeM8nYXuXjF56ayTm42w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795030078;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795030094;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
 	 Content-Transfer-Encoding;
-	bh=anRl7XzxmWAd4I65xBnGqpxFVe3h8V+5KB72VF6S6NQ=;
-	b=eDMeOB2p6by1ukgaurpwRK/RYiymCOwTPNTNhIRjtUGnHcP217oTe5AhEGjsbHntCsjJ
-	 h09WSnVUdYkyhER5pw8mG9ae8V2EiCcFg5Sed2hlssT6iNg0VC+dsb4r37ulxFgjGKH1r
-	 EtcRy36F2rVRdeDja1f1OVocbHO1dlp7c0VxsuroPIfvVYLzUbRlkkDjhtSQF0qBtDcu4
-	 1PcFqfNaD6HEkkoxmObGWi7tMWk3xXUFHfdaO3tT74xC9krDyWiVodhZsZP3BW1bShwwv
-	 viICwoBAvdQBCddKheph0rDuSAB5Uh/tBWOpr55c/RCaw+vjYQS/tGdZfqp81/dJSVg==
+	bh=svn/2tWKkyjohVxB7EW8S8pN30sPScn5Y9r6tebxa/E=;
+	b=e3OCNDNHTdpNzUibRLoiGZt62JAxjAybyy9tC4CefABiENWnBqy7kuGybejvD69Kr8XL
+	 DxFpX5cpSpIYcw9fUmw6IqXEimiV0O3pwuW26v6/0QLujU177Ek+o6gFV+z+mN+YoaZcU
+	 84MPC+NGCfZHGQ8CPscPvkO5u2U/tHDpR3X5TD3qqFY8kidD6qlNP0MmS348K54V6KcqS
+	 n4jKiyBide1E3wVJRLQNFvdv7rxjnd3aezVnY8YdH+LgXtYqJZbj56c2VQW0KM7WJZpxL
+	 P/sZJk6eTUGzHbHehNQpFnvoh6h0K01E/TPNntlv3ou/WBt5LenoJ0qzL/n/cqtFPMw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="e/eyfjil";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XVDGL09d;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F07F1606BB7F;
-	Wed, 18 Nov 2026 19:27:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EB77606E7C8;
+	Wed, 18 Nov 2026 19:28:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=e/eyfjil
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2B6A1F000CA;
-	Wed, 18 Nov 2026 19:27:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XVDGL09d
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B8B51F000CF;
+	Wed, 18 Nov 2026 19:28:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795030077;
-	bh=anRl7XzxmWAd4I65xBnGqpxFVe3h8V+5KB72VF6S6NQ=;
+	s=k20260515; t=1795030094;
+	bh=svn/2tWKkyjohVxB7EW8S8pN30sPScn5Y9r6tebxa/E=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=e/eyfjilUUstnvPzcYoDzASy0RPKzQsGaViyRBBOGePQ+Iuxs73dYZ5tDM+NmiNtK
-	 +/D+Z8ufPIGyqcHz+FnMlOvbzd/o6X14iLkhfhKwjsiOHhyHSDODYnduZEEmfPcI96
-	 NsryVnKHLf9WzxdC2LVJbYlyPFn/LBpgN/sFRUi2B6UQDrfPabGCNNMLZUxsIklzAS
-	 ibHYfRAGALN/EGQE+GoL/8gisbKLvL4EfyuNGCYrGfmDWdoad95d4hNQlEhMv9HT1e
-	 xDEdmeO9RBo741cwzNyjqtZLFbiep8sCpCsvD+Ezq8rvTR8nTQP1f/L4HNYV0f0JRA
-	 24/Ma14tSgc/Q==
+	b=XVDGL09defh2GiX8dr2vKpGLKulIzuk0St/2t3HaDgFfsAxZ0+/e/43jplzeNyjHh
+	 bxRyfwgJi2CE0EjrTegwtbT8NNTKNTIAoqYQ/V1E3t16czqDSB+1ywhZXOQpJwZBlH
+	 Knv4UHtnLfBedjQmN5AEbnD/Nk4FCQPmJ5kA4fw3d9sEBUOmM46fQr13+6eSbsnA4R
+	 F2TYHsWA/KBsuun7hyl/23ftdK7yvWn22KHhQy4kPSQUbaHyWDq+eBWw3v80On2SbI
+	 RnyZBNjXtyao5CWum6BLHMkY0sZygZIZpszpd+VJxeCgiNpZNjbigvoaOoYltV6baa
+	 oTBo7k0JiKosQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
@@ -96,9 +96,9 @@ Cc: linux-kernel@vger.kernel.org,
 	Greg Kroah-Hartman <gregkh@suse.de>,
 	linux-sound@vger.kernel.org,
 	Jason Gunthorpe <jgg@ziepe.ca>
-Subject: [PATCH v3 11/31] USB: Unwind interface claims after registration or binding failure
-Date: Wed, 18 Nov 2026 21:26:41 +0200
-Message-ID: <20261118-device-trust-core-v3-11-d655875c4bfb@nvidia.com>
+Subject: [PATCH v3 15/31] driver core: Add a compatibility API for manual driver attachment
+Date: Wed, 18 Nov 2026 21:26:45 +0200
+Message-ID: <20261118-device-trust-core-v3-15-d655875c4bfb@nvidia.com>
 X-Mailer: git-send-email 2.56.1
 In-Reply-To: <20261118-device-trust-core-v3-0-d655875c4bfb@nvidia.com>
 References: <20261118-device-trust-core-v3-0-d655875c4bfb@nvidia.com>
@@ -117,130 +117,331 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-A successful USB-audio control probe can claim unregistered playback and
-capture interfaces. If playback registration fails, releasing its claim
-alone leaves the card active, its disconnect callback returns immediately.
+Manual attachment can race normal probing and removal, releasing another
+probe's resources. Callers cannot always acquire the device mutex under
+subsystem locks.
 
-usb_set_configuration()
-  device_add(control)
-    usb_audio_probe()
-      snd_usb_create_streams()
-        snd_usb_create_stream(playback)
-          usb_driver_claim_interface(playback)
-        snd_usb_create_stream(capture)
-          usb_driver_claim_interface(capture)
-  device_add(playback) [fails]
+Add device_driver_attach_unrestricted() with a binding mutex shared by
+attachment, removal and deletion. Trylock it to reject competing
+transactions. Supplier-status reads must avoid sysfs lock inversion and
+private-state access after registration failure.
 
-Configuration removal skips unregistered claims and binding failure can
-also clear dev->driver without disconnecting the claimant.
+This compatibility API must not be used in any new code: it prevents use
+of the device trust authorization infrastructure. New code must use
+device_driver_attach().
 
-Release the failed claim, remove the configuration if sibling claims
-remain, and disconnect unpublished claims before freeing interfaces or
-dropping the module reference.
-
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Fixes: 86d30741e480f ("[PATCH] USB: Usbcore: Don't try to delete unregistered interfaces")
-Fixes: c6a46696f97ff ("driver core: don't fail attaching the device if it cannot be bound")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/usb/core/driver.c  |  3 ++-
- drivers/usb/core/message.c | 41 ++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 42 insertions(+), 2 deletions(-)
+ drivers/base/base.h    |   3 ++
+ drivers/base/core.c    |  32 +++++++++++---
+ drivers/base/dd.c      | 117 +++++++++++++++++++++++++++++++++++++++++++------
+ include/linux/device.h |   2 +
+ 4 files changed, 134 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/usb/core/driver.c b/drivers/usb/core/driver.c
-index 3beed56fabf3d..e2a120c64f6e1 100644
---- a/drivers/usb/core/driver.c
-+++ b/drivers/usb/core/driver.c
-@@ -488,7 +488,8 @@ static int usb_unbind_interface(struct device *dev)
- 		/* Already in altsetting 0 so skip Set-Interface.
- 		 * Just re-enable it without affecting the endpoint toggles.
- 		 */
--		usb_enable_interface(udev, intf, false);
-+		if (!intf->unregistering)
-+			usb_enable_interface(udev, intf, false);
- 	} else if (!error && !intf->dev.power.is_prepared) {
- 		r = usb_set_interface(udev, intf->altsetting[0].
- 				desc.bInterfaceNumber, 0);
-diff --git a/drivers/usb/core/message.c b/drivers/usb/core/message.c
-index 306978caaf1ef..b2e5ed35a4a59 100644
---- a/drivers/usb/core/message.c
-+++ b/drivers/usb/core/message.c
-@@ -1489,6 +1489,9 @@ void usb_disable_device(struct usb_device *dev, int skip_ep0)
- 			device_del(&interface->dev);
- 		}
+diff --git a/drivers/base/base.h b/drivers/base/base.h
+index 866b2beb6baa2..61f49fc142f45 100644
+--- a/drivers/base/base.h
++++ b/drivers/base/base.h
+@@ -105,6 +105,7 @@ struct driver_private {
+  *			   dev_err_probe() for later retrieval via debugfs
+  * @device: pointer back to the struct device that this structure is
+  *	    associated with.
++ * @driver_lock: serializes binding and removal, including compatibility attach
+  * @dead: This device is currently either in the process of or has been
+  *	  removed from the system. Any asynchronous events scheduled for this
+  *	  device should exit without taking any action.
+@@ -121,6 +122,8 @@ struct device_private {
+ 	const struct device_driver *async_driver;
+ 	char *deferred_probe_reason;
+ 	struct device *device;
++	/* Taken after the device mutex, except by compatibility attach. */
++	struct mutex driver_lock;
+ 	u8 dead:1;
+ };
+ #define to_device_private_parent(obj)	\
+diff --git a/drivers/base/core.c b/drivers/base/core.c
+index cbe05197d4a0b..92d25bf4f8632 100644
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -1315,13 +1315,23 @@ static ssize_t waiting_for_supplier_show(struct device *dev,
+ 					 const struct device_attribute *attr,
+ 					 char *buf)
+ {
++	struct kernfs_node *kn;
++	ssize_t ret = -ENODEV;
+ 	bool val;
  
-+		for (i = 0; i < dev->actconfig->desc.bNumInterfaces; i++)
-+			usb_release_unregistered_interface(dev->actconfig->interface[i]);
++	kn = sysfs_break_active_protection(&dev->kobj, &attr->attr);
++	if (!kn)
++		return -ENODEV;
 +
- 		/* Now that the interfaces are unbound, nobody should
- 		 * try to access them.
- 		 */
-@@ -2020,6 +2023,25 @@ int usb_set_wireless_status(struct usb_interface *iface,
- }
- EXPORT_SYMBOL_GPL(usb_set_wireless_status);
- 
-+static bool usb_has_claimant(struct usb_device *dev,
-+			     const struct device_driver *claimant)
-+{
-+	struct usb_host_config *config = dev->actconfig;
-+	int i;
-+
-+	for (i = 0; i < config->desc.bNumInterfaces; i++) {
-+		struct device *intf = &config->interface[i]->dev;
-+		bool claimed;
-+
-+		device_lock(intf);
-+		claimed = intf->driver == claimant;
-+		device_unlock(intf);
-+		if (claimed)
-+			return true;
+ 	device_lock(dev);
+-	scoped_guard(mutex, &fwnode_link_lock)
+-		val = !!fwnode_links_check_suppliers(dev->fwnode);
++	if (dev_ready_to_probe(dev) && !dev->p->dead) {
++		scoped_guard(mutex, &fwnode_link_lock)
++			val = !!fwnode_links_check_suppliers(dev->fwnode);
++		ret = sysfs_emit(buf, "%u\n", val);
 +	}
-+	return false;
+ 	device_unlock(dev);
+-	return sysfs_emit(buf, "%u\n", val);
++	sysfs_unbreak_active_protection(kn);
++	return ret;
+ }
+ static const DEVICE_ATTR_RO(waiting_for_supplier);
+ 
+@@ -3609,6 +3619,9 @@ static int device_private_init(struct device *dev)
+ 	if (!dev->p)
+ 		return -ENOMEM;
+ 	dev->p->device = dev;
++	mutex_init(&dev->p->driver_lock);
++	/* Driver callbacks can bind or unbind child devices. */
++	lockdep_set_novalidate_class(&dev->p->driver_lock);
+ 	klist_init(&dev->p->klist_children, klist_children_get,
+ 		   klist_children_put);
+ 	INIT_LIST_HEAD(&dev->p->deferred_probe);
+@@ -3889,6 +3902,8 @@ EXPORT_SYMBOL_GPL(put_device);
+ 
+ bool kill_device(struct device *dev)
+ {
++	bool killed = false;
++
+ 	/*
+ 	 * Require the device lock and set the "dead" flag to guarantee that
+ 	 * the update behavior is consistent with the other bitfields near
+@@ -3898,10 +3913,13 @@ bool kill_device(struct device *dev)
+ 	 */
+ 	device_lock_assert(dev);
+ 
+-	if (dev->p->dead)
+-		return false;
+-	dev->p->dead = true;
+-	return true;
++	mutex_lock(&dev->p->driver_lock);
++	if (!dev->p->dead) {
++		dev->p->dead = true;
++		killed = true;
++	}
++	mutex_unlock(&dev->p->driver_lock);
++	return killed;
+ }
+ EXPORT_SYMBOL_GPL(kill_device);
+ 
+diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+index 52123251965de..6ac1486b9fbb5 100644
+--- a/drivers/base/dd.c
++++ b/drivers/base/dd.c
+@@ -526,6 +526,21 @@ static void driver_sysfs_remove(struct device *dev)
+ 	}
+ }
+ 
++static int __device_bind_driver(struct device *dev)
++{
++	int ret;
++
++	ret = driver_sysfs_add(dev);
++	if (ret) {
++		bus_notify(dev, BUS_NOTIFY_DRIVER_NOT_BOUND);
++		return ret;
++	}
++
++	device_links_force_bind(dev);
++	driver_bound(dev);
++	return 0;
 +}
 +
- /*
-  * usb_set_configuration - Makes a particular device setting be current
-  * @dev: the device whose configuration is being updated
-@@ -2270,6 +2292,7 @@ int usb_set_configuration(struct usb_device *dev, int configuration)
- 	 */
- 	for (i = 0; i < nintf; ++i) {
- 		struct usb_interface *intf = cp->interface[i];
-+		struct device_driver *claimant;
- 		struct module *claim_owner;
+ /**
+  * device_bind_driver - bind a driver to one device.
+  * @dev: device.
+@@ -545,16 +560,85 @@ int device_bind_driver(struct device *dev)
+ {
+ 	int ret;
  
- 		if (intf->dev.of_node &&
-@@ -2285,6 +2308,7 @@ int usb_set_configuration(struct usb_device *dev, int configuration)
- 			intf->cur_altsetting->desc.bInterfaceNumber);
- 		device_enable_async_suspend(&intf->dev);
- 		device_lock(&intf->dev);
-+		claimant = intf->dev.driver;
- 		claim_owner = xchg(&intf->claim_owner, NULL);
- 		device_unlock(&intf->dev);
- 		ret = device_add(&intf->dev);
-@@ -2293,7 +2317,22 @@ int usb_set_configuration(struct usb_device *dev, int configuration)
- 			intf->unregistering = 1;
- 			device_unlock(&intf->dev);
- 		}
--		module_put(claim_owner);
-+		if (claimant && (ret || !intf->dev.driver) &&
-+		    usb_driver_release_refused_claim(intf, claimant)) {
-+			bool unconfigure = usb_has_claimant(dev, claimant);
+-	ret = driver_sysfs_add(dev);
+-	if (!ret) {
+-		device_links_force_bind(dev);
+-		driver_bound(dev);
++	mutex_lock(&dev->p->driver_lock);
++	ret = __device_bind_driver(dev);
++	mutex_unlock(&dev->p->driver_lock);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(device_bind_driver);
 +
-+			get_device(&intf->dev);
-+			if (unconfigure)
-+				usb_set_configuration(dev, -1);
-+			module_put(claim_owner);
-+			put_device(&intf->dev);
-+			if (unconfigure) {
-+				usb_autosuspend_device(dev);
-+				return ret ? ret : -ENODEV;
-+			}
-+		} else {
-+			module_put(claim_owner);
-+		}
- 		if (ret != 0) {
- 			dev_err(&dev->dev, "device_add(%s) --> %d\n",
- 				dev_name(&intf->dev), ret);
++/**
++ * device_driver_attach_unrestricted - attach a driver using subsystem serialization
++ * @drv: driver to attach
++ * @dev: device to attach it to
++ *
++ * This compatibility API must not be used in any new code. It prevents
++ * devices from using the device trust authorization infrastructure.
++ * New code must use device_driver_attach().
++ *
++ * Callers must provide their subsystem's existing manual-binding
++ * serialization. This function does not acquire device or parent locks.
++ * Binding and removal are serialized separately; an overlapping transaction
++ * returns -EBUSY instead of waiting under the caller's subsystem locks.
++ * It calls the bus or driver probe callback and publishes the binding without
++ * performing the normal driver-core DMA, pinctrl or power-domain setup.
++ *
++ * Return: 0 on success, -EAGAIN if registration or probing must be retried,
++ * or another negative error before binding.
++ */
++int device_driver_attach_unrestricted(const struct device_driver *drv,
++				      struct device *dev)
++{
++	int ret;
++
++	if (!device_is_registered(dev))
++		return -ENODEV;
++	if (!mutex_trylock(&dev->p->driver_lock))
++		return -EBUSY;
++	if (dev->p->dead) {
++		ret = -ENODEV;
++		goto unlock;
+ 	}
++	if (!dev_ready_to_probe(dev)) {
++		ret = -EAGAIN;
++		goto unlock;
++	}
++	if (dev->driver) {
++		ret = -EBUSY;
++		goto unlock;
++	}
++
++	device_set_driver(dev, drv);
++	if (dev->bus->probe)
++		ret = dev->bus->probe(dev);
+ 	else
+-		bus_notify(dev, BUS_NOTIFY_DRIVER_NOT_BOUND);
++		ret = drv->probe(dev);
++	if (ret)
++		goto clear_driver;
++
++	ret = __device_bind_driver(dev);
++	if (ret)
++		goto bus_remove;
++
++	mutex_unlock(&dev->p->driver_lock);
++	return 0;
++
++bus_remove:
++	if (dev->bus->remove)
++		dev->bus->remove(dev);
++	else
++		drv->remove(dev);
++clear_driver:
++	devres_release_all(dev);
++	device_set_driver(dev, NULL);
++	dev_set_drvdata(dev, NULL);
++	if (ret == -EPROBE_DEFER)
++		ret = -EAGAIN;
++unlock:
++	mutex_unlock(&dev->p->driver_lock);
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(device_bind_driver);
++EXPORT_SYMBOL_GPL(device_driver_attach_unrestricted);
+ 
+ static atomic_t probe_count = ATOMIC_INIT(0);
+ static DECLARE_WAIT_QUEUE_HEAD(probe_waitqueue);
+@@ -1035,15 +1119,15 @@ static int __device_attach_driver(struct device_driver *drv, void *_data)
+  * @dev: Device we will update driver info for
+  * @parent: Parent device. Needed if the device type requires parent lock
+  *
+- * This function will take the required locks for manipulating dev->drv.
+- * Normally this will just be the @dev lock, but when called for a USB
+- * interface, @parent lock will be held as well.
++ * Take the device lock and binding lock, together with the parent lock
++ * when the device type requires it.
+  */
+ static void __device_driver_lock(struct device *dev, struct device *parent)
+ {
+ 	if (dev->type && dev->type->need_parent_lock && parent)
+ 		device_lock(parent);
+ 	device_lock(dev);
++	mutex_lock(&dev->p->driver_lock);
+ }
+ 
+ /*
+@@ -1051,12 +1135,12 @@ static void __device_driver_lock(struct device *dev, struct device *parent)
+  * @dev: Device we will update driver info for
+  * @parent: Parent device. Needed if the device type requires parent lock
+  *
+- * This function will release the required locks for manipulating dev->drv.
+- * Normally this will just be the @dev lock, but when called for a
+- * USB interface, @parent lock will be released as well.
++ * Release the binding and device locks, together with the parent lock
++ * when the device type requires it.
+  */
+ static void __device_driver_unlock(struct device *dev, struct device *parent)
+ {
++	mutex_unlock(&dev->p->driver_lock);
+ 	device_unlock(dev);
+ 	if (dev->type && dev->type->need_parent_lock && parent)
+ 		device_unlock(parent);
+@@ -1104,6 +1188,7 @@ static int __device_attach(struct device *dev, bool allow_async)
+ 	bool async = false;
+ 
+ 	device_lock(dev);
++	mutex_lock(&dev->p->driver_lock);
+ 	if (dev->p->dead) {
+ 		goto out_unlock;
+ 	} else if (dev->driver) {
+@@ -1111,7 +1196,7 @@ static int __device_attach(struct device *dev, bool allow_async)
+ 			ret = 1;
+ 			goto out_unlock;
+ 		}
+-		ret = device_bind_driver(dev);
++		ret = __device_bind_driver(dev);
+ 		if (ret == 0)
+ 			ret = 1;
+ 		else {
+@@ -1149,6 +1234,7 @@ static int __device_attach(struct device *dev, bool allow_async)
+ 			pm_runtime_put(dev->parent);
+ 	}
+ out_unlock:
++	mutex_unlock(&dev->p->driver_lock);
+ 	device_unlock(dev);
+ 	if (async && !async_schedule_dev_nocall(__device_attach_async_helper, dev)) {
+ 		put_device(dev);
+@@ -1285,11 +1371,13 @@ static int __driver_attach(struct device *dev, void *data)
+ 		 */
+ 		dev_dbg(dev, "probing driver %s asynchronously\n", drv->name);
+ 		device_lock(dev);
++		mutex_lock(&dev->p->driver_lock);
+ 		if (!dev->driver && !dev->p->async_driver) {
+ 			get_device(dev);
+ 			dev->p->async_driver = drv;
+ 			async = true;
+ 		}
++		mutex_unlock(&dev->p->driver_lock);
+ 		device_unlock(dev);
+ 		if (async)
+ 			async_schedule_dev(__driver_attach_async_helper, dev);
+@@ -1374,6 +1462,9 @@ void device_release_driver_internal(struct device *dev,
+ 				    const struct device_driver *drv,
+ 				    struct device *parent)
+ {
++	if (!dev->p)
++		return;
++
+ 	__device_driver_lock(dev, parent);
+ 
+ 	if (!drv || drv == dev->driver)
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 429e39f647cf9..5433b2609ab30 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -1314,6 +1314,8 @@ static inline void *dev_get_platdata(const struct device *dev)
+  */
+ int __must_check device_driver_attach(const struct device_driver *drv,
+ 				      struct device *dev);
++int __must_check device_driver_attach_unrestricted(
++	const struct device_driver *drv, struct device *dev);
+ int __must_check device_bind_driver(struct device *dev);
+ void device_release_driver(struct device *dev);
+ int  __must_check device_attach(struct device *dev);
 
 -- 
 2.56.1
