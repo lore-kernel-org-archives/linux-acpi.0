@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795030086;
-	b=3xpwO3ad0whQ3GQF3du/663Rqa+5okaf6FxKzuD3q+ApayMVKWeUT4bZxsmF9SyN+v3H
-	 VyDTU3dhts6DSfGtYW28Ifgp7qu8qd2Rbe4KYrYP7qRpYIZ+AfNdphCeA9gqJdbNRkeuw
-	 66Fi38mgFDgNOsWtIbcsxKJR2aDaMnWnUuRp3OiibvfnxJalYURpH1AGfT7qh1amlVbuf
-	 VnHUdwYGI9GlcIne/odHJ4a8fL9X0eFP0kciiz9FHXvjJnn0HBIbh12hgOk713kaGGJWf
-	 Jjbrste6EkCUHFC0LEDtRzqxiImTp0HNPvy2BJDckQIjtdHsWmiybMDLxieSwIwMNjQ==
+	t=1795030102;
+	b=JENCuCzjGl4oD6HXKU73rYhn6YAaAxXbnjrSE7IkesQP23zWBOi05ZQMuRU4P62x2Qfw
+	 VvhE/mcmV6eYCQPaRD5ThWpNggmE9P6juDKAdmRNtcgSuy3C+nITMAIRGErsRDlfvSmUV
+	 Hnch90igjWToQ2Z/PJsKoga1rp3ZtYckmJ83VzFt7YxKqXI2yE8xwFs3YK1QLTy6MT47I
+	 1HTTaKcdtNPmb2CQxjiBMYdacRTSzDMMbhFS8pi9gNJX3wBvCp+fkv7PMo1PnE5y4U93d
+	 sJ5Jp4Rd7HTkAAnwHopEW/BaGqtvRVeadqf5JLYwWk097yyje7P6fMrL7aqf2DhRT7A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795030086;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795030102;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
 	 Content-Transfer-Encoding;
-	bh=SnrsLB5kZ1UeQnsG8kHcQUsE97ktcTSiGi8C0w4swCU=;
-	b=rZfrqhPTXixghYiwMysAWvgHtWL0NY5ZKsXalE5AMT+o17RLZqEWb9KACtrAwnLDBJUL
-	 vYH8ZlfDpx0MhoP3MrljmSlZhrnUWshmfZOPTM2wL0C8PoRgIW36hF5pNQzqU0PsYoGze
-	 3jMV7nZCUs7A7sPjz7+Lts/57x7WpBQ9P7mMNQC6+zmNfIUdblMW/u3jbGDCpT2FcjzJO
-	 A4wNj+GiEaArgf2b4b1ZXgYMUZ4F1ITe5IspyNEJepDTP+a6fwCOLvbZ912X5GMRGz+R6
-	 UqNPedD6hxFLrw7z9cmGeCOKKowiXCSr4CujRsFNX8TjBrm1MaOgyRWK+PlVrnVLLMw==
+	bh=ePO1HaQy6BuunjZvvPsV5K/2vWM8debo/YiENR3jWNU=;
+	b=RDdK6gDiriUryUGmu9kEsyAynEnU0oqtek4GYX82tkJ9sHoPx0ammHT7Zx6wPJpx+f13
+	 UDQEZY9wdPTnwntnO8t3leWTlBNKYNnDV8GMIRgurdT06ZHcCQh2jy4wL8dxMiqHhaDpn
+	 sIHNke5SgKHR1/CmchnWL7duxiZK0m4BYkz610LABtwjGk6SThP9OWmp/dYuxz3WGEBHj
+	 oNiDjLkWS3++w+PKYoYgGCDgNrjkc3Lv8dO/8SYxwOxhRdkjQ7Vg/EWNXcugSJEaQIBYU
+	 RfOqB/1iefWppWx4ObsX7mcbxD3wLtNC2Iw2mSdjQcqjf0ZvhYvncWVoezaWMp3I2Jw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cCPIYzfv;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ijm0HvjC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F29E606D35E;
-	Wed, 18 Nov 2026 19:28:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 166EC60A6F61;
+	Wed, 18 Nov 2026 19:28:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cCPIYzfv
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9ABB1F000C7;
-	Wed, 18 Nov 2026 19:28:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ijm0HvjC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9AED1F000C6;
+	Wed, 18 Nov 2026 19:28:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795030085;
-	bh=SnrsLB5kZ1UeQnsG8kHcQUsE97ktcTSiGi8C0w4swCU=;
+	s=k20260515; t=1795030101;
+	bh=ePO1HaQy6BuunjZvvPsV5K/2vWM8debo/YiENR3jWNU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=cCPIYzfvOpSaWxW7MQKpro4h15QnMMJVwSPJdZjOFqzBIZxjciSgPHzGsK9vib1jQ
-	 GgM2hLkK6ypMYv2W5GOZK/JttsXsLjTBYaDSIjFCgj3ipveP9BPs0YBMeBNOH5j5Zi
-	 BTlhM+g0yA3T8aR0EOmXh98niJGxJWpx/mxLtW+Zqih0yhCSDGfODnlAB1TLKykznB
-	 aBoTEK8SdW9Mj7lJxQXZnTSgaYdNAM4bvwpAi/7UVEu8AHgbp7TYN7e/eH7P3H5iMp
-	 POOX9gwWkG08D9sHpw0jcnMIUgEQrruGvkEMZpuEJ297tqzaw9P29HTipyqVJ/63y8
-	 Q//VtVqkfDpYQ==
+	b=Ijm0HvjCOyPj2Sz14XGqAh55LuqsbUomOOgZ/+CyYcJsyWT2xlKZfIt/W7eAFOI1H
+	 0Lp7EgtnU0lqKrNd6DVcVQCMqg41Y4UgL8ih3FVULgHtVGgqTGyYI9Q/T3tAASroeJ
+	 ceuB40VBCqdG/AL2VMHN4JOkQ3c6dM/d6qB3ZpprZTBgfqSh8M3Ciy1PUfC5WKioBx
+	 bKB/2uY7Is496NoS7pRKe6XChnfzk/UxprutVByaTIpTetUb6cHbjEa8Ug4n+Mal/5
+	 7EJ4UaG0HnXuSY1V1wpiXy9b+b98pvsCBP/4PflIFZunvhobQEXqetAAlty2EdHZc7
+	 0JmA9Kiaz9mgQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
@@ -96,9 +96,9 @@ Cc: linux-kernel@vger.kernel.org,
 	Greg Kroah-Hartman <gregkh@suse.de>,
 	linux-sound@vger.kernel.org,
 	Jason Gunthorpe <jgg@ziepe.ca>
-Subject: [PATCH v3 08/31] ALSA: usb-audio: Release interface claims when probe fails
-Date: Wed, 18 Nov 2026 21:26:38 +0200
-Message-ID: <20261118-device-trust-core-v3-8-d655875c4bfb@nvidia.com>
+Subject: [PATCH v3 17/31] Input: serio - use the compatibility driver attachment API
+Date: Wed, 18 Nov 2026 21:26:47 +0200
+Message-ID: <20261118-device-trust-core-v3-17-d655875c4bfb@nvidia.com>
 X-Mailer: git-send-email 2.56.1
 In-Reply-To: <20261118-device-trust-core-v3-0-d655875c4bfb@nvidia.com>
 References: <20261118-device-trust-core-v3-0-d655875c4bfb@nvidia.com>
@@ -117,38 +117,72 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-If the first control-interface probe fails after claiming streaming or
-MIDI interfaces, freeing the card leaves those claims behind. Module
-unload can then race with registration of the claimed interfaces and
-leave dangling driver pointers.
+Manual serio binding holds serio_mutex, but generic sysfs probing does
+not take that mutex. The two paths can race while updating driver state
+or cleaning up a failed probe.
 
-Release auxiliary claims when discarding a newly created card. Preserve
-them when a failed secondary probe leaves an existing card in use.
+Use device_driver_attach_unrestricted() after the port ID check to
+centralize binding and cleanup. Acquire the device lock with
+device_trylock() to exclude generic probing, returning -EBUSY instead of
+waiting while holding serio_mutex. Map legacy -1 connect failures to
+-ENODEV in the probe callback so they are not reported as -EPERM, while
+preserving errors returned by the attachment helper.
 
-Fixes: 9ad3d6ccf5ee ("[PATCH] USB: Remove USB private semaphore")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- sound/usb/card.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/input/serio/serio.c | 29 ++++++++++-------------------
+ 1 file changed, 10 insertions(+), 19 deletions(-)
 
-diff --git a/sound/usb/card.c b/sound/usb/card.c
-index 59979b793fe91..56ebdd61f72e7 100644
---- a/sound/usb/card.c
-+++ b/sound/usb/card.c
-@@ -1090,6 +1090,13 @@ static int usb_audio_probe(struct usb_interface *intf,
- 		atomic_dec(&chip->active);
- 		if (!chip->num_interfaces) {
- 			usb_audio_disconnect_components(chip);
-+			for (i = 0; i < dev->actconfig->desc.bNumInterfaces; i++) {
-+				struct usb_interface *iface = dev->actconfig->interface[i];
-+
-+				if (iface->dev.driver == &usb_audio_driver.driver &&
-+				    usb_get_intfdata(iface) == USB_AUDIO_IFACE_UNUSED)
-+					usb_driver_release_interface(&usb_audio_driver, iface);
-+			}
- 			snd_card_free(chip->card);
- 		}
- 	}
+diff --git a/drivers/input/serio/serio.c b/drivers/input/serio/serio.c
+index 54dd26249b027..f239217d7de45 100644
+--- a/drivers/input/serio/serio.c
++++ b/drivers/input/serio/serio.c
+@@ -83,26 +83,15 @@ static int serio_bind_driver(struct serio *serio, struct serio_driver *drv)
+ {
+ 	int error;
+ 
+-	if (serio_match_port(drv->id_table, serio)) {
++	if (!serio_match_port(drv->id_table, serio))
++		return 0;
+ 
+-		serio->dev.driver = &drv->driver;
+-		if (serio_connect_driver(serio, drv)) {
+-			serio->dev.driver = NULL;
+-			return -ENODEV;
+-		}
++	if (!device_trylock(&serio->dev))
++		return -EBUSY;
+ 
+-		error = device_bind_driver(&serio->dev);
+-		if (error) {
+-			dev_warn(&serio->dev,
+-				 "device_bind_driver() failed for %s (%s) and %s, error: %d\n",
+-				 serio->phys, serio->name,
+-				 drv->description, error);
+-			serio_disconnect_driver(serio);
+-			serio->dev.driver = NULL;
+-			return error;
+-		}
+-	}
+-	return 0;
++	error = device_driver_attach_unrestricted(&drv->driver, &serio->dev);
++	device_unlock(&serio->dev);
++	return error;
+ }
+ 
+ static void serio_find_driver(struct serio *serio)
+@@ -744,8 +733,10 @@ static int serio_driver_probe(struct device *dev)
+ {
+ 	struct serio *serio = to_serio_port(dev);
+ 	struct serio_driver *drv = to_serio_driver(dev->driver);
++	int error;
+ 
+-	return serio_connect_driver(serio, drv);
++	error = serio_connect_driver(serio, drv);
++	return error == -1 ? -ENODEV : error;
+ }
+ 
+ static void serio_driver_remove(struct device *dev)
 
 -- 
 2.56.1
