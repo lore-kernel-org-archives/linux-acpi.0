@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795029259;
-	b=q+V/7Lmvj2dT77K23c+M3T39ChYoyQLH+FW3SyMqNihfFrL+KbkU9jDQgUFumyZZO04l
-	 QYKrqhpsVnHXoKfBObQXP+lruBJhnUtyDWurdfiVERIzJvwAF2fnPVzmPGzyajJn3jPVM
-	 MAvWsdz+6nF/zT5M0nBXZXtIuE/CyBBK6uVRSXCbrJ31/JOHc8oNGUDQvcOSp8rLlv/ET
-	 o4xW88466ENVvcfvu4A3EyWMWz2xmf2lQLWwAm7T/P+pYQyCsmbnUcqHnsn0Vj8y5OmlU
-	 kZTeghyn0Ido1b9HG/hOU3Hx0HG/ggYhjdEz3Q0W3Aq9hSlBKG+qUp1XERKQ45G4K7A==
+	t=1795029446;
+	b=iUMQBGeJWGr3puMr3sK6R+S9fxs+mdrsCCRou2ShubjMJAqNd3PVsMptXCTaUHByN1Ps
+	 uvBeSYlv1Dh9t/VU1HDllQoiTp+JJTMdWqB+0zr0jZkew+xi5SfDi4NVdfv3jwZwHsCV0
+	 d/9x5NGelJqH98oxwGWendEZEbuTZLVcX/XoPtlfrYIUCUGNzV8ThK4EdV5UTOqa68FO1
+	 nM0YDeydz8Usc7Aso7NoEiw88as2bxlUBBpf9RsWo6u3EdfIzlYyeSLkdqEjyifEhBnd+
+	 ccnPj5owCvV5TBRW2oUrRh4zdb+CkMkMMMaru4/9J0qloQH2AvIxNkOFiP+48B1uwDw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795029259;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795029446;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=d9SMOsxwAFQZaUBngPgxh+BWRFva5JtsprMZmImAyMc=;
-	b=H/CctYTdGOiJP+/Pg5lb4jfvNfP8yQI7Uj3GbNK56i5jiGlsuSzWzVsc5oQp65g5DpOD
-	 519YAzmu8jYpBBnMSteJm8Ow70xCeTJNTaihvBuORipd6aX4J9eWGsgOjchZmRQ/arScC
-	 RE3E4eeF+LiYUVoybnLm9Fvkd/wLfgztPwlGyzvLaxxGoHkX9gjZLe30eVkCDIpyA6Ff6
-	 6KOK5S0o/crljwVvyvDsz7PUs5enm/NgKu+1tKtyE+ehOXhjVBuFijn20SB2zq3EeQbBU
-	 u05Fxh1F0QOrK3g9+jUhv+NMQJ2QMHu0ib+rVCXWnhh9xEavH8NVlJqlu49NrzfOWyw==
+	bh=7owH4WUkerW4zIC+CKgnsga+eX0VNj1y0MG+J3/f8XA=;
+	b=E8V6NqA+W8RS4mm+6nrxwz4L7xx4ph2+Zr+JCqsK3tXA/CtwcBibZQ4l8Cq/AJSJEje6
+	 s1quq5YBV3gj9GH0U9SEemX+8IC6PObtrGSaPk32bGBvPr/gu3FhwnjFOeXqNmSiodwK4
+	 4BpOFmgLdxDJit7q6XcF4QQzHsMd3EPb/qA9yc8lTMWXyWloT5SyDw5R7U45llnX+dJQb
+	 RQVAezyPxppf8QvqxbDxIoqozLr9G8XXoqZOWpr7DiY1NUIFqpeLC4m/THol4RTSoWX+m
+	 MNNA7DCx9hZ1fImJE3DU4raF95CNjrEuwGIMmuj1BbJnTmaYY7qckQRmxitcBMTxTDA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VxoeVWsw;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jUzLfTeG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DE3B606A31C;
-	Wed, 18 Nov 2026 19:14:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 257AD606A320;
+	Wed, 18 Nov 2026 19:17:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VxoeVWsw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0AF51F000C4;
-	Wed, 18 Nov 2026 19:14:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jUzLfTeG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1BEA1F000C4;
+	Wed, 18 Nov 2026 19:17:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795029259;
-	bh=d9SMOsxwAFQZaUBngPgxh+BWRFva5JtsprMZmImAyMc=;
+	s=k20260515; t=1795029446;
+	bh=7owH4WUkerW4zIC+CKgnsga+eX0VNj1y0MG+J3/f8XA=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=VxoeVWswVKJ9uEK5QYTOLpSc/fG1ejiOdRS9ttIaxvwDjkbx+fjATQoIvZarZK5Cr
-	 30BaMKHJoZpLs0TqJQ4KjckA9GnwiI96q2cSEqA85pWEgY/3QBJhLZb0Hn1X1vicLX
-	 aDOcOvlF6cn6ceiorWrs31apZUXj7aELEInkTtjYkp3l6ZtIzCZqJJ82TM9yllYjg2
-	 KGokbS+cmhTz2BxpxZj5B1KPuHCJi74n908Uz8seXJfpXOOR+67Rtimd+mBJzJZZnv
-	 uzXK52FpqEtPGxEmJEKo5kD9xygQ852Tw0g8oaUipdAbx8Y3bJ5AqunBoOvaLt3xe4
-	 MkCUysXXoCmAw==
-Date: Wed, 18 Nov 2026 19:14:08 +0000
+	b=jUzLfTeGVe+PVJWQpQLUkHhUrlMClo9R3mL7zgVI4gmp8SxXYkr468lUOUNgoDpeU
+	 kDwzn7RvYzUgRVvJS5xWYx5ms43Uidq8z+Ldn5RfAAcFsGFAlQItErJV5WESWbYvpi
+	 axnSxFLq3DJAwvWpYtGSR3KM/MimOlY/hMEOFBiiHnY2W/nMYpRdMakLP+OhixN/nn
+	 +MGHg2u7eZ++8s1o7Po6K7SjXQL396mLgmhBnPeraKdNZeo8VyIJ2DeZ1MglbFhTNO
+	 y+KLn3+Oa8wBs2ooCbN+hQsZZ/HOvwLcCmyAFlJrsOFDBIrI9ofXmIrCIG8xNrj3if
+	 8sq5P1AiMZXDA==
+Date: Wed, 18 Nov 2026 19:17:12 +0000
 From: Jonathan Cameron <jic23@kernel.org>
 To: Pierre Gondois <pierre.gondois@arm.com>
 Cc: linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@oss.qualcomm.com>,
@@ -55,20 +55,20 @@ Cc: linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@oss.qualcomm.com>,
  Helgaas <bhelgaas@google.com>, Maciej Wieczor-Retman
  <maciej.wieczor-retman@intel.com>, Pawel Chmielewski
  <pawel.chmielewski@intel.com>, Yazen Ghannam <yazen.ghannam@amd.com>, Qiuxu
- Zhuo <qiuxu.zhuo@intel.com>, Radu Rendec <radu@rendec.net>, Avadhut Naik
- <avadhut.naik@amd.com>, Dave Jiang <dave.jiang@intel.com>, Kai-Heng Feng
- <kaihengf@nvidia.com>, "Fabio M. De Francesco"
- <fabio.m.de.francesco@linux.intel.com>, Breno Leitao <leitao@debian.org>,
- Dan Williams <djbw@kernel.org>, Terry Bowman <terry.bowman@amd.com>,
- linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org,
- acpica-devel@lists.linux.dev
-Subject: Re: [PATCH v1 06/19] ACPI: APEI: Remove aer allocation in
- ghes_handle_aer()
-Message-ID: <20261118191408.2005b091@jic23-hlaptop>
-In-Reply-To: <20261117111444.4185512-7-pierre.gondois@arm.com>
+ Zhuo <qiuxu.zhuo@intel.com>, Avadhut Naik <avadhut.naik@amd.com>, "Fabio M.
+ De Francesco" <fabio.m.de.francesco@linux.intel.com>, Kai-Heng Feng
+ <kaihengf@nvidia.com>, Dave Jiang <dave.jiang@intel.com>, Breno Leitao
+ <leitao@debian.org>, Dan Williams <djbw@kernel.org>, Kuppuswamy
+ Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>, Terry Bowman
+ <terry.bowman@amd.com>, linux-acpi@vger.kernel.org,
+ linux-edac@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-pci@vger.kernel.org, acpica-devel@lists.linux.dev
+Subject: Re: [PATCH v1 07/19] ACPI: extlog: Provide HEST generic data to
+ extlog_print_pcie()
+Message-ID: <20261118191712.19a5ebf6@jic23-hlaptop>
+In-Reply-To: <20261117111444.4185512-8-pierre.gondois@arm.com>
 References: <20261117111444.4185512-1-pierre.gondois@arm.com>
-	<20261117111444.4185512-7-pierre.gondois@arm.com>
+	<20261117111444.4185512-8-pierre.gondois@arm.com>
 X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -82,47 +82,16 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Tue, 17 Nov 2026 12:10:16 +0100
+On Tue, 17 Nov 2026 12:10:17 +0100
 Pierre Gondois <pierre.gondois@arm.com> wrote:
 
-> aer_recover_queue() now copies the input aer_regs instead of
-> storing a pointer to the struct. Use a local variable to pass
-> aer_regs in ghes_handle_aer() and remove the memory allocation
-> introduced by:
-> commit e2abc47a5a1a ("ACPI: APEI: Fix AER info corruption when error
-> status data has multiple sections")
-> 
-> No functional change intended.
+> Pass struct acpi_hest_generic_data to extlog_print_pcie() and derive
+> the payload, severity and length from it instead of passing them
+> individually. This reduces the number of arguments and makes the
+> section flags available for subsequent changes.
 > 
 > Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
-Just one trivial thing.
+Looks fine as a standalone improvement.  So even though I haven't
+yet read on far enough to see the usage of the flags:
 
-I didn't bother figuring out impact of the change discussed on previous
-patch on this one, so no tags for this version.
-
-> diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
-> index 57406494ec1f7..d7ef84e3b988e 100644
-> --- a/drivers/pci/pcie/aer.c
-> +++ b/drivers/pci/pcie/aer.c
-> @@ -32,7 +32,6 @@
->  #include <linux/slab.h>
->  #include <linux/vmcore_info.h>
->  #include <acpi/apei.h>
-> -#include <acpi/ghes.h>
->  #include <ras/ras_event.h>
->  
->  #include "../pci.h"
-> @@ -1413,18 +1412,15 @@ static DECLARE_WORK(aer_recover_work, aer_recover_work_func);
->   * @severity: AER_CORRECTABLE, AER_NONFATAL or AER_FATAL
->   * @aer_regs: snapshot of the device's AER Capability registers
->   *
-> - * Queue an error record received from firmware through APEI GHES.  The
-> - * record is processed later from a workqueue, which logs the error and,
-> + * Queue an error record received from firmware. The record is processed
-> + * later from a workqueue, which logs the error and,
->   * for uncorrectable errors, attempts recovery of the device.
-
-Whilst noisier, you should probably still rewrap that last line.
-
->   *
-
+Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
