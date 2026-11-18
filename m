@@ -1,75 +1,71 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795029446;
-	b=iUMQBGeJWGr3puMr3sK6R+S9fxs+mdrsCCRou2ShubjMJAqNd3PVsMptXCTaUHByN1Ps
-	 uvBeSYlv1Dh9t/VU1HDllQoiTp+JJTMdWqB+0zr0jZkew+xi5SfDi4NVdfv3jwZwHsCV0
-	 d/9x5NGelJqH98oxwGWendEZEbuTZLVcX/XoPtlfrYIUCUGNzV8ThK4EdV5UTOqa68FO1
-	 nM0YDeydz8Usc7Aso7NoEiw88as2bxlUBBpf9RsWo6u3EdfIzlYyeSLkdqEjyifEhBnd+
-	 ccnPj5owCvV5TBRW2oUrRh4zdb+CkMkMMMaru4/9J0qloQH2AvIxNkOFiP+48B1uwDw==
+	t=1795029946;
+	b=1cGUxfmZ/sK/NbrzuEialHlSQD5DsOdC3SqiwKS2lEFqgHDrAaH2W+NlZQu26qDMN4t0
+	 CJwLjRu1GbMrTTCiyk/NUdGLlJbmBxzIB9c7bgpG8LS+U2HmQfel4L0u0xR8Ssak6LkLQ
+	 PNGV27+61foOnAoJelB55SKoBs1xowRYhcqXhZoYkjTWlePWCprUkJwQfIddQ+x5F0b8Q
+	 bM8fT9T2tc121NziHhLfZWrMQzOXxLSbtdq61gsZqQZcw21iUnjwA2NR1xCuOfsTNl8Bu
+	 cP+cLncTNGTCfMCC7c7U16fOsXWr0wY03Sj4nJR2lIFP3zTpZgaSCEGaTewSVakS7fQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795029446;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795029946;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=7owH4WUkerW4zIC+CKgnsga+eX0VNj1y0MG+J3/f8XA=;
-	b=E8V6NqA+W8RS4mm+6nrxwz4L7xx4ph2+Zr+JCqsK3tXA/CtwcBibZQ4l8Cq/AJSJEje6
-	 s1quq5YBV3gj9GH0U9SEemX+8IC6PObtrGSaPk32bGBvPr/gu3FhwnjFOeXqNmSiodwK4
-	 4BpOFmgLdxDJit7q6XcF4QQzHsMd3EPb/qA9yc8lTMWXyWloT5SyDw5R7U45llnX+dJQb
-	 RQVAezyPxppf8QvqxbDxIoqozLr9G8XXoqZOWpr7DiY1NUIFqpeLC4m/THol4RTSoWX+m
-	 MNNA7DCx9hZ1fImJE3DU4raF95CNjrEuwGIMmuj1BbJnTmaYY7qckQRmxitcBMTxTDA==
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=n6Pt66wYYAB7YiGLR+iun8iZYXIL16iCn4Z4QJ39GVY=;
+	b=Tvtivne7RaLhZDEx9+oyq9+X8V0e+YKxyhipcewktblAaeaM4/RQfAf3dUIyl/rJHyK1
+	 dObcCbWLOoP4OFhjsnHu+6EftZiXI1Qs7AZ21/nu0Fql/OlrQVVCBhcgFOpnYdItq+9fu
+	 nRswEYiFm/283pU+W56VqblyXAFyIcHSF2PhLii/OX/XTlcEtwMB7B/HcsTyXOTWUuKjW
+	 Vjsf9zXVjrA7nXBithzL5A+Wms5hiuGD1KdsHks9CYOAnLpxQGqptybKObDCcAjqlA8Vf
+	 0QWEErAJi2res0E2UE7F9GjgG4+98uUhKrD9ZZHVqstCFoPWjR8fZ/XNzinpuVpruoA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jUzLfTeG;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ct64jBlu;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 257AD606A320;
-	Wed, 18 Nov 2026 19:17:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AD89606A320;
+	Wed, 18 Nov 2026 19:25:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jUzLfTeG
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1BEA1F000C4;
-	Wed, 18 Nov 2026 19:17:17 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ct64jBlu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88BAF1F000C6;
+	Wed, 18 Nov 2026 19:25:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795029446;
-	bh=7owH4WUkerW4zIC+CKgnsga+eX0VNj1y0MG+J3/f8XA=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=jUzLfTeGVe+PVJWQpQLUkHhUrlMClo9R3mL7zgVI4gmp8SxXYkr468lUOUNgoDpeU
-	 kDwzn7RvYzUgRVvJS5xWYx5ms43Uidq8z+Ldn5RfAAcFsGFAlQItErJV5WESWbYvpi
-	 axnSxFLq3DJAwvWpYtGSR3KM/MimOlY/hMEOFBiiHnY2W/nMYpRdMakLP+OhixN/nn
-	 +MGHg2u7eZ++8s1o7Po6K7SjXQL396mLgmhBnPeraKdNZeo8VyIJ2DeZ1MglbFhTNO
-	 y+KLn3+Oa8wBs2ooCbN+hQsZZ/HOvwLcCmyAFlJrsOFDBIrI9ofXmIrCIG8xNrj3if
-	 8sq5P1AiMZXDA==
-Date: Wed, 18 Nov 2026 19:17:12 +0000
-From: Jonathan Cameron <jic23@kernel.org>
-To: Pierre Gondois <pierre.gondois@arm.com>
-Cc: linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@oss.qualcomm.com>,
- James Morse <james.morse@arm.com>, Mark Brown <broonie@kernel.org>, Thomas
- Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov
- <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
- "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rafael@kernel.org>,
- Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Hanjun Guo
- <guohanjun@huawei.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai
- Xue <xueshuai@linux.alibaba.com>, Mahesh J Salgaonkar
- <mahesh@linux.ibm.com>, "Oliver O'Halloran" <oohall@gmail.com>, Bjorn
- Helgaas <bhelgaas@google.com>, Maciej Wieczor-Retman
- <maciej.wieczor-retman@intel.com>, Pawel Chmielewski
- <pawel.chmielewski@intel.com>, Yazen Ghannam <yazen.ghannam@amd.com>, Qiuxu
- Zhuo <qiuxu.zhuo@intel.com>, Avadhut Naik <avadhut.naik@amd.com>, "Fabio M.
- De Francesco" <fabio.m.de.francesco@linux.intel.com>, Kai-Heng Feng
- <kaihengf@nvidia.com>, Dave Jiang <dave.jiang@intel.com>, Breno Leitao
- <leitao@debian.org>, Dan Williams <djbw@kernel.org>, Kuppuswamy
- Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>, Terry Bowman
- <terry.bowman@amd.com>, linux-acpi@vger.kernel.org,
- linux-edac@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- linux-pci@vger.kernel.org, acpica-devel@lists.linux.dev
-Subject: Re: [PATCH v1 07/19] ACPI: extlog: Provide HEST generic data to
- extlog_print_pcie()
-Message-ID: <20261118191712.19a5ebf6@jic23-hlaptop>
-In-Reply-To: <20261117111444.4185512-8-pierre.gondois@arm.com>
-References: <20261117111444.4185512-1-pierre.gondois@arm.com>
-	<20261117111444.4185512-8-pierre.gondois@arm.com>
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
+	s=k20260515; t=1795029945;
+	bh=n6Pt66wYYAB7YiGLR+iun8iZYXIL16iCn4Z4QJ39GVY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Ct64jBlu1GaovN6tR0kD0NzNn4ECw12nH75D56VTO9j075dMnchB1RF2dRY9GrNcO
+	 XiFvikK3lRo+Zpel5LhcFkbVu41sdSblJU4WeUoHXp9xrE0Yh4x3r14jZa8DKqKSVK
+	 CIQefNNYidVYzuQy6DWiSxcyWDJOFU5f1DEM1t7RSGbnUvPFaDg1WZW8hB59nsa6K4
+	 2mQTFn2mKo2mIOByQson+9dti65Ln/AsGik80r9shhl+2BPNee9b5RRJzGhoSrIsSv
+	 CwYinvF7KsNzC3zG+u1SDwCPpb9UwADEisCwX+n1U1nJoCWuM0ZiMiadtoMJ2D8PjX
+	 v01FMsH+4MWzA==
+Date: Wed, 18 Nov 2026 13:25:43 -0600
+From: Rob Herring <robh@kernel.org>
+To: Umang Chheda <umang.chheda@oss.qualcomm.com>
+Cc: Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Ruidong Tian <tianruidong@linux.alibaba.com>,
+	Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
+	Bjorn Andersson <andersson@kernel.org>,
+	Konrad Dybcio <konradybcio@kernel.org>,
+	Abel Vesa <abelvesa@kernel.org>,
+	Richard Cochran <richardcochran@gmail.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	James Morse <james.morse@arm.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	linux-arm-msm@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org,
+	Avaneesh Dwivedi <avaneesh.dwivedi@oss.qualcomm.com>
+Subject: Re: [PATCH v4 2/5] arm64: ras: Add Device Tree frontend
+Message-ID: <20261118192543.GA261024-robh@kernel.org>
+References: <20261118-aest-devicetree-support-v4-0-936587251e8f@oss.qualcomm.com>
+ <20261118-aest-devicetree-support-v4-2-936587251e8f@oss.qualcomm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -79,19 +75,55 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261118-aest-devicetree-support-v4-2-936587251e8f@oss.qualcomm.com>
 
-On Tue, 17 Nov 2026 12:10:17 +0100
-Pierre Gondois <pierre.gondois@arm.com> wrote:
-
-> Pass struct acpi_hest_generic_data to extlog_print_pcie() and derive
-> the payload, severity and length from it instead of passing them
-> individually. This reduces the number of arguments and makes the
-> section flags available for subsequent changes.
+On Wed, Nov 18, 2026 at 12:48:21AM +0530, Umang Chheda wrote:
+> Add a Device Tree frontend for the ARM64 RAS driver, allowing it
+> to be used on platforms without ACPI firmware.
 > 
-> Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
-Looks fine as a standalone improvement.  So even though I haven't
-yet read on far enough to see the usage of the flags:
+> The error sources defined in DT are registered as arm64_ras platform
+> devices at boot. The frontend produces the same software fwnode properties
+> as the ACPI path, so the core driver probes DT and ACPI nodes identically
+> without any firmware-specific knowledge.
+> 
+> Signed-off-by: Umang Chheda <umang.chheda@oss.qualcomm.com>
 
-Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+[...]
+
+> +	ret = platform_device_add(pdev);
+> +	if (ret)
+> +		goto err_put;
+> +
+> +	pr_debug("registered RAS node %pOF as arm64_ras.%d\n", np, pdev->id);
+> +	return 0;
+> +
+> +err_put:
+> +	platform_device_put(pdev);
+> +	return ret;
+> +}
+> +
+> +static int __init ras_of_init(void)
+> +{
+> +	const struct of_device_id *match;
+> +	struct device_node *np;
+> +	int index = 0, ret;
+> +
+> +	if (!acpi_disabled)
+> +		return 0;
+> +
+> +	for_each_matching_node_and_match(np, ras_of_match, &match) {
+> +		u8 node_type = *(const unsigned long *)match->data;
+> +
+> +		ret = ras_of_init_one_node(np, node_type, index++);
+
+Why are you rolling your own platform device creation? The DT 
+infrastructure will create devices for you. And likely you are getting 2 
+devices for every node because you are not setting flags on the nodes to 
+prevent that. But setting the flag is not the right thing. Moving all 
+this code to driver probe is the right thing. That probably means some 
+refactoring have a common probe function that the DT and ACPI probe 
+functions can call (assuming there can't just be one common probe).
+
+Rob
