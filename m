@@ -1,57 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.230.112
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795047044;
-	b=Zc0lWTWORebAsSZpHWKnK2iN2UgbxU5da+gDWjlDuOYhPmZD2JpuywZyHN5QJhQoXgZJ
-	 Y/Bxe/KeOe5bJ7JJ0rA+194jc8L/3+bN+lDxVW3Eq5amdQGaE9uG64k17axMpRm/SMldt
-	 gS25uipGCDzPfqWspNTtUncuhYq/ct1M3wbP3gHXk/8eA7ism9z8VeXAm9SpGHl0AHByC
-	 2rE5rKCG0SHOzWawDUPEsTRgCUJVOeDyJtW4VbvsSOu/NAsCPJM/9DXZy/JgbdRybMtZT
-	 vlibN1+EKMxgSh8paC/+PBal8qseuWbMeyoKgc08dSpTDyno4dZleVCa6Ggw2UWgNeQ==
+	t=1795055031;
+	b=aLkEEFzF+g4Z1dRAKRdRZ65NxYUE9+6JtKnZZzkXkYUwSXz8ngwTD4xrj1xIBtDxbVOl
+	 S3OaZnwEbyAHRWtZaTbExfMCci2ZXU5K9Tw/lu9LeO5cjVraFRrvCjTFapd3+2rPOFVJw
+	 hjoV6epjp2tvGCbBOGi0md5rfeoZlLXZtsT+vH2/EEdkVtLYzhFMmg/DO/ic04aZ7gcT0
+	 eUEDQx2GQUk5l1gDalxp+B0qKGGk4mm7b/wZSvoSofVVV0kS9BBhn3q3o2BQ94iaBLiwg
+	 KWrFuwpvmp/2TgJwYxOZY4OUCLshd5KlnFgG8QyGbEGLcFN6UwekOq7zJP4Q4eCZxvQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795047044;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=RWnLnc+F0qTFDx5l6YFG1jdIeTtq63px4MNbLuTdYgc=;
-	b=hWtBCWHCSPgOI32t21P0CDHPrIk5MK2HnEpEGgSFx8aK3cZxE/p08YasvACNJQhky4l1
-	 CGc1x2V+BVOufdh7nAD8jYoX2Orxb3Qgt7UYPOzYRgZo/2C5tDlfQTGQbN2fFV6Fpqv78
-	 gNzL022DTU8lEyKx3gCzoL1UWEYO8SL90ZslvrnZvQIPqmVF59TlB03X/fz11/9ekKcoq
-	 5Sv4J/7sxZjN3FPb0Z1f/xmDOXgj9+IV5VB9A/dj0oBw/j8WVXpCCvb2YUrzpVypvOl4u
-	 xAczryMKKKcp0dfS8ji9dS8nPVpOj756AnDuHUW+xJpsV0gXHWFYW9fufgtALDSOO9Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795055031;
+	h=DMARC-Filter:DKIM-Signature:To:From:Date:Content-Transfer-Encoding:
+	 X-Original-From:Content-Type:Mime-Version:X-Mailer:X-Lms-Return-Path:
+	 Cc:Subject:Message-Id;
+	bh=gA8AWdM2sUsHs0KBRdbs/YN0huasJSV/DHLpUiZnmqw=;
+	b=ceHPe7j6N6fBTvvQ7bJOR8KtlVmP4fJP6nPkK0orrjru7m9JG2l0oohj0jgCnO8FTwmR
+	 Cc6BGbSy6/rAUOGnb/hkJ8PtNvlsoWOA2dSVONPRpcs++Y7bz1+ZeueWjPhDnG5naM+in
+	 w60V2ObKL973qz8F5hrZBuXxkk0qISDZigyVeH3ci6Q8u6v+Jlxsh6CHTWGoC7RBXG45q
+	 NhyL8jfU4kgOHQbn46XitumaR/NMnq72JAo8sRiHAlHvN7OgiTmVyfYZf7Xuz2s6CxTUZ
+	 evW3oiDgDi3ZaBuEsvIZlU2KLBfPeE7nsUvdgsSWelUT6TGEBvkC0ir6b+avxBwqPkQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=D0ch+DRf;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=bytedance.com;
+	spf=pass smtp.mailfrom=bytedance.com;
+	dkim=pass header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=2212171451 header.b=f2hs6BmR;
+	arc=none smtp.remote-ip=209.127.230.112
+Received: from va-1-112.ptr.blmpb.com (va-1-112.ptr.blmpb.com [209.127.230.112])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73632606A32C;
-	Thu, 19 Nov 2026 00:10:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFE38606A320
+	for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 02:23:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EFE38606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=D0ch+DRf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 089B21F000C4;
-	Thu, 19 Nov 2026 00:10:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795047044;
-	bh=RWnLnc+F0qTFDx5l6YFG1jdIeTtq63px4MNbLuTdYgc=;
-	h=Date:From:To:Cc:Subject:In-Reply-To;
-	b=D0ch+DRf/ZWw8JMTcLgJEGLGl7dAZRP/Av4mOMglrPSW8wYJl4fOeYavRZ5gSMO0u
-	 HGrBt4KfUnsdr7ZwgqRonZhOLZledFtYrw3aX6WARz7yOgx9dKRUJFKtWFPrzq6fDa
-	 4uzaVgVTzysinp+jhaU9LdkwCldduEayHNNumw7S7mtsclHbOfVYrOv+XHuZPF+2kA
-	 /3n1Df+VADv4QXvfc1cwQdSWKpk4lQkx+g8xBGgA1OQextJzBozmbq/qdS44Mec82T
-	 SgRgv72ZQJJMLLvBNvpJlzk5fToULfEIvAzb02Zcg4B1m7xl3JRfgN30VUqSXJi3pf
-	 p02AJ6NeumQXQ==
-Date: Wed, 18 Nov 2026 18:10:42 -0600
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Lukas Wunner <lukas@wunner.de>,
-	Yazen Ghannam <yazen.ghannam@amd.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
-	Oliver O'Halloran <oohall@gmail.com>, Len Brown <lenb@kernel.org>,
-	linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 0/6] PCI/DPC: Decide DPC ownership with
- host_bridge->native_dpc
-Message-ID: <20261119001042.GA759430@bhelgaas>
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=2212171451 header.b=f2hs6BmR
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+ s=2212171451; d=bytedance.com; t=1795055025; h=from:subject:
+ mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
+ mime-version:in-reply-to:message-id;
+ bh=gA8AWdM2sUsHs0KBRdbs/YN0huasJSV/DHLpUiZnmqw=;
+ b=f2hs6BmRgV7t7ITjWwqJLpJwWznINLe9YuADdIhtibK4ALaAhXmGxoi1h7i6SN2QB9BEnH
+ hPIlG8dcF1OaI77XhX9yAC4rhvhvD7hcMby4lqU/VlGjrK59bNsMD/cnB9y0MZ/V2Rbb/b
+ u6kwrdcxnZqtJ66VW9M9tLUue1exCvUswnVDXhUbobTWCuBf69JBzJxlFNM0CJ1Jl5kTz1
+ s6hVEEaZ55Q4wrSGcN0elQrGxIAb6OTujONobPL2/sV/v7QT+FBkUWAKXr5f87RBsIQx5C
+ vWVKVxFp8g2rHj3loXtPI8lwLroOvhp2jEvc4Br7/kBhvGz2xNB68Dy7/fF2Ew==
+To: <rafael@kernel.org>
+From: "Rui Qi" <qirui.001@bytedance.com>
+Date: Thu, 19 Nov 2026 10:23:30 +0800
+Content-Transfer-Encoding: 7bit
+X-Original-From: Rui Qi <qirui.001@bytedance.com>
+Content-Type: text/plain; charset=UTF-8
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -60,87 +57,117 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261118181718.3907441-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.20.1
+X-Lms-Return-Path: <lba+26afe5daf+319c5d+vger.kernel.org+qirui.001@bytedance.com>
+Cc: <lenb@kernel.org>, <okaya@codeaurora.org>, <linux-acpi@vger.kernel.org>, 
+	<linux-kernel@vger.kernel.org>, "Rui Qi" <qirui.001@bytedance.com>
+Subject: [PATCH] ACPI: GED: Add wake support for wake-capable interrupts
+Message-Id: <20261119022330.2875110-1-qirui.001@bytedance.com>
 
-On Wed, Nov 18, 2026 at 10:17:12AM -0800, Kuppuswamy Sathyanarayanan wrote:
-> This series makes host_bridge->native_dpc the single decider for whether
-> Linux uses DPC, as Bjorn asked during the review of "Simplify PCIe native
-> ownership".
-> 
->   https://lore.kernel.org/r/20261001221408.GA2731929@bhelgaas
-> 
-> Today the DPC service binds on host_bridge->native_aer, AER availability
-> and "pcie_ports=dpc-native".  host_bridge->native_dpc is only consulted
-> by pci_dpc_recovered().  After this series, native_dpc is the end result
-> of everything that decides DPC ownership, and portdrv binds the DPC
-> service on it.
-> 
-> Patches 1-2 are the two DPC patches from v2 of Lukas's "Error reporting
-> for AER-incapable devices", which are included here directly.
-> 
->   https://lore.kernel.org/r/34c9ee153876bac953135b4518035194b7c07c6c.1794997749.git.lukas@wunner.de
->   https://lore.kernel.org/r/58d8a99cc6c2ecba6dadc450ecb4501d47816732.1794997749.git.lukas@wunner.de
-> 
-> Patch 1 keeps the DPC driver from accessing a non-existent AER
-> capability.
-> 
-> Patch 2 drops the AER ownership check from dpc_probe(), so DPC also
-> works on ports without an AER capability.
-> 
-> Patch 3 builds EDR whenever DPC is enabled on ACPI, so CONFIG_PCIE_EDR
-> is no longer a separate knob in deciding whether to request DPC control.
-> 
-> Patch 4 stops requiring pci_aer_available() to bind the DPC service,
-> since the DPC driver does not depend on MSI or on the AER driver.
-> 
-> Patch 5 requests DPC control only together with AER control, as PCI
-> Firmware r3.3, sec 4.5.2.4, requires.
-> 
-> Patch 6 binds the DPC service on host_bridge->native_dpc and logs a
-> message when the OS assumes DPC control that _OSC did not grant.
-> 
-> Changes since v2:
-> 
->   - Pick up v2 of Lukas's two DPC patches.  Patch 1 now uses the AER
->     capability to find the error severity when the port has one.
-> 
->   - Keep CONFIG_PCIE_EDR as a hidden option instead of removing it, and
->     remove the pci_dpc_recovered() check that becomes dead (Yazen).
-> 
->   - Fold the PCI Firmware spec reference into the existing comment in
->     calculate_control() (Yazen).
-> 
->   - Shorten the comment in acpi_pci_root_create() (Yazen).
-> 
->   - Rebase on v7.4-rc1 and add Reviewed-by and Acked-by tags.
-> 
-> v2: https://lore.kernel.org/r/20261020181924.3003553-1-sathyanarayanan.kuppuswamy@linux.intel.com
-> v1: https://lore.kernel.org/r/20261007165840.1604136-1-sathyanarayanan.kuppuswamy@linux.intel.com
-> 
-> Kuppuswamy Sathyanarayanan (4):
->   PCI/EDR: Build EDR whenever DPC is enabled on ACPI
->   PCI/portdrv: Don't require AER to bind DPC service
->   PCI/ACPI: Request DPC control only together with AER control
->   PCI/portdrv: Bind DPC service based on host_bridge->native_dpc
-> 
-> Lukas Wunner (2):
->   PCI/DPC: Avoid access to non-existent AER capability
->   PCI/DPC: Reinstate support for AER-incapable ports
-> 
->  drivers/acpi/pci_root.c    | 19 +++++++++++--
->  drivers/pci/pcie/Kconfig   |  8 +-----
->  drivers/pci/pcie/dpc.c     | 58 +++++++++++++++++++++-----------------
->  drivers/pci/pcie/portdrv.c |  7 +----
->  4 files changed, 51 insertions(+), 41 deletions(-)
+GED interrupt resources can be marked wake-capable by firmware, but the
+GED driver does not enable IRQ wake for them. Consequently, the generic
+IRQ suspend code disables those interrupts along with ordinary device
+IRQs, preventing them from waking a system in suspend-to-idle.
 
-Applied to pci/aer for v7.5, thank you!
+Enable IRQ wake after registering each interrupt whose resource has
+IORESOURCE_IRQ_WAKECAPABLE set. Remember successful enables per event
+so that releasing the event disables IRQ wake before freeing the IRQ.
+This supports multiple wake interrupts on one GED without relying on
+the single wake IRQ slot in struct device.
 
-B4 seems to collect historical things, e.g., Yazen's reviewed-by and
-another Fixes: tag on "PCI/DPC: Reinstate support for AER-incapable
-ports".  I *guess* that's all great, but I didn't dig out where they
-originally came from.  I don't see them in the v3 thread on lore
-(https://lore.kernel.org/all/20261118181718.3907441-1-sathyanarayanan.kuppuswamy@linux.intel.com/),
-so they must be from a previous posting.
+Keep runtime event handling available if enabling IRQ wake fails, and
+warn about the missing wake functionality. Release previously registered
+events when walking _CRS fails, balancing both IRQ registrations and wake
+references before device-managed event storage is released.
+
+This does not implement device _PRW-to-GED mappings or infer wake
+capability for interrupt resources not marked wake-capable by firmware.
+
+Fixes: 3db80c230da1 ("ACPI: implement Generic Event Device")
+Signed-off-by: Rui Qi <qirui.001@bytedance.com>
+---
+ drivers/acpi/evged.c | 34 +++++++++++++++++++++++++++-------
+ 1 file changed, 27 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
+index 189dc68b8875..8afae44ac2b3 100644
+--- a/drivers/acpi/evged.c
++++ b/drivers/acpi/evged.c
+@@ -51,6 +51,7 @@ struct acpi_ged_event {
+ 	unsigned int gsi;
+ 	unsigned int irq;
+ 	acpi_handle handle;
++	bool wake_enabled;
+ };
+ 
+ static irqreturn_t acpi_ged_irq_handler(int irq, void *data)
+@@ -81,6 +82,7 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
+ 	struct acpi_resource_extended_irq *pext = &ares->data.extended_irq;
+ 	char ev_name[5];
+ 	u8 trigger;
++	int ret;
+ 
+ 	if (ares->type == ACPI_RESOURCE_TYPE_END_TAG)
+ 		return AE_OK;
+@@ -133,11 +135,34 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
+ 		return AE_ERROR;
+ 	}
+ 
++	if (r.flags & IORESOURCE_IRQ_WAKECAPABLE) {
++		ret = enable_irq_wake(irq);
++		if (ret)
++			dev_warn(dev, "failed to enable wakeup for irq %u: %d\n",
++				 irq, ret);
++		else
++			event->wake_enabled = true;
++	}
++
+ 	dev_dbg(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
+ 	list_add_tail(&event->node, &geddev->event_list);
+ 	return AE_OK;
+ }
+ 
++static void ged_release_events(struct acpi_ged_device *geddev)
++{
++	struct acpi_ged_event *event, *next;
++
++	list_for_each_entry_safe(event, next, &geddev->event_list, node) {
++		if (event->wake_enabled)
++			disable_irq_wake(event->irq);
++		free_irq(event->irq, event);
++		list_del(&event->node);
++		dev_dbg(geddev->dev, "GED releasing GSI %u @ IRQ %u\n",
++			event->gsi, event->irq);
++	}
++}
++
+ static int ged_probe(struct platform_device *pdev)
+ {
+ 	struct acpi_ged_device *geddev;
+@@ -153,6 +178,7 @@ static int ged_probe(struct platform_device *pdev)
+ 				       acpi_ged_request_interrupt, geddev);
+ 	if (ACPI_FAILURE(acpi_ret)) {
+ 		dev_err(&pdev->dev, "unable to parse the _CRS record\n");
++		ged_release_events(geddev);
+ 		return -EINVAL;
+ 	}
+ 	platform_set_drvdata(pdev, geddev);
+@@ -163,14 +189,8 @@ static int ged_probe(struct platform_device *pdev)
+ static void ged_shutdown(struct platform_device *pdev)
+ {
+ 	struct acpi_ged_device *geddev = platform_get_drvdata(pdev);
+-	struct acpi_ged_event *event, *next;
+ 
+-	list_for_each_entry_safe(event, next, &geddev->event_list, node) {
+-		free_irq(event->irq, event);
+-		list_del(&event->node);
+-		dev_dbg(geddev->dev, "GED releasing GSI %u @ IRQ %u\n",
+-			 event->gsi, event->irq);
+-	}
++	ged_release_events(geddev);
+ }
+ 
+ static void ged_remove(struct platform_device *pdev)
+-- 
+2.20.1
