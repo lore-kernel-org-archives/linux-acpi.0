@@ -1,79 +1,72 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795113414;
-	b=SzkcRsUyyb+MwdWN431hO20SbntUpJdRIM2zAAUjOgdpPxAhlv6DO8NI9IFDqQslPKXa
-	 GMzdu151E0CldcOwmjsdygoUfmxCoOTLxeH8nb80l4j/bwo7PC72l3GK8qFWgsZHgaL2w
-	 RpATBzNMx/BJw09KDOvoc8t7ID0d89FEsXk+HeCYirlZYKaJBOUcEovz7vB21cGyI9neS
-	 oHqXD0FMrUeeQkF5qECewa79FQqFbgrUGR0in7U+bLsElMaMiQDJvtl0e+VGTE+TiCDUL
-	 5jZ9VbLV/DlmOIRNiXi/PER6jBkkTPN68ZTy+SnY9Va5YalmGGsNGUVmWs8be7QO1UA==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795113414;
-	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=eRS37zsfkOJOU8eYMJMXWPS/vrfoQ410+ADA98KKDdY=;
-	b=B0svSLnDz5y3+2VTg3tUKyI+edAk9iOkUP7tXIOaE31TDu6yM1Ofog4Q/p03XbxSdwjv
-	 FxQ2FRS9nbQ9VHTuhjDyooYPDWE6+6MQPPVNU2Lxz/GGoT4KjlPMtbwlyDlGd9Hr6BKym
-	 3hv4HHDhDuRGNbH7ElZY36u4V323PxXbMaElpuOFxGMtnPrptfyn87LQVVlpNePIgni//
-	 7MtrhTvIr8nLrKQnHGqCJKUbsKDjltRWoGvV2/1z6Mc5NhjZV9G2zxaVQmBpTj41sRdxz
-	 IgSMkzOTHjtTTCIVDneMZnwIGLLn61lXEW9shQ45PNiCl6IX9Fk2ZxLWSG0WQ+5PDaA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZK4ZbTIY;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30D1F606A331;
-	Thu, 19 Nov 2026 18:36:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZK4ZbTIY
-Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
-ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1795113413;
-	b=m9TkGpU+wi2NDZbPy5dzQM/53Wv3mI1kByQe1AB6+xpSH+r/icH59o3Zwg6yPg59wJkH
-	 5R6llBgIei1M8TdFa4/HYXahGLhAMb0U5m9Rc1X5oBUZrJhdqv24ZXaVkklDirtKPQ5vp
-	 mg9Ao9PzEOxyk63B8GM5s2zj02ED9jCFeoyMmKMu7Tb9I/rn7yazKfby7qZVliNaPNEgY
-	 5ZZ9AJY4dHk6US2Euaes5WzsBULk9ZWKETkk+CNG79p7eo/cri+bLcHGuWSGCZi/H+Lh3
-	 pxTKRast3mckapgQ5im2W9cr8OcwladtPaw+7jLC9uEK/T1FGMrBVbf7CmQ48G/iAJQ==
-ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1795113413;
-	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
-	 Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=eRS37zsfkOJOU8eYMJMXWPS/vrfoQ410+ADA98KKDdY=;
-	b=OQAfMu9l0W8swENFngXnPduu3ThB3nkriGfYUigsPsxBqJNGHq4+eGYauVPfzyGSF97o
-	 E0iaAfM2Waxb2HrUAVU0aMPSwJFCy6ABWom6DTFkfHSMU05Q8JEFWXocLNa59vlJ0y+RX
-	 ul4XzLfuwSaptp9m5FvJQsF/HWSt1znOAAFTRiFRwaueg2AjLbhDhdjwX/BuFYhlBLg07
-	 I/XrJmATgyI7Y9WPrxYhfKwoxSpU9Cx7peLtRa3f9V1cYHa9tPDUYWjoY80bwb1vqOr+b
-	 5p6x5kT/BmAq0tOmUfLsOPk2Qf77/KFMezhxh0htMxUUhqwl9dulblgCyKGdL7QM+mw==
-ARC-Authentication-Results: i=1; smtp.kernel.org; 
-	arc=none smtp.remote-ip=100.80.115.77
-Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.72
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795116328;
+	b=v1uYkZNSjDzItvpSJt6ivgkZW4VhqFM/121YtdW1IhU87nOuEIgA8frDbqU4Z8sRqlfR
+	 fZzCP+sOVy3PIKeE78u73PsJPTStYTs3OI7eq49vvpIDs4UhHglKwQOqOYY6/EjIopJ2H
+	 5Tp5aB/F8RJrRt+8oaGdSfXSzHzDNs1qvoAxUhGk/MDJrcjn6hp21kDZy6XmwBrJtvTIq
+	 w8de7EEKgAQq83bkt063KZltP3hcAy+L5oO1oGRVgrrLPcMSlMGRcEf+MYAVgvte3Q3Si
+	 EX19sfNPzqSPRb24nT2vp2xMf7Z2r+qNIWCOQnzPwOZ3p0ZiEHHqrOTJd36xeVoXmmw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795116328;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Received:Date:Mime-Version:
+	 X-Mailer:Message-ID:Subject:From:To:Cc:Content-Type;
+	bh=74VGOpSNCwDOLASOLNhvmRdqpZTelyvflsoJESldCvo=;
+	b=vuwe1iaU/p6tnKr+XzInjIqcTxrK0CAER1YJFUb3wU8Vmfit7sY8B6AgXNQMspq8BrT2
+	 APkqTFCiAOLVq0fEd4jS28Rqn6l8tXWGA7V3vDcw+jqrEirVJF7dYsQpoU6UmkFH8KBt1
+	 5E1yFwuFyGYvrTFS15dyfQ+dIkdXayONmEaHk0TMADpzfgj6BryTPrJyR9EFr9Y5IGA+5
+	 /o/ZtbYgYYAHh8QQWAvubBDBY0K6LJO0EJe2+8tdc6D1craQs0zw902+peNb5gyFQmSeX
+	 B7raMZJnNzjQ+OrG0+1lg3gYTXfKwAnej56nWtqP2sVmbdXg0umgqYsn8Xk9UE5NQ8w==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=google.com;
+	spf=pass smtp.mailfrom=flex--irogers.bounces.google.com;
+	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=mgtHhvoq;
+	arc=none smtp.remote-ip=209.85.216.72
+Received: from mail-pj1-f72.google.com (mail-pj1-f72.google.com [209.85.216.72])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id AB3881F000C6;
-	Thu, 19 Nov 2026 18:36:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795113413;
-	bh=eRS37zsfkOJOU8eYMJMXWPS/vrfoQ410+ADA98KKDdY=;
-	h=From:Date:Subject:To:Cc:Reply-To;
-	b=ZK4ZbTIYHTeoNrJwrzCA4dfHwb6LhONEi9I/L9yCF7lsOPN7Ec35rHTiBb9fg+J3O
-	 Lkdmge4vWwj7UVPByk0eh8xdLp6U5Irtf8PqQuqdYW1cSOLzLegr3P6lTzZJXtSvNj
-	 1OWKWFcJ2tZHO0DqU2RYnxx5/1/Nj8du6PM/8H4ULZFa55k7A5hxJteqCZXszG+zYi
-	 dvfDl3YJXqixadXxBKfx+C/Kjzi6rdWZCNbRCN9qVUFgMSTwY+cZClxqlrkbBsGx1/
-	 C9fFzjVBNLdzLzgxnt4uCigDJSz2gv/QhLvbXdnlDSQYnV7MVvkDiWsK/ZWZaUwL3L
-	 3uBfBwDXPvbYA==
-Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 3BF1E4B3A2;
-	Thu, 19 Nov 2026 18:36:52 +0000 (UTC)
-From: Ahmed Abdelfattah via B4 Relay <devnull+me.ahmedabdelfattah.dev@kernel.org>
-Date: Thu, 19 Nov 2026 20:36:51 +0200
-Subject: [PATCH] ACPI: APEI: GHES: Poll error sources at their poll
- interval
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44585606A33A
+	for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 19:25:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 44585606A33A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--irogers.bounces.google.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=mgtHhvoq
+Received: by mail-pj1-f72.google.com with SMTP id 98e67ed59e1d1-3b07b06027eso191045a91.0
+        for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 11:25:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20260707; t=1795116328; x=1795721128; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=74VGOpSNCwDOLASOLNhvmRdqpZTelyvflsoJESldCvo=;
+        b=mgtHhvoqXIBQwVVZrqvqxsXCblxedss+5w136UolNE2n0vaGtJFAkHvWwB/4OSKm5r
+         Jq7Jb76ymqCHVrttAR+/CAsBMJERh5qMtzY3hkh/qBWqk16zZGQEW92/PQXGz4lkaQoU
+         rCv/yEcibFMlAuZ44U6JcjaQe36cnm3lXxCS39uv5Ww9MLbikjoDoH47rTH1JveH+w5T
+         /qjWc8g9odSHmhhS4ygYXv6LxBhbko19ImoIwcCFOylk4RfSQjkKo37aVt4E59hI8gXl
+         xWL0e5nEbgFmNsAVfwYVx7S4Tuz8S5Qn2xc5mmk6ue3WtRAz8DziLGWChq50RckgAukm
+         1zyg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795116328; x=1795721128;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=74VGOpSNCwDOLASOLNhvmRdqpZTelyvflsoJESldCvo=;
+        b=17zzeTrtJF+qTJ1F/FKBljabVBGZ4uVLFDUzio9vSnlWDOzhlRQaYmeXyOCHs6Usfe
+         D1DbNefiItHXhaLgBl61RcSnSTEcId1v/EQ8kFUqazy+ldM36Tf3GhvkmWuhbqxiG7VG
+         XHstVrSwhHOu1OsllSUrx2QQFTUv/N6J70Xw8RIj0tSbphV9q5xZFxVhpppl5b5C6Zve
+         Qcncy4yIZoxv8NnhDh0n8rNo8XD6EM9JGLcA7dvYXZA/5/0lEdKbwCACxO3pN0K1+6DO
+         65CoQ3lHXk1XhR+6UUnlIJmaWXS60iN/8yjCezCO4hmtn3siupz+551PqMqGelixHnxX
+         mV8Q==
+X-Forwarded-Encrypted: i=1; AL+hErGLgx/Bb2Twg8cBIOqHNml55z/uMoQLxyEIqyNRKrXZzAGxEytunksmWCLWL/SejFuJwMq0ZrINl9D1@vger.kernel.org
+X-Gm-Message-State: APuU4Z9LnXBuHhRALZBcYkNMK0RzcOgc9Q7JfrJzl2GdH4WK2f2O+8so
+	rdz2SXGPl3ukGfu21pixKjLJ8nM1Xa2SOcjUH5cbp7r+PD0iITRXOlHHT0zn4LA3l3c0sDkdx24
+	dQwyCc1KIFQ==
+X-Received: from pgjh5.prod.google.com ([2002:a63:df45:0:b0:cc7:d53a:a251])
+ (user=irogers job=prod-delivery.src-stubby-dispatcher) by 2002:a17:90b:2e8c:b0:3b3:b373:6a6a
+ with SMTP id 98e67ed59e1d1-3b41c9e45c3mr289799a91.28.1795116327397; Thu, 19
+ Nov 2026 11:25:27 -0800 (PST)
+Date: Thu, 19 Nov 2026 11:25:11 -0800
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -82,96 +75,206 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261119-acpi-ghes-poll-interval-v1-1-6f45cc65fd62@ahmedabdelfattah.dev>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMQQqDMBBA0avIrDvQicWaXqW4iHHUkRBDxkpBv
- HvTdvkW/x+gnIUVHtUBmXdRWWMBXSrws4sTowzFYK6mISKLzifBaWbFtIaAEjfOuwvY342ltr4
- N1tVQ6pR5lPfv/Oz+1le/sN++OzjPD1CNW/97AAAA
-X-Change-ID: 20261119-acpi-ghes-poll-interval-b7291834d9a3
-To: "Rafael J. Wysocki" <rafael@kernel.org>, 
- Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, 
- Hanjun Guo <guohanjun@huawei.com>, 
- Mauro Carvalho Chehab <mchehab@kernel.org>, 
- Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, 
- Ying Huang <huang.ying.caritas@gmail.com>, Andi Kleen <ak@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Ahmed Abdelfattah <me@ahmedabdelfattah.dev>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795113411; l=2604;
- i=me@ahmedabdelfattah.dev; s=20261106; h=from:subject:message-id;
- bh=b0r7uAsefW4rVRodqftRqt01KuYseuhB6b4wZW5DsI0=;
- b=7OeOLkqnaiisgRhsJRFMAxD2RZOD5klGHMbhOVzIgcqVOe3WSJrNsz+Rl9honXUPN9vy3ZXh0
- f3pkdBlhqU6AfYOGiilsbOa0ms60LZVhpRENZ8NoXPgebQSrMXSSs8v
-X-Developer-Key: i=me@ahmedabdelfattah.dev; a=ed25519;
- pk=DHEHKU4PddrkJ/iYMZpwyyXsFyIQ6ySjTttKLrt9YqI=
-X-Endpoint-Received: by B4 Relay for me@ahmedabdelfattah.dev/20261106 with
- auth_id=1438
-X-Original-From: Ahmed Abdelfattah <me@ahmedabdelfattah.dev>
-Reply-To: me@ahmedabdelfattah.dev
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.56.1.750.gf70dc682cf-goog
+Message-ID: <20261119192520.1983406-1-irogers@google.com>
+Subject: [PATCH v4 0/9] Add __must_init and require explicit kobj_type::release
+From: Ian Rogers <irogers@google.com>
+To: Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Kees Cook <kees@kernel.org>, Miguel Ojeda <ojeda@kernel.org>, 
+	"Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>, Srish Srinivasan <ssrish@linux.ibm.com>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+	Christophe Leroy <chleroy@kernel.org>, Nayna Jain <nayna@linux.ibm.com>, 
+	Mimi Zohar <zohar@linux.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
+	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+	Juergen Gross <jgross@suse.com>, Stefano Stabellini <sstabellini@kernel.org>, 
+	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, Nathan Chancellor <nathan@kernel.org>, 
+	Nick Desaulniers <ndesaulniers@google.com>, Viresh Kumar <viresh.kumar@linaro.org>, 
+	Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>, Alexander Aring <aahringo@redhat.com>, 
+	Felix Kuehling <felix.kuehling@amd.com>, 
+	"=?UTF-8?q?Christian=20K=C3=B6nig?=" <christian.koenig@amd.com>, Zhihao Cheng <chengzhihao1@huawei.com>, 
+	Sumanth Korikkar <sumanthk@linux.ibm.com>, Bill Wendling <morbo@google.com>, 
+	Justin Stitt <justinstitt@google.com>, driver-core@lists.linux.dev, llvm@lists.linux.dev, 
+	linux-hardening@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-pm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-sh@vger.kernel.org, linux-s390@vger.kernel.org, gfs2@lists.linux.dev, 
+	xen-devel@lists.xenproject.org, linux-mtd@lists.infradead.org, 
+	amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
+	linux-kernel@vger.kernel.org, Ian Rogers <irogers@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-From: Ahmed Abdelfattah <me@ahmedabdelfattah.dev>
+Clang supports the 'require_explicit_initialization' attribute on struct
+fields to enforce that the field is explicitly initialized when an
+aggregate object is constructed, emitting -Wuninitialized-explicit-init
+(enabled by default) if the field is omitted.
 
-ghes_add_timer() passes an absolute time to round_jiffies_relative(),
-which takes a delay:
+Following discussion at the Linux Plumbers Conference [1], patch 1 adds
+the attribute to include/linux/compiler_attributes.h as __must_init. In
+v1 it was called __require_explicit_initialization. Kees picked up that
+patch with a first seq_file user [2], and in that thread Greg suggested
+the shorter __must_init spelling, which Kees and Miguel agreed to. As
+the attribute did not land in the v7.4 merge window, Kees asked that
+this series carry the renamed attribute.
 
-	expire = jiffies + msecs_to_jiffies(g->notify.poll_interval);
-	ghes->timer.expires = round_jiffies_relative(expire);
+As Documentation/core-api/kobject.rst notes:
+  "One important point cannot be overstated: every kobject must have a
+  release() method, and the kobject must persist (in a consistent state)
+  until that method is called. If these constraints are not met, the
+  code is flawed."
 
-round_jiffies_relative(j) rounds jiffies + j to a whole second and
-subtracts jiffies again, so what gets rounded here is 2 * jiffies plus
-the interval, and the timer fires up to a second away from the Poll
-Interval in the HEST. With a 1000 ms interval, on some boots the polls
-come every 1.5 s on average, for seconds or for minutes, and the rest
-of the time they are anywhere from 0.75 s to 1.95 s apart. A 250 ms
-source settles at one poll a second.
+Annotating struct kobj_type::release caught struct kobj_type definitions
+across the tree that omitted .release:
+- Patches 2-8 fix struct kobj_type definitions where dynamically
+  allocated kobjects, ksets, or enclosing structures were either leaked
+  on kobject_put(), freed prematurely before kobject release, or missing
+  proper static initializers.
+- Patch 9 annotates struct kobj_type::release with __must_init and
+  explicitly sets .release = NULL on the remaining legacy struct
+  kobj_type definitions, distinguishing built-in sites whose backing
+  storage remains valid for the lifetime of the kernel (despite
+  violating the kobject API contract) from sites with broken kobject
+  lifetime management (marked with FIXME comments for follow-up fixes).
 
-Rounding the delay instead would still move every interval that is not
-a whole number of seconds; a 250 ms source would still be polled once a
-second. Drop the rounding and use the interval as it is.
+Danilo Krummrich offered to route the series as a whole through the
+driver-core tree [3], and all subsystem maintainer Acked-by/Reviewed-by
+tags for patches 1-8 have now been collected. Follow-up patches are
+planned for the broken-lifetime sites documented in patch 9.
 
-Fixes: 81e88fdc432a ("ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI notification type support")
-Signed-off-by: Ahmed Abdelfattah <me@ahmedabdelfattah.dev>
----
-I found this while timing a polled GHES in a QEMU guest, with a HEST
-built for the test (one polled GHESv2) and given to the guest as an
-extra ACPI table.
+Note on tool use: An LLM coding assistant was used to help audit the
+compiler diagnostics across the tree, draft the fixes and changelog
+descriptions, and verify builds and review feedback.
 
-Tested on v7.4-rc3+ (4405c18c95d2) at HZ=300, tracing ghes_poll_func()
-with a kprobe. With a 1000 ms Poll Interval and without the patch, the
-intervals on three 10-minute boots ranged from 0.77 s to 1.95 s: one
-boot averaged 1.5 s for its first two minutes, and the others
-alternated between 280 and 320 jiffies, and between 240 and 360. With
-the patch, every interval on three 3-minute boots was 304 jiffies
-(1.013 s). With a 250 ms Poll Interval, the polls settled at about one
-a second within the first minute without the patch; with it they come
-every 80 jiffies (267 ms). The extra 4 and 5 jiffies are the timer
-wheel's granularity at those timeouts.
----
- drivers/acpi/apei/ghes.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes in v4:
+- Rebased on v7.4-rc3.
+- Patch 2 (powerpc/secvar): Add Reviewed-by from Srish Srinivasan and
+  Acked-by from Madhavan Srinivasan.
+- Patch 3 (sh: sq): Add Acked-by from John Paul Adrian Glaubitz.
+- Patch 5 (dlm): Clarify subject ("Wait for kobject release before
+  freeing dlm_ls") and update Fixes tag to commit 8a4cf500f1dd ("dlm:
+  drop kobject release callback handling") (reported by Sashiko).
+- Patch 6 (xen/sys-hypervisor): Add Reviewed-by from Juergen Gross.
+- Patch 7 (ubifs): Update Fixes tag to commit 2e3cbf425804 ("ubifs:
+  Export filesystem error counters") (reported by Sashiko).
+- Patch 9 (kobject): Drop the "Pre-existing:" comment prefix and
+  explicitly distinguish built-in sites whose storage outlives kobject
+  cleanup (arm64 cpuinfo, ACPI hotplug profiles, s390 sclp_mem) from
+  drivers and tristate modules with broken kobject lifetime management,
+  documenting each lifetime hazard with a FIXME comment for follow-up
+  fixes (requested by Danilo Krummrich).
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 5d888c82efea..92d54c6b209a 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -1276,7 +1276,7 @@ static void ghes_add_timer(struct ghes *ghes)
- 		return;
- 	}
- 	expire = jiffies + msecs_to_jiffies(g->notify.poll_interval);
--	ghes->timer.expires = round_jiffies_relative(expire);
-+	ghes->timer.expires = expire;
- 	add_timer(&ghes->timer);
- }
- 
+Changes in v3:
+- Rebased on v7.4-rc1.
+- Note in cover letter that patches 2 (powerpc/secvar), 3 (sh: sq), and
+  6 (xen/sys-hypervisor) are still awaiting subsystem Acked-by tags for
+  merging through the driver-core tree, and CC those maintainers on the
+  cover letter.
+- Patch 1: Add Reviewed-by from Kees Cook; clarify that LLVM issue
+  #232483 affects Clang versions prior to its upstream fix (pointed out
+  by Nathan Chancellor).
+- Patch 4 (cpufreq): Drop obsolete reference to cpufreq_governor_dbs in
+  the commit message per Zhongqiu Han; add Reviewed-by from Zhongqiu Han
+  and Acked-by from Rafael J. Wysocki and Viresh Kumar.
+- Patch 5 (dlm): Add Acked-by from Alexander Aring.
+- Patch 8 (drm/amdkfd): Add Reviewed-by from Felix Kuehling.
+- Patch 9 (kobject): Fix omapfb manager-sysfs.c and overlay-sysfs.c
+  comments to describe managers[] and overlays[] as dynamically
+  allocated rather than static and note the CONFIG_DEBUG_KOBJECT_RELEASE
+  hazard, fix a struct-vs-member wording nit in usnic_ib_sysfs.c, and
+  generalize the commit message note on CONFIG_DEBUG_KOBJECT_RELEASE
+  (reported by Sashiko).
 
----
-base-commit: 4405c18c95d2d0f99f6c581ef0ee8591a1aa6ccd
-change-id: 20261119-acpi-ghes-poll-interval-b7291834d9a3
+Changes in v2:
+- Rebased on v7.3-16928-g83f32c773255 (v7.4 merge window).
+- Patch 1: Rename __require_explicit_initialization to __must_init per
+  Greg Kroah-Hartman; document the Clang >= 20 requirement per Miguel
+  Ojeda; note the Clang gap for file-scope objects without an
+  initializer reported by Kees Cook; add tags from v1 and from Kees's
+  posting.
+- Move LLM assistance attribution from Assisted-by tags to this cover
+  letter per commit 1e035297ffda ("docs: remove Assisted-by
+  references").
+- Patch 4 (cpufreq): Use "cpufreq: governor:" prefix, drop Fixes tag,
+  fix typo, and remove the redundant runtime assignment in
+  cpufreq_dbs_governor_init() per Zhongqiu Han.
+- Dropped v1 patch 5 (ACPI: CPPC), already fixed upstream by
+  commit 27954e29d7de ("ACPI: CPPC: Release CPC descriptors through
+  kobject").
+- Patch 5 (dlm): Call kobject_del() before dlm_recoverd_stop() in
+  release_lockspace() and the new_lockspace() error path, and wait on a
+  new ls_kobj_done completion before freeing the lockspace or dropping
+  the module reference, avoiding races with delayed kobject release.
+- Dropped v1 patch 8 (s390/sclp_mem) per Sumanth Korikkar: the
+  /sys/firmware/memory/memoryX kobjects are permanent, so sclp_mem.c is
+  folded into patch 9 with .release = NULL.
+- Patch 7 (ubifs): Add Tested-by and Reviewed-by from Zhihao Cheng.
+- Patch 8 (drm/amdkfd): Check q->kobj.state_in_sysfs before
+  kobject_del() in kfd_procfs_del_queue().
+- Patch 9 (kobject): Cover sclp_mem.c and the new amdgpu_ualink.c
+  ualink_xcp_info_ktype, fix the overlay-sysfs.c comment, and prefix
+  legacy .release = NULL comments with "Pre-existing:".
+- Patch 9 (kobject): The ioat, kunpeng_hccs and omapfb display comments
+  now say that the existing teardown can use-after-free under
+  CONFIG_DEBUG_KOBJECT_RELEASE (reported by Sashiko). Fixing those
+  drivers is left to follow-up patches.
 
-Best regards,
---  
-Ahmed Abdelfattah <me@ahmedabdelfattah.dev>
+v3: https://lore.kernel.org/all/20261108223913.3624571-1-irogers@google.com/
+v2: https://lore.kernel.org/all/20261027223847.652884-1-irogers@google.com/
+v1: https://lore.kernel.org/all/20261013223946.1836757-1-irogers@google.com/
+[1] https://lpc.events/event/20/contributions/2392/
+[2] https://lore.kernel.org/lkml/20261014225811.i.852-kees@kernel.org/
+[3] https://lore.kernel.org/all/DMLWX8NY1N1N.2OMQMQCIVRR18@kernel.org/
 
+Ian Rogers (9):
+  Compiler Attributes: Add __must_init macro
+  powerpc/secvar: Add missing kobject release callback to secvar_ktype
+  sh: sq: Add missing kobject release callback to ktype_percpu_entry
+  cpufreq: governor: Initialize kobj_type release callback statically
+  dlm: Wait for kobject release before freeing dlm_ls
+  xen/sys-hypervisor: Add release callback to hyp_sysfs_kobj_type
+  ubifs: sysfs: Use kset_create_and_add() for ubifs_kset
+  drm/amdkfd: Free queue in procfs_queue_type kobject release callback
+  kobject: Require explicit initialization of struct kobj_type::release
+
+ Documentation/conf.py                         |  1 +
+ arch/arm64/kernel/cpuinfo.c                   |  7 +++++
+ arch/powerpc/kernel/secvar-sysfs.c            |  6 +++++
+ arch/sh/kernel/cpu/sh4/sq.c                   |  6 +++++
+ drivers/acpi/sysfs.c                          |  7 +++++
+ drivers/cpufreq/cpufreq_conservative.c        |  5 +++-
+ drivers/cpufreq/cpufreq_governor.c            |  4 +--
+ drivers/cpufreq/cpufreq_governor.h            |  1 +
+ drivers/cpufreq/cpufreq_ondemand.c            |  5 +++-
+ drivers/dma/ioat/sysfs.c                      |  8 ++++++
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ualink.c    |  8 ++++++
+ drivers/gpu/drm/amd/amdgpu/amdgpu_xcp.c       | 17 ++++++++++++
+ drivers/gpu/drm/amd/amdkfd/kfd_process.c      | 12 ++++++---
+ drivers/gpu/drm/amd/amdkfd/kfd_queue.c        |  5 +++-
+ drivers/infiniband/hw/hfi1/sysfs.c            |  7 +++++
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.c  |  7 +++++
+ drivers/parisc/pdc_stable.c                   |  8 ++++++
+ drivers/power/supply/ab8500_fg.c              |  8 ++++++
+ drivers/s390/char/sclp_mem.c                  |  6 +++++
+ drivers/soc/hisilicon/kunpeng_hccs.c          | 18 +++++++++++++
+ .../fbdev/omap2/omapfb/dss/display-sysfs.c    |  7 +++++
+ .../fbdev/omap2/omapfb/dss/manager-sysfs.c    |  8 ++++++
+ .../fbdev/omap2/omapfb/dss/overlay-sysfs.c    |  7 +++++
+ drivers/xen/sys-hypervisor.c                  |  6 +++++
+ fs/dlm/dlm_internal.h                         |  1 +
+ fs/dlm/lockspace.c                            | 26 ++++++++++++++-----
+ fs/erofs/sysfs.c                              | 14 ++++++++++
+ fs/f2fs/sysfs.c                               | 21 +++++++++++++++
+ fs/ocfs2/cluster/masklog.c                    |  7 +++++
+ fs/ubifs/sysfs.c                              | 24 +++++------------
+ include/linux/compiler_attributes.h           | 12 +++++++++
+ include/linux/kobject.h                       |  2 +-
+ scripts/checkpatch.pl                         |  1 +
+ tools/lib/python/kdoc/xforms_lists.py         |  1 +
+ 34 files changed, 251 insertions(+), 32 deletions(-)
+
+
+base-commit: aebb7274476403040d582c61478df8f4a7bf9cd3
+-- 
+2.56.1.708.g77570a6a1d-goog
 
