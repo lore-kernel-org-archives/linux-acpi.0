@@ -1,59 +1,47 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=141.14.17.11
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795098792;
-	b=S+zWX9qcuNPjTqoPFFuliUho97UTE63ICHv/lsCdkaR4fLvYuiQHBsRX1H+/t38MQMQC
-	 jRLA7yZ17j9qcwNZxmdOv4EjCFZxC2JWKo55aMScUckHm9ytWoW5Fz2uuwR6NVFevnMAe
-	 GyJ4oMIBIp7ffQdmdzI/UL74i9npan5f9w4crsYOlmfjhvE+CBqgaBOiYdC2zsHSZCpSO
-	 HB/u2OTBWU9D+AqRr968m/AThDX2156SzIpjdM4KQ3BoqF3h7dK/Ip11s32UFdAYwSlZe
-	 1EtgkekNrsz6viqX1YV3rwsVxK4jyvUCNydBnTvR7myduXxx2tXjvHVKWvSg0D22V5w==
+	t=1795100320;
+	b=qN5nStu9laR+GZNikvtOSdw+EOemrjmKJIiSq9XIt5okUkJ4DKUGj6KAY4ytloDT+IhW
+	 Y/d8eniJfl3N+Rta48PZFQ+2hYCs54ZAZEBVHK9iO63E4TTyXwt4dY5UVdQ2Eh9hGHNHk
+	 YSQGJ9qtLPmAecBS29cAMka+UtV9ZQbnVgAxsxQI4A4VKNOGjP7BQOv7gLbNgSoRVI88n
+	 LxIpMtWUIyosV8pbnFVFViomx9Nhswc2B7VvWrUFYVyGCq7U+5cPdg1G3tLUjQFihl/ym
+	 fIgFGkhfikXk1KtfPQG5WUD37xgOMGyUFRqQ3Im4YIrFQLpEUmH7iZuVXhy/JbrsieA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795098792;
-	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:DKIM-Signature;
-	bh=8P9Uj6WkP9gTrQOhvS5In3IHrSdQLFFO/QDLraiTJ6Y=;
-	b=RBwO4/20BjuaBv3SRUG/FC3+uAuEasC40NXdBWslSbTi9BEzm7HdZZ2AXYkHfyhjAlw/
-	 xgF1rCp+m3H/9V7P2IZjKbCyp1e6xTyUve1pYHNa9LiX4OEM7a7gpU+1rKIINWQ2IVfLT
-	 c2K8ajiAQ1B/vc8G1G/MjCpYKisLZLMAy99IuiMEreWS1QmA2+cN1zk8u3ENfAigy/96D
-	 EfL/GLwWcg6UCqUM0izdTRACgauaftR8HLAmBPaoMTftpX/VqvCjEaGiv2ectCj5cazuE
-	 mS5BkxxqN+St98U3ZntH8fkgITwQSHs4nTrfhb007j8vAOfar078fITcd19kxJ33HwQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795100320;
+	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:Content-Language:To:Cc:References:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=PvTDu3ub3WuI+McDfeKMZQvkv7vLhsdO8CMX4Yjkthg=;
+	b=xlXmQdBtGdYKsO5EFmihTjkhxQFpPpS2Dxiw8NOqwA14WEgFjTLl4dV5QN0MdP1hFTqh
+	 te9RieGlbV/r/GJch28jSx2YcCUarZ9PDbYinj37KrnNaZiB6WNMD1e8sHLWzTfJWQpOY
+	 809sIUXhJcHCLZzaWXJfBntCTLOiHCqRJ8I47DSlE051eXQH62hva5V4zr3IVyD2rq5AD
+	 wrsplcJcaFMC7uP1Lx8ez0lf15+Mh58oz/hH4y6Uj4eep6R3Bix8WWBpfBXIhICN0fG84
+	 3xISzHQLzGeaaJOEuoBfFCBU3WHe08LjXz8h+O9MpCIdncgReAfhuq02gO0tnZu/xWQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=molgen.mpg.de;
-	spf=pass smtp.mailfrom=molgen.mpg.de;
-	dkim=pass header.d=molgen.mpg.de header.i=@molgen.mpg.de header.a=rsa-sha256 header.s=20260906 header.b=iKsyc8x2;
-	arc=none smtp.remote-ip=141.14.17.11
-Received: from mx3.molgen.mpg.de (mx3.molgen.mpg.de [141.14.17.11])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QZ6Rk8Vh;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85AF5606A334;
-	Thu, 19 Nov 2026 14:33:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 85AF5606A334
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=molgen.mpg.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=molgen.mpg.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDF9C606A320;
+	Thu, 19 Nov 2026 14:58:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=molgen.mpg.de header.i=@molgen.mpg.de header.a=rsa-sha256 header.s=20260906 header.b=iKsyc8x2
-Received: from abreu.molgen.mpg.de (g42.guest.molgen.mpg.de [141.14.220.42])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: pmenzel)
-	by mx.molgen.mpg.de (Postfix) with ESMTPSA id B2D5A4C2F3FFBE;
-	Thu, 19 Nov 2026 15:32:31 +0100 (CET)
-From: Paul Menzel <pmenzel@molgen.mpg.de>
-To: Mika Westerberg <westeri@kernel.org>,
-	Andi Shyti <andi.shyti@kernel.org>,
-	Wolfram Sang <wsa+renesas@sang-engineering.com>,
-	"fangzhong.zhou" <myth5@myth5.com>
-Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>,
-	Dell.Client.Kernel@dell.com,
-	Paul Menzel <pmenzel@molgen.mpg.de>,
-	linux-i2c@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] i2c: acpi: Limit DLL0945 100 kHz quirk to Dell Precision 5560 and XPS 15 9510
-Date: Thu, 19 Nov 2026 15:32:16 +0100
-Message-ID: <20261119143218.586632-2-pmenzel@molgen.mpg.de>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QZ6Rk8Vh
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FDA81F000C5;
+	Thu, 19 Nov 2026 14:58:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795100320;
+	bh=PvTDu3ub3WuI+McDfeKMZQvkv7vLhsdO8CMX4Yjkthg=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=QZ6Rk8Vhs7GBeqORdalWB5FZn87JLm2jt/1+yA6NTSQkxSPhJAGKeg1lED7J2L1cz
+	 N1xau+cTY2cGjHGBYenPQqUk3FGOw2T/m9VzUN46plDHpcIM8666qx2FmU94h37HW2
+	 F4w0QYDimLdil0XBzQx3NKQGyvR4APuHD4OMAoTZ92jVpdufHiNDAWvDFDJTm1LUXg
+	 cGaYv44IzhE02LGIgU9zOoQOilDdejV+kC5kI4BC6R3UUr2jODLBatbidns2PtoWo7
+	 NVt94r3wP2K632RIs5/II5CePQ4VjEUe4GIapIziPfb/4fh/+y9YGXCU4Fyr0NHWdi
+	 g5CdjZDz4gOZw==
+Message-ID: <4cc3a198-fe54-4970-b21d-9cc11480fe39@kernel.org>
+Date: Thu, 19 Nov 2026 08:58:32 -0600
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -63,156 +51,228 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3] USB: hub: call ACPI _PRR reset during port power-cycle
+ on enumeration failure
+Content-Language: en-US
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
+ "Rafael J. Wysocki" <rafael@kernel.org>,
+ Mika Westerberg <mika.westerberg@linux.intel.com>,
+ linux-acpi@vger.kernel.org, "Chia-Lin Kao (AceLan)"
+ <acelan.kao@canonical.com>
+References: <20260706080117.3754550-1-v3-1-0e3069228fe9@kernel.org>
+From: Mario Limonciello <superm1@kernel.org>
+In-Reply-To: <20260706080117.3754550-1-v3-1-0e3069228fe9@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=molgen.mpg.de; s=20260906; 
-	t=1795098752; 
-	h=from:from:subject:date:message-id:mime-version:content-type:content-transfer-encoding; 
-	bh=8P9Uj6WkP9gTrQOhvS5In3IHrSdQLFFO/QDLraiTJ6Y=; 
-	b=iKsyc8x254LdwPUEyvAmsaK/DyXj9YZ1r6LVjhm8HW889bQYl6o/CfDxuyxKznyEPuZ3aGy5BXhQ
-	S7ErQguuWVWRZzhqql0myre/055dG1Uv/wk6sJ54El4tfwzPoNyHqkPLyYUxAdsF0SbZYKg5TgrnZq
-	OSirMikb7Rj2XhxE9SSz7OqrdDb9C+5KoTxtcd+s35WZ1CjjOTI/AG/odcqjYqqlNjZdcDjfW9xIUB
-	GwIntWy5zjrP12Qg8SuzoGBC4FZuqTzUzlPl69kv9hxeWV0XpRFCdlvtpixslymyiIVQNjniunQ7XU
-	8YK8fawsMbg2sM7KqssUegWya2A2QdZA==
 
-Commit 0b7c9528facd ("i2c: Force DLL0945 touchpad i2c freq to 100khz")
-forces the I2C bus to 100 kHz for all devices with the ACPI ID DLL0945 to
-work around a sluggish cursor on the Dell Precision 5560. But DLL0945 does
-not identify a touchpad model. Dell uses it for touchpads from different
-vendors:
+On 11/3/26 00:08, Mario Limonciello wrote:
+> Some USB-connected devices (e.g. MT7925 Bluetooth on Dell laptops) expose
+> their hardware reset line via an ACPI Power Resource for Reset (_PRR)
+> rather than relying solely on VBUS cycling for recovery.  When the reset
+> GPIO gets stuck low the device stops responding on USB; a VBUS power-cycle
+> alone cannot recover it because the chip remains in reset regardless of
+> VBUS state.
+> 
+> Add usb_acpi_port_prr_reset() in usb-acpi.c that, given a hub device and
+> one-based port number, looks up the port's ACPI companion handle, evaluates
+> _PRR to obtain the power-resource reference, and then calls _RST on that
+> reference to toggle the reset line.  The function is a no-op if the port
+> has no ACPI handle or no _PRR method, so it is safe to call unconditionally
+> for every port.
+> 
+> Wire it into hub_port_connect() during the mid-retry VBUS power-cycle
+> (at (PORT_INIT_TRIES-1)/2 iterations), calling usb_acpi_port_prr_reset()
+> *after* VBUS goes off and *before* VBUS comes back on.  The ordering is
+> critical: on the tested hardware the ACPI _RST method (MBTR._RST) drives
+> BT_RST low for 200 ms then high again.  If _RST is called after VBUS is
+> already restored the GPIO pulse races with device enumeration starting on
+> the live bus; the device begins asserting USB signals while still held in
+> reset and enumeration fails.  Performing the reset while the port is
+> de-powered ensures the GPIO pulse completes fully before the device is
+> given power and time to initialise.
+> 
+> After VBUS is restored, add an msleep(100) conditional on _PRR._RST having
+> succeeded.  USB 2.0 spec §7.1.7.3 (Fig. 7-29) mandates a minimum of 100 ms
+> between VBUS power-on and the first reset signalling for power settling.
+> On root hubs, hub_power_on_good_delay() returns bPwrOn2PwrGood * 2 with
+> no minimum floor; on the tested xHCI root hub bPwrOn2PwrGood = 10, yielding
+> only 20 ms — well below the spec minimum.  (External hubs already enforce
+> a 100 ms minimum via hub_power_on_good_delay().)  When _PRR._RST has been
+> exercised the device must also complete its full power-on sequence (GPIO
+> de-assertion, internal oscillator start, firmware load) before USB
+> enumeration begins.  The 100 ms sleep enforces the spec minimum and gives
+> the device adequate settling time.
+> 
+> Tested on a Dell laptop with MT7925 Bluetooth (idVendor=0489,
+> idProduct=e139) whose BT_RST GPIO was stuck low.  With this fix the
+> device recovers autonomously at boot without requiring a G3
+> (mechanical power-off) cycle.  The relevant dmesg sequence:
+> 
+>    [    1.448491] usb 3-10: new high-speed USB device number 4 using xhci_hcd
+>    [    6.813942] usb 3-10: device descriptor read/64, error -110
+>    [   22.685978] usb 3-10: device descriptor read/64, error -110
+>    [   22.901715] usb 3-10: new high-speed USB device number 5 using xhci_hcd
+>    [   28.317963] usb 3-10: device descriptor read/64, error -110
+>    [   44.189949] usb 3-10: device descriptor read/64, error -110
+>    [   44.294065] usb usb3-port10: attempt power cycle
+>    [   44.872709] usb 3-10: new high-speed USB device number 6 using xhci_hcd
+>    [   44.888293] usb 3-10: New USB device found, idVendor=0489, idProduct=e139, bcdDevice= 1.00
+>    [   44.888318] usb 3-10: Manufacturer: MediaTek Inc.
+> 
+> Signed-off-by: Chia-Lin Kao (AceLan) <acelan.kao@canonical.com>
+> Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>
+> Link: https://patch.msgid.link/20260706080117.3754550-1-acelan.kao@canonical.com
+> Signed-off-by: Mario Limonciello (AMD) <superm1@kernel.org>
+> ---
+> This was sent last cycle but got no feedback except for my review comment.
+> I think we should bring it forward this cycle.
+> 
+> Changes from v2:
+> * Rebase on 7.4-rc1
+> * Link to v2: https://lore.kernel.org/linux-usb/20260706080117.3754550-1-acelan.kao@canonical.com/
+> ---
+>   drivers/usb/core/hub.c      | 14 ++++++++++
+>   drivers/usb/core/usb-acpi.c | 68 +++++++++++++++++++++++++++++++++++++++++++++
+>   drivers/usb/core/usb.h      |  3 ++
+>   3 files changed, 85 insertions(+)
+> 
+> diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+> index 199d3f535a891..72da7aea94cc4 100644
+> --- a/drivers/usb/core/hub.c
+> +++ b/drivers/usb/core/hub.c
+> @@ -5621,11 +5621,25 @@ static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,
+>   
+>   		/* When halfway through our retry count, power-cycle the port */
+>   		if (i == (PORT_INIT_TRIES - 1) / 2) {
+> +			int prr_reset;
+> +
+>   			dev_info(&port_dev->dev, "attempt power cycle\n");
+>   			usb_hub_set_port_power(hdev, hub, port1, false);
+>   			msleep(2 * hub_power_on_good_delay(hub));
+> +			prr_reset = usb_acpi_port_prr_reset(hdev, port1);
+>   			usb_hub_set_port_power(hdev, hub, port1, true);
+>   			msleep(hub_power_on_good_delay(hub));
+> +			/*
+> +			 * USB 2.0 spec §7.1.7.3 requires at least 100 ms
+> +			 * between VBUS power-on and the first reset for power
+> +			 * settling.  hub_power_on_good_delay() on an xHCI root
+> +			 * hub returns bPwrOn2PwrGood * 2 with no minimum floor,
+> +			 * which can be as little as 20 ms.  When _PRR _RST was
+> +			 * also exercised the device must complete its power-on
+> +			 * sequence before enumeration; enforce the spec minimum.
+> +			 */
+> +			if (prr_reset == 0)
+> +				msleep(100);
+>   		}
+>   	}
+>   	if (hub->hdev->parent ||
+> diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
+> index 489dbdc96f94a..bb1b5e8cdc15e 100644
+> --- a/drivers/usb/core/usb-acpi.c
+> +++ b/drivers/usb/core/usb-acpi.c
+> @@ -142,6 +142,74 @@ int usb_acpi_set_power_state(struct usb_device *hdev, int index, bool enable)
+>   }
+>   EXPORT_SYMBOL_GPL(usb_acpi_set_power_state);
+>   
+> +/**
+> + * usb_acpi_port_prr_reset - issue an ACPI _PRR reset on a hub port
+> + * @hdev: USB device belonging to the usb hub
+> + * @port1: port number (one-based)
+> + *
+> + * Some devices expose their hardware reset line via an ACPI Power Resource for
+> + * Reset (_PRR).  When such a device fails to enumerate (e.g. because the reset
+> + * GPIO is stuck low), the USB power-cycle alone is not enough; the firmware
+> + * reset path must also be exercised.
+> + *
+> + * This function evaluates _PRR on the port's ACPI companion to obtain the
+> + * power-resource reference and then calls _RST on that resource to toggle the
+> + * reset line.  It is intended to be called alongside the mid-retry VBUS
+> + * power-cycle already performed by hub_port_connect().
+> + *
+> + * Returns 0 on success, -ENODEV if the port has no ACPI handle or no _PRR
+> + * method, or a negative error code on failure.
+> + */
+> +int usb_acpi_port_prr_reset(struct usb_device *hdev, int port1)
+> +{
+> +	acpi_handle port_handle;
+> +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+> +	union acpi_object *pkg, *ref;
+> +	acpi_status status;
+> +	int ret = 0;
+> +
+> +	port_handle = usb_get_hub_port_acpi_handle(hdev, port1);
+> +	if (!port_handle)
+> +		return -ENODEV;
+> +
+> +	if (!acpi_has_method(port_handle, "_PRR"))
+> +		return -ENODEV;
+> +
+> +	status = acpi_evaluate_object(port_handle, "_PRR", NULL, &buffer);
+> +	if (ACPI_FAILURE(status)) {
+> +		dev_dbg(&hdev->dev, "port%d: _PRR evaluation failed: %s\n",
+> +			port1, acpi_format_exception(status));
+> +		return -ENODEV;
+> +	}
+> +
+> +	pkg = buffer.pointer;
+> +	if (!pkg || pkg->type != ACPI_TYPE_PACKAGE || pkg->package.count != 1) {
+> +		dev_dbg(&hdev->dev, "port%d: _PRR returned unexpected object\n",
+> +			port1);
+> +		ret = -EINVAL;
+> +		goto out;
+> +	}
+> +
+> +	ref = &pkg->package.elements[0];
+> +	if (ref->type != ACPI_TYPE_LOCAL_REFERENCE || !ref->reference.handle) {
+> +		dev_dbg(&hdev->dev, "port%d: _PRR element is not a reference\n",
+> +			port1);
+> +		ret = -EINVAL;
+> +		goto out;
+> +	}
+> +
+> +	status = acpi_evaluate_object(ref->reference.handle, "_RST", NULL, NULL);
+> +	if (ACPI_FAILURE(status)) {
+> +		dev_dbg(&hdev->dev, "port%d: _RST evaluation failed: %s\n",
+> +			port1, acpi_format_exception(status));
+> +		ret = -EIO;
+> +	}
+> +
+> +out:
+> +	kfree(buffer.pointer);
+> +	return ret;
+> +}
+> +
+>   /**
+>    * usb_acpi_add_usb4_devlink - add device link to USB4 Host Interface for tunneled USB3 devices
+>    *
+> diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
+> index a9b37aeb515be..4d3dc3bd881b2 100644
+> --- a/drivers/usb/core/usb.h
+> +++ b/drivers/usb/core/usb.h
+> @@ -211,7 +211,10 @@ extern int usb_acpi_register(void);
+>   extern void usb_acpi_unregister(void);
+>   extern acpi_handle usb_get_hub_port_acpi_handle(struct usb_device *hdev,
+>   	int port1);
+> +extern int usb_acpi_port_prr_reset(struct usb_device *hdev, int port1);
+>   #else
+>   static inline int usb_acpi_register(void) { return 0; };
+>   static inline void usb_acpi_unregister(void) { };
+> +static inline int usb_acpi_port_prr_reset(struct usb_device *hdev,
+> +					  int port1) { return -ENODEV; }
+>   #endif
+> 
+> ---
+> base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+> change-id: 20260706080117.3754550-1-acelan.kao@canonical.com
+> 
+> Best regards,
+> --
+> Mario Limonciello <superm1@kernel.org>
 
-    System                Touchpad
-    Dell Precision 5560   ELAN 04F3:311C
-    Dell XPS 15 9510      ELAN 04F3:311C (bugzilla #214597)
-    Dell XPS 13 9310      Synaptics 06CB:CDE6
+Hi Greg,
 
-The ELAN touchpads are the ones known to need 100 kHz, but the Synaptics
-touchpad of the Dell XPS 13 9310 is slowed down without need. Its DSDT
-specifies 400 kHz, and Linux logs:
+Ping on this patch please from a few weeks ago.
 
-    i2c_designware i2c_designware.0: [Firmware Bug]: DSDT uses known not-working I2C bus speed 400000, forcing it to 100000
-
-The touchpad scans every 7.1 ms (scan time field in the input report), and
-i2c-hid reads wMaxInputLength (64 bytes) for each report. Tracing the I2C
-transfers for 30 seconds of moving a finger on the touchpad shows:
-
-                             100 kHz   400 kHz
-    read time (median)        7.3 ms    2.5 ms
-    bus busy                   87 %      36 %
-    reports per second          111       140
-    frames lost                18.6 %     0 %
-
-At 100 kHz the host cannot keep up with the touchpad, and every fifth frame
-is lost. At 400 kHz all frames arrive, and no sluggish cursor was noticed.
-
-So, only apply the DLL0945 entry on the Dell Precision 5560 and XPS 15 9510
-by pointing the entry's driver_data to a DMI table, which can be used to
-restrict other entries in the same way.
-
-Tested on the Dell XPS 13 9310.
-
-- The `[Firmware Bug] … forcing it to 100000` line is gone from dmesg.
-- Re-probed the touchpad’s I²C controller with debug output on, and it
-  reports `Bus speed: Fast Mode (400 kHz)`. The touchpad came back up
-  under hid-multitouch.
-
-Fixes: 0b7c9528facd ("i2c: Force DLL0945 touchpad i2c freq to 100khz")
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=214597
-Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>
-Cc: Dell.Client.Kernel@dell.com
-Signed-off-by: Paul Menzel <pmenzel@molgen.mpg.de>
----
-
-Notes:
-    Based on andi/i2c/i2c-next (9c19b1c07854) with Mika Westerberg's
-    "[PATCH v2] i2c: acpi: Force Dell XPS 17 9720 touchpad to 100 kHz"
-    <20261118073607.297350-1-mika.westerberg@linux.intel.com> applied, as
-    both change the same table.
-
-    https://lore.kernel.org/linux-i2c/20261118073607.297350-1-mika.westerberg@linux.intel.com/
-
-
-    Claude Opus 5.5 (Claude Code) helped analyze the I2C traces, write the
-    code and draft the commit message.
-
- drivers/i2c/i2c-core-acpi.c | 36 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 34 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index 64fdf8ffb5ffe..8feb3cb205fdd 100644
---- a/drivers/i2c/i2c-core-acpi.c
-+++ b/drivers/i2c/i2c-core-acpi.c
-@@ -7,6 +7,7 @@
- 
- #include <linux/acpi.h>
- #include <linux/device.h>
-+#include <linux/dmi.h>
- #include <linux/err.h>
- #include <linux/i2c.h>
- #include <linux/list.h>
-@@ -356,6 +357,31 @@ static const struct acpi_device_id i2c_acpi_force_400khz_device_ids[] = {
- 	{ }
- };
- 
-+/*
-+ * Dell uses DLL0945 for touchpads from different vendors. The ELAN 04F3:311C
-+ * touchpad of these systems needs 100 kHz, but for example the Synaptics
-+ * 06CB:CDE6 touchpad of the Dell XPS 13 9310 works fine at 400 kHz.
-+ */
-+static const struct dmi_system_id i2c_acpi_dll0945_dmi_ids[] = {
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Precision 5560"),
-+		},
-+	},
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "XPS 15 9510"),
-+		},
-+	},
-+	{ }
-+};
-+
-+/*
-+ * If driver_data is set, it points to a DMI table, and the entry only applies
-+ * to the systems in that table.
-+ */
- static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
- 	/*
- 	 * When a 400KHz freq is used on this model of ELAN touchpad in Linux,
-@@ -373,7 +399,10 @@ static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
- 	 */
- 	{ .id = "ASUE140D" },
- 	{ .id = "DELL0A86" },
--	{ .id = "DLL0945" },
-+	{
-+		.id = "DLL0945",
-+		.driver_data = (kernel_ulong_t)i2c_acpi_dll0945_dmi_ids,
-+	},
- 	{ .id = "ELAN0678" },
- 	{ .id = "ELAN06FA" },
- 	{ .id = "ELAN1300" },
-@@ -391,6 +420,7 @@ static acpi_status i2c_acpi_lookup_speed(acpi_handle handle, u32 level,
- {
- 	struct i2c_acpi_lookup *lookup = data;
- 	struct acpi_device *adev = acpi_fetch_acpi_dev(handle);
-+	const struct acpi_device_id *id;
- 
- 	if (!adev || i2c_acpi_do_lookup(adev, lookup))
- 		return AE_OK;
-@@ -404,7 +434,9 @@ static acpi_status i2c_acpi_lookup_speed(acpi_handle handle, u32 level,
- 	if (acpi_match_device_ids(adev, i2c_acpi_force_400khz_device_ids) == 0)
- 		lookup->force_speed = I2C_MAX_FAST_MODE_FREQ;
- 
--	if (acpi_match_device_ids(adev, i2c_acpi_force_100khz_device_ids) == 0)
-+	id = acpi_match_acpi_device(i2c_acpi_force_100khz_device_ids, adev);
-+	if (id && (!id->driver_data ||
-+		   dmi_check_system((const struct dmi_system_id *)id->driver_data)))
- 		lookup->force_speed = I2C_MAX_STANDARD_MODE_FREQ;
- 
- 	return AE_OK;
--- 
-2.54.0
-
+Thanks,
