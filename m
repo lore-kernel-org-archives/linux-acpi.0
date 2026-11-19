@@ -1,111 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795085848;
-	b=3wfox3ZqSQSFUrTY+dlEvazGZ4kB3r/Qsp1bkSm0BTe877AuaSy1Skq9pCVGdpK0gZ21
-	 UnMpS0tsXmz+FEaiPM3rjOyW9yHQaptbF88KsHnz5xfDbAB2PgeU5M9yXwdWo+xeEDeAo
-	 dk4RadxBZ4P45vlFMfnIXoGbsGEpcKB+t8rEwqXH5UHSX2fYFzvO9p8VT3tR4vm5dPlrr
-	 WG96Ytfu8IJvsvTvh6tfjEgYbagWkkDWOETF5ODdkecI0zze5wkkyWumrse/Li+2C7Ybm
-	 s4qiviLteWGSgf4VdTYxvv2Pak6l+DEnbLCoC9tW13gebnHt/fT7M3TzrHZCy4gIsHw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795085848;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:From:Date:
-	 Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Proofpoint-GUID:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-ORIG-GUID:
-	 X-Proofpoint-Spam-Info:X-Authority-Analysis:
-	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
-	bh=JFsoS6ri2XuI0W7ZaUYiJaCSvYPtS8y6PfumWrPYH1U=;
-	b=OnlCfirQ/BNyAveis+cQF0rS+3XF+Syi8LvpsjtqPjTDiFNTPIYOAVj2zRm+bCMRDu+d
-	 4p09Q2dU5SixFOTaoRBwm1rQ1Pu9vVwWv0T00qrWsLzbaRbjPPlnlCbwubSbNglEcSWlC
-	 pBsStN6PJBjkNnJYvsj5gDnxMAGNn7uZ9ZichS3K26ibi50+RQzd+I9WT8IrGqgIt74S/
-	 62LOBBNtbkQ2XLIdluFTqHEX9/4g/z1eH6SiAAyN/fhD5ohNBkkU19cwsv46vh4b9DUM7
-	 wCISljhr43WKx7zh6Vi0o8s+8oQp95LynK+f+ZgBu+3qAt92KdWvdmYiy650oLQ511g==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.qualcomm.com;
-	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=O3LbohtG;
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=Vq17G138;
-	arc=none smtp.remote-ip=205.220.168.131
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.221.170
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795085851;
+	b=GEMID7JBMjV0vSsfWep8UIHV3oJu1XcPLdYalzMQ1H6Z/bJbXLBOqZEcr5riWJDSlrQE
+	 KulnSTPdtXIySEhzxjleym8FL9yhevNgM0OtqjDEN7nbxfJL2Zj3BAor0ldH7fC8t9GeU
+	 TjvtdLt5umrJAoGCAQfK9cG9zSAe+A9zZBF0XukG3VVFjaktqxClhzzLQtXHc98rtrlPy
+	 LNr/pSl0zkpBPBSPY0fQCZWNwpcCQNDM7nUFARF/YUrhotRlKUa/kUTLmWsnNiNcFxltP
+	 K0GBEFprFm5SIBQ+E2IxFo3rV206K6FbVanXGbh+zCLVEnID9IRVFOLGyU+mURmPqZw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795085851;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:From:Date:
+	 X-Gm-Features:Message-ID:Subject:To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=+UlGy2kv8nsbtWgAkdrcFzV0plo18IhYMfJiQhlHQls=;
+	b=PBxitY838xW5jHkaNYOhr7GsttQmA02NkboznFpe2UIuzPS85BHrOTtE+KjQlGQOSg7l
+	 i9sLhNiSOx/0iI9z7nbnEEIlDhV88C2SGnX4m8FVfAH9cVM1z5sg1jXbBmQS0B/Te/dmY
+	 R/4u5cWQM8+xbva9BJfI7jwwWxu4Qq1bz/pOVKPBl75oc0lLJzEs+daLME2gOn3w6k2Th
+	 m2wZg7u+xKZakkKzD8+ZUKW3wEKPXX9hl/omRIDkZQer3/WrDfyCYLP262O4WWSccmvdU
+	 jyPtDkfLYL/Mz0pJ/dOvcF1p5z/Nm+PFdnvFWkM84mi8UjwuC2wyi/jOfVgxNsoiboA==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=J2Zmlvus;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.221.170
+Received: from mail-vk1-f170.google.com (mail-vk1-f170.google.com [209.85.221.170])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7123B606A324
-	for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 10:57:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7123B606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0593606A320
+	for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 10:57:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F0593606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=O3LbohtG;
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=Vq17G138
-Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AJAuh3I869675
-	for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 10:57:26 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to; s=qcppdkim1; bh=JFsoS6ri2XuI0W7ZaUYiJa
-	CSvYPtS8y6PfumWrPYH1U=; b=O3LbohtG906Q1T6XY5bwTkoSh4SJNCJGUfJg4j
-	Ois3DCtMUnTLp/e1+H6CBP39fWS0L537A3X2vR+B5Yx0VSaMl1vHzL5GCen8OoBE
-	XnRtuqY9LKrXC8S9PiqwiXxhph6Fpu6wov2t7ZxFTcwgODG8Ybz+qQuVxc4K4eH0
-	W2dg9v3OFNF5UtbjF5wia71rk4q/MeI5Zqd1b69rvqBK51Oe5NUKQ/Ro7Y1DINj2
-	mrV6yNb/WWXfmPDuErOroLipl3K1Bb4V2T8gonem1yKKRTzgdnxn9F2NVVzqfOOl
-	Z56Thi9rveYngsZwKdzCnvW8/Y35Dk/5+0cfPA0eZnjaMGQg==
-Received: from mail-qt1-f198.google.com (mail-qt1-f198.google.com [209.85.160.198])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4j1fpnm5qd-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 10:57:26 +0000 (GMT)
-Received: by mail-qt1-f198.google.com with SMTP id d75a77b69052e-55cc3c32e15so23762931cf.1
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 02:57:26 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=J2Zmlvus
+Received: by mail-vk1-f170.google.com with SMTP id 71dfb90a1353d-5ee2ad94713so1380276e0c.0
+        for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 02:57:30 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1795085850; cv=none;
+        d=google.com; s=arc-20260327;
+        b=ZXFljULe2b5H/ak7nnwqoBRkS85v5pnrfXpXkoQHWWu2KKZzVnvUJBlS9hys1UfCRf
+         LCBlHKoallSSdj9uxGAUuqz1Lov075Cb7ExMBSqc3NTZrbT19SuV2e9H5PLW3qb5alsJ
+         VyPuUeOkI6O7bah3iX4HjWJu1s9NhuFBuMPJvyqJa/FRR3FHPdRTQFoOrWlobdQniELd
+         s0b7vUB6D9JktLPq06k+yWWgbdPwy01Iho0JKNNy2Rh+Rpu1O64H6/TmfozZ6/vjUmUy
+         3Nkew+sAkpTDOHV/DzuFU0JMyhwDdQKaCSVbYrf4/MNcsvbmFXj+QW46AwNg5nJ3WiMH
+         GM7g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:to:subject:message-id:date:from
+         :mime-version:dkim-signature;
+        bh=+UlGy2kv8nsbtWgAkdrcFzV0plo18IhYMfJiQhlHQls=;
+        fh=GmFy5nA39On4RWbrn/GETH8dUHq8oY5XORs93v5i3qg=;
+        b=AMYM0mV/zPrdxgN0tocFp26OA8cRupeq8x8Ru7s+omGF5bDRE6SdgTaMmNZT3QHQGP
+         MPpV9GPntZ1x+w2TEomlye9XTdy9kTIfPWXTw5hvJ5jW9RseHUnd7sr03Hk7GxlSUjad
+         vEUZABt/hTj6AlhpfxR04sh2eGq9Kj6Zls0ruX4EGQJTcYTaMt7vo5I3exddKmsMqcmJ
+         jHGEdCd3xMiFbx6iKBOW0aZc05t2cWNZafBq4E0mkyx6hJTze5q9AB/aWlpI0nzpBa0M
+         Tf+dTJylkHTUgsSLthVgkiNL+GA/0SIo1tUJEFSgMERkqMunow30SoniW4bhwwJ2j6Vn
+         7j7Q==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1795085845; x=1795690645; darn=vger.kernel.org;
-        h=cc:to:message-id:content-transfer-encoding:content-type
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=JFsoS6ri2XuI0W7ZaUYiJaCSvYPtS8y6PfumWrPYH1U=;
-        b=Vq17G138QbTdXc2DPGuuEO+Tq8XYBQ5NwnsQfe/wDx8za/ztOYRO6MIxHcCnPsJwMa
-         DjzW1EK4/nXeIXOBK4W5/1wR+Y2rkAH7YxM7bjkS6yWt6MBDF5wdXc6yD7S6wM/FlPOE
-         sitCI98IreUIIgzTBuplG+YJ/mF8Hm/pCCkYXe1O6qeCbrtZkawXUqaoAi7DuJajf1Ir
-         NnD7xAGThA/4gCcDmAIsHzFn/mkJjhxAmhJN+fcZr+rKH7Co/2Q/Ia8BqWGBxxHW71jo
-         1LYE1aAhQs53sOssLNtlr3ChIsFznoYO/lQiolabof/iodkxWJR9tohe6X0fnaU2RbtU
-         Dzvg==
+        d=gmail.com; s=20260707; t=1795085850; x=1795690650; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:to:subject:message-id:date
+         :from:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=+UlGy2kv8nsbtWgAkdrcFzV0plo18IhYMfJiQhlHQls=;
+        b=J2Zmlvusir35TIV248atHxt7pkG39+jc//E/M7IhByfMPx1VDCBuqodDARmqTj/spD
+         oUi9g0qF7OYdXN7QNVGtGHrKMjddb4uiaC520ze5zHrPrrC03OJPngGZH6LbWLx3HceI
+         q4Y/yW50/uo426gdvo+aypOCtsfTB5q+wv4sy2fBQRWYK+oT9BV+eNcdvZkrLJ9F2MC5
+         O3r8gDdoRBprCrXyPFH+f1GpbXV4FIdqbuQQwrIonnXFowMsLF7G+8ZYOFbb6H1j0g24
+         5V3Q7f8CBVFIz6oC0atggD7n9a2P/APaYhcpmI0oOLqhVEYJ3DxjZ6fLoApcQOT1UTvp
+         oeFQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795085845; x=1795690645;
-        h=cc:to:message-id:content-transfer-encoding:content-type
-         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to:content-type;
-        bh=JFsoS6ri2XuI0W7ZaUYiJaCSvYPtS8y6PfumWrPYH1U=;
-        b=QTFUNNudmK8etm9XSAath8ThWsNx+NBaAnFJujchBcgjOjxzRa1LrLIhq9JQkd31rB
-         y5LqO9bg6UM3ZfjGbGtkCmahs16ZRnxs4DVAZr2RBYt/TFhhd5wsLvx6aNYGzOJWITSw
-         pDqk4LH7nCRZj2R7SCOdiwPmAf2nzkDCyl0hhvLTAGyf/voT5noZyTcZiKQlHcd9CxZR
-         68BvRN8qR2LlToNaE0CZe0bPjRRl+IO0vG3EKHzsLErpD6lBoBiL6jPlLZZQ/XfYOx8L
-         /7cV2CqULzoZ+HlfnGZ7U3AOSeqnALrNGyCm3lS9dNW/5JSsZ9ulBGl/iJDNQjnKYZbu
-         IbQQ==
-X-Forwarded-Encrypted: i=1; AL+hErEdGpDD9SHUgVYtFDEAKjgViX1kv61Y0JVdtr1S3I2GMJcikfg0QoCjhxYodauMfaJOtRPyErPK+Xbs@vger.kernel.org
-X-Gm-Message-State: APuU4Z8WYoME4P/aUnWhPL/sHmNeyAIcfd4oVQwUaXTZ/Ly0ZvD8JJuf
-	r/NjIxDByODA3zUFA+f3eQ6i2+Zt9Gk5hzVR0koSORCDIW9JKe9VOMW1EL89QU3R1jq4lGFWwH/
-	V4qUeyGBnu1XAd/7QuNAjutLtR7p7qV977FMbaV9fF8jvQxEBTsh03BP3YHvVV+mNjOZ6sFVI
-X-Gm-Gg: AYBFou3uJz38V36c5pYUuR8kviqRUGwHvT+cY3YgVpArE5uhLh8fWVro/HySZCY8dKh
-	Yg953WB/OH/EfaZWCI+0VnqVSlhDtikOLGXZ4ng+zW+9owur4KM4nqRVaGZN3b4hJUABjVHJ9DD
-	CuBkhvgzewwHYzyuDLxfsoKpNGwelHxWQyinPQmV/2ZffbDbrKTZl6PEgXGQlWEkBd8RkaDrVbM
-	SNKnSiBG92scPb0l+jyzUub7RlkCqLrmNph5Q48cSXAsEEnGBES0Jo1YQIm0nO6bV7OiG4BkPM2
-	D4iC9cxUx80LtXTFfkC9a/l7FbCvxKssBKfH0bprBzQC2gy8mROlTZfN+oTZ8ea+AdxX4N8q148
-	NLolB9MxZyde+SkHE95c/7VkguKw6FKXH2nQ7QxOTUgUHovc7Ip/ruzTOoqth+nOOvzp6FK6CxY
-	g=
-X-Received: by 2002:a05:622a:5807:b0:55d:333a:9c52 with SMTP id d75a77b69052e-55d5a2b12a5mr80194381cf.11.1795085845266;
-        Thu, 19 Nov 2026 02:57:25 -0800 (PST)
-X-Received: by 2002:a05:622a:5807:b0:55d:333a:9c52 with SMTP id d75a77b69052e-55d5a2b12a5mr80194191cf.11.1795085844584;
-        Thu, 19 Nov 2026 02:57:24 -0800 (PST)
-Received: from brgl-qcom.local ([195.50.164.66])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb84e4df2bsm26665535e9.3.2026.11.19.02.57.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 19 Nov 2026 02:57:22 -0800 (PST)
-From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Date: Thu, 19 Nov 2026 11:57:19 +0100
-Subject: [PATCH v2] software node: make swnodes hold their own references
- on parents
+        d=1e100.net; s=20260707; t=1795085850; x=1795690650;
+        h=content-transfer-encoding:content-type:to:subject:message-id:date
+         :from:mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=+UlGy2kv8nsbtWgAkdrcFzV0plo18IhYMfJiQhlHQls=;
+        b=IWd9sWAA6rIUlV5Olw/T+QlbxxvWRMt0MMh/tCGeid4Qv8f3z7bxjWU3Mk699m1mNe
+         hLZaB0qLzurS+rIL9d+lvITcZcLVO7rvxE2+9gNmoq+47PJ7Qg8TDsNZtWT2SJnpGbwl
+         Q6XQxzBlxVXnaWfzcFeEtdhw2ECDKq7/DucNrupIY0pubIJ/S7DrNkpt1TfcISGbN4v1
+         EcUXdTkyRKgU4Q1lpuT2Ay9MX7+QgoG4ZL+0nmuZThu5oAwV5kByfQDgA1v4QXScvZ+e
+         8rViwv7ju+LYUfVOQstH2UsV+a8o1owVcZ8jJ+HaCE+phQ5s2MKXUcG2RBxRHbjATsNy
+         EewA==
+X-Gm-Message-State: APuU4Z+kaigcEjsmpzw5RhOJ/NZRKWVUn8x7LkSHdB/dKpL/nvd2xojQ
+	pqzjoG7cDjvJ0dOhAdTQYGvuEL/4M8W23mLjTiKklJMiVAIgmlf+yd10Pph71GBZJxaVza1hYDL
+	OLR2Ag52l8WGLo2p/7NdoTTAA7YjA57nk9diC
+X-Gm-Gg: AYBFou0AfKuzGm2A/pK62edccgrWbXvFHPC2wVXlT9TN5yONpFmpnm7O8SIs6/sFZlh
+	C5R8HxDT6RiQipdhs4L3krTvdQWVFFp9botCCs1UMtsv5bqwTNKUGMCP8WJdP54ldpjci9EBnFz
+	Kg2sm2kP/D2w5AXy33Dpba27ieMKASg6870CnGIky/HLLPrY66HYo8ExDT4s4CMXWxG3Kwz4ZCD
+	ka4K9DQNaZBPspTJ2HZbS6VxVigrUf1du3vWggbJ9oYFPRglWq4GFI+TAPPcJx2r1JMLu4j+EPt
+	SBj4p33LK7etGYkBSlaFRwd/tBXHj6VwQqdu8WUqlYvCf6S6ga/gusGyAoRWprwgtQdDqSpzLAf
+	aC6bme4SWeGe4k8BpOudCoT1FdIiQ4DxsBwIxa64KbWFy2U/zv07xwiEZSWINywePUtw00CQ=
+X-Received: by 2002:a05:6122:4b1a:b0:5ee:4235:8a74 with SMTP id
+ 71dfb90a1353d-5ee6478e1a1mr2887897e0c.22.1795085849832; Thu, 19 Nov 2026
+ 02:57:29 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -115,131 +102,58 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261119-swnode-kobject-parent-ref-v2-1-7ff8bd54e526@oss.qualcomm.com>
-X-B4-Tracking: v=1; b=H4sIAA7W/moC/42NQQ6CMBBFr0Jm7RBaIg2uvIdh0dJRqtJip6KGc
- HcrJ3Dzk/eT//4CTNERw6FYINLs2AWfQe4K6AftL4TOZgZZyUaIqkF++WAJb8FcqU846Ug+YaQ
- z1sa2pjVqr8lA3k+5dO/NfeoyD45TiJ/taha/9h/rLFCgUtZYJUVtbXUMzOXjqe99GMcyB3Tru
- n4B1Ax5mckAAAA=
-X-Change-ID: 20261106-swnode-kobject-parent-ref-3bd9b9b75aeb
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Bartosz Golaszewski <brgl@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
-        Linus Walleij <linusw@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
-        linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2423;
- i=bartosz.golaszewski@oss.qualcomm.com; h=from:subject:message-id;
- bh=wZe7rBsEI4ji+EJjGj+EZVL4FRQLMyYUnyMYDZz0BmM=;
- b=owEBbQKS/ZANAwAKAQWdLsv/NoTDAcsmYgBq/tYRI3vkUlqOQ1k9CeKdLjYjbWcHJvtmK3x96
- OyNwDhzW3qJAjMEAAEKAB0WIQSR5RMt5bVGHXuiZfwFnS7L/zaEwwUCav7WEQAKCRAFnS7L/zaE
- w/2DD/99v6wV46jHPGJgxjVou9/QkG40Ryp+Fb8aKw6uG0dqNm4gzwPlZWqMN6idOAdQM+xCPhG
- gQEZK6cJs6YnEwSZbU574yuNIfD2Tgk4u9l4H0gO2tipG8oDvL0O6TpEs+hE2R3GmkjBH/Fe9mE
- +Rcegf+zqhuk3YJGO81VVfP0h76Xm6nmgZH5lx50gG5pcT9FDz5gTpXI01gd4BS/6CJEBBiJqZK
- fF0MvkWMumQVtvGhedfUDyAd2u5hBQfI2xHGkl/dvAfgN4XMTVWKvlA/1fBe/liebDOJvjM8Zsw
- r2hq6T25qCi9gIOi+lQSMv3/5hi5Dm9SerI37ptoqEfCMRfSkVXrZLSbOF1vBxISVWiplY1Wq7H
- thZHPBOqnEA5tw9gA3640PyZj9Jw2co/DMUlHojp4z6vSUVjW5sT7FzTWtQjCQYWaIQBqb4Me+t
- 5002OP5sfpW6kipcIN/KbWtEfZdGeY3QsT04UDWGjOqbzLecw3b8/NhpO2xCH921HvyugFLtdcz
- qArcj0bW0mYP3t4mFxNMTYQBsFvPI2oxfbwDsJa6eLq+GiFnhyUMIIlU+r0wxDRi1FSdU3uijhS
- kVeV8RyVnEGVTTQ3V2/plyI6XNzBJYDHm0iKSZPq+NqwQz2NPyMSOdBylO5BxFwbcY6mhqahLNY
- ZDdWkt0kor9Oncw==
-X-Developer-Key: i=bartosz.golaszewski@oss.qualcomm.com; a=openpgp;
- fpr=169DEB6C0BC3C46013D2C79F11A72EA01471D772
-X-Proofpoint-GUID: yIvfJzU3_b5Y1WFmsxDPwxjvqYcgZgvW
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE5MDA0MyBTYWx0ZWRfX5dNu4+1xPZPB
- SI99k82SCrJxwRLeL7umQFITxfW2GFzG6VbIk2lcZVPLcIamCl6Z1qV9Zrud5MhT8dWwcUKeJ5h
- u73btoeO70+e3Fj0m+9QyUHb6Zv6G9Ud0jiAD6ghk2gSo0D81ZNQtznPXHenWBmEJQiNlUM6fer
- pBXI+oY2GIrnre57SxHQ6rcYr+NqLgM0DhSM1AjbjPYepqCmgJr/jC/G7zYO3cMKGCUSV7MVsbR
- Zaouf87xAZgkd8k9rccG0COa/ii46PPjDyYHA1AXRHXEdXyAHK3kJjC055sconcI4KGzQCBKLZp
- dHA4jOiYXz0KvoaZiC/BdWxiZ/8BZ4dBfL9JnlG9Ha2PPvoNPzKiFT/foixlJwdcPNnSf9USDGO
- Dlfyg7ELGGlh9lqi2itT8nCmYQmIUcQmJynTXfANUZW+SRlcSv+XmngufzUcnHpCuaNmXtCvpxw
- ghZTz+3dALp+kz4Kw0g==
-X-Proofpoint-ORIG-GUID: yIvfJzU3_b5Y1WFmsxDPwxjvqYcgZgvW
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE5MDA0MyBTYWx0ZWRfX/UnwDZIIImoG
- UKhozKOXHICMuov3HwIYJc4i1OmmbxgRO9ClGTMqD6GcKIVu9/SX0QFbC3OOd/5c62lAeuXymMo
- sgzHJ69NYMAJXkNW1Zq9gMFSmbVvjyo=
-X-Authority-Analysis: v=2.4 cv=PJ6aavqC c=1 sm=1 tr=0 ts=6afed616 cx=c_pps
- a=mPf7EqFMSY9/WdsSgAYMbA==:117 a=Jk2/TV77q6/E6wQq2oQJxQ==:17
- a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=DJpcGTmdVt4CTyJn9g5Z:22
- a=c92rfblmAAAA:8 a=bC-a23v3AAAA:8 a=EUspDBNiAAAA:8 a=VwQbUJbxAAAA:8
- a=gm3xcvSgROcOYQEXUbwA:9 a=QEXdDO2ut3YA:10 a=dawVfQjAaf238kedN5IG:22
- a=GvGzcOZaWPEFPQC_NcjD:22 a=FO4_E8m0qiDe52t0p3_H:22
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-19_03,2026-11-16_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- bulkscore=0 lowpriorityscore=0 clxscore=1015 malwarescore=0
- priorityscore=1501 phishscore=0 spamscore=0 adultscore=0 impostorscore=0
- suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2611040001
- definitions=main-2611190043
+From: Naren Reddy <narenreddy981@gmail.com>
+Date: Thu, 19 Nov 2026 16:27:17 +0530
+X-Gm-Features: Aa3M54raYHtAcFgNqbLZRZDRyYUcIBKPT0cSrk2hRmqw-hBwLooY0lF6bk3IJjI
+Message-ID: <CAFXDuspZ5_cBV+fEua3vzd-bYWaHGT38CEmt3L0mfgJ6o4ArCw@mail.gmail.com>
+Subject: ACPI GXFP501C fingerprint sensor on SPI1: _STA fails with
+ AE_NOT_EXIST, no driver bound
+To: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-In swnode_register(), swnode->parent is assigned before calling
-kobject_init_and_add(), which normally acquires a reference on
-parent->kobj via kobject_add_internal() that is held until after
-software_node_release() completes. However, if kobject_init_and_add()
-fails before acquiring the parent reference or drops it on error in
-kobject_add_internal(), swnode->kobj holds no reference on parent->kobj
-while swnode->parent remains set.
+Summary
+The Goodix GXFP501C fingerprint sensor on VAIO SE14 is declared in the
+ACPI namespace at \_SB.PC00.SPI1.FPNT but the _STA evaluation fails
+with AE_NOT_EXIST during early boot. The SPI child device
+spi-GXFP501C:00 exists but remains unbound because no kernel driver
+matches acpi:GXFP501C: .
+dmesg evidence
+[    0.166278] ACPI Error: Aborting method \_SB.PC00.LPCB.H_EC.ECRD
+due to previous error (AE_NOT_EXIST) (20251212/psparse-543)
+[    0.166282] ACPI Error: Aborting method \_SB.PC00.SPI1.FPNT._STA
+due to previous error (AE_NOT_EXIST) (20251212/psparse-543)
+[    0.166286] ACPI Error: Method execution failed
+\_SB.PC00.SPI1.FPNT._STA due to previous error (AE_NOT_EXIST)
+(20251212/uteval-68)
+[    3.813270] spi-nor spi1.0: supply vcc not found, using dummy regulator
+System details
+- Laptop: VAIO SE14
+- Kernel: 7.0.0-43-generic (Ubuntu 26.04.1 LTS)
+- ACPI device: GXFP501C:00 / GXFP501C:01
+- SPI controller: pxa2xx-spi.2 on PCI 0000:00:1e.3
+- SPI child device: /sys/bus/spi/devices/spi-GXFP501C:00 (unbound,
+modalias: acpi:GXFP501C:)
+- SPI flash (do not confuse): spi1.0 bound to spi-nor =E2=80=94 this is the
+BIOS flash, not the fingerprint sensor
+ACPI resource details (from decompiled tables)
+The FPNT device declares:
+- SpiSerialBus on \_SB.PC00.SPI1, chip select 0x00, speed 4 MHz, mode 0, 4-=
+wire
+- GpioIo on pin 0x0008 of \_SB.GPI0 (output only =E2=80=94 likely power/res=
+et)
+- Interrupt: Level, active low, exclusive and wake
+_STA returns 0x0F (present, enabled, functioning) only when:
+- FPTT !=3D 0 (firmware sensor configuration select)
+- SPIP =3D=3D 1 (firmware flag)
+- EC register FPRE reads 0xAA
+_INI drives GPIO outputs GFPI and GFPS high via SHPO.
+Question
+Is there a plan to add a kernel driver for Goodix GXFP501C fingerprint
+sensors on SPI/ACPI? Alternatively, should the ACPI SPI enumeration be
+more resilient to _STA evaluation failures so that a spidev or
+out-of-tree driver can bind to the device?
 
-With CONFIG_DEBUG_KOBJECT_RELEASE enabled, the random delay in
-kobject_delayed_cleanup() may create a situation where - when
-unregistering the child node and then the parent - the parent object
-gets released before the child who's left with a dangling pointer.
-
-Acquire a refernce to the parent swnode when registering the child and
-drop it on child's release.
-
-Cc: stable@vger.kernel.org
-Fixes: 59abd83672f7 ("drivers: base: Introducing software nodes to the firmware node framework")
-Closes: https://sashiko.dev/#/bug/linux-82933c14-d212-49f1-bd2f-d4ab1e16fed7
-Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
----
-Changes in v2:
-- Simplify the code by folding the swnode_put() call into the existing
-  conditional branch
-- Link to v1: https://patch.msgid.link/20261106-swnode-kobject-parent-ref-v1-1-77dbd7213dd0@oss.qualcomm.com
----
- drivers/base/swnode.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 65e9388af8651f9d9602ff82e1761e5870284f26..f7b53e966b183cec1bfba6535ccdba308b0be68e 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -850,6 +850,7 @@ static void software_node_release(struct kobject *kobj)
- 	if (swnode->parent) {
- 		ida_free(&swnode->parent->child_ids, swnode->id);
- 		list_del(&swnode->entry);
-+		swnode_put(swnode->parent);
- 	} else {
- 		ida_free(&swnode_root_ids, swnode->id);
- 	}
-@@ -886,7 +887,7 @@ swnode_register(const struct software_node *node, struct swnode *parent,
- 
- 	swnode->id = ret;
- 	swnode->node = node;
--	swnode->parent = parent;
-+	swnode->parent = parent ? swnode_get(parent) : NULL;
- 	swnode->kobj.kset = swnode_kset;
- 	fwnode_init(&swnode->fwnode, &software_node_ops);
- 
-
----
-base-commit: e8017d29067fd1310a65c3494ce1a1b492adbac6
-change-id: 20261106-swnode-kobject-parent-ref-3bd9b9b75aeb
-
-Best regards,
--- 
-Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-
+The sensor works in Windows with the Goodix wbdispi UMDF driver, so
+the hardware is functional under Linux if the correct driver and SPI
+protocol were available.
