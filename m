@@ -1,54 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.230.112
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.71
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795055031;
-	b=aLkEEFzF+g4Z1dRAKRdRZ65NxYUE9+6JtKnZZzkXkYUwSXz8ngwTD4xrj1xIBtDxbVOl
-	 S3OaZnwEbyAHRWtZaTbExfMCci2ZXU5K9Tw/lu9LeO5cjVraFRrvCjTFapd3+2rPOFVJw
-	 hjoV6epjp2tvGCbBOGi0md5rfeoZlLXZtsT+vH2/EEdkVtLYzhFMmg/DO/ic04aZ7gcT0
-	 eUEDQx2GQUk5l1gDalxp+B0qKGGk4mm7b/wZSvoSofVVV0kS9BBhn3q3o2BQ94iaBLiwg
-	 KWrFuwpvmp/2TgJwYxOZY4OUCLshd5KlnFgG8QyGbEGLcFN6UwekOq7zJP4Q4eCZxvQ==
+	t=1795062830;
+	b=qiAJnEi8NWL+ZoO5kOZ1vpG6F4hmWTmaSFOq5KJAlvU6yIOJisAFrglepfkHJ/4VnEAn
+	 NhIgwdarKmSsjL2Epn9MuToRmDN+UAQVV/bLa4yq0A/GZPXDgFK3tY8j2xaQTPC+90lH6
+	 GRyasNMwkxu/bp821w5ZPi42ixQJIn9muPr0XGx5cWe5za856+Uk2Oxdg1rrLGYx3i06q
+	 axxti4EbwwYQW3lB3iaXgxAy8MxYS+jmQRz5hzjFVt24DKVKNNK7aImrjFV41dYTLUQGs
+	 j0qgq/MV8pk0nL1k4UkfqJWrHb4apf7BkBilt3T7ASkIDHwa68wM5A/eu4BXxg0ZO6Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795055031;
-	h=DMARC-Filter:DKIM-Signature:To:From:Date:Content-Transfer-Encoding:
-	 X-Original-From:Content-Type:Mime-Version:X-Mailer:X-Lms-Return-Path:
-	 Cc:Subject:Message-Id;
-	bh=gA8AWdM2sUsHs0KBRdbs/YN0huasJSV/DHLpUiZnmqw=;
-	b=ceHPe7j6N6fBTvvQ7bJOR8KtlVmP4fJP6nPkK0orrjru7m9JG2l0oohj0jgCnO8FTwmR
-	 Cc6BGbSy6/rAUOGnb/hkJ8PtNvlsoWOA2dSVONPRpcs++Y7bz1+ZeueWjPhDnG5naM+in
-	 w60V2ObKL973qz8F5hrZBuXxkk0qISDZigyVeH3ci6Q8u6v+Jlxsh6CHTWGoC7RBXG45q
-	 NhyL8jfU4kgOHQbn46XitumaR/NMnq72JAo8sRiHAlHvN7OgiTmVyfYZf7Xuz2s6CxTUZ
-	 evW3oiDgDi3ZaBuEsvIZlU2KLBfPeE7nsUvdgsSWelUT6TGEBvkC0ir6b+avxBwqPkQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795062830;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:MIME-Version:X-Received:Date:
+	 X-Google-Appengine-App-Id:X-Google-Appengine-App-Id-Alias:Message-ID:
+	 Subject:From:To:Content-Type;
+	bh=7TD0Md0mVnFdPLU1Yyiv7w9mu5gUlK6e+evzCk4KI8U=;
+	b=oY3W6LyGsWYXtEaheNNa5IbC86Z7CFnvUDeXQABy+q3Fapb5QZYitb2DEZlEpt7WyW+b
+	 1Y5S9RfBg7Au0P4BKL58Ewd6koD59cm0pKv3wgCoGhgFoQEfADXS2UkRxfHEnrU57EZii
+	 T5DZI1qlterf7aaWZr+z3kiH1aRwy4ndkGo2PI4o8NYP40b+aSBpcewlf7I/vgUBxdNss
+	 Uc9FQ0oFTHntqDeQWcUTAoqfN/Nf73m3el355ygEzO2N9GJJFTkLV7J3+eOZbn/kPLm/H
+	 i24zNAbpcszmNP9AwfHdSsC3PHqf6C9oUk9t4lx8Hb7UiQTykR+nUkxtbJ8Nl94BPag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=bytedance.com;
-	spf=pass smtp.mailfrom=bytedance.com;
-	dkim=pass header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=2212171451 header.b=f2hs6BmR;
-	arc=none smtp.remote-ip=209.127.230.112
-Received: from va-1-112.ptr.blmpb.com (va-1-112.ptr.blmpb.com [209.127.230.112])
+	dmarc=fail header.from=syzkaller.appspotmail.com;
+	spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com;
+	arc=none smtp.remote-ip=209.85.210.71
+Received: from mail-ot1-f71.google.com (mail-ot1-f71.google.com [209.85.210.71])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFE38606A320
-	for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 02:23:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EFE38606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=2212171451 header.b=f2hs6BmR
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=2212171451; d=bytedance.com; t=1795055025; h=from:subject:
- mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
- mime-version:in-reply-to:message-id;
- bh=gA8AWdM2sUsHs0KBRdbs/YN0huasJSV/DHLpUiZnmqw=;
- b=f2hs6BmRgV7t7ITjWwqJLpJwWznINLe9YuADdIhtibK4ALaAhXmGxoi1h7i6SN2QB9BEnH
- hPIlG8dcF1OaI77XhX9yAC4rhvhvD7hcMby4lqU/VlGjrK59bNsMD/cnB9y0MZ/V2Rbb/b
- u6kwrdcxnZqtJ66VW9M9tLUue1exCvUswnVDXhUbobTWCuBf69JBzJxlFNM0CJ1Jl5kTz1
- s6hVEEaZ55Q4wrSGcN0elQrGxIAb6OTujONobPL2/sV/v7QT+FBkUWAKXr5f87RBsIQx5C
- vWVKVxFp8g2rHj3loXtPI8lwLroOvhp2jEvc4Br7/kBhvGz2xNB68Dy7/fF2Ew==
-To: <rafael@kernel.org>
-From: "Rui Qi" <qirui.001@bytedance.com>
-Date: Thu, 19 Nov 2026 10:23:30 +0800
-Content-Transfer-Encoding: 7bit
-X-Original-From: Rui Qi <qirui.001@bytedance.com>
-Content-Type: text/plain; charset=UTF-8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B376E606A326
+	for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 04:33:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B376E606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-ot1-f71.google.com with SMTP id 46e09a7af769-85d630e451aso1955281a34.2
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Nov 2026 20:33:49 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795062828; x=1795667628;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=7TD0Md0mVnFdPLU1Yyiv7w9mu5gUlK6e+evzCk4KI8U=;
+        b=okA4UwuyfK5iS2St2jqYsoonxWO8gwuSKzmgWPhzK3FujzUaOEt4ETB0rTlQA5/OHz
+         lmV0dr9kM3Y3vo2IkHiBRuolOD+eslN3xRWpO5ik8/31D6vrmqwVqQKkWIL8m4i1aXGw
+         VA7zjpJ4hiVtkUZwke9ig0gGoCPM/pV+LB5J5eY0Gq6gxhvyUDbdkOUScG8ghRibH8RI
+         hBD1MIXANdp7oPyuUiIiy9O3ynzEZcph8xB1kbLDoUf1XWk5B/T3HGo9q+JYYr8n9o4R
+         mzcTcCvGIwHosS5F5Oqf5peipIBbaidzvOXRyHXSojN9qYet9J+XdldMM+FOx40Ncpbj
+         cLig==
+X-Forwarded-Encrypted: i=1; AL+hErEfsuSda29ymIk08YvNgZh91mPQO2ZI0UMup0nf68FAKrrB5rskehHuLXKgtZf25AA+Lc+GZAxl1+nf@vger.kernel.org
+X-Gm-Message-State: APuU4Z9jP0OU18cDM4vGN7XBO6dkh3JG3C9lUygoflKas0AQdf5Z80cH
+	TgSl4YyOiGK8FxoqzSD5J1IWBZazv+FUfdHX/qYoLbsKlMOW6UNLPwNo2aXqdHCdvNyUXrofsgk
+	47fexo1ar5E4H8Cm2O8WnXyL756UhwKG3c1343Fb0TeST/jSWe4pxB1sqDxE=
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -57,117 +57,50 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.20.1
-X-Lms-Return-Path: <lba+26afe5daf+319c5d+vger.kernel.org+qirui.001@bytedance.com>
-Cc: <lenb@kernel.org>, <okaya@codeaurora.org>, <linux-acpi@vger.kernel.org>, 
-	<linux-kernel@vger.kernel.org>, "Rui Qi" <qirui.001@bytedance.com>
-Subject: [PATCH] ACPI: GED: Add wake support for wake-capable interrupts
-Message-Id: <20261119022330.2875110-1-qirui.001@bytedance.com>
+MIME-Version: 1.0
+X-Received: by 2002:a05:6808:bc7:b0:571:9502:8303 with SMTP id
+ 5614622812f47-5774171cd65mr5660064b6e.50.1795062828749; Wed, 18 Nov 2026
+ 20:33:48 -0800 (PST)
+Date: Wed, 18 Nov 2026 20:33:48 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6afe7c2c.902182b0.170f33.0000.GAE@google.com>
+Subject: [syzbot] Monthly acpica report (Nov 2026)
+From: syzbot <syzbot+list0ad76eb042dcf70ab97f@syzkaller.appspotmail.com>
+To: acpica-devel@lists.linux.dev, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, maciej.wieczor-retman@intel.com, 
+	pawel.chmielewski@intel.com, rafael@kernel.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-GED interrupt resources can be marked wake-capable by firmware, but the
-GED driver does not enable IRQ wake for them. Consequently, the generic
-IRQ suspend code disables those interrupts along with ordinary device
-IRQs, preventing them from waking a system in suspend-to-idle.
+Hello acpica maintainers/developers,
 
-Enable IRQ wake after registering each interrupt whose resource has
-IORESOURCE_IRQ_WAKECAPABLE set. Remember successful enables per event
-so that releasing the event disables IRQ wake before freeing the IRQ.
-This supports multiple wake interrupts on one GED without relying on
-the single wake IRQ slot in struct device.
+This is a 31-day syzbot report for the acpica subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/acpica
 
-Keep runtime event handling available if enabling IRQ wake fails, and
-warn about the missing wake functionality. Release previously registered
-events when walking _CRS fails, balancing both IRQ registrations and wake
-references before device-managed event storage is released.
+During the period, 0 new issues were detected and 0 were fixed.
+In total, 5 issues are still open.
 
-This does not implement device _PRW-to-GED mappings or infer wake
-capability for interrupt resources not marked wake-capable by firmware.
+Some of the still happening issues:
 
-Fixes: 3db80c230da1 ("ACPI: implement Generic Event Device")
-Signed-off-by: Rui Qi <qirui.001@bytedance.com>
+Ref Crashes Repro Title
+<1> 14      Yes   KASAN: slab-use-after-free Read in acpi_ut_update_object_reference
+                  https://syzkaller.appspot.com/bug?extid=c6c92a97a9907f92fa1c
+<2> 380     Yes   KASAN: use-after-free Read in acpi_ns_get_attached_object
+                  https://syzkaller.appspot.com/bug?extid=5725792ce6a9938d1b24
+<3> 2       No    KASAN: slab-use-after-free Read in acpi_ns_check_package
+                  https://syzkaller.appspot.com/bug?extid=e1268acad3c273b12120
+
 ---
- drivers/acpi/evged.c | 34 +++++++++++++++++++++++++++-------
- 1 file changed, 27 insertions(+), 7 deletions(-)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
-index 189dc68b8875..8afae44ac2b3 100644
---- a/drivers/acpi/evged.c
-+++ b/drivers/acpi/evged.c
-@@ -51,6 +51,7 @@ struct acpi_ged_event {
- 	unsigned int gsi;
- 	unsigned int irq;
- 	acpi_handle handle;
-+	bool wake_enabled;
- };
- 
- static irqreturn_t acpi_ged_irq_handler(int irq, void *data)
-@@ -81,6 +82,7 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
- 	struct acpi_resource_extended_irq *pext = &ares->data.extended_irq;
- 	char ev_name[5];
- 	u8 trigger;
-+	int ret;
- 
- 	if (ares->type == ACPI_RESOURCE_TYPE_END_TAG)
- 		return AE_OK;
-@@ -133,11 +135,34 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
- 		return AE_ERROR;
- 	}
- 
-+	if (r.flags & IORESOURCE_IRQ_WAKECAPABLE) {
-+		ret = enable_irq_wake(irq);
-+		if (ret)
-+			dev_warn(dev, "failed to enable wakeup for irq %u: %d\n",
-+				 irq, ret);
-+		else
-+			event->wake_enabled = true;
-+	}
-+
- 	dev_dbg(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
- 	list_add_tail(&event->node, &geddev->event_list);
- 	return AE_OK;
- }
- 
-+static void ged_release_events(struct acpi_ged_device *geddev)
-+{
-+	struct acpi_ged_event *event, *next;
-+
-+	list_for_each_entry_safe(event, next, &geddev->event_list, node) {
-+		if (event->wake_enabled)
-+			disable_irq_wake(event->irq);
-+		free_irq(event->irq, event);
-+		list_del(&event->node);
-+		dev_dbg(geddev->dev, "GED releasing GSI %u @ IRQ %u\n",
-+			event->gsi, event->irq);
-+	}
-+}
-+
- static int ged_probe(struct platform_device *pdev)
- {
- 	struct acpi_ged_device *geddev;
-@@ -153,6 +178,7 @@ static int ged_probe(struct platform_device *pdev)
- 				       acpi_ged_request_interrupt, geddev);
- 	if (ACPI_FAILURE(acpi_ret)) {
- 		dev_err(&pdev->dev, "unable to parse the _CRS record\n");
-+		ged_release_events(geddev);
- 		return -EINVAL;
- 	}
- 	platform_set_drvdata(pdev, geddev);
-@@ -163,14 +189,8 @@ static int ged_probe(struct platform_device *pdev)
- static void ged_shutdown(struct platform_device *pdev)
- {
- 	struct acpi_ged_device *geddev = platform_get_drvdata(pdev);
--	struct acpi_ged_event *event, *next;
- 
--	list_for_each_entry_safe(event, next, &geddev->event_list, node) {
--		free_irq(event->irq, event);
--		list_del(&event->node);
--		dev_dbg(geddev->dev, "GED releasing GSI %u @ IRQ %u\n",
--			 event->gsi, event->irq);
--	}
-+	ged_release_events(geddev);
- }
- 
- static void ged_remove(struct platform_device *pdev)
--- 
-2.20.1
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
+
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
+
+You may send multiple commands in a single email message.
