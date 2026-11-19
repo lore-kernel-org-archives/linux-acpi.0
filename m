@@ -1,55 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795117916;
-	b=OCznMuYzZcduzzE3gSAyibrVO4mFaOXjId9ovCkPVheRUsWJX0tQmejsfVYBqA7gL8zz
-	 U75f3GR0GYURGWUiDQmPiO86OOUalVi3f6jO1cIc9Zv0pEwwYFbjywAZxHRGWdjnRLIUp
-	 gFelM4G/phW7+sy8nVcIxUJGWQc0JRlkyTbtbyC2h4dEcxTJdG5TOeAR3Tb0gNAT6UUp0
-	 ABgaWhwm7o/dSQpPiyeryYwEdiXt9jz2uXwnC84szC2nf6zsmOgDNa4wFED/Igadncszc
-	 xPCuvUbONkj1ZqBsv0nvXFp6Cgu5Eu0SEbYT2oM0npX/AGj/za8wQPeyOpT7K0cfMZQ==
+	t=1795118308;
+	b=Wd0kfSJBZVKRfut/GANPDt0x3MqFkFEFJ+NCrfsr71OWKC+Ow/eJhN0Z45fDh2iZoxwI
+	 tMV1Vr4/726eaghoKMcwi+vJ/JipU3WmYKBCX1rcxmFCNUNyVfWyUltjvS58BAmWL0QFi
+	 PTiakHJOkmWH4wSItSDyON2FARTkmmybtWNw9GlAqEPD47QkyLt/vGU+T/Cu1K9OjEbER
+	 vuOnzT7WhH+R47wbbpuD4d+yCgjeP9IThswKQTPtmalno1njSa+9u+E0KOOgziz9Uo3SJ
+	 nuugjbEvrZzzZ9X7PX4sXCCePKCMKLWI21mJCnFCiMFj6/MIZY5nUtypO9rDVQZ5YVQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795117916;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:From:Date:
-	 X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:Subject:To:Cc:
-	 Content-Type;
-	bh=Rku257EMP0Kw7Zzq4Y1IYeIah4zhlIvCN84RNHMBPhU=;
-	b=OU35cRm8jls5c8iz7QpE+u2OMs2GkPM+oNcanH4O+EOsULXDW3kyeS5vc0+WoUiq1/yK
-	 1BQi2iv8/i9iS+RmxGkHjN75BvcwrZcuqPnWd7+0vugsx45Y6/ZRWsTsxqqv+NfWfoPXi
-	 eYtabDzjQlwmdAwctJWB8xGbqMo5AR76sa/FuUVFdY7xkZ7cVTStDMnlSi8MsABt7VjV7
-	 DgyLcLZ+w654Xrc4egL0m/7ZQgalG1lUCY8NDsvDzqGOMoXcrKeKat/1/k2uYA1NBVzRq
-	 BzmMhFwhsWybzXOdaB+gzbmwB2nn1ed06kAspBnrz0ZfxdVqEnF20hIGdosQku9QRQA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795118308;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 Organization:MIME-Version:Content-Transfer-Encoding:Content-Type;
+	bh=IEg+CKmOlkZndpwphnetx0KbTsayP3KWj3U59fB9YnA=;
+	b=l7yzJdXbS3GVMxH2KMcuib09uJQV3QDYe+ohTQvnBLTWTzspoBfefTyzOy69hGhbgNtx
+	 Gq82AvIrlNSdVO+52kwRq9zvzUd2adTlgQOe/segsdDH/kQY8kkrLidYUbYk3+8Mic2V8
+	 1wXg5yCAo0MvFPgAABnfCVWi6kMTSFPjg71xYvEc0mbykbdl+dDpShvuqj5+Ecv+iA2xT
+	 pq3RwFYcFxSiGtUzPTzSpaTSRzFjmwL6JNqwPO9g39Jyiyt8JFlMLgxY70HCTeuwki6a6
+	 kGpRMFi0UN8pc4BosUDk6Lrdx/POnVHBuGulwfPRVfbZz3yzhyf4wZGZhLyftyxK7Ag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ymqk3fBW;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="BKPLi5/l";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 893AB606A32A
-	for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 19:51:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77633606A320;
+	Thu, 19 Nov 2026 19:58:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ymqk3fBW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 316001F000CA
-	for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 19:51:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BKPLi5/l
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5B591F000C5;
+	Thu, 19 Nov 2026 19:58:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795117916;
-	bh=Rku257EMP0Kw7Zzq4Y1IYeIah4zhlIvCN84RNHMBPhU=;
-	h=From:Date:Subject:To:Cc;
-	b=Ymqk3fBWdho2V4rJCKy9EPUwfmVwKqBPgww826LWHCaUIZgtHf1I5v6SE55+0Yaf5
-	 7918tCD26QcxrFJvROMVQrQpNqa2mhKD1RPUwkApN3/qCUXu1J5AjJd3TbEs828sGS
-	 vBubMWvWS0XSBQurHu/nEziYTuDSi5TN0uaDRFmCK2fsvCF9gwhIbzXkCdA6oZmjb8
-	 cD4/PNs6zkb9guAvChyG9uXmAf/YyZe9qTsAU1+GaGF4IuaCdwNlLAHu7QF7WKo7rq
-	 YUkZq6kvk9r+eB7n1vbTjq1566yF/gQKA4D68rycyNns1Qdwog70WAheZ+kACm4+x8
-	 OMOu2tsE0jxKw==
-Received: by mail-lj1-f175.google.com with SMTP id 38308e7fff4ca-3ace304021eso602111fa.2
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2026 11:51:56 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErHUyDzpwvTxZPAZ6+zfjATdJl1/Vl++nEJ6JLNcZcXK9jkf+cdttYFIstbwLWGWTTa7B64NBo6m/ozB@vger.kernel.org
-X-Gm-Message-State: APuU4Z/QEwIetCjSbtuT5rSW1Oxxe3rAQMM3HimPmdPbtH1cP8aEN4vY
-	s9huh33h5Yxpk7LD9FqEMfu5civimbmoXaP5ASSMSk1l4rScfNgnp+OftDelDwvqeLAVc/2PWvo
-	07NYUInMjFUMG5YRjf+nzrWQraUkMs0E=
-X-Received: by 2002:a05:651c:4217:b0:3ac:45df:83d0 with SMTP id
- 38308e7fff4ca-3ae7f8d4893mr3155131fa.2.1795117914583; Thu, 19 Nov 2026
- 11:51:54 -0800 (PST)
+	s=k20260515; t=1795118308;
+	bh=IEg+CKmOlkZndpwphnetx0KbTsayP3KWj3U59fB9YnA=;
+	h=From:To:Cc:Subject:Date;
+	b=BKPLi5/lGPpGufB85JB28WuLDktgF+yUSjQQ2xgsVooMVLU1te/oWchz5AIkFj7EW
+	 jokQdeBKCpow98VPuIzqCNA3pGcHf/20ZRDKwK+Vwvs6FY2OWUzj6aJ9cSY+h+vaxu
+	 7y21YWmQ0gOvPDaz/I2LWyIIOfeWXdAOLlo1QTDXnD+Uxkgg0sV/GlgOT+QZUA5Hk3
+	 V9+j48ezjnsG2KCV2jmbfe+B06yanmqctjVq4Ft/y9a8PucYvCeOmImsAoady9ymGp
+	 SSP6Hr0HrPN2ksAgI+u7PwwudMZkig+4+q1S6X0BloMU1xlXjnk+XEPe9rlCLiqnjy
+	 SdLXwLjr/UcRA==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>,
+ Brian Norris <briannorris@chromium.org>
+Subject:
+ [PATCH v1] ACPI: TAD: Improve runtime PM handling during driver removal
+Date: Thu, 19 Nov 2026 20:58:26 +0100
+Message-ID: <6052490.DvuYhMxLoT@rafael.j.wysocki>
+Organization: Linux Kernel Development - Intel
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,86 +57,61 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 19 Nov 2026 20:51:42 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0izRYXCE-EMaA+Q80q2EitZbQ7BGN383mnXR19cx77CWg@mail.gmail.com>
-X-Gm-Features: AclHuK_YH15zGCeRDGFT3855GXj-0XY8BBAk-AQrngHDj6JcZLmYXA848Z1jZfE
-Message-ID: <CAJZ5v0izRYXCE-EMaA+Q80q2EitZbQ7BGN383mnXR19cx77CWg@mail.gmail.com>
-Subject: [GIT PULL] Power management and ACPI support fixes for 7.4-rc4
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, 
-	ACPI Devel Maling List <linux-acpi@vger.kernel.org>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, 
-	Christian Loehle <christian.loehle@arm.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 
-Hi Linus,
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Please pull from the tag
+In acpi_tad_remove(), instead of attempting a runtime suspend of the
+device which may be blocked by user space via "power/control", change
+the device's runtime PM status to "suspended" after disabling runtime
+PM for it to potentially unblock the runtime suspend of its parent and
+suppliers (if any).
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm-7.4-rc4
+Since pm_runtime_suspend() is not called in acpi_tad_remove() any more,
+the latter need not drop the runtime PM reference to the device held by
+it, so make it use guard()() instead of scoped_guard() for acquiring
+that reference and reduce the indentation level.
 
-with top-most commit d40cb8a12ed25789f39404c5f7968a65e98d89c3
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_tad.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
- Merge branches 'acpi-cppc-fixes' and 'pm-cpufreq-fixes'
-
-on top of commit aebb7274476403040d582c61478df8f4a7bf9cd3
-
- Linux 7.4-rc3
-
-to receive power management and ACPI support fixes for 7.4-rc1.
-
-These fix two recent regressions related to power management, one in
-the ACPI CPPC library (affects the CPPC interface in sysfs and the
-intel_pstate driver), and one in the ACPI device PM core code (affects
-platforms with shared ACPI power resources assigned to devices reported
-as "not present" by firmware), another ACPI CPPC library issue and two
-cpufreq issues, one in the core and one in the CPPC cpufreq driver:
-
- - Avoid initializing power management for absent devices in the core
-   ACPI PM code to unbreak power management on platforms where an ACPI
-   shared power resource is assigned to a device reported by the
-   platform firmware as absent (Rafael Wysocki)
-
- - Drop compliance checks involving nominal performance from the ACPI
-   CPPC library to unbreak the CPPC sysfs interface and the intel_pstate
-   driver on some Intel platforms after a recent change that added those
-   checks (Rafael Wysocki)
-
- - Make the ACPI CPPC library reject EPP registers that are too small to
-   store all of the possible EPP values (Christian Loehle)
-
- - Make cpufreq_driver_target() skip inactive policies to avoid a NULL
-   pointer dereference on a frequency table access attempt (Zhongqiu Han)
-
- - Set the CPPC Enable register in cpu_init() in the CPPC cpufreq driver
-   to enable CPPC on platforms that wait for the OS to enable it (Sumit
-   Gupta)
-
-Thanks!
+--- a/drivers/acpi/acpi_tad.c
++++ b/drivers/acpi/acpi_tad.c
+@@ -850,19 +850,21 @@ static void acpi_tad_remove(void *data)
+ 
+ 	device_init_wakeup(dev, false);
+ 
+-	scoped_guard(pm_runtime_noresume, dev) {
+-		if (dd->capabilities & ACPI_TAD_AC_WAKE) {
+-			acpi_tad_disable_timer(dev, ACPI_TAD_AC_TIMER);
+-			acpi_tad_clear_status(dev, ACPI_TAD_AC_TIMER);
+-		}
+-		if (dd->capabilities & ACPI_TAD_DC_WAKE) {
+-			acpi_tad_disable_timer(dev, ACPI_TAD_DC_TIMER);
+-			acpi_tad_clear_status(dev, ACPI_TAD_DC_TIMER);
+-		}
++	guard(pm_runtime_noresume)(dev);
++
++	if (dd->capabilities & ACPI_TAD_AC_WAKE) {
++		acpi_tad_disable_timer(dev, ACPI_TAD_AC_TIMER);
++		acpi_tad_clear_status(dev, ACPI_TAD_AC_TIMER);
++	}
++	if (dd->capabilities & ACPI_TAD_DC_WAKE) {
++		acpi_tad_disable_timer(dev, ACPI_TAD_DC_TIMER);
++		acpi_tad_clear_status(dev, ACPI_TAD_DC_TIMER);
+ 	}
+ 
+-	pm_runtime_suspend(dev);
+ 	pm_runtime_disable(dev);
++	/* Allow the parent and suppliers (if any) to suspend. */
++	pm_runtime_set_suspended(dev);
++	/* No need to power down, the PM domain detach will take care of it. */
+ }
+ 
+ static int acpi_tad_probe(struct platform_device *pdev)
 
 
----------------
 
-Christian Loehle (1):
-      ACPI: CPPC: Reject EPP registers narrower than 8 bits
-
-Rafael J. Wysocki (2):
-      ACPI: CPPC: Drop compliance checks involving nominal performance
-      ACPI: PM: Avoid initializing power management for absent devices
-
-Sumit Gupta (1):
-      cpufreq: CPPC: Set CPPC Enable register in cpu_init()
-
-Zhongqiu Han (1):
-      cpufreq: Skip inactive policies in cpufreq_driver_target()
-
----------------
-
- drivers/acpi/cppc_acpi.c       | 13 +++++++++++--
- drivers/acpi/device_pm.c       | 15 +++++++++++++--
- drivers/acpi/glue.c            |  8 ++------
- drivers/cpufreq/cppc_cpufreq.c | 14 +++++++++++++-
- drivers/cpufreq/cpufreq.c      |  8 ++++++++
- 5 files changed, 47 insertions(+), 11 deletions(-)
