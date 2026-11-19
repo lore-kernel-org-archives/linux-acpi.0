@@ -1,53 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795118308;
-	b=Wd0kfSJBZVKRfut/GANPDt0x3MqFkFEFJ+NCrfsr71OWKC+Ow/eJhN0Z45fDh2iZoxwI
-	 tMV1Vr4/726eaghoKMcwi+vJ/JipU3WmYKBCX1rcxmFCNUNyVfWyUltjvS58BAmWL0QFi
-	 PTiakHJOkmWH4wSItSDyON2FARTkmmybtWNw9GlAqEPD47QkyLt/vGU+T/Cu1K9OjEbER
-	 vuOnzT7WhH+R47wbbpuD4d+yCgjeP9IThswKQTPtmalno1njSa+9u+E0KOOgziz9Uo3SJ
-	 nuugjbEvrZzzZ9X7PX4sXCCePKCMKLWI21mJCnFCiMFj6/MIZY5nUtypO9rDVQZ5YVQ==
+	t=1795121123;
+	b=jE0u2DHqQvub1S26Q59rpBUgi2HLp1A2bqjjlrb079HcQ/PxQO+hhvcNhw8upuUYB4ga
+	 VomTinyssWNlQkHfVKUVvQnZpsUfS9OwL1iL69pMNJynhDX5K45nA+QRLqOCExQSUBu6r
+	 cUJfuQF5y8xrUyG2YN/5wE5zCeZ/yv84rMfsxst0pWx+zN3xZuYPekyEh2ojk++mcJ7SB
+	 iFIyEnvIlYLde2MzYbtux/EZ9ImT+P8SF6ntdCxhTXRWYjUJ8RwSmJpl6ypz7FaEU9CGY
+	 8aLwhhOU/Awy15pUDCnqQujzzs1GV+k6stKFfh3JMJ/sK5eaJF1XTk9fmt2erGp4SQg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795118308;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 Organization:MIME-Version:Content-Transfer-Encoding:Content-Type;
-	bh=IEg+CKmOlkZndpwphnetx0KbTsayP3KWj3U59fB9YnA=;
-	b=l7yzJdXbS3GVMxH2KMcuib09uJQV3QDYe+ohTQvnBLTWTzspoBfefTyzOy69hGhbgNtx
-	 Gq82AvIrlNSdVO+52kwRq9zvzUd2adTlgQOe/segsdDH/kQY8kkrLidYUbYk3+8Mic2V8
-	 1wXg5yCAo0MvFPgAABnfCVWi6kMTSFPjg71xYvEc0mbykbdl+dDpShvuqj5+Ecv+iA2xT
-	 pq3RwFYcFxSiGtUzPTzSpaTSRzFjmwL6JNqwPO9g39Jyiyt8JFlMLgxY70HCTeuwki6a6
-	 kGpRMFi0UN8pc4BosUDk6Lrdx/POnVHBuGulwfPRVfbZz3yzhyf4wZGZhLyftyxK7Ag==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795121123;
+	h=Received:DKIM-Signature:Date:From:To:cc:Subject:In-Reply-To:
+	 Message-ID:References:MIME-Version:Content-Type;
+	bh=l7oadj4+9cMi0OE++QXqn4KnYvdl249G4HJYosXQ9E8=;
+	b=HvH5HYV5dKX3E0B6TVtMobnZN/yYyxpZTFM+ORXXz3CR1F8dVHC6ulT8NSGCbMAiZIOS
+	 kjojii1CssCpbPZKksRjrsIBczAl6wNXowAp1OvMR5I68QQlcIZgHM0MJDnym3w/Zn3bu
+	 o+5NRRQ7L2OGePox6gf/Yo8G7K3Bouy6GmYyMyxcOWiogcLR0S7mrLqe+AhSIG9LVYWfe
+	 qfxj5ZKdYObxkCO3yuQf8MtSRey7o9YObT7XARghYJIIubeqnk1kasQdrweH0SuaS5OqI
+	 OZ2V+2WNaTI4ronGvo832BOr80SEwbLE8zsjdLAT8N4gYezWVOm22DDeRWXcGtrMJfQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="BKPLi5/l";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aaCbcSi7;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77633606A320;
-	Thu, 19 Nov 2026 19:58:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BBC8606BBAD;
+	Thu, 19 Nov 2026 20:45:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BKPLi5/l
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5B591F000C5;
-	Thu, 19 Nov 2026 19:58:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aaCbcSi7
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8B401F000C0;
+	Thu, 19 Nov 2026 20:45:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795118308;
-	bh=IEg+CKmOlkZndpwphnetx0KbTsayP3KWj3U59fB9YnA=;
-	h=From:To:Cc:Subject:Date;
-	b=BKPLi5/lGPpGufB85JB28WuLDktgF+yUSjQQ2xgsVooMVLU1te/oWchz5AIkFj7EW
-	 jokQdeBKCpow98VPuIzqCNA3pGcHf/20ZRDKwK+Vwvs6FY2OWUzj6aJ9cSY+h+vaxu
-	 7y21YWmQ0gOvPDaz/I2LWyIIOfeWXdAOLlo1QTDXnD+Uxkgg0sV/GlgOT+QZUA5Hk3
-	 V9+j48ezjnsG2KCV2jmbfe+B06yanmqctjVq4Ft/y9a8PucYvCeOmImsAoady9ymGp
-	 SSP6Hr0HrPN2ksAgI+u7PwwudMZkig+4+q1S6X0BloMU1xlXjnk+XEPe9rlCLiqnjy
-	 SdLXwLjr/UcRA==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>,
- Brian Norris <briannorris@chromium.org>
-Subject:
- [PATCH v1] ACPI: TAD: Improve runtime PM handling during driver removal
-Date: Thu, 19 Nov 2026 20:58:26 +0100
-Message-ID: <6052490.DvuYhMxLoT@rafael.j.wysocki>
-Organization: Linux Kernel Development - Intel
+	s=k20260515; t=1795121123;
+	bh=l7oadj4+9cMi0OE++QXqn4KnYvdl249G4HJYosXQ9E8=;
+	h=Date:From:To:cc:Subject:In-Reply-To:References;
+	b=aaCbcSi7O6X6LRq1BFe/wsSCIG/6ne+00afVygLXzowJlubrGnYWD7QGUXMRZZ7RX
+	 4WPvkzKREtIcVzBMcZEnedeBwUxaxdXSbML5Iw/d4j2MqdUVcNU4C+4AUgPo2vYwhl
+	 muATMK6UisCII7wfv0YZy3Xa4ixrHNF6fvQA1TcX/c2/Phn1/74OyDdHTv8/Z+6gzT
+	 cIjFPGLjoQTYv3jkRrxDVClgOi58lxfrDG35JwX9UHVkQVaNFcgk7dpRZH98ocudTf
+	 K93CvAGBk/YA0Wc6/TywfQJZokMfS4G8ZQqKjBS3MiIqQUk6TuJ2RssTNCzd5pwQvU
+	 PWUNYqwDGkp0A==
+Date: Thu, 19 Nov 2026 21:45:20 +0100 (CET)
+From: Jiri Kosina <jikos@kernel.org>
+To: Waqar Gulzar <iamwaqargulzar@gmail.com>
+cc: Benjamin Tissoires <bentiss@kernel.org>, linux-input@vger.kernel.org, 
+    linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
+    stable@vger.kernel.org
+Subject: Re: [PATCH] HID: i2c-hid-acpi: restore touchscreen IRQ routing on
+ HP OmniBook X Flip 16
+In-Reply-To: <20260930-b4-elan2514-irq-route-v1-1-44671bf01d05@gmail.com>
+Message-ID: <75148n0r-r943-9304-n194-r66rnnq660s5@xreary.bet>
+References: <20260930-b4-elan2514-irq-route-v1-1-44671bf01d05@gmail.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -57,61 +59,60 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Wed, 30 Sep 2026, Waqar Gulzar via B4 Relay wrote:
 
-In acpi_tad_remove(), instead of attempting a runtime suspend of the
-device which may be blocked by user space via "power/control", change
-the device's runtime PM status to "suspended" after disabling runtime
-PM for it to potentially unblock the runtime suspend of its parent and
-suppliers (if any).
+> From: Waqar Gulzar <iamwaqargulzar@gmail.com>
+> 
+> On the HP OmniBook X Flip 16 the ELAN2514 touchscreen interrupt is a
+> GPIO pad (GPP_E_18) routed directly to the IO-APIC. The firmware's
+> touchscreen power resource does
+> 
+>     PTPL._ON:  \_SB.SGRA (TPI2, TPIP)        // TPIP = T0IP = 0
+>     PTPL._OFF: \_SB.SGRA (TPI2, TPIP ^ 1)
+> 
+> while the device's _INI enables routing with SGRA (GPLI, T0IP ^ 1).
+> So _ON clears PADCFG0.GPIROUTIOXAPIC and disconnects the pad from the
+> IO-APIC. Linux evaluates _ON at probe and on every D3->D0 transition
+> (Windows apparently does not while _STA already reports the resource
+> on), after which the level-triggered IRQ never deasserts:
+> 
+>   - ~630 interrupts/s while idle, nearly every read returns 0xffff
+>   - frames shifted by a leading 0xff, "incomplete report (67/7167)"
+>   - stylus reports arrive at ~25 Hz instead of the native ~268 Hz
+>   - touch stalls and false stylus proximity
+> 
+> Re-enable the routing through the firmware's own \_SB.SGRA helper from
+> the power_up hook, which runs at probe and on resume before the HID
+> reset.
+> 
+> Tested on board 8DA1 (BIOS F.20): idle interrupts drop from ~630/s to
+> 0 after boot and after s2idle resume, and pen and touch behave as on
+> Windows. Board 8DA0 is the other board ID of this model and is reported
+> to have the same firmware code, so it is included, but it has not been
+> tested because I do not have access to one.
+> 
+> Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/2142384
+> Link: https://github.com/testyfishy/hp-omnibook-flip16-touchscreen-fix
+> Link: https://github.com/iamwaqargulzar/hp-omnibook-x-flip-16-linux-touchscreen-pen-fix
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Waqar Gulzar <iamwaqargulzar@gmail.com>
+> ---
+> The HP OmniBook X Flip 16 firmware disconnects the ELAN2514 touchscreen
+> interrupt from the IO-APIC in its power resource _ON method, which Linux
+> runs at probe and resume. This patch re-enables the routing through the
+> firmware's own helper from i2c-hid-acpi's power_up hook.
+> 
+> Tested on board 8DA1 with BIOS F.20 on Linux 7.2.8, including s2idle
+> resume. The 8DA0 entry is untested (I do not have that board).
+> 
+> Full analysis, ACPI excerpts, and Windows/Linux traces:
+> https://github.com/iamwaqargulzar/hp-omnibook-x-flip-16-linux-touchscreen-pen-fix
 
-Since pm_runtime_suspend() is not called in acpi_tad_remove() any more,
-the latter need not drop the runtime PM reference to the device held by
-it, so make it use guard()() instead of scoped_guard() for acquiring
-that reference and reduce the indentation level.
+Applied to hid.git#for-7.4/upstream-fixes, sorry for the delay.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpi_tad.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
-
---- a/drivers/acpi/acpi_tad.c
-+++ b/drivers/acpi/acpi_tad.c
-@@ -850,19 +850,21 @@ static void acpi_tad_remove(void *data)
- 
- 	device_init_wakeup(dev, false);
- 
--	scoped_guard(pm_runtime_noresume, dev) {
--		if (dd->capabilities & ACPI_TAD_AC_WAKE) {
--			acpi_tad_disable_timer(dev, ACPI_TAD_AC_TIMER);
--			acpi_tad_clear_status(dev, ACPI_TAD_AC_TIMER);
--		}
--		if (dd->capabilities & ACPI_TAD_DC_WAKE) {
--			acpi_tad_disable_timer(dev, ACPI_TAD_DC_TIMER);
--			acpi_tad_clear_status(dev, ACPI_TAD_DC_TIMER);
--		}
-+	guard(pm_runtime_noresume)(dev);
-+
-+	if (dd->capabilities & ACPI_TAD_AC_WAKE) {
-+		acpi_tad_disable_timer(dev, ACPI_TAD_AC_TIMER);
-+		acpi_tad_clear_status(dev, ACPI_TAD_AC_TIMER);
-+	}
-+	if (dd->capabilities & ACPI_TAD_DC_WAKE) {
-+		acpi_tad_disable_timer(dev, ACPI_TAD_DC_TIMER);
-+		acpi_tad_clear_status(dev, ACPI_TAD_DC_TIMER);
- 	}
- 
--	pm_runtime_suspend(dev);
- 	pm_runtime_disable(dev);
-+	/* Allow the parent and suppliers (if any) to suspend. */
-+	pm_runtime_set_suspended(dev);
-+	/* No need to power down, the PM domain detach will take care of it. */
- }
- 
- static int acpi_tad_probe(struct platform_device *pdev)
-
-
+-- 
+Jiri Kosina
+SUSE Labs
 
