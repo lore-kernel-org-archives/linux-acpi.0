@@ -1,81 +1,81 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795104188;
-	b=StAKRsouO2YlH/sPYHqKt5VvDtA7/EVDKvZwhjWYwu0XbPaIHel09bMb0+3FgwuG0vOo
-	 EPsKO2FAC6IKCiM39cCdIctjGoRaxV7N+uB75Sk5zVrilaD/lmUUEXDJK1ej25F+ROfvN
-	 2y/0ox8RpkrMMxqTvm2xUNi1uE3Bpl45MW+xiUWohxGETgVKaXIRj6Xjo2GtI10Q8psed
-	 WrGfE1AgEEppLcZbWdl9XHj8szh9ow6ttTXbLi53S2EJDB886ey9HKjMzzSPOOuRShuj2
-	 I17FNOvfcF8mHhzeLPVhjrNGBfumpJj8rUR648asz1272Grm7y1bqKroEdhYcAspLPQ==
+	t=1795107247;
+	b=pMu6Q/H+ldxD8S+sRq1SZII0EC6Gh1R0jHJL2WRAS+BZr3C58fxYKPv6uSzecm+nYHVw
+	 OjQNBzWfswn1heWl7M3M+znFhZnjohs22dsNzwtzEYC6WPotGl1fZtc//ecXUNdj6Yu4Y
+	 TEQHNblTfhlF32KXp1/hxw9enPnNrBPO4szaQL6KZNEg7U7KAl/p8EjYaS0oGGKiC41vm
+	 QB+w+yxrSLTBQjU7z6C8o9kODnHX0MEF1cC07b7HgBwWArLrBbqm1hAuMT/4HhB3O3gxe
+	 ORtFVMA9Cyb5IL7fn72pmVOG32FjaJAQ5gsA4ACBwQDCrITpU3K0OWXyEhMt9e5Ac1w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795104188;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:
-	 In-Reply-To:References:Subject:Message-Id:Date:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:X-Mailer;
-	bh=4zi2JWHeWfDfX39NlxX3oX9HxXWlhyFS95IVW8A7s5g=;
-	b=tbnEo19vYvGIH4nFbojHi+IdMuUGJ+eUu27kLhI0ZfSADieu/hajuavxgplKE0rUAwcf
-	 D1LzZeUrEBQDvURh8vRQ8RqoagNBb4Wm7iYM+/vlMb8IJl+29r2bnPhC3/5/Vton0Jz8E
-	 8ledknDJzjIj286hAq4rUNqEP6Hrw2DQsYxI1f47DLhopjMPZpD5C1P2EAmohd9NxEcG5
-	 rzuTXI5m4oo/DWRYhbX++AJffD94NWY1dsKF9gc2WToX3QKUV57U5584vDA3Fiiu9c1a9
-	 WNag2/xLIdH0Jpkft//EWCn3AUr00YiPc0xRFbIz7zYZm2O4K8brflRhN0jtYKKqu3Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795107247;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=FpRAw10TJh8yb7R34VwZYYTrEJ2MgNuHTOaOU0kAmbg=;
+	b=A87CmkBW2fVSqpWraEl7LzWsErxpKLKyZAruy0kl+NOjrXYZJS12x+WiPXR5nwRbhbm4
+	 CQZCxn4/UT7RadJKRhYY/kRlTel42ZnEfysm4i5dIjrPpSVtHMUX+v5YX9vvbYuBATfPb
+	 iqbOsZ8jPrEyJjNE8zwlyyCUteAv4hytruVe761THNQeDWzizMhk7jQQ/1+cwP5wU5ZlJ
+	 zZfIAzSyQ4jjYMA+dxjIJLuY+FIb9KFa2wVk9tmz6Tdu/IJJzaFB6VboVNhqAA+vLbgsD
+	 gUuHsrHF/dr1x/rD+s/OACMGvkkxXIpFGp9COQCke9nE04IorXtoDjMOR8jadhR5dxQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=N5giJBrI;
-	arc=none smtp.remote-ip=192.198.163.13
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C8C8606A325;
-	Thu, 19 Nov 2026 16:03:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9C8C8606A325
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	dmarc=pass header.from=arm.com;
+	spf=pass smtp.mailfrom=arm.com;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=UdcRID8K;
+	arc=none smtp.remote-ip=217.140.110.172
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6C057606A338;
+	Thu, 19 Nov 2026 16:54:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6C057606A338
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=N5giJBrI
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795104188; x=1826640188;
-  h=from:to:cc:in-reply-to:references:subject:message-id:
-   date:mime-version:content-transfer-encoding;
-  bh=r0qzl1l2ZjBbaSVw+4tulftWf87xepvCgmvPesxSJqU=;
-  b=N5giJBrIl4oTng7dIlXEDzaIMfdioMAdVrKAJkt5tqF4XzHsWSaqgS/9
-   yxYhhgqeEs+bj7TvDjZfbgF566tM4qa9cUvHu1xytGmFameEnRxiK68in
-   1u9K0M4IHgtmj9ZTfXznwCRgakka1snTIJ5epX2sabf49MU4hlRBqmxIo
-   RXWpon2Cl0x4OFAXZ4WMuaWTP43clpK1BUGDtWHxLVyBnSSvsXsER4Rh7
-   CRFjgchoUxAxc70cyBZh1Yl4iUdoRP/9rhGH7srF2xU/U4CDJIepis5qd
-   gW3nkiAho1tgF5HbEpkb0d2VX9VsPF5HYfaQ2f7OBsf5PiuCTG0SlbeEk
-   Q==;
-X-CSE-ConnectionGUID: mno0lg49QGOicspK9uizig==
-X-CSE-MsgGUID: kzF60MdMRvqu2B5O/awMUg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11971"; a="3951233"
-X-IronPort-AV: E=Sophos;i="6.27,221,1787036400"; 
-   d="scan'208";a="3951233"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Nov 2026 08:02:55 -0800
-X-CSE-ConnectionGUID: jJS52iEIT6iakYqFwr1/AQ==
-X-CSE-MsgGUID: mQv+4zpvTbeL+TTVy1a05g==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,221,1787036400"; 
-   d="scan'208";a="10459450"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.132])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Nov 2026 08:02:50 -0800
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-To: Mika Westerberg <westeri@kernel.org>, 
- Andi Shyti <andi.shyti@kernel.org>, Corey Minyard <corey@minyard.net>, 
- Hans de Goede <hansg@kernel.org>, Sebastian Reichel <sre@kernel.org>, 
- Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, 
- openipmi-developer@lists.sourceforge.net, 
- platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
-In-Reply-To: <20261024-i2c-smbus-read-block-data-v1-0-19bb97467982@gmail.com>
-References: <20261024-i2c-smbus-read-block-data-v1-0-19bb97467982@gmail.com>
-Subject: Re: [PATCH 0/8] i2c: convert i2c_smbus_read_block_data() users to
- pass buffer length
-Message-Id: <179510416419.21358.12676315877277601381.b4-ty@b4>
-Date: Thu, 19 Nov 2026 18:02:44 +0200
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=UdcRID8K
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A8A901575;
+	Thu, 19 Nov 2026 08:54:03 -0800 (PST)
+Received: from localhost (unknown [10.2.196.114])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 360A43F673;
+	Thu, 19 Nov 2026 08:54:06 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1795107246; bh=UH4KDSFam0LfRKFnI3gJVWSsyCyljyOGfCQ7wrragEk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=UdcRID8Kz4lZK/h1ThJUkIPZuCu8llRVTIWUol7CEgsEAJDWIJ0dMrQdRTWZMoOz2
+	 XP992aMvTFRo5UvN7IMTff5COtXdHBV8kWVELcF8QaQZkmk72M2pRJtv6Ua4OgHRjd
+	 /qd3KyGzwJg18bFRXM4FHYSooM96/pJ6aeSI40CE=
+Date: Thu, 19 Nov 2026 16:54:04 +0000
+From: Leo Yan <leo.yan@arm.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Will Deacon <will@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Jeremy Linton <jeremy.linton@arm.com>,
+	Marc Zyngier <maz@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	Mike Leach <mike.leach@arm.com>,
+	James Clark <james.clark@linaro.org>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,
+	Al Grant <al.grant@arm.com>, "Johnny.Fan" <johnny.fan@cixtech.com>,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	driver-core@lists.linux.dev, devicetree@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-perf-users@vger.kernel.org
+Subject: Re: [PATCH 2/8] device property: Add software-node IRQ affinity masks
+Message-ID: <20261119165404.GA9176@e132581.arm.com>
+References: <20261116-acpi_arm_pmu_registration_hmp-v1-0-0371d4eca626@arm.com>
+ <20261116-acpi_arm_pmu_registration_hmp-v1-2-0371d4eca626@arm.com>
+ <avwHQXJxOir8XXxX@ashevche-desk.local>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -85,51 +85,74 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15.2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <avwHQXJxOir8XXxX@ashevche-desk.local>
 
-On Sat, 24 Oct 2026 19:48:40 -0700, Dmitry Torokhov wrote:
-
-> Convert callers of i2c_smbus_read_block_data() across input, ACPI,
-> IPMI, platform, and power supply drivers to pass destination buffer
-> sizes, adopting the 4-argument form introduced in commit 68f382641f8c
-> ("i2c: smbus: make i2c_smbus_read_block_data() safer").
+On Tue, Nov 17, 2026 at 09:50:25AM +0200, Andy Shevchenko wrote:
+> On Mon, Nov 16, 2026 at 06:21:29PM +0000, Leo Yan wrote:
+> > Devices created from firmware tables may need CPU affinity information
+> > without a corresponding firmware node. Allow software nodes to supply
+> > this information through the common firmware node IRQ affinity API.
+> > 
+> > Add software_node_add_irq_affinity() to copy a CPU mask for an IRQ index,
+> > and implement the software node irq_get_affinity callback. Keep each mask
+> > until the node is released and reject replacement so borrowed masks remain
+> > valid for the node's lifetime.
 > 
-> Because the prerequisite commit 68f382641f8c is in mainline now,
-> subsystem maintainers are encouraged to pick up their respective
-> patches directly into their trees.
 > 
-> [...]
+> This is definitely not a place where to put that. Are you stating that any
+> software node might find the IRQ affinity information useful? I don't think
+> so. With that in mind this approach looks like a layering violation.
 
-Thank you for your contribution, it has been applied to my local
-review-ilpo-next branch. Note it will show up in the public
-platform-drivers-x86/review-ilpo-next branch only once I've pushed my
-local branch there, which might take a while.
+My intent is to expose optional affinity information through the
+common platform_get_irq_affinity() interface.
 
-FYI [if applicable to your patch], as per Linus' policy change, also
-fixes are mostly routed through for-next unless the fix is for a
-commit introduced in the most recent cycle or is clearly a regression
-fix.
+As an alternative, could we represent the masks in an "irq-affinity"
+property, with one CPU mask per IRQ index? The swnode .irq_get_affinity
+callback would read it, using the existing property storage.
 
-The list of commits applied:
-[1/8] i2c: acpi: use 4-argument i2c_smbus_read_block_data()
-      (no commit info)
-[2/8] i2c: docs: update i2c_smbus_read_block_data() prototype in writing-clients
-      (no commit info)
-[3/8] Input: cyapa - use 4-argument i2c_smbus_read_block_data()
-      (no commit info)
-[4/8] Input: elan_i2c - use 4-argument i2c_smbus_read_block_data()
-      (no commit info)
-[5/8] Input: synaptics-rmi4 - use 4-argument i2c_smbus_read_block_data()
-      (no commit info)
-[6/8] ipmi: ssif: use 4-argument i2c_smbus_read_block_data()
-      (no commit info)
-[7/8] platform/x86: x86-android-tablets: use 4-argument i2c_smbus_read_block_data()
-      commit: 2a1d56a31ce503ee12bcf6d76bde99f2aab7c7d6
-[8/8] power: supply: sbs-battery: use 4-argument i2c_smbus_read_block_data()
-      (no commit info)
+Would interpreting this property in swnode still be a layering
+violation? See the sample code below.
 
---
- i.
+---8<---
 
++static const struct cpumask *
++software_node_irq_get_affinity(const struct fwnode_handle *fwnode,
++			       unsigned int index)
++{
++	const struct property_entry *prop;
++	const void *masks;
++	size_t size = cpumask_size();
++
++	prop = property_entry_get(to_swnode(fwnode)->node->properties, "irq-affinity");
++	if (!prop || index >= prop->length / size)
++		return NULL;
++
++	masks = property_get_pointer(prop);
++	return masks ? masks + index * size : NULL;
++}
++
+ static const struct fwnode_operations software_node_ops = {
+ 	.get = software_node_get,
+ 	.put = software_node_put,
+@@ -774,6 +796,7 @@ static const struct fwnode_operations software_node_ops = {
+ 	.graph_get_port_parent = software_node_graph_get_port_parent,
+ 	.graph_parse_endpoint = software_node_graph_parse_endpoint,
+ 	.add_links = software_node_add_links,
++	.irq_get_affinity = software_node_irq_get_affinity,
+ };
+
+> ...
+> 
+> And overall, the domain specific (IRQ, DMA, et cetera) topics feels a bit
+> misplaced when one can find that in the generic properties. We also have
+> that PHY thingy, which is complete alien to word 'generic'.
+
+Since software nodes have no standard property specification of their
+own, would this be an appropriate way to define "irq-affinity" as a
+generic swnode property?
+
+Thanks for the review!
+
+Leo
