@@ -1,77 +1,77 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.21
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795195273;
-	b=Q5BWdgFXBxqZH/+atcZ5rle0quEw9npRG93mllOKSTJhHVrKZR6TwAAKJqNssWyUjPhI
-	 5I5p01AFtbnbgua3buI5MR6uYiB4BoEN5JIXHZnmKCMdwbRAC9ZCk6OkKPrpLc1CByGqP
-	 KNygbqLJb/Wu0ZPCJoldaf/ASFLcq4iyw7xsPUCiUlWGJDai8ADXXg4xn9KljmbiCwWXn
-	 XlMmE3jsTSc9f2Zlcz2pILV8UW9iBfHC05D2zxcF9ooeZ9WzXCVR+02Ob4vMZGry04yMy
-	 Cw+YFV1jm9qT55/91CDkYL7aH+hcMbUbMkExK6YOzorZ6a1C0+mtcCB+EG2Gj+DAPRw==
+	t=1795195277;
+	b=ECyKbTG6wpxclxJ23MLUOnu1FJe524bkHxcIwH5SIRUyYFxqwlglnmL5onI0QzjZv8cp
+	 SJEcLTbhedcVvwI/eDzoN21FqBgCLEU3WSKZPceE76uChwwRjtx070v9Q/YEXXuCvdvpB
+	 Tsg07DPuvCmu67KlNJ22MA0qREEVppn0X5i4+NJ65lS/M5EdRHoNr9d4TSulCSE5nKfbv
+	 TKU95AI1c979zXD/T5dFQOxfECPwPAJxJMAgNqN/JzRHpQgcrKDl0qPZRrBZqKhiDw0XG
+	 0rP1EXpNkW9r1RsDpLEezBBSYIrj6VOuzzPS5meUZ/EGRxpPiuRijDMNCrPzBIPJxlg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795195273;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795195277;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=4U/uwHAE/JCkAiNRCy6w0ySpZQBvAQunkij3nCJiKn0=;
-	b=b0By87PI5dAlVlmyUQbkIo4pP4B5DUZfqU4do4sriSEP/99O2Z3qJ+uxSsTKTat6qs6A
-	 puynjIUSi8I6k16zRXNsZ6XFcv3+nkf1TbVXhkZdU+7wAY5x2rDqMpGW5R9b5eYBuPNgC
-	 YdPIOeS0zIhROZkb8yhlr51gARRMCG4yOjiM5nF4uFXd0fGeaZF0+Il1iAmcZNwZ9W96e
-	 st+UPOOaOw9unfGo5QgTYV1sB/tXz4F7LxTY8D5b1tJe227nxlHqlkksoHuOqDveHr4Lk
-	 5edWVimKVekpLY1vo7ODu/QpiDHw8bDbuJ60k/9ehq2DfmLR/7Id/GtvU+QW29OpmTQ==
+	bh=P9SEqk6DUVLP0o0H9wkR5f5Xm6+h3Ji7hOkO7f1AAQY=;
+	b=WAe74onwY5cKbtTB78qV6JDspOX1x0p8yaOsBxaJuTZeHsOPv2mh5ms7qqKUocxjMcbh
+	 npaLDMSuwcu4046o8gcOU+9wgwqiuyAwNcH/VU9AkhU6ZQ/lfV06cu6uCe+4WOTFAtyLZ
+	 w4nNTRBfQF25K1kUIfKf4od+gkuXZbgbawxv1j3oeABAO2+ISqwrj/xjDBRIf9yowftjx
+	 X9wZXARz1AiTeDVf1C0vO/f457UrUtHnO87XE23qBiRvwYGbYpNZSiBxYsuNkr5mv2Owq
+	 UCiagtlw9CKUY5A7BQY9aJwYTcBi3xzodFGUO+CN7WrpreBEtciC4UeKvzftFtOcB8g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=intel.com;
 	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=IEVoEDpR;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=dzieUwMu;
 	arc=none smtp.remote-ip=198.175.65.21
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F55460A6F77;
-	Fri, 20 Nov 2026 17:21:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4F55460A6F77
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9E15606A753;
+	Fri, 20 Nov 2026 17:21:14 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E9E15606A753
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=IEVoEDpR
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=dzieUwMu
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795195272; x=1826731272;
+  t=1795195275; x=1826731275;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=zFXoZ8Suc98Mn6omUidyPFbF9/WmIqRHVrDQaUVpDGI=;
-  b=IEVoEDpRxgUeUud21EzQn9sYmpYo0JpENKvuilOAuLOVSHY/kOKfs0Wg
-   VwdI9NQSGCMnCcs86TJrFWX7nw0bSzuUCBH9BCnfpTI9mPkZl/uXWTfHl
-   6JKCGQu9AknEa1Hs85mmZ+HIuiGmNPpV9Dm59/1FFNA0VAupNKN635FRM
-   jQ2AJ9+bfcPE9QwbcUz2ouKCm/cxlVmEpfO4l3nMBG2LePYsWf57JK4hj
-   e6/7BdjfSsUEWOzJ8tRnhcyLOu8s0D3RRrIgKqn+zv2NIkSxm8HgID4M+
-   NUjVIGJRg2tfvW9XPZAO+dNCrSTDwx+O7nDkbuj8PzYTSCaJa/T03VDyt
-   Q==;
-X-CSE-ConnectionGUID: 3FMCd2XQROq6STTsIWL15g==
-X-CSE-MsgGUID: jRfakmEsRLa14JCWAdKDTQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4157435"
+  bh=fNyt5bds+2D1M6oS0dPhXEdnSM0yqetXMthRzRSIkzQ=;
+  b=dzieUwMu1O/G/Utz2YbPPxC2g5RNpcibZ0WuCIuw7yzC5h9DXfW3HGAn
+   61HggQ2qnho98Z5iTc1O4EYaDC/UtH5PoMooluqfHJUmUl76X73spyzQp
+   4aaMkWWvWYdx6EU/haWXWg9ewe4dprquZOSRBazn5PGDsfrnp0SbE5U4N
+   WEcAZJ/Gh67oeWQ6f/lThla5umVDHFfAg4Hz6WvCYkFBhnTbZdbyKEL9q
+   MLjFYbMI12U00ddfOAdspFKl9Rhlp2Lq5EzVd4nD4m6mNKl8qPvlKWQly
+   +XYx2PUj8n940Z+UcFeky8gY6xqg2vBWHVRzh+zu3mzBznYu7c7hD6/ql
+   g==;
+X-CSE-ConnectionGUID: SrFXTPSQSNibLWqPq2DUBg==
+X-CSE-MsgGUID: fgp+A6pMT7modXBQojAMLQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4157448"
 X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="4157435"
+   d="scan'208";a="4157448"
 Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:11 -0800
-X-CSE-ConnectionGUID: IDwwc45DSe6aUYl2+hyJSg==
-X-CSE-MsgGUID: 1/T3D5jSQFGHf/N0GU49WA==
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:14 -0800
+X-CSE-ConnectionGUID: x1uggubvTF6wahUqtu/Tbg==
+X-CSE-MsgGUID: K+q7NuFiQvmatyyWYy+8CA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="10868104"
+   d="scan'208";a="10868116"
 Received: from hrotuna-mobl2.ger.corp.intel.com (HELO wieczorr-mobl1.intel.com) ([10.245.245.215])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:09 -0800
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:12 -0800
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>
+	Pawel Chmielewski <pawel.chmielewski@intel.com>,
+	Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org,
 	acpica-devel@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 22/42] ACPICA: ACPI 6.5 Add support for the MISC table
-Date: Fri, 20 Nov 2026 18:18:43 +0100
-Message-ID: <e9cc7ab5219926220c7af1e968548bb033366f00.1795194329.git.maciej.wieczor-retman@intel.com>
+Subject: [PATCH v2 23/42] ACPICA: iASL: Complete KEYP support
+Date: Fri, 20 Nov 2026 18:18:44 +0100
+Message-ID: <1dab489b46ff26fe5464571906682ac15ffdd571.1795194329.git.maciej.wieczor-retman@intel.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
 References: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
@@ -88,68 +88,44 @@ Content-Transfer-Encoding: 8bit
 
 From: Pawel Chmielewski <pawel.chmielewski@intel.com>
 
-ACPI 6.5 Introduces MISC table and the definition for Miscellaneous GUIDed
-Table Entries. This commit adds support for this table, specifically in
-compiler, disassembler and template generator.
-Refer to section 5.2.33. "Miscellaneous GUIDed Table Entries" of ACPI
-6.5 specification for further information.
+Add the iASL disassembler, table compiler, and template support for the
+KEYP (Key Programming Interface for Root Complex Integrity and Data
+Encryption) table.
 
-Link: https://github.com/acpica/acpica/commit/727cd62d95fc
-Link: https://github.com/open-acpica/acpica/pull/1199
+Add the KEYP entry to the supported-tables list and introduce an
+ACPI_DMT_KEYP opcode so the subtable Type field decodes to a name.
+
+Link: https://github.com/acpica/acpica/commit/39bcadc69364
+Link: https://github.com/open-acpica/acpica/pull/1204
 Signed-off-by: Pawel Chmielewski <pawel.chmielewski@intel.com>
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 ---
- include/acpi/actbl2.h | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ include/acpi/actbl2.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index dbfea7c8bc00..3f6e093133c7 100644
+index 3f6e093133c7..9af7c51d1297 100644
 --- a/include/acpi/actbl2.h
 +++ b/include/acpi/actbl2.h
-@@ -38,6 +38,7 @@
- #define ACPI_SIG_MADT           "APIC"	/* Multiple APIC Description Table */
- #define ACPI_SIG_MCFG           "MCFG"	/* PCI Memory Mapped Configuration table */
- #define ACPI_SIG_MCHI           "MCHI"	/* Management Controller Host Interface table */
-+#define ACPI_SIG_MISC           "MISC"	/* Miscellaneous GUIDed Table */
- #define ACPI_SIG_MPAM           "MPAM"	/* Memory System Resource Partitioning and Monitoring Table */
- #define ACPI_SIG_MPST           "MPST"	/* Memory Power State Table */
- #define ACPI_SIG_MRRM           "MRRM"	/* Memory Range and Region Mapping table */
-@@ -1876,6 +1877,35 @@ struct acpi_table_mchi {
- 	u8 pci_function;
+@@ -1177,6 +1177,7 @@ struct acpi_keyp_common_header {
+ 
+ enum acpi_keyp_type {
+ 	ACPI_KEYP_TYPE_CONFIG_UNIT = 0,
++	ACPI_KEYP_TYPE_RESERVED = 1,
  };
  
-+/*******************************************************************************
-+ *
-+ * MISC - Miscellaneous GUIDed Table
-+ *
-+ * Conforms to section "Miscellaneous GUIDed Table Entries" of ACPI
-+ * Specification v6.5
-+ *
-+ ******************************************************************************/
+ /* Root Port Information Structure */
+@@ -1206,6 +1207,10 @@ enum acpi_keyp_protocol_type {
+ 	ACPI_KEYP_PROTO_TYPE_RESERVED
+ };
+ 
++/* Only version 1 of the KCU Structure is currently defined in the spec */
 +
-+struct acpi_misc_guid_entry {
-+	u8 entry_guid[16];
-+	u32 entry_length;
-+	u32 revision;
-+	char producer_id[ACPI_NAMESEG_SIZE] ACPI_NONSTRING; /* ACPI Vendor ID */
-+	u8 data[];
-+};
++#define ACPI_KEYP_CONFIG_UNIT_VERSION 1
 +
-+/* Minimum length of a MISC entry (the header fields, without any Data) */
-+
-+#define ACPI_MISC_MIN_ENTRY_LENGTH 28
-+
-+struct acpi_table_misc {
-+	struct acpi_table_header header; /* Common ACPI table header */
-+	/*
-+	 * Immediately followed by one or more variable-length entries:
-+	 * struct acpi_misc_guid_entry Entries[];
-+	 */
-+};
-+
+ #define ACPI_KEYP_F_TVM_USABLE      (1)
+ 
  /*******************************************************************************
-  *
-  * MPAM - Memory System Resource Partitioning and Monitoring
 -- 
 2.56.0
 
