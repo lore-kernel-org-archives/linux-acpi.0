@@ -1,78 +1,78 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.21
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795195233;
-	b=DuwCgTCLdZ00QYLHXVpFV9UUZi5/qiJT8Y06gda8LVJSQvM5bdSX5h7it4ueB4+Yh9cz
-	 3SfbCz2o/mHSurZgJ7OI6WotxLb78JhOieN3wkhKs+aCdLq8uWE0meH+J6mbXo0M4dNxb
-	 Rlt5CaSzQQh2YscbzQwZNQiO8wzu92iVc8VxaCvjHLoBG2e8rLzhqfoO8PYg1Kof02Jbl
-	 AerfhttPam1LxDVHxvJkw4DmNisd1Lntt2H1gjJLBabvOwTuZBpH0FuYqiJD8GzOXg9g1
-	 TLJiMdIfGjPJdx1HB8Il6ylfnIJTaPwxHUFSBmhLxz1oiEJVSpF0VqiMled2DQXcLbA==
+	t=1795195234;
+	b=A0yEZnSrKUujJoLvcLvxnblk5xZqa3WwtjrhjgID8JCx2mVERsNX1HeJy2Zrly2hUoEy
+	 71Fljfu2Z/9M+KdtyFajjbkvCzQCDtDJg1zUHzepYqghPA84RFnKJUutC5ce//VRqk8yP
+	 nt6vp/Lv7d2AtIX1jJ60zL9nJAc5U5iWGCcd/kaO9U/9JS7lrFT1cFL8VbuT0WcIreboo
+	 7UxJHG/OQFyIAww+zKRVBoDhKYwJkx5VsEHDEQR2Nos/wf1vnDMDX+q17d+G8yeVYoSfo
+	 A+imx3pj77hxzSvLzaujqnsnn6dPvvvPDMwBK8rYjLrIkxBGQSv1CrRHOysx6jQz4xg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795195233;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795195234;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=vVr/dw32tBHePOh++2E7M4gRpSikVd+IKkh/FF/6SSM=;
-	b=0mTEyai9f/6EFR//lsaEveUzbuHe+Sny4YSLl+35WkaAeEZ5m2qh26bdTfgP3PiZBmso
-	 0qfFEYM02luOsm1G1MXwMHe6rfs3N1dhH1C0jSr9Urwf6yIFwt25Rlr2k/8ZQlBBIeB3m
-	 M1VCnOJgF4dLCosZ98wUAgy/EyaMT5X1quvndavKQ5TGLZ5fnAVSUfTpYwUooOHU+Y+yo
-	 KRtQ64Z8EneZAzZvII3cXYS87VuSUe8mkcxcfU8RNJX5kFqhc1wDaVFL9nlev06GGUPtT
-	 f8CorFkGccBFKfCAy7ddN2QJwoe/XJ4y4drJxnoIWAUOouChKmPwHtuAeZ5syj2be2w==
+	bh=5Q5P/onJTcUW81xkdYnrJMMsfvaW1X71Cpq5f5F6Drg=;
+	b=ZXVdfXCcPXWIvb8bpRVSl8Sfx/O3tseNX7W2BG0BENhbosfb/g4CEAAYrGK96I0yoQE0
+	 xv4cBAwPfHKuV92Nrk+er0GjHctth20QYFGe1vFP3/Trmd8vFCxj3jU/OhwbLweCU1mHv
+	 th8kg5HOKmTi/Q6hDgd1kFNNDYsBoPqWILSUB+p12iDgKctj7AgaA/sXjL67B4xiTDA0u
+	 jq5/PC4KX1F0ibTqoWbIbb0GLOTx4f/8+3WRoRrzLJWmBEYsHEzM2Mvcjqs2GbG/HL+sY
+	 8dSZVnau7EujGH+PUEarii0UoM0I3feuM4jWhcP8cDGw5VbAHFzXuyHMki9fUg+V5cg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=intel.com;
 	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=ZOONvQ8m;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=CcnlMBfm;
 	arc=none smtp.remote-ip=198.175.65.21
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9AFC60A382D;
-	Fri, 20 Nov 2026 17:20:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C9AFC60A382D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C03660A2634;
+	Fri, 20 Nov 2026 17:20:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7C03660A2634
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=ZOONvQ8m
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=CcnlMBfm
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795195233; x=1826731233;
+  t=1795195224; x=1826731224;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=kejDiBptKITyb5a1IL9Qqc363efzUSjcEycVsyaxk60=;
-  b=ZOONvQ8mBZM393DReER78xULHhpUY3GO3JXCNZzjY4vkS9XCiqO6n8c5
-   KBtPZKI85ZOiFsCB8ZKS3YMTArMYlsHp/HSUsh4kAHkLpmIftBy6dnGtf
-   MwdFcHPS9jIlqAHuUg1jqn23w8X5djEBrqT93zfsf+MEhW6oKKRX5hDb2
-   EeFwCWdjt8XuqMVM0m1kuOyD33r32vlOVNQpRM0hSC080A0D19TbhOC2c
-   2rEgBpUjcFd4iyx713dGXcCgWDj3fkdb28hC0dwqtmD2eNN/rg94shhzl
-   KPtUrNtCrDckcp8XKDEZLR/Majau/uDveZvoJUAGHeOeolXwrEYHwZpOz
-   g==;
-X-CSE-ConnectionGUID: VUeKfg5oT3uOuEVS+7WfzA==
-X-CSE-MsgGUID: JjGwiM0/QlGDac3VUcknPQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4157325"
+  bh=7z9Bas6WEyT7Cowz8cSJBJ4gbIfztcmfm6g/6W7XHTo=;
+  b=CcnlMBfmuBnaAJDqjLUx+vqrEytcXDVGaw0s6TSZQqCXTR9b/Lukl08i
+   FrZrMggdMeDfQ1QCGr9dRUlmFxGhfBX3uFGukGPSiX7I48Al8rwBpRm6E
+   OMBupi02RZ4MRl8JFIvtGZR1oG+HfFitRnzoGUpMsR8YLLyxgfLrKBh8S
+   V5LHxW5ipMvex+7xt4Fpq/8uRGeoI61e2IxRbY7lXa/duTrg62RnEXmcm
+   lez4bn1E7mZWEgBiTZIUWqNJxiPrjJs08U3rN6ry3xZp2/qG6pTrMXmfa
+   89CrvDF/HxR2TA7wJHAey/kg2AzT6RDeu+8pjyIxaKVGsgPKRS/9H6D8s
+   A==;
+X-CSE-ConnectionGUID: m2X2fg95Rzeqo4F62E5GyQ==
+X-CSE-MsgGUID: FcHX9JaDRT6cNFGSul2otA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4157291"
 X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="4157325"
+   d="scan'208";a="4157291"
 Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:20:32 -0800
-X-CSE-ConnectionGUID: ZFo8NJPCS6SULwnNiXCjow==
-X-CSE-MsgGUID: HTIUXT2yTgmX936viOBDbw==
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:20:23 -0800
+X-CSE-ConnectionGUID: XWaC8FlMRa6GEX/ZZxkAXg==
+X-CSE-MsgGUID: wPOGs+GTSg+P78z9P8k3Dw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="10867916"
+   d="scan'208";a="10867855"
 Received: from hrotuna-mobl2.ger.corp.intel.com (HELO wieczorr-mobl1.intel.com) ([10.245.245.215])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:20:29 -0800
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:20:20 -0800
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>,
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
 	Pawel Chmielewski <pawel.chmielewski@intel.com>,
 	Len Brown <lenb@kernel.org>
-Cc: ikaros <void0red@gmail.com>,
+Cc: Dave Jiang <dave.jiang@intel.com>,
 	linux-acpi@vger.kernel.org,
 	acpica-devel@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 08/42] ACPICA: executer: Add bounds checking for PCC field read access
-Date: Fri, 20 Nov 2026 18:18:29 +0100
-Message-ID: <abf60c5de07dfe3b6736a4a635c36321c36e2724.1795194329.git.maciej.wieczor-retman@intel.com>
+Subject: [PATCH v2 05/42] ACPICA: CEDT: RDPAS: Add missing reserved field in RDPAS structure
+Date: Fri, 20 Nov 2026 18:18:26 +0100
+Message-ID: <fa4dcd0bbc16ff6e9d7470c38d68f968bfb91004.1795194329.git.maciej.wieczor-retman@intel.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
 References: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
@@ -87,60 +87,29 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: ikaros <void0red@gmail.com>
+From: Dave Jiang <dave.jiang@intel.com>
 
-Add validation in AcpiExReadDataFromField to ensure that PCC field
-reads do not exceed the bounds of the InternalPccBuffer. Check for
-a NULL buffer pointer and verify that BaseByteOffset + field byte
-length does not exceed Region.Length.
+Add the missing 3 reserved bytes at the end of the RDPAS structure.
 
-Link: https://github.com/acpica/acpica/commit/661d2310fd25
-Closes: https://github.com/open-acpica/acpica/issues/1165
-Signed-off-by: ikaros <void0red@gmail.com>
+Link: https://github.com/acpica/acpica/commit/88d82d3ae53e
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 ---
- drivers/acpi/acpica/exfield.c | 24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ include/acpi/actbl1.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
-index 50317fe0cbd5..6e86759162df 100644
---- a/drivers/acpi/acpica/exfield.c
-+++ b/drivers/acpi/acpica/exfield.c
-@@ -209,12 +209,32 @@ acpi_ex_read_data_from_field(struct acpi_walk_state *walk_state,
- 		ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
- 				  "PCC FieldRead bits %u\n",
- 				  obj_desc->field.bit_length));
-+		/*
-+		 * Ensure the field access does not exceed the bounds of the
-+		 * internal_pcc_buffer. The buffer is allocated with the region length,
-+		 * so verify that base_byte_offset + field byte length <= Region.Length.
-+		 */
-+		if (!obj_desc->field.region_obj->field.internal_pcc_buffer) {
-+			status = AE_AML_NO_OPERAND;
-+			goto exit;
-+		}
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 73ebc089e96d..5b4207af046a 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -590,6 +590,7 @@ struct acpi_cedt_rdpas {
+ 	u16 bdf;
+ 	u8 protocol;
+ 	u64 address;
++	u8 reserved[3];
+ };
  
-+		buffer_length = (acpi_size)ACPI_ROUND_BITS_UP_TO_BYTES(
-+			obj_desc->field.bit_length);
-+		if (obj_desc->field.base_byte_offset + buffer_length >
-+		    obj_desc->field.region_obj->region.length) {
-+			ACPI_ERROR((
-+				AE_INFO,
-+				"PCC field at offset %u length %u exceeds region size %u",
-+				obj_desc->field.base_byte_offset, buffer_length,
-+				obj_desc->field.region_obj->region.length));
-+			status = AE_AML_BUFFER_LIMIT;
-+			goto exit;
-+		}
- 		memcpy(buffer,
- 		       obj_desc->field.region_obj->field.internal_pcc_buffer +
- 		       obj_desc->field.base_byte_offset,
--		       (acpi_size)ACPI_ROUND_BITS_UP_TO_BYTES(obj_desc->field.
--							      bit_length));
-+		       buffer_length);
- 
- 		*ret_buffer_desc = buffer_desc;
- 		return AE_OK;
+ /* Masks for bdf field above */
 -- 
 2.56.0
 
