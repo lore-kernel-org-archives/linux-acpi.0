@@ -1,84 +1,78 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.21
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795195294;
-	b=nQGpBpz+7Bkp4lo9jsvV05OysdakppzpG6lpZ1ZzXCDLAvPcc4/lNrjkU+xwNUFShFzP
-	 oVKj+o2xhC4gc9dXhEDKPMnCs1flB7GXMAXZy7ZkrT/ERhCsMgZdF5A4fo7HBkk7n6Q32
-	 ssOtqsiWRYMiELDDVpTT1mHENTW+nUiFw/I90/5U9MEFuzaqLcCe/VZukfGPXmmb2nF9q
-	 sa2DaaFJshFeU2yAU2UllEQCYHvw89fz+k/TeCVreDIJdo1kBarBoJd5pUxbMay5kc2U7
-	 BOh3u2DbmNnghwaBONTefvLiwnuqfH+zO4DwTECK39DV/PGJt80b7Dkq4NFX06YfA8A==
+	t=1795195300;
+	b=F8gSS/g05L0kbQDv65lMUb+Vm2dWlPt99+e7iY6EYEC3R4eGBrfnX5Df2qgbO0JFUwfa
+	 r2LrmylMGa2xolRLiXUdJ51Q3qrgJpSOATpKfDMkQYv8MZG1P7jHt1+wIRxa5TEqH65el
+	 IEMhMy2sS9FxBIMl8dGs60fjeA40SamoFdjWTtfBHunkeAzJX/MVf/hPpT35KlmjHvoMZ
+	 OOpblmZKOcUDptud3d6ElsQGKCrGcKwPevohcTzd77mqq67GRKhhujmuRk+FvDmb14Cs3
+	 C126sETl7B9pphFWSR3UaXc5mfq5R8xp3pfV5gwJZZYraqLQ0Hgd9/IaYB0A4nnwLMQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795195294;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795195300;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=uh0h/NWGZB0gU+Sbi2kIhBH4+D7ZPc0i9Ti7NLqxMvk=;
-	b=WGOX7/OSvMd76wfAn5R6lkysniTs5syXa2sxjXm+opir3sqQCOLT+Q7wut24h1593QvC
-	 Egla7x7K2FfpZWggpHiS/WG03KRwhAN+mIVD0TF9HVo+1Eq/cNzQv81ngKknJYVfgjf0r
-	 PhqIhA1O3TQrp7Nfta3IYVFES3XOpy3TGQ46Aft2igCkSrrxRUb83wHP46gODvoDAhT9m
-	 UoWwJqBbqCrqvZoDVdbde/KkhCH1LinIvP8/cO1qI14s8aLJriduHNfURI9ThxS7LFS5T
-	 AJ1T+CcPwCHOTVKcvAcN31B/GT1d+4Cdp0U7EfF0hXPT7DGeHeJ/5Hz72aeL1GMDzFQ==
+	bh=yiVmhWdOxRcuVb6bzjNYZRjMqrIna0OkaPvestc8YIs=;
+	b=V1HEe+kwxpLLVat2mF5ahi/MfUkiEdD4dZiA+GXraOMjFY1qA49lwPUQNyL+H63g+MTu
+	 3UXN1uXtcdwWOGCObyGq4h3mrkLJeim2QvVXMcC+othrnrZWiKbqTrIXI/3kEdbC/Y/0T
+	 RudicQru9fofxH3RCY4Ep6vfNBURnt9tBQ2eXiyRbsa1kjRY7PWVT8gwzCG4yk0h52vS5
+	 k1TgX+BKU1HTTaLxgoDxSiG8+X860qCrVbD3ypHCwmI83XrzwVMg7OmqHhkJPXJSWs4nc
+	 gKR0ZFfNiTL7BIa9lFEhwU0GO9sa7/JhybRoNxwLA6a5HNp34VgwJIgGg0+bt1jO6lg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=intel.com;
 	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="bEa/29wb";
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=KcNva7Up;
 	arc=none smtp.remote-ip=198.175.65.21
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B34860A381F;
-	Fri, 20 Nov 2026 17:21:24 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8B34860A381F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5886260A3807;
+	Fri, 20 Nov 2026 17:21:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5886260A3807
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=bEa/29wb
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=KcNva7Up
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795195284; x=1826731284;
+  t=1795195290; x=1826731290;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=Wt/0GyyCP/XOuyFnf358qLapGc12smKbmHr+dLhaH+c=;
-  b=bEa/29wbYfS8SDcr3CK3TMNnvepV3m91uUZ5rgOmntmIyvKZXFKkK1fy
-   X/hecRrB92xS0GzDn8lN5qx9Sbw5wn4lx77TLJq8G61lHky//ibnMtUrJ
-   F2RqA53mssCbE44buoDCMaVkDhx78iIm69G3BWBZ9D7jLyKVYJjG1FAT8
-   6odqNP8yGLzWZaSqCkUAk9zRdbkgxSxC+Drq3jP95tZ3eW5HUCb1xh/SQ
-   0bOosxebYsXqZhvMIgR27nakdvyRqSExcdi3cv6APASmoFLqFBu5HzJmo
-   szI1rUmQzj1oLGphO+jveXe4rV0XUG3JIO4YWdIBn7tzXp4X/1d+BgoEg
-   g==;
-X-CSE-ConnectionGUID: w3Bgv2ZXT/upMwzVQg1buw==
-X-CSE-MsgGUID: AGNzxyWzRuOuRxBQvGd+1A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4157482"
+  bh=HO8kH8Tc3jDa15cRuBWoCLNmfOSUx7pX24eN/y+mHrE=;
+  b=KcNva7Upsgr1eyWpV7tojzE/ZCMOwEcx7qdD73wGcp9zA+lE6Mv/z6cm
+   Fk3nZDzEg9MzAaJRV0T/WtHFfdHIyrEqmyQSO4+LW2dbL8ow1I6/E4UqP
+   grN2PyIiBgPA28Wmy6Tfz3YLNJ4FlbOvNXN19yaFLYLvibAJBDc1T9EE2
+   LjmDwAvtdm7LzzBxmHsMKVQZ4CjKNfNQc/LUmaVsJ1NKZIaHKQoqr7+AF
+   MHnJDlJcI4kPNri/h5jOtXMPtAwPN/P12thoS+r5TlgLqhSl9xiv/aQHa
+   4ucWrv6/YN8M9r/rwRhXIn9tIh11ME45lShiqP2RV0M7sPnh+SOdvO4tC
+   Q==;
+X-CSE-ConnectionGUID: UW9ZHX5pSmSVauTItWllIQ==
+X-CSE-MsgGUID: h1mkKaf7S7O1SHuPV+sbjQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4157499"
 X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="4157482"
+   d="scan'208";a="4157499"
 Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:24 -0800
-X-CSE-ConnectionGUID: HnNbQEwlRCK5akyr6REZAg==
-X-CSE-MsgGUID: Mdg61pORTJuETMA7oVNI0w==
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:30 -0800
+X-CSE-ConnectionGUID: eTJJoo04TDS4GJewHzJ7CA==
+X-CSE-MsgGUID: ZyKQVSDGRnC9liVauK6Erw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="10868156"
+   d="scan'208";a="10868175"
 Received: from hrotuna-mobl2.ger.corp.intel.com (HELO wieczorr-mobl1.intel.com) ([10.245.245.215])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:20 -0800
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:27 -0800
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>
-Cc: Andre Przywara <andre.przywara@arm.com>,
+	Pawel Chmielewski <pawel.chmielewski@intel.com>,
+	Len Brown <lenb@kernel.org>
+Cc: Pawel Chmielewski <pawel.chmielewski@linux.intel.com>,
 	linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	acpica-devel@lists.linux.dev
-Subject: [PATCH v2 26/42] ACPICA: actbl2: MPAM: adapt to MPAM ACPI spec v3.1
-Date: Fri, 20 Nov 2026 18:18:47 +0100
-Message-ID: <28fcfb138c8630dd69e738306a79afb3dae29410.1795194329.git.maciej.wieczor-retman@intel.com>
+	acpica-devel@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2 28/42] ACPICA: tables: Fix table buffer leak when Load fails verification
+Date: Fri, 20 Nov 2026 18:18:49 +0100
+Message-ID: <9a8c8831757087b3a9b9e0296677a0caf10678aa.1795194329.git.maciej.wieczor-retman@intel.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
 References: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
@@ -93,70 +87,81 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Andre Przywara <andre.przywara@arm.com>
+From: Pawel Chmielewski <pawel.chmielewski@linux.intel.com>
 
-The latest edition of the "ACPI for MPAM Platform Design Document" (ARM
-DEN0065C [1]) re-purposes the current Reserved2 field in the MPAM ACPI
-table to hold an offset value for the MPAM Firmware backed interface.
-Also the MSC structure gets abstracted a bit, which renames the Reserved
-field to type, although it stays at 0, for the time being.
+Commit "Improve error handling in table loading process to ensure proper
+cleanup on failure" removed the ACPI_FREE of the table buffer from the
+error path of AcpiExLoadOp, assuming lower layers always release it.
+That holds only when the table was installed and AcpiTbLoadTable failed.
 
-Rename and describe the new fields in the table struct definition.
+If AcpiTbVerifyTempTable fails in AcpiTbInstallStandardTable (e.g.
+AE_ALREADY_EXISTS when the table is already loaded), the error path
+calls AcpiTbReleaseTempTable, which is a no-op for
+ACPI_TABLE_ORIGIN_INTERNAL_VIRTUAL. The buffer allocated by the Load
+operator leaks on every failed Load.
 
-[1] https://support.arm.com/documentation/den0065/latest
+Make AcpiTbInstallAndLoadTable always consume an INTERNAL_VIRTUAL
+table and free it when AcpiTbInstallStandardTable fails. Document
+this in the function header and fix the comment in AcpiExLoadOp.
+Verified with acpiexec by executing Load twice on the same SSDT buffer.
 
-Link: https://github.com/acpica/acpica/commit/4f4a36a99c1d
-Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+Link: https://github.com/acpica/acpica/commit/bc6a09d20be6
+Signed-off-by: Pawel Chmielewski <pawel.chmielewski@linux.intel.com>
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 ---
- drivers/acpi/arm64/mpam.c | 6 +++---
- include/acpi/actbl2.h     | 4 ++--
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/acpica/exconfig.c |  8 ++------
+ drivers/acpi/acpica/tbdata.c   | 12 +++++++++++-
+ 2 files changed, 13 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/arm64/mpam.c b/drivers/acpi/arm64/mpam.c
-index c57bd367922b..671ba501379a 100644
---- a/drivers/acpi/arm64/mpam.c
-+++ b/drivers/acpi/arm64/mpam.c
-@@ -331,14 +331,14 @@ static int __init acpi_mpam_parse(void)
- 		table_offset += tbl_msc->length;
+diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
+index cb2eed531c67..2354755ce8b3 100644
+--- a/drivers/acpi/acpica/exconfig.c
++++ b/drivers/acpi/acpica/exconfig.c
+@@ -461,12 +461,8 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
+ 	acpi_ex_enter_interpreter();
+ 	if (ACPI_FAILURE(status)) {
  
- 		/*
--		 * If any of the reserved fields are set, make no attempt to
--		 * parse the MSC structure. This MSC will still be counted by
-+		 * If the reserved1 field is set, make no attempt to parse the
-+		 * MSC structure. This MSC will still be counted by
- 		 * acpi_mpam_count_msc(), meaning the MPAM driver can't probe
- 		 * against all MSC, and will never be enabled. There is no way
- 		 * to enable it safely, because we cannot determine safe
- 		 * system-wide partid and pmg ranges in this situation.
- 		 */
--		if (tbl_msc->reserved || tbl_msc->reserved1 || tbl_msc->reserved2) {
-+		if (tbl_msc->reserved1) {
- 			pr_err_once("Unrecognised MSC, MPAM not usable\n");
- 			pr_debug("MSC.%u: reserved field set\n", tbl_msc->identifier);
- 			continue;
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 9af7c51d1297..8e0d5156e6d6 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -2004,7 +2004,7 @@ struct acpi_mpam_resource_node {
- struct acpi_mpam_msc_node {
- 	u16 length;
- 	u8 interface_type;
--	u8 reserved;
-+	u8 type;
- 	u32 identifier;
- 	u64 base_address;
- 	u32 mmio_size;
-@@ -2014,7 +2014,7 @@ struct acpi_mpam_msc_node {
- 	u32 overflow_interrupt_affinity;
- 	u32 error_interrupt;
- 	u32 error_interrupt_flags;
--	u32 reserved2;
-+	u32 mpam_fb_offset;
- 	u32 error_interrupt_affinity;
- 	u32 max_nrdy_usec;
- 	u64 hardware_id_linked_device;
+-		/*
+-		 * Table buffer is already freed by acpi_tb_uninstall_table
+-		 * in acpi_tb_install_and_load_table if installation succeeded,
+-		 * or by acpi_tb_uninstall_table in acpi_tb_install_standard_table
+-		 * if verification failed after partial setup.
+-		 */
++		/* Table buffer is already freed by acpi_tb_install_and_load_table */
++
+ 		return_ACPI_STATUS(status);
+ 	}
+ 
+diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
+index 8185c6f7ce23..c756d34eeb44 100644
+--- a/drivers/acpi/acpica/tbdata.c
++++ b/drivers/acpi/acpica/tbdata.c
+@@ -995,7 +995,9 @@ acpi_tb_load_table(u32 table_index, struct acpi_namespace_node *parent_node)
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Install and load an ACPI table
++ * DESCRIPTION: Install and load an ACPI table. An internally allocated
++ *              table (ACPI_TABLE_ORIGIN_INTERNAL_VIRTUAL) is always consumed,
++ *              on failure it is freed here.
+  *
+  ******************************************************************************/
+ 
+@@ -1015,6 +1017,14 @@ acpi_tb_install_and_load_table(acpi_physical_address address,
+ 	status = acpi_tb_install_standard_table(address, flags, table, TRUE,
+ 						override, &i);
+ 	if (ACPI_FAILURE(status)) {
++		/*
++		 * Table was not installed (e.g. it is a duplicate or failed
++		 * verification), so nobody else will free an internal buffer
++		 */
++		if ((flags & ACPI_TABLE_ORIGIN_MASK) ==
++		    ACPI_TABLE_ORIGIN_INTERNAL_VIRTUAL) {
++			ACPI_FREE(table);
++		}
+ 		goto exit;
+ 	}
+ 
 -- 
 2.56.0
 
