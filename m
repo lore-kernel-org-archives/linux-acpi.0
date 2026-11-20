@@ -1,78 +1,78 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.21
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795195284;
-	b=rVEwL69Gw8EkJROL7IjRLTW72+YHZelSREs5we37bjn79i77vMplo8LPir/AWrak560V
-	 Vuu63gBOcwGGxW+a9r8YEUEeN5askD58cNazt0TlkF1ae14E5qcfCCq8QKd8ZIMZeFR1b
-	 Ff7dtiY9rUi64vKQ7WRuFnO8TN94k5aHuWZkClavwtCTW1AelTDL7e5mxClyrnsM/Tr/z
-	 t8V1ayx373X1McseYaKBj+LXolNhp3xL6CmFIh36Se2QVMP6a1gRddQi95LpcXjsiys5Y
-	 1rEYfyT89pgvgBlmWXTLy+E3J4jsM2PsVN7OvIkruYVneYNN2gEE1w9O8Vawo40LBEQ==
+	t=1795195292;
+	b=QV0jmOAHNZVQPepAN7l1phUbQRZK/AvFjJekQZ723oOXM0lcBdCm4eqI4v4xx+Vhin+V
+	 h/13oWLCdvXXTeZ6pKMcjqb7Fm5R/uZcmBaxrgQwNRbDpmgNXeF5jzLvJVaYeZKq54pl8
+	 YrPHIplaYuGtJDBv6gecPMV22AoojwLRwePFZqG03wBKmAWwa3l8ynmz+Cp5dpkv7vluZ
+	 90Tj671qN239Y24y59ayOH6aAJN0GOxzTaATe9d0Ovi/EM5DQLggyp8SxPfHj19D36IM7
+	 T5cwdMzPoUFBrnLQV7q0HG0/MDxDLFbBoCqw9Co9PFfDPMqHuiUTSCuCzNG5eMZJ6sA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795195284;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795195292;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=7K5nxX3FlezkwqFtW/kW6wkPvCMFQLfgkiEhrQUHY38=;
-	b=yjaJth2zc82sKI/Fk+NK6fNtXP9vD72WNdNK9BvAHwmS6ksdr7vFC3BhmI8+n29oPrpc
-	 AxxbRjyTpISY8kamAQoJQtZmC4S8CP6WjMRg12GUMifUeN37pdWSN4pb2AAkyVpZibmwF
-	 u0F0rWaQLsVUOVZYpwIGBqjI9icB2iBj3k9AFulcJIwf2evpnl+7QzpLXNQjCy/4ptGyc
-	 /vsB4V4jvYpcR29PQEj3CGqPDCYFGvLpNEAryBd5B/f5d+eiQ+KhcLH+9ZO4IEPjM6uQJ
-	 pfFmVc6vWs0py9WWDTGo8Vi028vY9PduS2TNCDHo5i1Zj8PXGkBowFXFDSV7iH+azzQ==
+	bh=hKo9oQqUcBiElmRMU75xxTtQbMqGR9T0DnABQus5l9A=;
+	b=TRH7ZeEUU45Uw5BgbdKdDrFpuWYb0j/6wzWwVnD+dJ5o5JmW9vPoLd3sPHqybj3VY8O/
+	 jeNY6bluQBYV/QaKAZcNDxhkWRf9QCZA0GowUH+ts3LFfl927wJRr2M4JdO/h/e+d+MR7
+	 aCO+ariuaA8UDU5cBTIo5pwv/BMkYKh/6hH9WbggO14J9eUdIiXF6ierZaDMfY79b0owd
+	 nSSd/J2LABAYlPbXFXq5gL3Io+zxudWL4FIaL12eaYU6F31PzhpfzYZ7Qv6YcsAvV2Vdr
+	 LoJDXgxdcBZMw1CrmPPvIQc64DaMfjyRnL9T4HR1D39yB8OcrYXHSACsQVdOt+/WKSA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=intel.com;
 	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=eFePXe1m;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="d2D/XLI8";
 	arc=none smtp.remote-ip=198.175.65.21
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E230606A740;
-	Fri, 20 Nov 2026 17:21:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3E230606A740
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9ED2606A74F;
+	Fri, 20 Nov 2026 17:21:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C9ED2606A74F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=eFePXe1m
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=d2D/XLI8
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795195278; x=1826731278;
+  t=1795195288; x=1826731288;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=yrVvADaO5jh01LLhSX88CpJZgaGk0zOQYGLqCfiNvFE=;
-  b=eFePXe1mfU7v8hc1CJq2nBjUqph3Vr5TuvFxi1U21fBPgyf8HdzhsRhH
-   MBz7HEj0pS1out+Zlx2/47rvC29Jk8j+GF0i8RNR4OzztJZLE0tF8fR6h
-   ML6UpUH5rxyyOzkqMJifPpfb6m5gXYfcmiOaWHiI3ucHpoim0je6qI0N0
-   oFwo7j8vYK5iPdBuRWo33Wck0o5pZ6wYEXL6FCIXGgcR8z7acls1pd8Gu
-   A7cG7oToJgzWWS2G4eM/6nCxvPfTry2ei+HuM2mcYNbBrPP30i0BugYZk
-   c0I1WBHwN3SXiIZmQquOV6nUf5cZlses/+c54pIXKjulNrKdC8rcT5qGd
-   A==;
-X-CSE-ConnectionGUID: 8tEk0VUBS1y/O65ltCBEAw==
-X-CSE-MsgGUID: W0J79hKsRiGEGNVr6CKVEw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4157464"
+  bh=/r2n44oTBiyBypS7ziJQCY2efDXhtPhcvXbxJ6KD4sU=;
+  b=d2D/XLI8KH7/BE9McYsxn6A7o/Wmi8mqBRQ+BvslaG0yFs5UW1Nwvvaq
+   Xtq+f+wF/NRtu2lk8JmcD6H0hhQBJ3ttqLy8Rq00k/YNHv1JoemnC0JWm
+   FHwlgCpeF6CqKDbRfaTmAtlL3z8k9ZXsjMHxq4Xmc7c4VjPJYFrCtVFVG
+   iBp+S4/4WQQ+GDREsFBDypxBrz4bzxZXOI0NkSyvau31tMgu0aMCJxCuM
+   HYKuVUpxhf9pt+9InuiHS8UfittGo6/QkZf+Td6yWAV6untGRYgA/3/bH
+   UUB+rOEKOwcjZhpA/mFbB9bKu2ofqG85ZxWpCiK1Nwf7aQcZOWuWeAyJr
+   Q==;
+X-CSE-ConnectionGUID: eOA97LTWS4iPBVwBZJu7nQ==
+X-CSE-MsgGUID: 7LS7aBmCSEe/Fk4SxcwSyQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4157493"
 X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="4157464"
+   d="scan'208";a="4157493"
 Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:17 -0800
-X-CSE-ConnectionGUID: hXEiAFNzTGadOeuTuuGRQQ==
-X-CSE-MsgGUID: n9vml5qdQdqczaSIH/XxHQ==
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:27 -0800
+X-CSE-ConnectionGUID: tqTPscSfTX2Naix5qLPZYg==
+X-CSE-MsgGUID: XwArdKxZTqiYlHidIJJrWw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="10868125"
+   d="scan'208";a="10868165"
 Received: from hrotuna-mobl2.ger.corp.intel.com (HELO wieczorr-mobl1.intel.com) ([10.245.245.215])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:14 -0800
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:24 -0800
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>,
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
 	Pawel Chmielewski <pawel.chmielewski@intel.com>,
 	Len Brown <lenb@kernel.org>
-Cc: abhinavmir <atg271@gmail.com>,
+Cc: Leonard Lausen <leonard@lausen.nl>,
 	linux-acpi@vger.kernel.org,
 	acpica-devel@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 24/42] ACPICA: iASL: Fix the truncated count of external control methods
-Date: Fri, 20 Nov 2026 18:18:45 +0100
-Message-ID: <b31935b7374f82590eaf14eca26e0a013bf0d0ba.1795194329.git.maciej.wieczor-retman@intel.com>
+Subject: [PATCH v2 27/42] ACPICA: Executer: Resolve package index references used as integer operands
+Date: Fri, 20 Nov 2026 18:18:48 +0100
+Message-ID: <1874837cbfb6cf86ad54b4f64fab3a3255521a7e.1795194329.git.maciej.wieczor-retman@intel.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
 References: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
@@ -87,48 +87,75 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-AcpiGbl_NumExternalMethods counts the external control methods that the
-disassembler finds in a table. Its type is BOOLEAN, which is an unsigned
-char, so the counter wraps at 256. A table with more than 255 external
-control methods gets a wrong count.
+From: Leonard Lausen <leonard@lausen.nl>
 
-The wrong count makes the disassembler print a bogus warning.
-AcpiGbl_ResolvedExternalMethods is a UINT32 and keeps the correct value.
-The two counts then differ, even when the disassembler resolves every
-method. AcpiDmUnresolvedWarning() subtracts the counts to get the number
-of unresolved methods. That unsigned subtraction wraps and gives a very
-large number. A table with 300 externals, all of them resolved, reports
-"There were 44 external control methods found during disassembly, but
-only 300 were resolved (4294967040 unresolved)".
+Resolving a Local or Arg retrieves its stored object but does not resolve
+an Index reference stored there to the referenced package element. When
+that reference is used as an integer operand, implicit conversion rejects
+it with AE_AML_OPERAND_TYPE.
 
-A count that is an exact multiple of 256 truncates to zero. In that case
-AcpiDmUnresolvedWarning() returns early and prints no warning at all,
-even when methods stay unresolved.
+This prevents FAN0._FST on the Samsung Galaxy Book 930XDB from returning
+status whenever the fan is running. The method stores an Index reference
+into its fan-speed table in Local1 and then uses Add (Local1, 10, Local1).
 
-Change the type of AcpiGbl_NumExternalMethods to UINT32, which is the
-type of AcpiGbl_ResolvedExternalMethods.
+Resolve a remaining package Index reference before integer conversion.
+Release the replaced reference inside AcpiExResolveObjectToValue() - it
+seems to be missing there with even a comment mentioning the
+non-existant reference removal. Limit this to integer operands so Store,
+CopyObject and method calls continue to preserve references. Leave
+Increment and Decrement's synthetic operand resolution unchanged; their
+reference-target handling requires a separate fix.
 
-Link: https://github.com/acpica/acpica/commit/36a5217a09bd
-Link: https://github.com/open-acpica/acpica/pull/1221
-Originally-by: abhinavmir <atg271@gmail.com>
+Add a standalone ASL regression covering local and argument inputs,
+integer conversion, reference preservation, target replacement and invalid
+operands. The extracted fan method also returns the expected status for
+all defined fan states with this change.
+
+Link: https://github.com/acpica/acpica/commit/aaa58f4b62a9
+Link: https://github.com/open-acpica/acpica/issues/908
+Signed-off-by: Leonard Lausen <leonard@lausen.nl>
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/exresop.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index b6e31517650e..9a2798896d48 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -287,7 +287,7 @@ ACPI_INIT_GLOBAL(ACPI_PARSE_OBJECT_LIST, *acpi_gbl_temp_list_head, NULL);
+diff --git a/drivers/acpi/acpica/exresop.c b/drivers/acpi/acpica/exresop.c
+index 8127d4046d0b..87d04b74e13e 100644
+--- a/drivers/acpi/acpica/exresop.c
++++ b/drivers/acpi/acpica/exresop.c
+@@ -375,6 +375,32 @@ acpi_ex_resolve_operands(u16 opcode,
+ 			 */
+ 		case ARGI_INTEGER:
  
- ACPI_GLOBAL(u8, acpi_gbl_dm_opt_disasm);
- ACPI_GLOBAL(u8, acpi_gbl_dm_opt_listing);
--ACPI_GLOBAL(u8, acpi_gbl_num_external_methods);
-+ACPI_GLOBAL(u32, acpi_gbl_num_external_methods);
- ACPI_GLOBAL(u32, acpi_gbl_resolved_external_methods);
- ACPI_GLOBAL(struct acpi_external_list *, acpi_gbl_external_list);
- ACPI_GLOBAL(struct acpi_external_file *, acpi_gbl_external_file_list);
++			/*
++			 * Resolving an Arg or Local can leave an Index reference to a
++			 * package element. Resolve that element before integer conversion,
++			 * without changing reference-preserving operands such as Store.
++			 * Leave the synthetic operand resolution used by Increment and
++			 * Decrement unchanged; those operators also need reference-target
++			 * handling when writing their result.
++			 */
++			if ((walk_state->opcode != AML_INCREMENT_OP) &&
++			    (walk_state->opcode != AML_DECREMENT_OP) &&
++			    (obj_desc->common.type ==
++			     ACPI_TYPE_LOCAL_REFERENCE) &&
++			    (obj_desc->reference.class ==
++			     ACPI_REFCLASS_INDEX) &&
++			    (obj_desc->reference.target_type ==
++			     ACPI_TYPE_PACKAGE)) {
++				status = acpi_ex_resolve_to_value(stack_ptr,
++								  walk_state);
++				if (ACPI_FAILURE(status)) {
++					return_ACPI_STATUS(status);
++				}
++
++				acpi_ut_remove_reference(obj_desc);
++				obj_desc = *stack_ptr;
++			}
++
+ 			/*
+ 			 * Need an operand of type ACPI_TYPE_INTEGER, but we can
+ 			 * implicitly convert from a STRING or BUFFER.
 -- 
 2.56.0
 
