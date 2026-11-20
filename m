@@ -1,55 +1,71 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.84.56
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795185233;
-	b=V6gJ+L2qQk+D4i5ahvR4blF+2P+lF2J+/8QCKQNYR/pWQl0FIQ1pgWplOsOtKBN+Tnyi
-	 D+cw5uW3ejxRy6s71bjBT/Q57QdDvD7Ptil2Mo0d1W3aPeDVkbCqylqBpYW5mxQgNoRJp
-	 EwsgLt8vpKkCLiSL3YwYWt4Aj/mGE9R8OLBtfrxjbs9rcwG+7jhOiX0PqcJFiQvuoWmga
-	 WrXfX3wqmO4V4LqsccdTsPY3+OEGiB2MpcI9kXw1MSZ7JSEf7wfhoIVq86lRJibArHM7b
-	 stC7kjQV4IaMEnWp/wMizzay7xiXki7bHQdlb41sOI3bpYHmV6EE1XnqeL4JVkhRq1Q==
+	t=1795187689;
+	b=i8Ko2YhJBRv2Khli4BqfM9rytPvYjhWdey1dUN96vLUOYZlG3ZQ3TXPJKm5e0X6RofH0
+	 aP2lSYbuFqVPxZOYITtY/bHeTHZiLeA6GIZzevi2gbY4VAvoMAfGdvIg1BYSSWFAlhPNR
+	 GqathTZ7fni7tslexGan+6M90XNOEeCUDdZ1Yi3Yfvsfk1AkNnTwUUxbmYgF0GcdTQMfp
+	 SVI7S9dfhO5PCEyGdZkqcVZmpnKYJbroX4soIPWWaoCLKbSN6/ItOiBft8nrgZKKNYyC0
+	 WTuyhtdEQXp8rNA/zqPuFyQC5L8RQbzWOVOjogWH4b0zgGtItKz8fLFb4toAguf90rg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795185233;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=Fy3WW09hB+rkP27DDiDOsr/F2JQ6kUcBqy1wnUqOGKY=;
-	b=y+6WgzMROD7HSsRSbfbGHCsK1LRblZ+RanVr04KwF2+5vcSQ1Nop45+mQ+dWqC6A9wrZ
-	 MqlxtnMK1kD9zF1bK5unexIqQrS5LZG3lbOd/nF6qkRzY3Z59aADRptSxHGPalYHjSzXi
-	 V6FPiExdBsW+tkIRAZpJIfEyqgQJ5dr8d7H6QCbbIWsOcUkCqPmxak7xdM87giVYKOxsS
-	 T9iSuQQa1d0b0mYuNIIgN4CdyUEVgN4Wlvp7RI40vWM2V2iTbzxNJ5BIGQkCFi/0wfPsk
-	 54roFbC8cDMwIroG4mEyoQkuDy+d46bUI43hl5p+3ccSkc8B/nlNKmSxFU5QF7qkZkg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795187689;
+	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:Message-ID:
+	 Subject:From:To:Cc:Date:In-Reply-To:References:Content-Type:
+	 Content-Transfer-Encoding:User-Agent:MIME-Version:
+	 X-Last-TLS-Session-Version;
+	bh=c4Z9yGuax/8NR1BznxmdHxIivPIjV06ghC9n97sXVMc=;
+	b=KyyDYQsH07GrgOTSGdXnwJ6vDWUE8u/OH+5/y+9t9SroTV7lzC7ZvkJ5ybqeHudKmapf
+	 2dzHYVTHltkvmuFpcWLmXtcZfD9BAhnzRKV5ENIMzJoO45UPmwdb8uQJhBDkAl1AcDDM2
+	 /ygkokcPsNYQDZrWyM6YYrmFND9kS+E8/MsnuyNO+tZvcDQCshhDWOGgVMeYN/zla6jaI
+	 gFjLqKEUR4Jq20STGzpTLeOytaPnzdJwArF8BawwXIJdacOA5E3lMTyDswRO61taE6C1f
+	 Er4iMKvkPGR6v4MfERyRlesLm4AOXIH/23YV47UVidt3tMj84Atw2fWLQXXrnHPpiWw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kP6gHav2;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=bootlin.com;
+	spf=pass smtp.mailfrom=bootlin.com;
+	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=qP3K5iFW;
+	arc=none smtp.remote-ip=185.246.84.56
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C788D606A32A
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 14:33:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3981D606A32A;
+	Fri, 20 Nov 2026 15:14:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3981D606A32A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kP6gHav2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BAEF1F000D2
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 14:33:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795185233;
-	bh=Fy3WW09hB+rkP27DDiDOsr/F2JQ6kUcBqy1wnUqOGKY=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=kP6gHav2GQa1iDKRIlyXbUNoVUUQ6bzwiY7KGVt3Uongi7Bl7i9cci9WDEWJZvztc
-	 hLsgKPBSH4JeI815Pd5DnJhZPovR0y2xXsfHmHIgfIUgHYpKVk0N7Z8PU5XBhh6sAz
-	 9bgZE1ipS6hJRYKcOK6TPxiu3TZuZ0oIhTelgC6e9xioMq+hEtjju95EmN/Etqsn/B
-	 A/EdQ037JyB0JGZ7XFHpZq20+429ZWh6bLiO7NqovbhoG9gus7Lj2hUxR4gN9jLc3V
-	 Ij5Ju0kv+Stfhlda76toyjwXtXTe/lkynCTO2Rsz8gBtW5QFLRyxg0PeepL7yVdNPd
-	 0XiEPWR2s/7dg==
-Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-5be4fea434bso2073009e87.1
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 06:33:53 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErFprBkm19O3dg9AM8eDkZIPoBufYK50cH9vjw+N6csFyoZjJ0MEE2BZYtn9/++BlXmOrqoTB8Bd5yV0@vger.kernel.org
-X-Gm-Message-State: APuU4Z9U5vuX7xpQcoWNJG0uC/GKe3ytg4cmbOASudvnGh0xi9sfo8k6
-	bbWZWQbadu1B7e94lohZgCukH+egbTPErg1pMhQV6FZcpb7vIWKVhcsLooC0HuTAjdbEQrwEIDh
-	2dk/2nSQtZ+q8zC9bkR0zcywu5lD5b/g=
-X-Received: by 2002:a05:6512:3052:b0:5c1:4ede:6fcb with SMTP id
- 2adb3069b0e04-5c1bc822591mr845358e87.8.1795185231609; Fri, 20 Nov 2026
- 06:33:51 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=qP3K5iFW
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 95F0E1A1739;
+	Fri, 20 Nov 2026 15:14:47 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 64637601B9;
+	Fri, 20 Nov 2026 15:14:47 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 7CCA511BC0335;
+	Fri, 20 Nov 2026 16:14:40 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1795187682; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=c4Z9yGuax/8NR1BznxmdHxIivPIjV06ghC9n97sXVMc=;
+	b=qP3K5iFWwUKZwIQKOP9+wMMMEfmEjshq5oP054+bmu2JyLKtD0QR5NC9lf76y0NiPFLWU0
+	TsiGBvknc+ag9cbrXCdGHc8nz8bJR05lx2uwRZ/kO9z2xqN0bm6a1QmYB4NlMr4mYD/uSW
+	KNDEUD8rdlrSbKndfYWTzHmqqyVAMAVHwHqGe9gphJOclw39r9N0owsORjQIlNZ1f5oVei
+	Y3LsPlEHRvrsdUvcoBnzzQI/RhNLKqfSGdt0Ps4UTbBfjSb1+XB3QsP+MklkVt9oBH5cuA
+	NaKMNA0k7flFUWpx3vKHLltVcYo4Xqr94UFfw0L94GMe6MRtZ+YjmnytNfBlrQ==
+Message-ID: <fa5f43740321588aad8a5125eafd947c27a2f613.camel@bootlin.com>
+Subject: Re: [PATCH v4 0/2] ACPI: platform: ACPI 6.5 fixed clock support
+From: Paul Cercueil <paul.cercueil@bootlin.com>
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Russell King <linux@armlinux.org.uk>, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, Thomas Petazzoni
+	 <thomas.petazzoni@bootlin.com>
+Date: Fri, 20 Nov 2026 16:14:37 +0100
+In-Reply-To: <CAJZ5v0i4ybwsOKfj_LS_m7EL-AYAhPQJmLNWBm8gdZ5uvfcJug@mail.gmail.com>
+References: <20261120125722.209609-1-paul.cercueil@bootlin.com>
+	 <CAJZ5v0i4ybwsOKfj_LS_m7EL-AYAhPQJmLNWBm8gdZ5uvfcJug@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2-0+deb13u1 
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,79 +75,69 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261120134716.3027-1-ilpo.jarvinen@linux.intel.com> <20261120134716.3027-6-ilpo.jarvinen@linux.intel.com>
-In-Reply-To: <20261120134716.3027-6-ilpo.jarvinen@linux.intel.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 20 Nov 2026 15:33:39 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0hPOdbnWVrD8gVGS9L=WoXyO7REhWSgCJ26F8Fkzf94yw@mail.gmail.com>
-X-Gm-Features: Aa3M54os8iRJ1ey_0RncgK8uRQ3y9Pr0ZgaUI1JtUGreQJfTIibpDnX303gkn5g
-Message-ID: <CAJZ5v0hPOdbnWVrD8gVGS9L=WoXyO7REhWSgCJ26F8Fkzf94yw@mail.gmail.com>
-Subject: Re: [PATCH v2 05/16] PCI: acpiphp: Use pci_assign_unassigned_slot_resources()
-To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, 
-	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring <robh@kernel.org>, 
-	=?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kw@linux.com>, 
-	"Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Fri, Nov 20, 2026 at 2:48=E2=80=AFPM Ilpo J=C3=A4rvinen
-<ilpo.jarvinen@linux.intel.com> wrote:
->
-> enable_slot() calls the internal sizing and assignment functions
-> directly to size only the bridges in the slot. Use
-> pci_assign_unassigned_slot_resources() instead.
->
-> Sizing now happens after scanning all bridges in the slot instead of
-> right after scanning each bridge. Sizing a bridge window only walks the
-> hierarchy below that bridge, so the order does not matter. Sizing now
-> also holds pci_bus_sem.
->
-> Signed-off-by: Ilpo J=C3=A4rvinen <ilpo.jarvinen@linux.intel.com>
-> Cc: stable@vger.kernel.org
+Hi Rafael,
 
-LGTM
+Le vendredi 20 novembre 2026 =C3=A0 15:31 +0100, Rafael J. Wysocki (Intel) =
+a =C3=A9crit=C2=A0:
+> On Fri, Nov 20, 2026 at 1:57=E2=80=AFPM Paul Cercueil <paul.cercueil@boot=
+lin.com>
+> wrote:
+> >=20
+> > Hi Rafael, Russell,
+> >=20
+> > Here's the v4 of my patchset that adds partial support for ACPI 6.5
+> > clock resources.
+> >=20
+> > Sashiko complained about the clock names being too long still, as
+> > ACPI device names can be up to 17 characters and the limit of clock
+> > names is 16 characters; so I now name them "acpi-clkX".
+> >=20
+> > Note that I expect warnings from Sashiko that I got on my v3 and didn't
+> > correct, because they are bogus.
+> >=20
+> > On the clkdev patch:
+> > "When clk_find(dev_id, NULL) is called, does incrementing match here
+> > give a (dev_id, con_id) entry a higher score than an exact
+> > (dev_id, NULL) entry?"
+> >=20
+> > My answer is that you call clk_find(dev_id, NULL) when you know you onl=
+y
+> > have one clock provided, so you don't need to care about matching
+> > priorities.
+>=20
+> Sashiko has a new comment on the first patch though:
+>=20
+> https://sashiko.dev/#/patchset/20261120125722.209609-1-paul.cercueil%40bo=
+otlin.com
 
-Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+Yes, Sashiko came back to the charge with better arguments this time.
 
-> ---
->  drivers/pci/hotplug/acpiphp_glue.c | 5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
->
-> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acp=
-iphp_glue.c
-> index 632344f34cae..fc95d5814ecb 100644
-> --- a/drivers/pci/hotplug/acpiphp_glue.c
-> +++ b/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -497,7 +497,6 @@ static void enable_slot(struct acpiphp_slot *slot, bo=
-ol bridge)
->                                 acpiphp_native_scan_bridge(dev);
->                 }
->         } else {
-> -               LIST_HEAD(add_list);
->                 int max, pass;
->
->                 acpiphp_rescan_slot(slot);
-> @@ -511,12 +510,10 @@ static void enable_slot(struct acpiphp_slot *slot, =
-bool bridge)
->                                 if (pass && dev->subordinate) {
->                                         check_hotplug_bridge(slot, dev);
->                                         pcibios_resource_survey_bus(dev->=
-subordinate);
-> -                                       __pci_bus_size_bridges(dev->subor=
-dinate,
-> -                                                              &add_list)=
-;
->                                 }
->                         }
->                 }
-> -               __pci_bus_assign_resources(bus, &add_list, NULL);
-> +               pci_assign_unassigned_slot_resources(bus, slot->device);
->         }
->
->         acpiphp_sanitize_bus(bus);
-> --
-> 2.47.3
->
->
+Sadly it seems to be correct, if I change the behaviour of clk_get(NULL) I =
+will
+break some drivers that rely on it not finding named clocks.
+
+I can pass NULL as the con_id to clk_hw_register_clkdev() and then I can dr=
+op
+the first patch. Then, I guess register any other clock for the same device=
+ with
+the "acpi-clkX" con_id.
+
+> > On the ACPI patch:
+> > "Should the con_id argument to devm_clk_hw_register_clkdev() be NULL
+> > instead of name? [...] Setting con_id to "<dev_name>-<idx>" instead of
+> > NULL prevents wildcard connection matching in clk_find(), so any
+> > consumer driver calling clk_get(dev, con_id) with a non-NULL con_id
+> > fails with -ENOENT."
+>=20
+> This time Sashiko complains about something else in this patch AFAICS
+> (link above).
+
+It looks like I need identifying names for devm_clk_hw_register_fixed_rate(=
+),
+and those don't need to be 16-chars long (that's only for clkdev) - so I'll
+restore my "<ACPI_ID>-clkX" naming scheme there.
+
+Cheers,
+-Paul
