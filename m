@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795182032;
-	b=gyaOuUCi5ilgsP+dC7mq/CKPmwHe2CvZWqDpGeVBamfe7T95pS4cu9TDPasqqMK4W+xX
-	 aQBAG31lO0KdlZsLtU5Fqv379jemalgre+EwRpkLMMtMeJT4SwC79Cdww4bJ0hlDxecdP
-	 fcm6OCyGXUI5LpYsxh/zJCE7dJn0kBgmSgm7dwBJ+2vjE1s8dcKfaCy5gEM/RfFHFEmh0
-	 Lmdw0iq+g3hs/kyMe79joEO+jPetx7OUHvQyXTfyKriD3Glcdd9SXFcBWr8YcX5KUZf7q
-	 sZbYpD3PyxKm/knhttg5T3iTY5Q6g+kWTK8o30k5kA7BYBagbCVYYbfXblq3OtbR2RA==
+	t=1795182414;
+	b=1jEi5id233Gxn6d7r+xj396bKZACXfLoiHlH4BKf/pS+tvFNFUGTLs2pXPkhfRghzaMr
+	 iPXcHfO9KDlL0itph9Jgd9cgBrX7bgM6IonZbToaZHrPR+izDTE4rFdi/6wmCkyk5Zr0N
+	 P1B1qlRYGtXt5XmIMxPkcnlkEtm0cV1tSyeTy7wrqhlGgEw1XVV07A0PxC5MiwJP650n7
+	 amn2gq76vx5shcL5EPTm5s4+16ZsCxraNbVibjC5i7NEuBAFHF2F0OjPekeIzuclXzXek
+	 hwrIQnwHuEwmvJFnipI8vkdn2MZquY76IFGU7fhWrOnN9FKVhLuaIFoCATMGcrEYp+Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795182032;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795182414;
 	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
 	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
 	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=ly1iWxY7rLjjdssZhsEu11VfdZr+uM9OeSbN8T86Qrg=;
-	b=vKyO01GvKuGhHZY2AkC0jaJt/cD+Kxwk+eSsh+yp27coxLlCnwVYpdkmWD9+tIhlkC/j
-	 bPvKy4KKfB0yJU3o0SyGzAdLuJD20VTj3neDflpQATG+MDy8O9Rc+qdi5yt4VqWxBuAsu
-	 sXqA5gPndFvrlmFoivrAVB4vErRB4zRRKOHTsgtB05pQS1bTt15DaxVZIlSAdKh+iu3lE
-	 M3I4msseqH7YMCH5yII4reRxT+bn86TtlGJrdiT8w0eD3PctioVbKay1fgSnfvV3zWZWn
-	 /ecB8vDooav+rK+mF58lAAQ7pli0D19HIMr+DxDzABV8yQhqEAq59DzuBU2P2LtFAGQ==
+	bh=752YCVAyzFuu5Sp9aAshrd7utneGhM1dK2FP+3q8Ru8=;
+	b=bDl1zMDu4JACKiARWbMprLIORMnpnWZ+//5ILuKCQHZs2oO10MWhZGTgruzH9rmo7BXl
+	 JsRbtsarqJp9h2UtpFZCyqdFCFeHjPIkueYF2cQKcnkrf4P0BeG+w+8x67BesLdCzkVsD
+	 kAN3/nvMOav/bHJC51UVDEq85kBtBObJlVo7Ij3LS08vS7I8PU13FTegCJR+kDrumBwUE
+	 I6Gk+2YZGe5/WzDzgzciZD52w2A/KnzM2/A+2XgERcCalGmJAr2lsW1KRcvAEYHijtRUD
+	 uYHK7xPWrLhh6YmqNFo4Iqc9KjZRIVpiU3eKz3VgiIXADu9ctEB8qxZQH+RmoBzd0oQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="nZRJ/RVD";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="JNtoe/rT";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 360BD606A33D
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 13:40:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7593C606A320
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 13:46:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nZRJ/RVD
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DE331F000CF
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 13:40:31 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JNtoe/rT
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4E241F000CA
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 13:46:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795182031;
-	bh=ly1iWxY7rLjjdssZhsEu11VfdZr+uM9OeSbN8T86Qrg=;
+	s=k20260515; t=1795182413;
+	bh=752YCVAyzFuu5Sp9aAshrd7utneGhM1dK2FP+3q8Ru8=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=nZRJ/RVDtHanE9RNw22hzAh9KG2XNYArMbYCPRawTGj29a0sqjknQlynTkc7HMj6e
-	 XfEHoCVu6nkNToHqdJZdfXNHoAFbek/3tmn7Tgp02RN2JGfac+4STUaHIKUxUQgKju
-	 2amQQMchvo5qBxhQg3pwPdnXjV6GDfnig0OHkPRGX1vl4SovfmsDMm+eD3YbzH4Cdu
-	 7Q9sdZm/Ia8NXREXvDg7MluTQ+ayzNsr3FLWl1R8TvH81usup5xc3vEU5WTGiF8rk8
-	 Uq6JYmR3kuNJsjzGy6x5435qFMKksPjerBgU9OPEtp+MLAnAc0KSMZPJLGS2+QVJkV
-	 VBoRsfDNRDKxA==
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5c148d4dbfbso757920e87.3
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 05:40:31 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErHvNza75BQFE2rDtHKTV23t0HHWqZjGHvnQy/9wx0j7sxlxKxfvCDW/rFxWMM8FLwb1zR8Q0jRay52/@vger.kernel.org
-X-Gm-Message-State: APuU4Z+CBq/1uZT3R89B+4iA6DKuOhiKthLUDpCxWFDwAd/DR8YebEvK
-	ReTAX9z2Nkhrm4FJ2NMqIiSh4p8WjDt3PJE1euAD6r4ruQXYVP+kZXvAEIGwlWYkOonZ8UI/VIX
-	JV8C3ORbiwprtM/017gGjWm7J8rxbKiA=
-X-Received: by 2002:a05:6512:2c9b:b0:5c1:56fa:9c53 with SMTP id
- 2adb3069b0e04-5c1bc661b8emr1175378e87.6.1795182029910; Fri, 20 Nov 2026
- 05:40:29 -0800 (PST)
+	b=JNtoe/rTxqNpXYF9iOLgQWfGdSFQKO5lKb0i4AqpCKR80z8Tnv9Pv/WWkW/O7u1X2
+	 lufjblysjJU6tb4VIDv4FSDHT4W8jQ/3Ark1X6ekB5pjf845tYeqsHt9ulN3dNP5Cs
+	 a77A3ZkgSmmE37ckp2m/MSa++ldSmy1Q4ozqJxxTst9+9R2GUgM5n2FwX3DFNEb4qM
+	 c8b38nEaQcH2MZNfZhedAIMxjqHl+t4bMMIAQqf2L6yAIqBNLj0xral1XVE3aLPWNo
+	 6y58qJaG99+chxu9mJWK6f+Zx6acWXEs8ag7luF7Hfp1ePLAucxtv3h+1kpjjMIubd
+	 S1GUdvOF7ELSw==
+Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5c1c0c8d61aso507359e87.1
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 05:46:53 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErFn20z/PYOFcIj1OtKVopB6ipkxkKSUpDcWLTGBAcqZCjQK98/R6HO7w2XPikHtAdtHgvVUklQhrnih@vger.kernel.org
+X-Gm-Message-State: APuU4Z8gLtKx9/czIQJqVO9grLGAnZtaHAi6llNPHw8Q7X8MmD/wUW+y
+	YRO07fhEs+MmqV+LEDecIp28ECfJeDhkp6Fh5kLtZaQg6Jskbt0W5JjdH55f/eIh7arOZiOdVe+
+	E1p27bfILm2fOAXdz7TtAHkSOARKRyKo=
+X-Received: by 2002:a05:6512:3a81:b0:5bf:b27e:3fac with SMTP id
+ 2adb3069b0e04-5c1bc822487mr1176868e87.57.1795182412322; Fri, 20 Nov 2026
+ 05:46:52 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,41 +59,76 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261116101742.13702-1-johannes.goede@oss.qualcomm.com>
-In-Reply-To: <20261116101742.13702-1-johannes.goede@oss.qualcomm.com>
+References: <20261116102642.15099-1-johannes.goede@oss.qualcomm.com>
+In-Reply-To: <20261116102642.15099-1-johannes.goede@oss.qualcomm.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 20 Nov 2026 14:40:17 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0hBzBHHqhvL6686-rzptktDe7FbYyv08NQrH8kFH7ffWg@mail.gmail.com>
-X-Gm-Features: Aa3M54q_jnmN5wSKyzyQFpi73UzY8Fq7_tJynfxbDPk0hxI-RimyvhCnv7FQJmU
-Message-ID: <CAJZ5v0hBzBHHqhvL6686-rzptktDe7FbYyv08NQrH8kFH7ffWg@mail.gmail.com>
-Subject: Re: [PATCH 0/3] ACPI: GED: Add support for GpioInt() resources
+Date: Fri, 20 Nov 2026 14:46:39 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0gUm6AweP4niRuoVUD9QmqEaj7v-CoUGybjcJoP+xjW4w@mail.gmail.com>
+X-Gm-Features: Aa3M54o5Z7hpTBbbF25DzJd_bFkXBIqvGOEvRiqHSCKm-nxtnue3ZcbIGMtxRSY
+Message-ID: <CAJZ5v0gUm6AweP4niRuoVUD9QmqEaj7v-CoUGybjcJoP+xjW4w@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: button: Remove unnecessary acpi_disabled check
 To: Hans de Goede <johannes.goede@oss.qualcomm.com>
 Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 16, 2026 at 11:17=E2=80=AFAM Hans de Goede
+On Mon, Nov 16, 2026 at 11:26=E2=80=AFAM Hans de Goede
 <johannes.goede@oss.qualcomm.com> wrote:
 >
-> Hi All,
+> As the comment explains the acpi_disabled check was there to avoid
+> returning the error acpi_bus_register_driver() would return when
+> acpi_disabled is set.
 >
-> Some arm64 devices use an ACPI-GED (HID: ACPI0013) ACPI device with
-> GpioInt() resources in their _CRS resource-list to handle GPIO events.
+> But now that the ACPI button driver is a normal platform driver it calls
+> platform_driver_register() instead which works fine with acpi_disabled se=
+t.
 >
-> This is done instead of the more standard way of using a _AEI resource-li=
-st
-> with GpioInt() resources inside the ACPI device describing the GPIO chip.
+> Registering the platform driver when ACPI is disabled is not a problem
+> since no devices to which it binds will be created.
 >
-> This seroes adds support for GpioInt() resources to the evged driver to
-> handle this case.
->
-> The first patch adds makes acpi_ged_request_interrupt() properly
-> propagate EPROBE_DEFER errors, the second patch is a small refactor
-> and the third patch actually adds the GpioInt() resource support.
+> Fixes: 52d864019636 ("ACPI: button: Convert the driver to a platform one"=
+)
+> Signed-off-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
 
-Sashiko has feedback on this series:
+Applied as 7.5 material, but without the Fixes: tag because this is
+not a functional issue AFAICS.
 
-https://sashiko.dev/#/patchset/20261116101742.13702-1-johannes.goede%40oss.=
-qualcomm.com
-
-Please let me know what you think about it.
+> ---
+>  drivers/acpi/button.c | 13 +------------
+>  1 file changed, 1 insertion(+), 12 deletions(-)
+>
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index 91a4e9698f7a..d8f3641b1a40 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -822,23 +822,12 @@ static int __init acpi_button_init(void)
+>                         lid_init_state =3D ACPI_BUTTON_LID_INIT_METHOD;
+>         }
+>
+> -       /*
+> -        * Modules such as nouveau.ko and i915.ko have a link time depend=
+ency
+> -        * on acpi_lid_open(), and would therefore not be loadable on ACP=
+I
+> -        * capable kernels booted in non-ACPI mode if the return value of
+> -        * platform_driver_register() is returned from here with ACPI dis=
+abled
+> -        * when this driver is built as a module.
+> -        */
+> -       if (acpi_disabled)
+> -               return 0;
+> -
+>         return platform_driver_register(&acpi_button_driver);
+>  }
+>
+>  static void __exit acpi_button_exit(void)
+>  {
+> -       if (!acpi_disabled)
+> -               platform_driver_unregister(&acpi_button_driver);
+> +       platform_driver_unregister(&acpi_button_driver);
+>  }
+>
+>  module_init(acpi_button_init);
+> --
+> 2.56.0
+>
