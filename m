@@ -1,66 +1,65 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.85.4
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795188808;
-	b=FY023y8wUeGrDvUD//R6LulDjCvXY72+NyPGq2kYy6c+tEc2PKWRKjENEaZeCSr35+fc
-	 JQ8M7CoTU0dmuyKwTmFDCd1iLJZdZaGJ7HkakAsRUvPFk2EL9ys36KpLKydpsQ/UiKzsu
-	 XhERTAit5AmU0kLi1D4yU/xeFbkzDDN6QWBsdgSwUJhho5+4PP6Mrj6TanAodL5ofUfIv
-	 mZtyuXVS23azGjzhF3j0pZcKpMIDLfZ5BS0g0sUThXEXE8RTbdFGj/gaAGGX26qAgY5OL
-	 ZeBDfIGXaK+4omH+4ivZOpjlQB1aKgjp2zFlHKNczGe9Rr8IM/nCFWWkngoARnHrvKg==
+	t=1795191032;
+	b=XRrrQyUSoHQkUXLTufdwzxJcwm58rEFf7wSlNl9xYg6iuI+pngt161B8TcflsCk2WYFG
+	 TwODWQDyHfWK6tXVTmvd8VTkt1KAvK6bHLBkuUQwwkZBGLItLdqQkXOdO49Ccc9E7GUNQ
+	 0nSECsIxtvDKwo+5LXBuM4elB3384kA1I9LNYz42U4G+uKPCF6xrnhlm8aKzw1W6jZSia
+	 IyFf61mcBQXE0Yv5e5B2IrdaqMeVW4lVqxlKYTZuuoCQGge61wFw8s16fquvIbYLBu3vn
+	 th24UhcDr4uaFTBL7H709AXryQF/SC0vUauwnBtTbw9uMFNDlD01221/GTR87XzmPsQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795188808;
-	h=Received:DKIM-Signature:Received:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=3Mz6w7UeEL+7CGNi0VN6+DRD/NzemXmTCBXkDh4Qctc=;
-	b=5Qk6nNSEqtSDBjUAxoW8/nllT160jAe/G1iHjy4Coj0PcdO1JvGEBRbIhx6Gx0NBMAE1
-	 vBhu+Wfqr6MzKLpOpQV/6UUD4GdQV+Q4udysW8YHwQe8fmkdX63i91a4bNHnlTSF2h2he
-	 tdVTdHoAhsfB4HIZdFPcilsT720OlAJwNg9oB7ZUgAoCR1vRTmO2cqOLE+Z9iOy6il9XV
-	 f/Lgavu7E9Ubi96hPHGlDHMaq6pPNEUC10DdvZ3CGmdPfqflBtSawOBMgXqsXXdeRk2WM
-	 jl/L3RQhRbXx0U5bV/p5COU7SfmAIgkKgBsIQlgUfeoSpNDSMCUHNWNjTEXTZ5wgVdQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795191032;
+	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:From:To:Cc:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding:X-Last-TLS-Session-Version;
+	bh=thFabj8hkz789nBEnn7Pb06wQJdzTnC9OTaWYkZ4ktg=;
+	b=e/FbSIPAP4qECOJV0Pr+1i/A7IigFt9R7wPXFtKzxRUw5METvHQ7nu47dU5SSV9wZaYH
+	 tlmL/ConAfYP53WKpED7QbuOFcperZ3BEblIlFE+knzP0LYWFb2tkViC6TawM10T/Hb/2
+	 GZYjdWrIHiMQ2oJWrfEwTczEbRi8U/5dpvKyMEaWvjM6uy3coddItTlyEkFVPXuEJaCmd
+	 rPIG2392kW4QAFpqRZa95I+GRGHRAlFq3e96LEDKKcdmJOto0aCb99WRRuL+9AVYbbzPI
+	 y1r1uqrMfld1XCG+/wliGnf0RqPKs93s5AgwABNl/rZaihL741SzBOah/ycjy9RUbfQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PZHo8SXu;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=bootlin.com;
+	spf=pass smtp.mailfrom=bootlin.com;
+	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=LMlWq0Go;
+	arc=none smtp.remote-ip=185.246.85.4
+Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF148606A320;
-	Fri, 20 Nov 2026 15:33:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB767606A33C
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 16:10:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CB767606A33C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PZHo8SXu
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 163B21F000CF;
-	Fri, 20 Nov 2026 15:33:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795188808;
-	bh=3Mz6w7UeEL+7CGNi0VN6+DRD/NzemXmTCBXkDh4Qctc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=PZHo8SXuAGTP5QeLNm50UO1x70lqFU/S83DZrh1r7zKX7lQ0VsKlAZuhxJ5/E5sdY
-	 rOovFk0GrYpls6/011L/LKbvSGn2+U0PlHnpEUYT8/p47xTbLAybxHSayb6qGg4xMJ
-	 EApoBYHjR9gYbxY+o9wHymgFWFwOnuJn/72SVxRCgzLggIghTzkMxRGPBNy0cuqnV+
-	 1LJFvT0wAQFIU6tW9KiQT1G0DqCMqNbixZqIOlLaL07Qea/Pl2ljW5g5lB0nqw2InL
-	 RDU3zeHz9PWRZV+MpQ0hJxVYIpHbJ0iQGgpF+JrxUj/90W7mTM60AHYAROF/T+JU+3
-	 LPAg5rdod2EdA==
-Received: from johan by xi.lan with local (Exim 4.100.1)
-	(envelope-from <johan@kernel.org>)
-	id 1xUQc9-00000006S7K-0u9O;
-	Fri, 20 Nov 2026 16:33:25 +0100
-Date: Fri, 20 Nov 2026 16:33:25 +0100
-From: Johan Hovold <johan@kernel.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Andi Shyti <andi.shyti@kernel.org>,
-	Wolfram Sang <wsa+renesas@sang-engineering.com>,
-	driver-core@lists.linux.dev, linux-acpi@vger.kernel.org,
-	linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 0/8] driver core: platform: fix swnode use-after-free
- on device release
-Message-ID: <awBoRYvZEdI40B_R@hovoldconsulting.com>
-References: <20261117101336.980216-1-johan@kernel.org>
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=LMlWq0Go
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-03.galae.net (Postfix) with ESMTPS id 821114E41679;
+	Fri, 20 Nov 2026 16:10:30 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 51C11601B9;
+	Fri, 20 Nov 2026 16:10:30 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id AD41311BC0449;
+	Fri, 20 Nov 2026 17:10:28 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1795191029; h=from:subject:date:message-id:to:cc:mime-version:
+	 content-transfer-encoding; bh=thFabj8hkz789nBEnn7Pb06wQJdzTnC9OTaWYkZ4ktg=;
+	b=LMlWq0Gov+VD0OdA7EWRMmqzCR2pW56hRKMNtd9zdfuO18Xe60zIwZp6yvX1shz3SIKjwk
+	VwkcKMG/7GUx77hfRLpxqyI4/pujxVqema+kASn/QN0/tcdxVPC2CoOLLRT+GeGCfPXDVB
+	fhA6zRwaJluDJS7ct1Bos+jyQfICUF+lwWlT05vo9i0yazcxknZ7TG9gI6LZgt+HKC0RZH
+	+JfgKCFt4PPaGxhF2/ZRoHNlpFCvwbrDhBVGjNyj2ykeXqhzC6JYeqk/uVqtbwizY3gHvS
+	Qsce9ZsdG/eTJf3sA0tLMWz/HxBg0GcXIiWuUzfDBiLUMRDDxLGbWYOfGo4nvg==
+From: Paul Cercueil <paul.cercueil@bootlin.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+	Paul Cercueil <paul.cercueil@bootlin.com>
+Subject: [PATCH v5 0/1] ACPI: platform: ACPI 6.5 fixed clock support
+Date: Fri, 20 Nov 2026 17:10:19 +0100
+Message-ID: <20261120161020.297735-1-paul.cercueil@bootlin.com>
+X-Mailer: git-send-email 2.47.3
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -70,45 +69,45 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261117101336.980216-1-johan@kernel.org>
+Content-Transfer-Encoding: 8bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Tue, Nov 17, 2026 at 11:13:28AM +0100, Johan Hovold wrote:
-> When fixing a use-after-free regression in 7.3, I noticed that the
-> software node implementation is internally inconsistent.
-> 
-> Specifically, the firmware node pointer of a struct device may point to
-> either a primary or secondary firmware node, but in several places
-> kernel-doc and comments suggests that the firmware node pointer always
-> points to a primary node (cf. [1][2]).
-> 
-> This series fixes the 7.3 regression along with a similar issue in i2c
-> core due which are both stem from the fact that
-> device_remove_software_node() happens to drop a reference to a primary
-> software node that was never added by device_add_software_node().
-> 
-> The next two patches clarify that device_remove_software_node() should
-> only be used to remove nodes added by device_add_software_node() and
-> stops touching primary nodes.
-> 
-> The rest of the series addresses further inconsistencies.
-> 
-> The first two fixes could go into 7.4 and the rest (which depends on the
-> fixes) into 7.5. And preferably with an ack from the i2c maintainer for
-> patches 2/8 and 4/8.
+Hi Rafael,
 
-> Johan Hovold (8):
->   driver core: platform: fix swnode use-after-free on device release
->   i2c: core: fix swnode use-after-free on client deregistration
+Here's the v5 of my patchset that adds partial support for ACPI 6.5
+clock resources.
 
-I have applied these two for 7.4 now.
+I don't modify clk_find() anymore. Instead, the first clock is now
+registered without a connection name (con_id is NULL) which means that
+it can be obtained with clk_get(NULL). Every subsequent ACPI fixed clock
+found will have a name, "acpi-clkX".
 
->   software node: fix device_add_software_node() kernel doc
->   software node: ignore primary nodes in device_remove_software_node()
->   driver core: platform: warn on bad fwnode assignment
->   driver core: platform: tests: fix swnode reuse test description
->   software node: fix software_node_notify() primary node comment
->   device property: fix fwnode_get_next_child_node() comments
+Each clock is also now registered to the clk core using a system-wide
+identifier derived from the ACPI device name.
 
-Johan
+Changelog since v4:
+
+- Old patch [1/2] "clkdev: Improve clock discovery with clk_find()" is
+  gone.
+
+- [1/1] (previously [2/2]):
+    Register fixed clock as "<ACPI_ID>-clkX" because we need a
+    system-wide identifier there, and we don't have the 16-characters
+    limit there.
+    Register the first clock to clkdev without a name, so that
+    clk_get(NULL) will obtain it.
+    Register every other clock for that ACPI device with a "acpi-clkX"
+    name.
+
+Cheers,
+-Paul
+
+Paul Cercueil (1):
+  ACPI: platform: Add basic support for ACPI 6.5 fixed clock resources
+
+ drivers/acpi/acpi_platform.c | 75 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 75 insertions(+)
+
+-- 
+2.47.3
+
