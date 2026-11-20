@@ -1,88 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=180.181.231.80
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795168461;
-	b=Bu3nmLAXOVJGGZlQgt3Qhk3qZFJ3tnA3cLkD4vmFjEYzsEkDzrNi7/UfoJ73MIELhoj/
-	 09vs+5N+lPj6ibEzLJNZkk/ZjyOU89ND7Q79JnfnYIq9G+1ZefNsiMkQTiRJFk6IolQnG
-	 FSQmd5Ywt2x+ai6Oia6yhsAvQPjIRMEgPk+Lo+A8R5qbM/Rxw3zWMk+kQCodrGR2G6aOF
-	 knzFtbYsRKe3T+VD4JKXeFbgPr20Dk6Wf49Ji0lnqWKD6H892wR+yQMuIs858nqwUxAS9
-	 DBCr+KRMfs0IxWZSB5GcqLwqcdIm1q5FzUh7RHJIb192b4juTbcY0JRePlHj2TRgM1w==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795168461;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To;
-	bh=5H4SaiSHQZbbitE0VP8DxeDHKADjdTBjB65w822tiJo=;
-	b=sXeEWgUdH093BahQJUGYn4Tlet0ErzgUtvJeeW73ghltMEGCBtP5TsrKrfC9XGjuBTqj
-	 V6RCIe7k2QVq45a4q2LhZ9ApjjW4sLgwClfWu9oHnyUNcbCjxoD0H5FDIxRh1GF6Mh4Hu
-	 d+PWY7AZqVQmgCW/wZ7z3xmjD1Hlhl3zsRhGwzOmi9ETCRZmbTwJDhrTk0YWE6cqXkfev
-	 2yF9tTPi/U7DCEi24kCvpjatGgyVZ3RhbK5j/oy4fxk5XlfNFYh8lL1rT0V2vi/sJnaFe
-	 qnQGO4nEku3ZsJvonpW0MVAJ1FeU0d3qMhc8sr03aG4aex4vmxqd9Hh6mTa0BgacELg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gondor.apana.org.au;
-	spf=pass smtp.mailfrom=gondor.apana.org.au;
-	dkim=pass header.d=gondor.apana.org.au header.i=@gondor.apana.org.au header.a=rsa-sha256 header.s=h01 header.b=EcAwf6j0;
-	arc=none smtp.remote-ip=180.181.231.80
-Received: from abb.hmeau.com (abb.hmeau.com [180.181.231.80])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.44
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795170314;
+	b=H6TtRilufru1upoAr7hfHYMU9dV/TOQNx5MFpRb/tDrquJnCDZ9q5evTEvw7QzMVzwv2
+	 t/MCO45N9xRfDao9C2WH4WniY/93PvGVuNomMMz11gQBGMtj/DEOROlggbdaMPIBapwXc
+	 ebWFEtDkCCoxX2HLkGocQjV3xAhGQlChaKY7ADYt/aV2/DUvJsJaFMnV95Wvf60q7efEY
+	 6T4sikegrWGIxD34ymGFDq830YpelGms9SX9nUkr04h0gS/6ivK5+fY7fYW45yX4OkIWO
+	 zESgGeS5E+26qgkTmacgwShvKSIAQPOy8EO7DUiwkFzrV7THgm6lGaWAK1SCFzHdDKQ==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795170314;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:From:Date:
+	 X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type;
+	bh=pZlvHTLTfIebAHO6v3eRu3cIOpPlVSOeCwNOBNCLa/8=;
+	b=x57n80MvMcSuj+2tEcYekmJc9fZh0euAtjfnPIMiDNDRtEAJWj5CJU5wz57SV7bOPP2S
+	 Q6L/zHSWZAR3m7i7OT1oIVtmAZj6hxwOsdmti6gwJ3z05qK6yOvlU0V+jBtbbOsfug3zJ
+	 9xCYjCxELjjfCcgU7MUFtv9QQLaw65LhpDlvQ4SGLhc0sllxQ57Q2aBHoNcY1gvl+fIx1
+	 K3mHWo/ni9CoIwMTHlmEnItDaP2gQNQUS8vjafA68eZHbiqZD/rIRMYSAd5qEPgF4wq0R
+	 gtchY1coDdqpNdVN2DHLaUAJue/rLIjv8yWW2W8eWFWV+LA9Ttvz+88KLumJO5jnzMA==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=fail header.from=clicseo.com;
+	spf=none smtp.mailfrom=clicseo.com;
+	dkim=pass header.d=clicseo-com.20260707.gappssmtp.com header.i=@clicseo-com.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=Zh1mAx3U;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.44
+Received: from mail-yx1-f44.google.com (mail-yx1-f44.google.com [74.125.224.44])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A363F60A262A;
-	Fri, 20 Nov 2026 09:54:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A363F60A262A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gondor.apana.org.au
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB4AE606A320
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 10:25:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BB4AE606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=clicseo.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=clicseo.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gondor.apana.org.au header.i=@gondor.apana.org.au header.a=rsa-sha256 header.s=h01 header.b=EcAwf6j0
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=gondor.apana.org.au; s=h01; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:cc:to:subject:message-id:date:
-	from:content-type:reply-to; bh=5H4SaiSHQZbbitE0VP8DxeDHKADjdTBjB65w822tiJo=; 
-	b=EcAwf6j0CntvZ07zEBA0EK7mGtRM6Ty9kNZvBf6cSfeCnUQIxwN3OjQZDd7K6GdsFR2OzUkBpsV
-	c7TDp/i9LBg2XdYy1M6gNr3XFwEoyPSvrmRyLrfHOzRxWmDr342iLO9fZuqzeXHpsfU+A7EaF7Z/9
-	YCt7WXWWR1eYd/GtGSpSHeME+zRUKqvXx12OjgFVjKGvNT0AAEIi2XlnD3uSg2pO53snN/fLlIaJq
-	moAsgef5vq2jLcET6rJBrKnshrbeueOTP7zzuVY4SINFGmkc1TTjpLMQDUkt0VbWKbp9pRFZbps9i
-	w46W2VEge/e+dJ3yg715glnlttUEofgA4hZA==;
-Received: from loth.rohan.me.apana.org.au ([192.168.167.2])
-	by formenos.hmeau.com with smtp (Exim 4.98.2 #2 (Debian))
-	id 1xULJc-0000000HYhH-3TYH;
-	Fri, 20 Nov 2026 17:53:57 +0800
-Received: by loth.rohan.me.apana.org.au (sSMTP sendmail emulation); Fri, 20 Nov 2026 17:53:56 +0800
-Date: Fri, 20 Nov 2026 17:53:56 +0800
-From: Herbert Xu <herbert@gondor.apana.org.au>
-To: Pavel Popov <pavel.e.popov@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Viresh Kumar <viresh.kumar@linaro.org>,
-	Jani Nikula <jani.nikula@linux.intel.com>,
-	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-	Rodrigo Vivi <rodrigo.vivi@intel.com>,
-	Tvrtko Ursulin <tursulin@ursulin.net>,
-	Alex Deucher <alexander.deucher@amd.com>,
-	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-	Hans de Goede <hansg@kernel.org>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Peter Huewe <peterhuewe@gmx.de>,
-	Jarkko Sakkinen <jarkko@kernel.org>,
-	Tom Lendacky <thomas.lendacky@amd.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Arnd Bergmann <arnd@arndb.de>, Len Brown <lenb@kernel.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, David Airlie <airlied@gmail.com>,
-	Simona Vetter <simona@ffwll.ch>,
-	"David S . Miller" <davem@davemloft.net>, x86@kernel.org,
-	linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
-	intel-gfx@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-	dri-devel@lists.freedesktop.org,
-	platform-driver-x86@vger.kernel.org,
-	linux-integrity@vger.kernel.org, linux-crypto@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-pci@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 7/7] crypto: ccp - Drop unused <asm/cpu_device_id.h>
- include
-Message-ID: <awAYtBlS9Fg8iBDz@gondor.apana.org.au>
-References: <20261111234821.4814-1-pavel.e.popov@intel.com>
- <20261111234821.4814-8-pavel.e.popov@intel.com>
+	dkim=pass (2048-bit key) header.d=clicseo-com.20260707.gappssmtp.com header.i=@clicseo-com.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=Zh1mAx3U
+Received: by mail-yx1-f44.google.com with SMTP id 956f58d0204a3-677d35fd1d2so781213d50.1
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 02:25:13 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1795170313; cv=none;
+        d=google.com; s=arc-20260327;
+        b=U4wQf6tZolhYi6MRcFBsHuO8wiJrF7knj4gW939wzxl1/6Euh2ETWTUPNgeiKLEDxM
+         /NkHEpF9p3cMlioZYPfUCCp4zGS6XaQPYUGMcwQi9P349RZStdJfOsadU3HnVoD/dLhy
+         u9fK14h8VpDdI9gSzKfcDvH1ffYCYh/JOdEp4PfB/opnkqnINfP2CBjHhcKP+8ne45ht
+         ixx2Yqr+iQApbYMICN1Sd/m23pzg4rndW1VF+46HcMW1r0cN+RQBXlYARI9fKnkjyqgW
+         C8GfDP4p6bKHwOU5yeLbz3GsbOv2H6BLxSi+d/A5rxhnZfGOKAESYdYmeOMrix4NQUOd
+         A0VQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=pZlvHTLTfIebAHO6v3eRu3cIOpPlVSOeCwNOBNCLa/8=;
+        fh=nuSIhYuo9Rj95BKxlBfQiXH3hkbt1NDVhYaGsY3qzng=;
+        b=Y56OHgu9GS/P+ckIBoQzxZ21hZbYKsvJydtiXwqnTi8i2+xHn/6vlyAI/oBDpN5Cx2
+         oZZerrRxLvHncSnVjGNasxDQsJ75VmQScibS4OGFlRn4bA8ixTqoE70i6VhXyZFqNso0
+         VVJxYb7KpQt+XUBJlw81LceWSkrWZWPMhLED70/LmV6TX+TQHhPPnaz5D80G2XYESOga
+         p5kchnZv6Q4v9SjBySOhbr6tVJvsBtGHffby7ALRE4VfKR7J951VJHKt4+h0QYPDADbv
+         XD8hgHCn5x+dxlZKVbvktcuaGYR6iGM/Y0/qtLUsdbZ2dLxQPTeD6K+1FU0iVRS5NvGJ
+         yDSw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=clicseo-com.20260707.gappssmtp.com; s=20260707; t=1795170313; x=1795775113; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=pZlvHTLTfIebAHO6v3eRu3cIOpPlVSOeCwNOBNCLa/8=;
+        b=Zh1mAx3Upzuqv/g9rjuXKFGRqB0RvSaVhDXcWGFxWLu4KmhyoFowzLssb84V4ggjR0
+         LgvH1igwmxMCQzBRdDR/gbby7znnByXWdNyrH3znGV0oK/POXFmP1qNqmS2DB4+OTffy
+         xR/7meqlqPu9byI9rNe8CHEVI0r/3WAYN3Ughgg7qgdubvwo3Me5CHKguVEK7ZyOZPxb
+         v/yWkD4Q2wHP3SbxCDyZxRK3qWTG83GTd731xIC/ndw2+vf23ZsjfKldV1M4az3PiLYP
+         94Zy/PX8GGYeaFU01sY0T3Vfe3mkuSD/Ih3z0xzahOedZheQifwz21YUHMyx+BrSmvER
+         jrzA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795170313; x=1795775113;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=pZlvHTLTfIebAHO6v3eRu3cIOpPlVSOeCwNOBNCLa/8=;
+        b=JmfV0J04ZJy3BUxvv0UZNJeufIw0Jua/xPHjee2Z7wwJksYFtOW2/F99pdmYn8uqzK
+         rKF1BO7iklkwg4bH+nxk+hAYOwvRGbj5N/paFVjO355aZx+JWe+roLmSeNSF+FAcekFQ
+         N7yhYkem9ZZ4oaVHjHWjVxVdH6//bIRCOW2WB5sM1wt7PDxiCjDJ8giC6hRV0+KqMdj9
+         YmJDihe1qggyrBNYfh6OPvujg/2uJi4+LndQVsBW/EKjG269I+7TbaogcW3ekasKLpsB
+         2IQRGSSE/tFc+qKAwLjHnVinGEUjuNRkCBiXMD9vMZAQKKEb0K5nmn8t3k1ecDU320RJ
+         adBw==
+X-Gm-Message-State: APuU4Z8lQ+sJ8uoSyNkc08eOFRNc9ch9lZ58KhQzaBrZlo+LruAX3L9C
+	KZjqPfRO5eZLXNGnL62dLhdGlNSEwX51Kvdc9rISz2uUbuK531IF16RwYH/yXbRPc4E6nl4j0M0
+	LMd3f/KqbeycJOGBxAOlUkul615yzO26+Rt65zA0sxP/m5hPTWky+Iqo=
+X-Gm-Gg: AZFdTZe3ad96kdx+ocAbB8ql0orWdRNzzfxI1teKvNl/TjgQ4k/N+z7kDyLvT4vTnmP
+	HXESFMmXQPMY0N/s3wrqBt8w9oUICMD4bJDMopIIEnTOeBm6B1fLeNq8a75Pb4bRwEO1vMNdWpv
+	wU5o6nbiBz5vlCdx9uHUkKfao7thxFLtVQkQ8ifbt1JOTz91pmqHoc0XnMuPBXtZimo35oGucZ7
+	7vwYtU3teOq5VjAFt4hiZ3SfrAE7I+NuUsx1nv9Ddv7xZqsq2O0eHKAnTjW57Ax13zfuzXlvH4u
+	GfwI6MdwuwiO4RAy2IMzn+oGWpL3cduBdL8Dg5i6gEldsvzhw1MvcQHvDjU3G4tpsxP9HPSxyXK
+	wzUXheYPe3Gt1bQoMuPDO5j68Ef8AHJ2EOoMTTh5zBONvtzlpHsyfWwSBc4O+1C159/V1laoRih
+	lkGJvYKPuNf8oVx3+fwbzhVhOX7UKLzBsq/ayG8INuIhcFbZo7LQ==
+X-Received: by 2002:a05:690e:1248:b0:67d:b995:a5c3 with SMTP id
+ 956f58d0204a3-67df44b55admr1157942d50.70.1795170312913; Fri, 20 Nov 2026
+ 02:25:12 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -92,22 +100,51 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261111234821.4814-8-pavel.e.popov@intel.com>
+From: Gabriel Giner <gabriel@clicseo.com>
+Date: Fri, 20 Nov 2026 11:25:02 +0100
+X-Gm-Features: AclHuK9O6zIimy8Qbylja7VqeRx6PFKkK2N4pX2B4Xr-B09ja7r0uqWhWu1Esbo
+Message-ID: <CAKfe=Pq86f11-_GJNRwCN-m_TAMu-Dc6B0RvgqVk28=waXkVow@mail.gmail.com>
+Subject: Re: [PATCH RFC v3] ACPI: PM: Use EFI power off on Lenovo ThinkPad T14
+ Gen 5
+To: linux-acpi@vger.kernel.org
+Cc: george.kokolakis.ece@gmail.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Nov 11, 2026 at 04:48:20PM -0700, Pavel Popov wrote:
-> Nothing in ccp-dev.c uses <asm/cpu_device_id.h>; the CPU match table
-> it was included for is long gone. Drop the include and the #ifdef
-> CONFIG_X86 around it.
-> 
-> Signed-off-by: Pavel Popov <pavel.e.popov@intel.com>
-> ---
->  drivers/crypto/ccp/ccp-dev.c | 3 ---
->  1 file changed, 3 deletions(-)
+Hi George,
 
-Patch applied.  Thanks.
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+I see the same power-on after S5 on a ThinkPad T14 Gen 5 (21MM, Core
+Ultra 5 125U, BIOS N47ET30W 1.19, kernel 6.18.63). An EFI power off
+handler, built as a module along the lines of this patch, did not help
+here either.
+
+On my machine it depends on e1000e being bound to the onboard I219
+(00:1f.6, 8086:550b) at poweroff:
+
+- "modprobe -r e1000e && systemctl poweroff" stays off
+- "Ethernet LAN" disabled in BIOS Security > I/O Port Access stays off
+- with e1000e bound it powers back on every time, without a cable and
+  on battery
+
+Ruled out here:
+
+- WoL (systemd .link with WakeOnLan=off, confirmed applied)
+- every power/wakeup flag under /sys/bus/{pci,usb,thunderbolt}
+- every /proc/acpi/wakeup entry (LID, SLPB, AWAC included)
+- Thunderbolt, USB, WLAN, WWAN and Bluetooth disabled in the BIOS
+- xhci_hcd.quirks=0x42000
+
+The state survives a warm reboot: after "systemctl reboot", a poweroff
+from the boot loader (systemd-boot) also bounces back on, while after a
+cold start the same boot loader poweroff stays off. Hibernate (S4)
+stays off.
+
+00:1f.6 has power/control=auto and is runtime-suspended while the
+system is up, so at shutdown it is runtime-resumed and then goes
+through e1000_shutdown(). I have not narrowed it further than that.
+
+Could you try "modprobe -r e1000e" before poweroff on your 21ML? If it
+also stays off there, the quirk probably belongs in e1000e rather than
+in the ACPI poweroff path. I can test patches or collect more data.
+
+Thanks,
+Gabriel
