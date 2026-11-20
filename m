@@ -1,78 +1,78 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.21
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795195255;
-	b=ZUQQ4OTglCtWQQIVVuqaNDuHYe2Z/kbZ1Z1ht1t5X2o2TVH+PcEAA6EFIr0MoSg4w03e
-	 xJnNR+qJ4Kc6k9Rj88ygziVR6B9BYYOqA21SBbgCd0LegNRMw7vTiSGb82bqYysmxTw1M
-	 jmheHdnJYqwVi8gWjLdwMmcwEpTyShq/VhzNH8HXxmx/1G8wc2yhSSwwvD/7aKHy2rE2I
-	 ycFXqGGTJ0udNanD1FsGwxlrwdR5emjyFJIljHwW5IHlnQytK2gLBJqTFg+E9nH7XRk8p
-	 Na1c8Lv1XrY3fGnC6Dzf1Ew4vu03KOuRMuqccRraq4L5ryhcVa0lgbN5WAXp0fMRfbg==
+	t=1795195256;
+	b=MBfRpQh3vneVDod5TVnRbfeKFO0juxZYV1dEOye42lTa4ZYTla58s2WY8pvrQvdRueIl
+	 9a9O2NSFsm//d/5bzzuxQbHb/mGXae3cvIeMhlAQsnF6M+82vY8F9ypODso+sMuUcJxb2
+	 lHsJY2B9zSaAsbqAKRFD9Rr8LA7Qbus/fi2RvgINjNeAwCVINP/1/VYWGD0HRJyUaryyX
+	 obaBDTSLKj73DI2fTztU70uoxh/K4HZF3iFm8473jLq2VMppmYnE+7YB+lUMIOzCGvtHX
+	 3Jk9Cg8ZgKkKULHCdTnNeorUEWSajPbBTGcrz60zqp6BR4invDUlXYBgoa/ppkjvARA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795195255;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795195256;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=r/5RkRn1Z3L2Dwca4BiPjvIqgMtGcuRZM1pDWqyLQdg=;
-	b=tDbEAJwMFSHF5e35u9+/ZT/4cRCLDUpqloJDrbu1R8kodzemKSE6E3jBitElgSg/p62F
-	 RuJgS2UDoD3rljnmP1VU4Iy57Lgquec4FLI3xCN5OA97mjecm5tqaVi6z73prB+kCBLB5
-	 sZ0w+DelGpSAMiWfX4TALv2qRDo7sK7e5gAb6f9h3TJBbogadiVx2uzV/e+M4tL+HspNH
-	 macKsblZcUF2Wk3icr4MK6PkTamcp6UaN5TWtzq4zbBo7UKtEW/3DxDTWlII0JeChIXET
-	 /jRcwwVPAJn2fegEy3zlxWEuqVlPL0rZvm+IGz04uGxC+ZHF9+mQN3WDE1vpMLuN9cA==
+	bh=qJPHQhYfedjCOJYrgLzd0ECOSbf8JTv2hZq1jKTSmrI=;
+	b=ltSJLGjAPopPKTSn01FMfyAl3gI1L6nCP0q/EIJL3Xy6jS7dECX15YeQCc1UW2k/jmQf
+	 BjuYsQzvEZfNMBMgIQ0bYYmJIqC2iuV9u1eclUSTbmeJ0TNz8IVdRl1ALtvNIdE8Mu48N
+	 NAWx9HxKxIVE09dVZa26ln2qYemlepTa5dq3PoPoUkqhI+AvXvnQ0tt7AVN4bQibEgGxQ
+	 P5kNQ91Vy+rRUMVp49uOpdt76xeCzELu4l+rU5Ag+XFo/mkqrBKu7jBAajomRxJRXL5+f
+	 9KFA5DncMT+sWreFEVzRa2xqzuNtLqeOHuimB9MTSBfPS5ekuA9I60x07XQD1OdvahA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=intel.com;
 	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=MugT1Ifd;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=KoARb4BS;
 	arc=none smtp.remote-ip=198.175.65.21
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 944AC60A2628;
-	Fri, 20 Nov 2026 17:20:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 944AC60A2628
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 657DC60A3834;
+	Fri, 20 Nov 2026 17:20:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 657DC60A3834
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=MugT1Ifd
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=KoARb4BS
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795195252; x=1826731252;
+  t=1795195256; x=1826731256;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=tqk4JJs8vRu7ms0BoH0oS14UkD7CYOH+5R3RPcE5fLE=;
-  b=MugT1IfdRa9QgOjRA6WDNBuoW1NOhLuv8b73iXg9FyiLew9LItUILHwC
-   DOn+x5Dx9M8T5mcEjCTzjbMl1aNt499R57c5swHaBFLxLiwPfwsRAwkyG
-   4z34xiXCqQfCHKVgES3fV10K8QR76VRZDl2gTIkxm9qjdeSsTn4U77JMo
-   8rlfm5qKTpT14Ss5GSjDR73fiRHD5ZDIywX/WDIe2pbgDWeciaS4YoMGy
-   fzJEdpR5Bvly6wbHNCkEC/JHaTfx3ks5/uFS2e3DEFfN5EFBh7j7V87f6
-   KkTA6Rf67vq6ahr8pZsCfOdu1ivy/3Pmoqe842eL6j8UxDvNCGr5p06yI
-   Q==;
-X-CSE-ConnectionGUID: 0F6LkVomSHOYeXQHW9BlAQ==
-X-CSE-MsgGUID: zVAVDSmLRAKR9pBvELo5Qg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4157393"
+  bh=ultTTMBLv2vDOVju1DP16lSpu87uKSHH9VOkiMbZsK0=;
+  b=KoARb4BSaGdF5/vnOOCHp00vg0+VNjUrXNE9RvJPeXqEWmdcGAyxZ4T+
+   zsYNiLyJ17TG915kPXYFeujIJp5BbhBdM6bxHA6T77M6Wgk/omugENKwZ
+   T8SPZ57TZKAguEgelGV4VVynTx88NyPro+9fed0NfpLvp39CLPHREpOAs
+   FBN99yZ/XmbCwKWbANerh7v1E1DprUYZnr+NGuQIdGvS/QyM12R0WCsmo
+   YpMSq7OpfBhIQODAoBr8ZtxX/68aDrTy15HRy2CCvhG51OheCz80LIrMZ
+   /5YVEYYjoAzwFORIf8DCMz/rGSq2l1R18IJw1euaIdEjdpvNLsTqPrAMa
+   A==;
+X-CSE-ConnectionGUID: jGC59BfKQt+bufSyMARkOA==
+X-CSE-MsgGUID: 1AY3bGVIRuuLPfkXq05Q7g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4157402"
 X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="4157393"
+   d="scan'208";a="4157402"
 Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:20:52 -0800
-X-CSE-ConnectionGUID: l8/YC00OSN2oBFp9A7UOFA==
-X-CSE-MsgGUID: 1SLFENSkSNa+wPVDijJLSQ==
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:20:55 -0800
+X-CSE-ConnectionGUID: iw8AZoajSvC0GCTfN3JU/g==
+X-CSE-MsgGUID: X3200TdbSyOFihYGkQAB7A==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="10867993"
+   d="scan'208";a="10868005"
 Received: from hrotuna-mobl2.ger.corp.intel.com (HELO wieczorr-mobl1.intel.com) ([10.245.245.215])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:20:49 -0800
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:20:52 -0800
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>,
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
 	Pawel Chmielewski <pawel.chmielewski@intel.com>,
 	Len Brown <lenb@kernel.org>
-Cc: purofle <yuguo.or@isrc.iscas.ac.cn>,
+Cc: Rong Zhang <i@rong.moe>,
 	linux-acpi@vger.kernel.org,
 	acpica-devel@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 15/42] ACPICA: fix: build error with gcc 16: unused-but-set-variable
-Date: Fri, 20 Nov 2026 18:18:36 +0100
-Message-ID: <cfbb1329ac34adbe6e18d5dd68b42eb8f58c096a.1795194329.git.maciej.wieczor-retman@intel.com>
+Subject: [PATCH v2 16/42] ACPICA: parser: Set AML length for bytelist
+Date: Fri, 20 Nov 2026 18:18:37 +0100
+Message-ID: <d32f3fdc439e5aa8153a14f5ea979465b3ee87c4.1795194329.git.maciej.wieczor-retman@intel.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
 References: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
@@ -87,43 +87,51 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: purofle <yuguo.or@isrc.iscas.ac.cn>
+From: Rong Zhang <i@rong.moe>
 
-Since GCC 16, -Wunused-but-set-* warning options have been extended to
-have multiple levels controlling what kinds of uses disable the warnings
-for variables which are otherwise unused. Older versions of GCC only
-implemented what has become -Wunused-but-set-variable=1 or
--Wunused-but-set-parameter=1, while the new default for
--Wunused-but-set-variable or -Wunused-but-set-parameter is =3 (the new
-defaults are also used when these warnings are enabled by -Wall or
--Wextra, respectively). =2 ignores pre/post inc/decrements on the
-variable, =3 also ignores compound assignments if the LHS variable is
-not also used on the RHS.
+The sanity check introduced in [1] leads to failures for
+resource templates. AcpiDmIsResourceTemplate compares the Length
+variable to BufferLength - the problem being that Length was never
+set. This causes the decompiler to decompile valid resource
+templates as plain buffers.
 
-Use ACPI_UNUSED_VAR on the NumCarats variable. This variable causes the
-unused warning because its use is only compiled if ACPI_DEBUG_OUTPUT is
-defined.
+Fix it by setting the AML length properly.
 
-Link: https://github.com/acpica/acpica/commit/24aa4f85589b
-Signed-off-by: purofle <yuguo.or@isrc.iscas.ac.cn>
+[1] https://github.com/open-acpica/acpica/commit/3ce09021b677
+
+Link: https://github.com/acpica/acpica/commit/bb546a65fa3e
+Signed-off-by: Rong Zhang <i@rong.moe>
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 ---
- drivers/acpi/acpica/nsaccess.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/psargs.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/nsaccess.c b/drivers/acpi/acpica/nsaccess.c
-index a0c1a665dfc1..1e7945ccff84 100644
---- a/drivers/acpi/acpica/nsaccess.c
-+++ b/drivers/acpi/acpica/nsaccess.c
-@@ -292,7 +292,7 @@ acpi_ns_lookup(union acpi_generic_state *scope_info,
- 	struct acpi_namespace_node *current_node = NULL;
- 	struct acpi_namespace_node *this_node = NULL;
- 	u32 num_segments;
--	u32 num_carats;
-+	u32 ACPI_UNUSED_VAR num_carats;
- 	acpi_name simple_name;
- 	acpi_object_type type_to_check_for;
- 	acpi_object_type this_search_type;
+diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
+index 4643c839df7f..b0f5a11f9696 100644
+--- a/drivers/acpi/acpica/psargs.c
++++ b/drivers/acpi/acpica/psargs.c
+@@ -760,6 +760,8 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
+ 
+ 				ASL_CV_CAPTURE_COMMENTS_ONLY(parser_state);
+ 				arg->named.value.size = buffer_length;
++				arg->named.length = (u32)ACPI_PTR_DIFF(
++					pkg_end, parser_state->aml);
+ 				arg->named.data = parser_state->aml;
+ 			}
+ 
+@@ -933,9 +935,9 @@ acpi_ps_get_next_arg(struct acpi_walk_state *walk_state,
+ 
+ 			/* Fill in bytelist data */
+ 
+-			arg->common.value.size = (u32)
+-			    ACPI_PTR_DIFF(parser_state->pkg_end,
+-					  parser_state->aml);
++			arg->common.value.size = arg->named.length =
++				(u32)ACPI_PTR_DIFF(parser_state->pkg_end,
++						   parser_state->aml);
+ 			arg->named.data = parser_state->aml;
+ 
+ 			/* Skip to End of byte data */
 -- 
 2.56.0
 
