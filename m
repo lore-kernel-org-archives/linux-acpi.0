@@ -1,112 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795178840;
-	b=aOPtxiq46TPf9u9pc4FCJ8mGjwrjDvpduAvgNOEoDmn0YTMr+XgbOCCh23Id5VQzGn1Z
-	 Z9ZKuCoRgCI9zAleqsWYd8AzoeDiOqB3daxm1EALgKvGN9Un0YXnoWzZ1FWpJbHW5LtfO
-	 sTja1sYwUVQZk8jUt9wSrIBiYrpJPKclKpCfUOpRXI87wisGr9ANKilThzwdgZP2GDJ0b
-	 Kqt5GNVoAkErUxXSu6ISfmjbdxe6Sz3MjUSmkiy+T38xDVVPvk+uI3KSmjGS/DVWMmzmJ
-	 M8UYPiED8nyaIDvyavsHduALv98wOm8AKIrmV/VtGZm+5hF2lY8pVZL0amzzBGyw/Bw==
+	t=1795178934;
+	b=DC8v0z5XnOm6FmdKqZcIhjpiqDkOLyBymqK1NIwYoizZqhYzI4Lma98GjXsiqurQ9CN3
+	 WNKbfr9JxZ9noJ53GW2hs4opZiOI3t1cbZBH07YRH8RAgR0wklsk4ibuiDiz7cS9oOyeV
+	 +U5jB+bPkhUlmTtVLxPANNrb8TUKraUuM3vCDYYzqd/yVk6AXad43PzDJYATlaGOYF8Mk
+	 4iE8caa91sz/Akq77u2+tTdxnk3e5XYdEC4yhklfVjV3cPKjSsUtmoOcbraiXpH/WOisc
+	 FLmQXqHTGTyUADPbRnIrtIPW7IRlxKPUGMsIwg7+mYlNhw1qM2nyUUwRSG8JI/ay+yw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795178840;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Gm-Message-State:X-Gm-Gg:
-	 X-Received:X-Received:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:Message-Id:References:
-	 In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:
-	 X-Proofpoint-ORIG-GUID:X-Proofpoint-GUID:
-	 X-Proofpoint-Spam-Details-Enc:X-Authority-Analysis:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-Virus-Version:
-	 X-Proofpoint-Spam-Details;
-	bh=NS8BjovI5HLBofxvJMHQYZRCR3joIuKOlILvwQZbuIw=;
-	b=ardHXDdcDre7v5i6mQ9XKdaXy5v2tqvBRkeGMrUpJC/HvLk4NEwbHfYpYh8Rz70AJLAd
-	 k930PWCQQmIZrDQLSGzsRceorRoP2B+yS5TRI+7RsW9Gi/sFgamejxtzS59TSu3pxeIh7
-	 tHtC+3FMCIfADEFdL+XjRJNSDZT+8ACbTytjHnEwwaALkbKlJTR282mL6ZxKDne+Yfl6W
-	 RExA24xix6sEtm1DBT/dcjzSjUy1D42ayXzOfRBdY1R/PxBixXd9OkCg21TVNo/r0+1u2
-	 rx/wIznfd7/Zq4IoakSNKxiwDImbPi+c8TYudomBJoxrIc0J2gkbZYpY4dVDwc/DrOA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795178934;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=5y5IiZafi4/ONiuYWfUibW0wvSSUQMFqt9ROxWxYZJE=;
+	b=LB79CF0Kcov9AlcnQ3Lskmvrw+0UBP1yLwrIxLJ6uBTQ7hMHNswKtVHGqI2MGJDkLUpB
+	 Ea4qohQnZc1w1LhW8uIhwxK86asd82KIPze6SqutTL2qR3WdEHUCvGZR6YyFn+ktEtMmq
+	 mb139oldkcaVLFgKA1HRbBGIf9oCLetC6qpcz40HpGMDgKf0+yozN6YCxIh0ZpV/NFaGO
+	 VeshU84yor2LiHVrnxGgXQOfeOXM5uOo3XokpnGvX4pwsqBjwF04+SdvOv1y6hP8KMyzY
+	 6g3hA3VX7ZnGTXOWzMipaCNYmnvTdWm7bAiLugh4uZ8E/TINLyxMoZ2Llv6JodM7BMw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.qualcomm.com;
-	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=A4HDSQWb;
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=QNWZH1ah;
-	arc=none smtp.remote-ip=205.220.180.131
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=n7QsPB7t;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E9A560A381E
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 12:47:19 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8E9A560A381E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A39D0606A326
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 12:48:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=A4HDSQWb;
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=QNWZH1ah
-Received: from pps.filterd (m0279870.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AKAjtd01528505
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 12:47:18 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	NS8BjovI5HLBofxvJMHQYZRCR3joIuKOlILvwQZbuIw=; b=A4HDSQWbiD6HZnqb
-	rtwVMxR9QACZoxdiDvE2TqezA4MQJBrot46ceTynX6t2Ays7OJNgX8Irc5bjNXFJ
-	rcfd7enmeAxKVcxWkk4twTTQZdQZSa5p/QYlOauPK0rgUK0sjlJqqDs85NfLe7bt
-	nNohHEvvywLaxN7nSbtda/8bqVDd4CMbnJZsHAPBTVpdLnwGAwXThgfrdd3vPQU/
-	myD8NpXKqWHOgP0kbZJyCBdt1dE2VtdPaYX3RznmRpUMbq4PYc2Ti6BJ1h8HuHcQ
-	duongUjmWUmZ7Th/aTtZsPlaFouN+Y3zi45RJR8ILKLIdwbQtS120YCa9yo8Uunl
-	wiaR9A==
-Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com [209.85.222.199])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4j2fjtsvw9-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 12:47:18 +0000 (GMT)
-Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-93f5844e383so156641185a.1
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 04:47:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1795178838; x=1795783638; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=NS8BjovI5HLBofxvJMHQYZRCR3joIuKOlILvwQZbuIw=;
-        b=QNWZH1ahOxoJ6lzjC+5dJJP321vfIbSUCaUrNaWbTnoWoK55UM4KiKj0byKYi81biT
-         Q7Ewlg3td29GbZ1K7YsoEUYFdm/WCuWvER4l11zeQwdkhVQbVZJAwklFY6M9uHWg3cfm
-         HL1G8UcWBdyMed6V9NA0Ay7jH9nB+nFdc8K/7UWY/LiVHD0eP468ajFyQfBJXqkcMjYx
-         /mwp2j6ChkT7gkRf/WyfS2T/LvCDyPlabYqd4IuaTOgqURq0TYqoIt/4HIxhY6ujiZ+d
-         vfLxs1v6h7HWme2BVDRHwZZAKOMtABWPwIKc52UlD6C4uUJdVcEYvnq0zArZMWHZ+SMD
-         66pw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795178838; x=1795783638;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=NS8BjovI5HLBofxvJMHQYZRCR3joIuKOlILvwQZbuIw=;
-        b=0frfD5Cmeu53+C+GuWb1PurNRhR936xoAPjfc05CnO5rE0u2w6FxIGjtSwZ6cIMM3b
-         SpD7llcHlo9AhpveCuarmzlmYQBGtjRYP/k+2Rabp1BeX1QE7SCTdbhA60URVdhfayj1
-         ItZ+710/J/32IuvIe0oEIFdU8sDmkoRDnyxZXGE8FDksyNeHp0lkMeFHIG+bcNP/tUNb
-         r+BHrucdnWPZsv9LKIAgJnMcDePbOPGEPkowW6w/t2ONeDfyoB1xJ3Jg9e+c+7MUJU1s
-         i+gsaWfKl9hKuXogTCAPw23xghtLTF4nMxfzxfxuuk4zOo0vB7bMMGhbL3oXcONJ0ilf
-         MxFQ==
-X-Gm-Message-State: APuU4Z9KIuuh8hvltFZY4XT8cv2bKULBE04/nqmTTncFAQKdCvUv8Hmk
-	c4X8IpIw6Xv+QeUtxJUOwSe5qEY9Q9D+Yui/QWrY4cAZ/M3HdKrXL8LTbpy2JmSk23MwMPK3B+K
-	xPLkMdP3zIB0sabj4QqVCDTuKZvO1rn0E1zyO+t/WMhV4/wJa0ztoHxiKo04cBzRJ
-X-Gm-Gg: AYBFou2XjXf0Z4z/GZzCePJMfufyVA/GNs3EFr1hI0Kw7pqSIfiJtM5nnXJ/9/v+AbH
-	lVED1Y7hl4OVhkCCblZYAB64ZnOR/lswUsWPZ+gKSeJrYCvBtXbew5ke89lL4Bq6NR/iKuRkWzN
-	nx/NSSXL/lsx2iCKikpCekc17Qx52ZT1iDEXhtrtt3iPyBsl9WwU4Kx+T6KDvRiVuruZdaAw6QW
-	qWd39fOQR/VQjyBZNI4++z/AQ2gIba5k1kG6nwlV6jr3Rc//Lftsf9rummrq+4GG/+n77C/bktr
-	vV59LIdr7J78j+xJa1LOIXpMGptz2xirMDzjWw6tLInr2dsTaINDfYfaAAkRyDledpTqzlkRyKe
-	qNT0n9FnUnst5Ju6n0dZd+thPxSN0yc+0cbCIHMbzpT3LYtAzB6CuQtqH8OQTp5twovo9MSfHgh
-	g=
-X-Received: by 2002:a05:620a:4492:b0:949:7fb4:2712 with SMTP id af79cd13be357-949bab123c2mr454611485a.66.1795178837654;
-        Fri, 20 Nov 2026 04:47:17 -0800 (PST)
-X-Received: by 2002:a05:620a:4492:b0:949:7fb4:2712 with SMTP id af79cd13be357-949bab123c2mr454609285a.66.1795178837182;
-        Fri, 20 Nov 2026 04:47:17 -0800 (PST)
-Received: from brgl-qcom.local ([195.50.164.66])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb884ab091sm119248995e9.11.2026.11.20.04.47.14
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 20 Nov 2026 04:47:16 -0800 (PST)
-From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Date: Fri, 20 Nov 2026 13:46:47 +0100
-Subject: [PATCH v3 10/10] gpio: shared: generalize most code to firmware
- nodes
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=n7QsPB7t
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CEDE1F000ED
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 12:48:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795178934;
+	bh=5y5IiZafi4/ONiuYWfUibW0wvSSUQMFqt9ROxWxYZJE=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=n7QsPB7tDEbc/4rDSlloRLPnpIttBc234LywkWhE2F1MBc9XBEon+dcBXu+PpQRQk
+	 O7TdTG1IkShgPlzzjSm+HAsAKnzjKmfMEVd0iDZWJlUUQ1MP4VHjEEs+0pnUj+mAEW
+	 0ynPs+MOFw6wWj9w8uBF9DuRfLajcb8o10QQwFZoO6WJP0XwtzQq9AmbyGLQd8p5UT
+	 i/Sijc2yy7SGwQomPzWLbwdt+PImJ+aTRYi3jZ+KnuafUvrcwxkFDhV4gs9CcMUPot
+	 RzMErHQAVKy9EYzJVPuynvxE8GrAHlNu7PhiFXxlTvHrCF8vkn0A1vNZdWUI1l5zvS
+	 jtYGcpeRZ3tsw==
+Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-5bfa65c8617so498546e87.0
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 04:48:54 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErH9lhQ/QY8mb/6qQ+1Zezyjplkc5RP1Z9Nc8KeeKnn/fxnVUZ2gPPu0ZGrb8yG25mEQ6EIEvSHjm1rU@vger.kernel.org
+X-Gm-Message-State: APuU4Z+uFEPMoF2oqLjZN5uonXBKOVeQoRUOticB11DFvuQxHl1gpK+p
+	8r4tDxI0fKOm68V5Tg7OM1BTI/VbcJCOopgTQ6mQAWiCjBCMBURBRogoWK0kEyvRaLjfaNKJylS
+	Pvq+obpVixlUSuzf8UkqjUcTD9QCUH3o=
+X-Received: by 2002:a05:6512:31c3:b0:5c1:465b:ebe3 with SMTP id
+ 2adb3069b0e04-5c1bc7be4b6mr1079661e87.13.1795178932584; Fri, 20 Nov 2026
+ 04:48:52 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -116,411 +59,460 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261120-fwnode-for-each-prop-v3-10-808e304dc73e@oss.qualcomm.com>
-References: <20261120-fwnode-for-each-prop-v3-0-808e304dc73e@oss.qualcomm.com>
-In-Reply-To: <20261120-fwnode-for-each-prop-v3-0-808e304dc73e@oss.qualcomm.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Scally <djrscally@gmail.com>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Bartosz Golaszewski <brgl@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
-        Hans Verkuil <hverkuil@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kees Cook <kees@kernel.org>, Andy Shevchenko <andy@kernel.org>,
-        Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>,
-        Saravana Kannan <saravanak@kernel.org>,
-        Linus Walleij <linusw@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
-        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-gpio@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=10642;
- i=bartosz.golaszewski@oss.qualcomm.com; h=from:subject:message-id;
- bh=Iv1IM5MIQo5zDnbSeGyHkNB7sywHcbJdjw/Y4b/rMx8=;
- b=owEBbQKS/ZANAwAKAQWdLsv/NoTDAcsmYgBrAEE4dhvnqlk3Wr6j2erkEhrd8hVycyEjLcRAS
- b+Pr2rWQVCJAjMEAAEKAB0WIQSR5RMt5bVGHXuiZfwFnS7L/zaEwwUCawBBOAAKCRAFnS7L/zaE
- w0ToEACB14ApfaKZHAECsmUMushTze/aQzofn9c5/yYGY4u0E7D1ZKw3mf65lq7arf4riCHqhY9
- /GGO+EN62WQeAY5PcYlqergHrjsMi517+O2xvf2zKnHBgBDeLyVnkpAYJRpYbWArgrxXcZmJ1Bd
- 13lUVdr0tvWLWIHeuBqj3r5Q8FK6Zvq/X9IDvZbzVOX/LMa+I3V/TBgr0LbV994ZYl1klDz7ekF
- 7t7GxVYp3XbFc++85rWtXIqZvArsQLvSwKIlpTOpF6HxBDjFR3m/60bNG2lch6svfbtOpiIUoDR
- nI2Blq5RILL8f3nOkFmEkvCQI2fAEonvUaLCDLfdKOcop1yN4zerYN23vq1DNJ0WzrTCRMQ0F0X
- Udl7YUI+HZEQL45EnnY/jvQo8TvXBmeyOSz0D49TDFL6aENZywtV8PIy2C/UXv8h72jiDOcc+gV
- FaCfyh693TCvJpu1kzVaSmM7oW1U6oDF7WzrI/mbPYkkjKRMLjIPtj7yiTBonWdkljS9FEV1GWs
- CmAm+sTPFbHFZjOvofsmi/UghzjYVTjKVKzWrzqd37p7A6OBi3cKD8ao9TodsfrVus5mnXXH+OB
- pFi4YHrmDCQ2mgwpYB65GAAsFAvlE2l8MPh0UZz0qjUFVNqsDj2+FEg0iu4Grh+byoz8G++vsBj
- Qge2/Wfdzegj9Dw==
-X-Developer-Key: i=bartosz.golaszewski@oss.qualcomm.com; a=openpgp;
- fpr=169DEB6C0BC3C46013D2C79F11A72EA01471D772
-X-Proofpoint-ORIG-GUID: gQO2xPsXFdUA1zUHsQzUZK9r-2KWmNkJ
-X-Proofpoint-GUID: gQO2xPsXFdUA1zUHsQzUZK9r-2KWmNkJ
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTIwMDA1MCBTYWx0ZWRfX71J6W14G+2Ee
- fysAeV2V7E56P/J5mNs891ljyqPY9DKBg4PWV3tczP7JDz6C51o55dljjqkCpd9emevxZpROmw1
- Uz5cNNKQ+8mXxSMv8Ysr+lwZI4fCVIjMC2vMd1qzjbDVBvi6ZUVAfnI+kZ9sTA2o9+kB1hRifKJ
- rbpRHxTAB2ekIHWZptRDyvS9tnv1gWwNobwziEDR4moLDV+tRpG4WpTag87WnD7BK8CGSNlXdSh
- RXMVhg+1FRfr/6XhOCyRCXwlIUPkdoHI0jbBOqYOYn6+aK9fPp2f/BdWQmUR2CQ4UUEkTZpyo4c
- 1oAnQaZeCwm7DRllNbnc91EWtsENsypIGjRZEQCRuOdrdqf/HeL4yHRd7DmAWsWtxj/zeUDSghv
- eZGi+9VnxTS/sIfVY3LRSCi6vhyPtwiz3Zg+1N3nABTKUJ1zrz4rxK4E/i2AIWgu488uh+2BB/+
- wIihgrpN3/7w7BaaTCw==
-X-Authority-Analysis: v=2.4 cv=XcccX455 c=1 sm=1 tr=0 ts=6b004156 cx=c_pps
- a=HLyN3IcIa5EE8TELMZ618Q==:117 a=Jk2/TV77q6/E6wQq2oQJxQ==:17
- a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=gowsoOTTUOVcmtlkKump:22
- a=EUspDBNiAAAA:8 a=ziVQ5hnd3nnfPSIR4FkA:9 a=QEXdDO2ut3YA:10
- a=bTQJ7kPSJx9SKPbeHEYW:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTIwMDA1MCBTYWx0ZWRfX7OI/IcgR0V4p
- SI4+c0Qt6e7ck76Nz5/26d1tJtbRvTiqwTaQBSRuDfvK9FlBFVCAv2Cf4X/FYxJ9Ogpb61ZMqUf
- HMgpLP9zaTHITJ01+gqOGc5gbzTr/QM=
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-20_04,2026-11-19_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 clxscore=1015 malwarescore=0 adultscore=0 spamscore=0
- suspectscore=0 priorityscore=1501 bulkscore=0 lowpriorityscore=0 phishscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611200050
+References: <20261116152403.2672-1-ilpo.jarvinen@linux.intel.com> <20261116152403.2672-6-ilpo.jarvinen@linux.intel.com>
+In-Reply-To: <20261116152403.2672-6-ilpo.jarvinen@linux.intel.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 20 Nov 2026 13:48:40 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0hgt_S26dy2MELqz4SiRo73hzZY_rU+_VfHpPKYPHEGLw@mail.gmail.com>
+X-Gm-Features: Aa3M54q3kudao5rnwautljy_IwjQT-qBAN--yV6WVw8dUPc3lfjm_3FYqQRJszw
+Message-ID: <CAJZ5v0hgt_S26dy2MELqz4SiRo73hzZY_rU+_VfHpPKYPHEGLw@mail.gmail.com>
+Subject: Re: [PATCH 05/13] PCI: Serialize bridge window sizing and resource assignment
+To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, 
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring <robh@kernel.org>, 
+	=?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kw@linux.com>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	=?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
+	Alex Williamson <alex@shazbot.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Ahead of adding support for sharing of GPIOs for other types of firmware
-nodes, convert as much code in gpiolib-shared.c as possible to using
-fwnode APIs and guard the remaining OF-specific bits with CONFIG_OF
-guards.
+On Mon, Nov 16, 2026 at 4:25=E2=80=AFPM Ilpo J=C3=A4rvinen
+<ilpo.jarvinen@linux.intel.com> wrote:
+>
+> Bridge window sizing and resource assignment are started from multiple
+> entry points: rescan and hotplug under pci_rescan_remove_lock, and BAR
+> resize from sysfs or driver probe under device_lock() only. The entry
+> points hold pci_bus_sem only for read, so nothing prevents two sizing
+> and assignment passes from running concurrently on the same bridge
+> windows and BARs. E.g., a rescan may assign a BAR that a concurrent BAR
+> resize has released, or restore a resource the resize has already
+> assigned.
+>
+> Looping BAR resize through sysfs against a rescan of the parent bus on a
+> system with a BMG GPU triggers the add_list sanity check. The rescan
+> sizes the Downstream Port's prefetchable window while the resize assigns
+> it, and the sizing values overwrite the assigned window. The resize then
+> programs these values into the Downstream Port, outside the root bus
+> resources and overlapping System RAM [mem 0x100000000-0x4075ffffff]. The
+> rescan skips assigning the window as it looks assigned, which leaves its
+> add_list entry unused:
+>
+>   pci_bus 0000:b7: root bus resource [mem 0xd6000000-0xddfbffff window]
+>   pci_bus 0000:b7: root bus resource [mem 0x2e0000000000-0x2effffffffff w=
+indow]
+>   pcieport 0000:b9:01.0: bridge window [mem 0x800000000-0x1000ffffff 64bi=
+t pref] to [bus ba] add_size 4000000 add_align 800000000
+>   pcieport 0000:b9:01.0: PCI bridge to [bus ba]
+>   pcieport 0000:b9:01.0:   bridge window [mem 0xdda00000-0xddbfffff]
+>   pcieport 0000:b9:01.0:   bridge window [mem 0x800000000-0x1000ffffff 64=
+bit pref]
+>   add_list && !list_empty(add_list)
+>   WARNING: drivers/pci/setup-bus.c:1546 at pci_assign_unassigned_bus_reso=
+urces+0x9e/0x130, CPU#58: srf8-resize-rac/2861
+>   CPU: 58 UID: 0 PID: 2861 Comm: srf8-resize-rac Tainted: G S            =
+      7.4.0-rc1-g6628e7d4c6b2 #59 PREEMPT(full)
+>   RIP: 0010:pci_assign_unassigned_bus_resources+0x9e/0x130
+>   Call Trace:
+>    pci_rescan_bus+0x20/0x40
+>    dev_rescan_store+0x6e/0x90
+>
+> Other trigger vectors are possible as well. Hotplug takes the same locks
+> as the sysfs rescan. BAR resize walks the bridge windows up to the Root
+> Port to make room for the resized BAR, and then sizes and assigns the
+> whole hierarchy below the Root Port. Thus, hotplug anywhere below the
+> same Root Port can race with the resize, e.g., when connecting a
+> Thunderbolt device. Instead of the sysfs resize, a driver can resize a
+> BAR during probe, e.g., after unbind and bind.
+>
+> pci_rescan_remove_lock cannot be taken under device_lock() because the
+> device removal path takes them in the opposite order.
+>
+> Add pci_res_setup_lock and hold it across sizing and assignment in all
+> entry points, including acpiphp which calls the internal sizing and
+> assignment functions directly. Assert the lock is held in the
+> functions that modify resources deeper in the call chains. In
+> pci_do_resource_release_and_resize(), take the lock before selecting the
+> bridge window and setting the BAR size as both depend on or change
+> resource state.
+>
+> The race was also reproduced in QEMU, which found more symptoms.
+> Looping BAR resize through sysfs against a rescan of the parent bus on
+> a guest with 512M of RAM, using a synthetic host bridge with a Root Port
+> and an Endpoint with a Resizable BAR, triggers the following failures:
+>
+> 1) Both the rescan and the resize release the Root Port's prefetchable
+>    window. Both find it assigned, but the rescan releases it first, and
+>    the resize then dereferences the NULL parent in __release_resource():
+>
+>      pcieport 10000:00:00.0: bridge window [mem 0x940000000-0x97fffffff 6=
+4bit pref]: releasing
+>      pcieport 10000:00:00.0: bridge window [mem size 0x40000000 64bit pre=
+f]: releasing
+>      BUG: kernel NULL pointer dereference, address: 0000000000000038
+>      Oops: Oops: 0000 [#1] SMP
+>      CPU: 0 UID: 0 PID: 49 Comm: init Not tainted 7.4.0-rc1-00001-g4aa3ac=
+aaeb08 #1 PREEMPTLAZY
+>      RIP: 0010:__release_resource+0x8/0x70
+>      Call Trace:
+>       release_resource+0x22/0x40
+>       pci_release_resource+0x54/0x90
+>       pci_do_resource_release_and_resize+0x1f3/0x3d0
+>       __resource_resize_store+0xf0/0x180
+>
+> 2) The rescan restores a resource that has already been assigned:
+>
+>      WARNING: drivers/pci/setup-bus.c:136 at pci_dev_res_restore+0x32/0x9=
+0, CPU#0: init/1
+>      CPU: 0 UID: 0 PID: 1 Comm: init Not tainted 7.4.0-rc1-dirty #6 PREEM=
+PTLAZY
+>      RIP: 0010:pci_dev_res_restore+0x32/0x90
+>      Call Trace:
+>       __assign_resources_sorted+0x2db/0x570
+>       __pci_bus_assign_resources_one+0x57/0x190
+>       __pci_bus_assign_resources_one+0x12d/0x190
+>       __pci_bus_assign_resources+0xd/0x30
+>       pci_assign_unassigned_bus_resources+0x6f/0x80
+>       pci_rescan_bus+0x1a/0x30
+>       dev_rescan_store+0x46/0x60
+>
+> 3) The rescan assigns the BAR while the resize is assigning it, failing
+>    the resize:
+>
+>      pci 10000:01:00.0: BAR 0 [mem 0x900000000-0x90fffffff 64bit pref]: r=
+eleasing
+>      pcieport 10000:00:00.0: bridge window [mem 0x900000000-0x90fffffff 6=
+4bit pref]: releasing
+>      pci 10000:01:00.0: BAR 0 [mem size 0x40000000 64bit pref]: can't ass=
+ign; no space
+>      pcieport 10000:00:00.0: bridge window [mem 0x900000000-0x93fffffff 6=
+4bit pref]: assigned
+>      pci 10000:01:00.0: BAR 0 [mem size 0x40000000 64bit pref]: failed to=
+ assign
+>      pci 10000:01:00.0: BAR 0 [mem 0x900000000-0x93fffffff 64bit pref]: r=
+eleasing
+>      pci 10000:01:00.0: BAR 0 [mem 0x900000000-0x93fffffff 64bit pref]: a=
+ssigned
+>      pci 10000:01:00.0: BAR 0 [mem size 0x40000000 64bit pref]: resource =
+restored
+>      pci 10000:01:00.0: BAR 0 [mem 0x900000000-0x90fffffff 64bit pref]: o=
+ld value restored
+>      pci 10000:01:00.0: Failed to resize BAR 0: -28
+>
+> 4) While one pass is sorting a released bridge window for assignment,
+>    the other pass assigns it, which clears IORESOURCE_STARTALIGN. The
+>    window then has zero alignment:
+>
+>      pci 10000:01:00.0: BAR 0 [mem 0x900000000-0x93fffffff 64bit pref]: r=
+eleasing
+>      pcieport 10000:00:00.0: bridge window [mem 0x900000000-0x93fffffff 6=
+4bit pref]: releasing
+>      pcieport 10000:00:00.0: bridge window [mem 0x900000000-0x90fffffff 6=
+4bit pref]: assigned
+>      pcieport 10000:00:00.0: bridge window [mem 0x900000000-0x90fffffff 6=
+4bit pref]: alignment must not be zero
+>      pci 10000:01:00.0: BAR 0 [mem 0x900000000-0x90fffffff 64bit pref]: a=
+ssigned
+>
+> 5) BAR 0 loses its flags and the Root Port's prefetchable window gets
+>    programmed over RAM, after which every BAR resize fails with -EINVAL:
+>
+>      pci 10000:01:00.0: BAR 0 [mem size 0x10000000 64bit pref]: can't ass=
+ign; no space
+>      resource: remaining [mem 0x000000001ffdf000-0x000000001fffffff] avai=
+lable
+>      resource: avoiding allocation from e820 entry [mem 0x1ffdf000-0x1fff=
+ffff]
+>      pci 10000:01:00.0: BAR 0 [mem size 0x10000000 64bit pref]: failed to=
+ assign
+>      pci 10000:01:00.0: BAR 0 [mem size 0x10000000 64bit pref]: can't ass=
+ign; no space
+>      pci 10000:01:00.0: BAR 0 [mem size 0x10000000 64bit pref]: resetting=
+ resource
+>      pci 10000:01:00.0: BAR 0 [??? 0x00000000 flags 0x0]: failed to assig=
+n
+>      pci 10000:01:00.0: BAR 0 [??? 0x00000000 flags 0x0]: resetting resou=
+rce
+>      pcieport 10000:00:00.0: PCI bridge to [bus 01]
+>      pcieport 10000:00:00.0:   bridge window [mem 0x20000000-0x200fffff]
+>      pcieport 10000:00:00.0:   bridge window [mem 0x10000000-0x1fffffff 6=
+4bit pref]
+>      pci 10000:01:00.0: Failed to resize BAR 0: -22
+>
+> Fixes: 8bb705e3e79d ("PCI: Add pci_resize_resource() for resizing BARs")
+> Fixes: 91fa127794ac ("PCI: Expose PCIe Resizable BAR support via sysfs")
+> Signed-off-by: Ilpo J=C3=A4rvinen <ilpo.jarvinen@linux.intel.com>
+> Cc: stable@vger.kernel.org
 
-Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
----
- drivers/gpio/gpiolib-shared.c | 236 ++++++++++++++++++++++--------------------
- 1 file changed, 125 insertions(+), 111 deletions(-)
+LGTM
 
-diff --git a/drivers/gpio/gpiolib-shared.c b/drivers/gpio/gpiolib-shared.c
-index fbabc1ee489f881084033f7b92b42397455f5811..3b40874fc6a0e6b4591b58b164030ea73a355d2c 100644
---- a/drivers/gpio/gpiolib-shared.c
-+++ b/drivers/gpio/gpiolib-shared.c
-@@ -22,7 +22,7 @@
- #include <linux/printk.h>
- #include <linux/property.h>
- #include <linux/slab.h>
--#include <linux/string.h>
-+#include <linux/string_helpers.h>
- 
- #include "gpiolib.h"
- #include "gpiolib-shared.h"
-@@ -60,7 +60,6 @@ struct gpio_shared_entry {
- static LIST_HEAD(gpio_shared_list);
- static DEFINE_IDA(gpio_shared_ida);
- 
--#if IS_ENABLED(CONFIG_OF)
- static struct gpio_shared_entry *
- gpio_shared_find_entry(struct fwnode_handle *controller_node,
- 		       unsigned int offset)
-@@ -126,157 +125,158 @@ static int gpio_shared_setup_reset_proxy(struct gpio_shared_entry *entry,
- }
- 
- /* Handle all special nodes that we should ignore. */
--static bool gpio_shared_of_node_ignore(struct device_node *node)
-+static bool gpio_shared_fwnode_ignore(struct fwnode_handle *fwnode)
- {
- 	/* Ignore disabled devices. */
--	if (!of_device_is_available(node))
-+	if (!fwnode_device_is_available(fwnode))
- 		return true;
- 
- 	/*
--	 * __symbols__ is a special, internal node and should not be considered
--	 * when scanning for shared GPIOs.
-+	 * On OF-systems __symbols__ is a special, internal node and should not
-+	 * be considered when scanning for shared GPIOs.
- 	 */
--	if (of_node_name_eq(node, "__symbols__"))
-+	if (fwnode_name_eq(fwnode, "__symbols__"))
- 		return true;
- 
- 	/*
- 	 * GPIO hogs have a "gpios" property which is not a phandle and can't
- 	 * possibly refer to a shared GPIO.
- 	 */
--	if (of_property_present(node, "gpio-hog"))
-+	if (fwnode_property_present(fwnode, "gpio-hog"))
- 		return true;
- 
- 	return false;
- }
- 
--static int gpio_shared_of_traverse(struct device_node *curr)
-+static int gpio_shared_fwnode_scan_property(struct fwnode_handle *curr,
-+					    const char *propname)
- {
-+	struct fwnode_reference_args args;
- 	struct gpio_shared_entry *entry;
- 	size_t con_id_len, suffix_len;
--	struct fwnode_handle *fwnode;
--	struct of_phandle_args args;
- 	struct gpio_shared_ref *ref;
--	struct property *prop;
- 	unsigned int offset;
- 	const char *suffix;
--	int ret, count, i;
-+	int ret, i, count;
- 
--	if (gpio_shared_of_node_ignore(curr))
-+	/*
-+	 * The standard name for a GPIO property is "foo-gpios"
-+	 * or "foo-gpio". Some bindings also use "gpios" or "gpio".
-+	 * There are some legacy device-trees which have a different
-+	 * naming convention and for which we have rename quirks in
-+	 * place in gpiolib-of.c. I don't think any of them require
-+	 * support for shared GPIOs so for now let's just ignore
-+	 * them. We can always just export the quirk list and
-+	 * iterate over it here.
-+	 */
-+	if (!strsuffix(propname, "-gpios") && !strsuffix(propname, "-gpio") &&
-+	    strcmp(propname, "gpios") != 0 && strcmp(propname, "gpio") != 0)
- 		return 0;
- 
--	for_each_property_of_node(curr, prop) {
--		/*
--		 * The standard name for a GPIO property is "foo-gpios"
--		 * or "foo-gpio". Some bindings also use "gpios" or "gpio".
--		 * There are some legacy device-trees which have a different
--		 * naming convention and for which we have rename quirks in
--		 * place in gpiolib-of.c. I don't think any of them require
--		 * support for shared GPIOs so for now let's just ignore
--		 * them. We can always just export the quirk list and
--		 * iterate over it here.
--		 */
--		if (!strsuffix(prop->name, "-gpios") &&
--		    !strsuffix(prop->name, "-gpio") &&
--		    strcmp(prop->name, "gpios") != 0 &&
--		    strcmp(prop->name, "gpio") != 0)
--			continue;
--
--		count = of_count_phandle_with_args(curr, prop->name,
--						   "#gpio-cells");
--		if (count <= 0)
--			continue;
-+	count = fwnode_property_count_references(curr, propname, "#gpio-cells");
-+	if (count <= 0)
-+		return 0;
- 
--		for (i = 0; i < count; i++) {
--			struct device_node *np __free(device_node) = NULL;
--			char *con_id __free(kfree) = NULL;
-+	for (i = 0; i < count; i++) {
-+		char *con_id __free(kfree) = NULL;
- 
--			ret = of_parse_phandle_with_args(curr, prop->name,
--							 "#gpio-cells", i,
-+		ret = fwnode_property_get_reference_args(curr, propname,
-+							 "#gpio-cells", 0, i,
- 							 &args);
--			if (ret)
--				continue;
-+		if (ret)
-+			continue;
- 
--			np = args.np;
-+		struct fwnode_handle *fwnode __free(fwnode_handle) = args.fwnode;
- 
--			if (!of_property_present(np, "gpio-controller"))
--				continue;
-+		if (!fwnode_property_present(fwnode, "gpio-controller"))
-+			continue;
- 
--			/*
--			 * We support 1, 2 and 3 cell GPIO bindings in the
--			 * kernel currently. There's only one old MIPS dts that
--			 * has a one-cell binding but there's no associated
--			 * consumer so it may as well be an error. There don't
--			 * seem to be any 3-cell users of non-exclusive GPIOs,
--			 * so we can skip this as well. Let's occupy ourselves
--			 * with the predominant 2-cell binding with the first
--			 * cell indicating the hardware offset of the GPIO and
--			 * the second defining the GPIO flags of the request.
--			 */
--			if (args.args_count != 2)
--				continue;
-+		/*
-+		 * We support 1, 2 and 3 cell GPIO bindings in the
-+		 * kernel currently. There's only one old MIPS dts that
-+		 * has a one-cell binding but there's no associated
-+		 * consumer so it may as well be an error. There don't
-+		 * seem to be any 3-cell users of non-exclusive GPIOs,
-+		 * so we can skip this as well. Let's occupy ourselves
-+		 * with the predominant 2-cell binding with the first
-+		 * cell indicating the hardware offset of the GPIO and
-+		 * the second defining the GPIO flags of the request.
-+		 */
-+		if (args.nargs != 2)
-+			continue;
- 
--			fwnode = of_fwnode_handle(args.np);
--			offset = args.args[0];
-+		offset = args.args[0];
- 
--			entry = gpio_shared_find_entry(fwnode, offset);
--			if (!entry) {
--				entry = kzalloc_obj(*entry);
--				if (!entry)
--					return -ENOMEM;
-+		entry = gpio_shared_find_entry(fwnode, offset);
-+		if (!entry) {
-+			entry = kzalloc_obj(*entry);
-+			if (!entry)
-+				return -ENOMEM;
- 
--				entry->fwnode = fwnode_handle_get(fwnode);
--				entry->offset = offset;
--				INIT_LIST_HEAD(&entry->refs);
--				mutex_init(&entry->lock);
-+			entry->fwnode = fwnode_handle_get(fwnode);
-+			entry->offset = offset;
-+			INIT_LIST_HEAD(&entry->refs);
-+			mutex_init(&entry->lock);
- 
--				list_add_tail(&entry->list, &gpio_shared_list);
--			}
-+			list_add_tail(&entry->list, &gpio_shared_list);
-+		}
- 
--			if (strsuffix(prop->name, "gpios"))
--				suffix = "-gpios";
--			else if (strsuffix(prop->name, "gpio"))
--				suffix = "-gpio";
--			else
--				suffix = NULL;
--			if (!suffix)
--				continue;
-+		if (strsuffix(propname, "gpios"))
-+			suffix = "-gpios";
-+		else if (strsuffix(propname, "gpio"))
-+			suffix = "-gpio";
-+		else
-+			suffix = NULL;
-+		if (!suffix)
-+			continue;
- 
--			/* We only set con_id if there's actually one. */
--			if (strcmp(prop->name, "gpios") && strcmp(prop->name, "gpio")) {
--				con_id = kstrdup(prop->name, GFP_KERNEL);
--				if (!con_id)
--					return -ENOMEM;
-+		/* We only set con_id if there's actually one. */
-+		if (strcmp(propname, "gpios") && strcmp(propname, "gpio")) {
-+			con_id = kstrdup(propname, GFP_KERNEL);
-+			if (!con_id)
-+				return -ENOMEM;
- 
--				con_id_len = strlen(con_id);
--				suffix_len = strlen(suffix);
-+			con_id_len = strlen(con_id);
-+			suffix_len = strlen(suffix);
- 
--				con_id[con_id_len - suffix_len] = '\0';
--			}
-+			con_id[con_id_len - suffix_len] = '\0';
-+		}
- 
--			struct fwnode_handle *curr_fwnode =
--				fwnode_handle_get(of_fwnode_handle(curr));
--			ref = gpio_shared_make_ref(curr_fwnode, con_id, args.args[1]);
--			if (!ref) {
--				fwnode_handle_put(curr_fwnode);
--				return -ENOMEM;
--			}
-+		ref = gpio_shared_make_ref(fwnode_handle_get(curr), con_id, args.args[1]);
-+		if (!ref) {
-+			fwnode_handle_put(curr);
-+			return -ENOMEM;
-+		}
- 
--			if (!list_empty(&entry->refs))
--				pr_debug("GPIO %u at %s is shared by multiple firmware nodes\n",
--					 entry->offset, fwnode_get_name(entry->fwnode));
-+		if (!list_empty(&entry->refs))
-+			pr_debug("GPIO %u at %s is shared by multiple firmware nodes\n",
-+				 entry->offset, fwnode_get_name(entry->fwnode));
- 
--			list_add_tail(&ref->list, &entry->refs);
-+		list_add_tail(&ref->list, &entry->refs);
- 
--			if (strcmp(prop->name, "reset-gpios") == 0) {
--				ret = gpio_shared_setup_reset_proxy(entry, args.args[1]);
--				if (ret)
--					return ret;
--			}
-+		if (strcmp(propname, "reset-gpios") == 0) {
-+			ret = gpio_shared_setup_reset_proxy(entry, args.args[1]);
-+			if (ret)
-+				return ret;
- 		}
- 	}
- 
--	for_each_child_of_node_scoped(curr, child) {
--		ret = gpio_shared_of_traverse(child);
-+	return 0;
-+}
-+
-+static int gpio_shared_fwnode_scan_properties(struct fwnode_handle *curr)
-+{
-+	char **props;
-+	int ret, i;
-+
-+	ret = fwnode_property_get_names(curr, &props);
-+	if (ret <= 0)
-+		return ret;
-+
-+	CLASS(strarray, names)(props, ret);
-+
-+	for (i = 0; i < names.n; i++) {
-+		ret = gpio_shared_fwnode_scan_property(curr, names.array[i]);
- 		if (ret)
- 			return ret;
- 	}
-@@ -284,19 +284,33 @@ static int gpio_shared_of_traverse(struct device_node *curr)
- 	return 0;
- }
- 
--static int gpio_shared_of_scan(void)
-+static __maybe_unused int gpio_shared_fwnode_traverse(struct fwnode_handle *curr)
- {
--	if (of_root)
--		return gpio_shared_of_traverse(of_root);
-+	int ret;
-+
-+	if (gpio_shared_fwnode_ignore(curr))
-+		return 0;
-+
-+	ret = gpio_shared_fwnode_scan_properties(curr);
-+	if (ret)
-+		return ret;
-+
-+	fwnode_for_each_child_node_scoped(curr, child) {
-+		ret = gpio_shared_fwnode_traverse(child);
-+		if (ret)
-+			return ret;
-+	}
- 
- 	return 0;
- }
--#else
-+
- static int gpio_shared_of_scan(void)
- {
-+	if (IS_ENABLED(CONFIG_OF) && of_root)
-+		return gpio_shared_fwnode_traverse(of_fwnode_handle(of_root));
-+
- 	return 0;
- }
--#endif /* CONFIG_OF */
- 
- static void gpio_shared_proxy_dev_release(struct device *dev)
- {
+Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 
--- 
-2.47.3
-
+> ---
+>
+> Bjorn,
+>
+> It's up to you if you want to keep all those qemu reproduced cases in the
+> changelog. You usually seem to prefer the log messages for easier googlin=
+g
+> in case somebody happens to hit the issue so I added them all.
+>
+> I couldn't get the rest to trigger on a real host but that could be due t=
+o
+> serial output that was too slow to keep up with the test loops which migh=
+t
+> have affected timing.
+>
+>  drivers/pci/hotplug/acpiphp_glue.c |  1 +
+>  drivers/pci/pci.h                  |  1 +
+>  drivers/pci/setup-bus.c            | 40 ++++++++++++++++++++++++++++++
+>  drivers/pci/setup-cardbus.c        |  3 +++
+>  4 files changed, 45 insertions(+)
+>
+> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acp=
+iphp_glue.c
+> index 632344f34cae..d3987be044e3 100644
+> --- a/drivers/pci/hotplug/acpiphp_glue.c
+> +++ b/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -502,6 +502,7 @@ static void enable_slot(struct acpiphp_slot *slot, bo=
+ol bridge)
+>
+>                 acpiphp_rescan_slot(slot);
+>                 max =3D acpiphp_max_busnr(bus);
+> +               guard(mutex)(&pci_res_setup_lock);
+>                 for (pass =3D 0; pass < 2; pass++) {
+>                         for_each_pci_bridge(dev, bus) {
+>                                 if (PCI_SLOT(dev->devfn) !=3D slot->devic=
+e)
+> diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+> index 77efa4c5c960..660a83b0045a 100644
+> --- a/drivers/pci/pci.h
+> +++ b/drivers/pci/pci.h
+> @@ -124,6 +124,7 @@ unsigned char pcie_get_link_speed(unsigned int speed)=
+;
+>  extern bool pci_early_dump;
+>
+>  extern struct mutex pci_rescan_remove_lock;
+> +extern struct mutex pci_res_setup_lock;
+>
+>  bool pcie_cap_has_lnkctl(const struct pci_dev *dev);
+>  bool pcie_cap_has_lnkctl2(const struct pci_dev *dev);
+> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+> index 5b2d870ca13d..314c649c648f 100644
+> --- a/drivers/pci/setup-bus.c
+> +++ b/drivers/pci/setup-bus.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/ioport.h>
+>  #include <linux/cache.h>
+>  #include <linux/limits.h>
+> +#include <linux/lockdep.h>
+>  #include <linux/sizes.h>
+>  #include <linux/slab.h>
+>  #include <linux/acpi.h>
+> @@ -38,6 +39,17 @@
+>  unsigned int pci_flags;
+>  EXPORT_SYMBOL_GPL(pci_flags);
+>
+> +/*
+> + * Serializes bridge window sizing, resource fitting, and assignment.
+> + * pci_rescan_remove_lock cannot be used for this because BAR resize and
+> + * some drivers run these operations under device_lock() during probe.
+> + *
+> + * Context:
+> + *  - Nests inside pci_rescan_remove_lock and device_lock().
+> + *  - Nests outside pci_bus_sem.
+> + */
+> +DEFINE_MUTEX(pci_res_setup_lock);
+> +
+>  struct pci_dev_resource {
+>         struct list_head list;
+>         struct resource *res;
+> @@ -133,6 +145,8 @@ static void pci_dev_res_restore(struct pci_dev_resour=
+ce *dev_res)
+>         int idx =3D pci_resource_num(dev, res);
+>         const char *res_name =3D pci_resource_name(dev, idx);
+>
+> +       lockdep_assert_held(&pci_res_setup_lock);
+> +
+>         if (WARN_ON_ONCE(resource_assigned(res)))
+>                 return;
+>
+> @@ -611,6 +625,8 @@ static void __assign_resources_sorted(struct list_hea=
+d *head,
+>         unsigned long fail_type;
+>         resource_size_t align;
+>
+> +       lockdep_assert_held(&pci_res_setup_lock);
+> +
+>         if (!realloc_head)
+>                 realloc_head =3D &dummy_head;
+>
+> @@ -893,6 +909,8 @@ static void __pci_setup_bridge(struct pci_bus *bus, u=
+nsigned long type)
+>  {
+>         struct pci_dev *bridge =3D bus->self;
+>
+> +       lockdep_assert_held(&pci_res_setup_lock);
+> +
+>         pci_info(bridge, "PCI bridge to %pR\n", &bus->busn_res);
+>
+>         if (type & IORESOURCE_IO)
+> @@ -973,6 +991,8 @@ static void pci_bridge_check_ranges(struct pci_bus *b=
+us)
+>         struct pci_dev *bridge =3D bus->self;
+>         struct resource *b_res;
+>
+> +       lockdep_assert_held(&pci_res_setup_lock);
+> +
+>         b_res =3D &bridge->resource[PCI_BRIDGE_MEM_WINDOW];
+>         b_res->flags |=3D IORESOURCE_MEM;
+>
+> @@ -1077,6 +1097,8 @@ static void pbus_size_io(struct pci_bus *bus, resou=
+rce_size_t add_size,
+>         resource_size_t children_add_size =3D 0;
+>         resource_size_t min_align, align;
+>
+> +       lockdep_assert_held(&pci_res_setup_lock);
+> +
+>         if (!b_res)
+>                 return;
+>
+> @@ -1286,6 +1308,8 @@ static void pbus_size_mem(struct pci_bus *bus, stru=
+ct resource *b_res,
+>         resource_size_t children_add_size =3D 0;
+>         resource_size_t add_align =3D 0;
+>
+> +       lockdep_assert_held(&pci_res_setup_lock);
+> +
+>         if (!b_res)
+>                 return;
+>
+> @@ -1457,6 +1481,7 @@ void __pci_bus_size_bridges(struct pci_bus *bus, st=
+ruct list_head *realloc_head)
+>
+>  void pci_bus_size_bridges(struct pci_bus *bus)
+>  {
+> +       guard(mutex)(&pci_res_setup_lock);
+>         guard(rwsem_read)(&pci_bus_sem);
+>         __pci_bus_size_bridges(bus, NULL);
+>  }
+> @@ -1486,6 +1511,8 @@ static void pdev_assign_fixed_resources(struct pci_=
+dev *dev)
+>  {
+>         struct resource *r;
+>
+> +       lockdep_assert_held(&pci_res_setup_lock);
+> +
+>         pci_dev_for_each_resource(dev, r) {
+>                 struct pci_bus *b;
+>
+> @@ -1550,6 +1577,7 @@ void __pci_bus_assign_resources(const struct pci_bu=
+s *bus,
+>
+>  void pci_bus_assign_resources(const struct pci_bus *bus)
+>  {
+> +       guard(mutex)(&pci_res_setup_lock);
+>         guard(rwsem_read)(&pci_bus_sem);
+>         __pci_bus_assign_resources(bus, NULL, NULL);
+>  }
+> @@ -1663,6 +1691,8 @@ static void pci_bridge_release_resources(struct pci=
+_bus *bus,
+>         struct pci_dev *dev =3D bus->self;
+>         int idx, ret;
+>
+> +       lockdep_assert_held(&pci_res_setup_lock);
+> +
+>         if (!resource_assigned(b_win))
+>                 return;
+>
+> @@ -1860,6 +1890,8 @@ static void adjust_bridge_window(struct pci_dev *br=
+idge, struct resource *res,
+>         resource_size_t add_size, size =3D resource_size(res);
+>         struct pci_dev_resource *dev_res;
+>
+> +       lockdep_assert_held(&pci_res_setup_lock);
+> +
+>         if (resource_assigned(res))
+>                 return;
+>
+> @@ -2192,6 +2224,7 @@ void pci_assign_unassigned_root_bus_resources(struc=
+t pci_bus *bus)
+>         int pci_try_num =3D 1;
+>         enum enable_type enable_local;
+>
+> +       guard(mutex)(&pci_res_setup_lock);
+>         guard(rwsem_read)(&pci_bus_sem);
+>
+>         /* Don't realloc if asked to do so */
+> @@ -2270,6 +2303,7 @@ static void pci_bridge_size_and_assign_resources(st=
+ruct pci_dev *bridge)
+>         int tried_times =3D 0;
+>         LIST_HEAD(fail_head);
+>
+> +       guard(mutex)(&pci_res_setup_lock);
+>         guard(rwsem_read)(&pci_bus_sem);
+>
+>         while (1) {
+> @@ -2328,6 +2362,8 @@ static int pbus_reassign_bridge_resources(struct pc=
+i_bus *bus, struct resource *
+>         unsigned int i;
+>         int ret =3D 0;
+>
+> +       lockdep_assert_held(&pci_res_setup_lock);
+> +
+>         while (!pci_is_root_bus(bus)) {
+>                 bridge =3D bus->self;
+>                 res =3D pbus_select_window(bus, res);
+> @@ -2398,6 +2434,8 @@ int pci_do_resource_release_and_resize(struct pci_d=
+ev *pdev, int resno, int size
+>         unsigned int i;
+>         int old, ret;
+>
+> +       guard(mutex)(&pci_res_setup_lock);
+> +
+>         b_win =3D pbus_select_window(bus, res);
+>         if (!b_win)
+>                 return -EINVAL;
+> @@ -2495,6 +2533,7 @@ void pci_assign_unassigned_bus_resources(struct pci=
+_bus *bus)
+>         /* List of resources that want additional resources */
+>         LIST_HEAD(add_list);
+>
+> +       guard(mutex)(&pci_res_setup_lock);
+>         guard(rwsem_read)(&pci_bus_sem);
+>         for_each_pci_bridge(dev, bus)
+>                 if (pci_has_subordinate(dev))
+> @@ -2505,6 +2544,7 @@ EXPORT_SYMBOL_GPL(pci_assign_unassigned_bus_resourc=
+es);
+>
+>  void pci_bus_size_and_assign_resources(struct pci_bus *bus)
+>  {
+> +       guard(mutex)(&pci_res_setup_lock);
+>         guard(rwsem_read)(&pci_bus_sem);
+>         __pci_bus_size_bridges(bus, NULL);
+>         __pci_bus_assign_resources(bus, NULL, NULL);
+> diff --git a/drivers/pci/setup-cardbus.c b/drivers/pci/setup-cardbus.c
+> index dcb8e2b3f73b..6a473a1694b9 100644
+> --- a/drivers/pci/setup-cardbus.c
+> +++ b/drivers/pci/setup-cardbus.c
+> @@ -6,6 +6,7 @@
+>  #include <linux/bitfield.h>
+>  #include <linux/errno.h>
+>  #include <linux/ioport.h>
+> +#include <linux/lockdep.h>
+>  #include <linux/pci.h>
+>  #include <linux/sizes.h>
+>  #include <linux/sprintf.h>
+> @@ -39,6 +40,8 @@ int pci_bus_size_cardbus_bridge(struct pci_bus *bus,
+>         resource_size_t b_res_3_size =3D pci_cardbus_mem_size * 2;
+>         u16 ctrl;
+>
+> +       lockdep_assert_held(&pci_res_setup_lock);
+> +
+>         b_res =3D &bridge->resource[PCI_CB_BRIDGE_IO_0_WINDOW];
+>         if (resource_assigned(b_res))
+>                 goto handle_b_res_1;
+> --
+> 2.47.3
+>
