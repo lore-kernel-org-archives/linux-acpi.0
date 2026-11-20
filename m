@@ -1,55 +1,67 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.171.202.116
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795179411;
-	b=euJdxkzZlpn1FIcgH+S2qOFrX+uEQLrFtQC7NoG9miZ+8RzV19znZOK4YYN6Fi1YWBcx
-	 2I2nWCTWiIZR45xB8janJQzHSCXrM6xomnnFKbjLQ4QCRioUjb1ucQ/vDLpCByc1tudiB
-	 xxSzvPHRQ006kjaugFEh7nHAPPFvt4LzFMyUtKr8ADd/qkcVApoCKSBzaYOwRtMGbrTyH
-	 8V8gqIfQt6YpGwa+UOd+5jhm67q78ASyGa456vWsCS/TOpDWcy2Q5+xUCQn/lLWUAN5+X
-	 XFz95fMqaSBG+of/0HRiqpZ5EEJfU4igyzCvJrnV1TxqkEnndGASeqzNX5Q/aOl4GlA==
+	t=1795179469;
+	b=KUomTnsCiFcyppGX5e3NsTGBjoMRWaXSq3FAyWmltkURXxJEugQePGp7HtEmxt90GK8v
+	 lM9Aehu/ofAgcKxQdDzlb98mazfRE4IsjRpnWoX/JPgKGdv3N4GoDRNHHxYarmqrQsgcP
+	 Sdx5VID5zmD1W5uDOZmmtkaHtplwyWkNHSO+SzPeJtj2O5wlNnnyg9b6ETotBT/VjkCtc
+	 9TWD4CzpvGUL1MeA/8rDaK6506KL/OFDB0QuvZWxn3LdRla6d7rhtJhNjo8odvKA0LpQL
+	 xrXH8rbBdC6kuepNnhjvdDqg7g9YRi9KDi2COKXXSHgopsLtQLrwORtGBjyEa+9lrpg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795179411;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=ZOk5fwtUn/oS3m3/FE9OYu4B8xXtlvwf1PT58EnivgM=;
-	b=IoUO6WnMtkZtJE5k/jSCaEte7uEPZd4AKQkN5V+hkAVoJgQxQvNcDJrN1y3cvmH7ZbT6
-	 QaBo70o20V67rFNEm1r+lQkh+5vPvK9jiFx/QURVDoR93tehZWAs5ob9l2QHIKZbsz00v
-	 yJK8AFJgoBbGxHhyUacTiUIQ6Bghw7I1lSDPvsDNbyZCx1eCpSpU0U/dXMkhMxmAgauzX
-	 4Ixjh8tyV+rFgzIiBgX5Y1pJUxrbeDvfjhVIvCb9798/RHIHVpbhs6pO2YUWVALVSylvJ
-	 AOhCPcNKdUJ09nvTr4MlYHqf0a/PGdXkHT9QKQ7TO7b7iTeqb22Zk00O7HC2cH1fdzA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795179469;
+	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:From:To:Cc:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding:X-Last-TLS-Session-Version;
+	bh=8YuqZ8GuOBbpaf2Sgoc++9V1NZuSh8t13c1nFKdqRWA=;
+	b=2EgncXh1psNwooZftQKnUt4aeGOZr3O2xaay0Wv9GNyiEWCxkVDRTEgm2S2Hdiqii9SU
+	 bI650irJ2wbMz/I3x4aXYcWnXOGmNmLPuyn7MGTNQK4+aDd8Sf1f7movB4teDRNaITVnr
+	 UmIqKkcBnYGTEnSt0evuzEn6Qzgg5znKBlRUXicE/bj59OdmEQwjckY+LgxoY+wz4iHsC
+	 CTgMEjneSRwnV/otA0za1uFqC5t+zbn4bP8jhvYm9geZ2UamFnQdij2lrf1Fbn94/gIZj
+	 gpdkCP4dEyztCHFPiFsmirW6uvs2oN0Ys1jaBJWEFvSn0pzaFX0nldur2NkHekoRz6w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BpBP1I3M;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=bootlin.com;
+	spf=pass smtp.mailfrom=bootlin.com;
+	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=z4PgQUru;
+	arc=none smtp.remote-ip=185.171.202.116
+Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 223C3606A333
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 12:56:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7C7C606A325
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 12:57:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A7C7C606A325
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BpBP1I3M
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BDCC1F000D4
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 12:56:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795179410;
-	bh=ZOk5fwtUn/oS3m3/FE9OYu4B8xXtlvwf1PT58EnivgM=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=BpBP1I3MWY+BbOyOFT4eDGAC3SIni3xnzzaz4OEAV8cuFSx1qZLbsF0XMgSnUQPWK
-	 Zrdl2tWff33wwSeK5zh/Opsr3RKoSMiuIIPFLSYlFlskcUJDxk1928d8NNtxIuIPbM
-	 UiPPnqABSMPZy0CXccuVwYE+BPBd76MBt/eoe8zhWl5kHnYW2mgyxrSFFEPikpMFo5
-	 dOhfNvWfxhr/Ox4OXtAGJ4g088nWi6thv+4lbVVtZXgfLRsJgyPx77ytIbu6TXuAVm
-	 oiq2OiAcGPk+j3Eieaf2PzW6jxzfLKHu/XsgDR8sCokYgBcY5s59A3OWL1VEpuTAHP
-	 ww3sD/9v0sKOg==
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5c102ad8420so511641e87.1
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 04:56:50 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErEiDm/zZUOHQB0uhg5MzdIIF4AR9HMLyrHVYMaCnn8p2AVCnlfBIjsOnezAAjsfcDrvzFiaWgZ0mvv+@vger.kernel.org
-X-Gm-Message-State: APuU4Z9CDxbAqRligLPWhFK01EGh0KpdzagX7cauPZ6dA8yW5yQpGGtH
-	a3VZO0Al/by8kadWRlaM5+pYAgMWDb0PLFnoP31m37H0CphffrVr+ZRCol41cuFjfphpuA6zuHY
-	feE/fFyYNYWCFcJACfAD/DrUiWCV6nCI=
-X-Received: by 2002:a05:6512:114d:b0:5bf:b93e:89f0 with SMTP id
- 2adb3069b0e04-5c1bc85f0c4mr769210e87.62.1795179409049; Fri, 20 Nov 2026
- 04:56:49 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=z4PgQUru
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-04.galae.net (Postfix) with ESMTPS id BDABBC62216
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 12:57:52 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 151D9601B9;
+	Fri, 20 Nov 2026 12:57:47 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 4C2BE11BC015E;
+	Fri, 20 Nov 2026 13:57:40 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1795179462; h=from:subject:date:message-id:to:cc:mime-version:
+	 content-transfer-encoding; bh=8YuqZ8GuOBbpaf2Sgoc++9V1NZuSh8t13c1nFKdqRWA=;
+	b=z4PgQUruRl3diP1nWHVI9Lr5iUhZI/TxDwzvxPQ9fUqVE4C1zGYJS7BJ6Pr5kymiy4yzWh
+	iPMYuRtmSYzIC2fareRhD0doytvLHtCQ22N0Xj2qulK6g5Tb+gBThvB48P9A9fRFVx0KPP
+	CBwb/Hetjge0fRHlNAfp5dTusNoF+bKBTw6F7YEVwZSlkQV69n400bqBpEwPv5rqfI4H8z
+	NYZu/om3WESiQk+8paIRxncDwSob6S+HpgDo4z5T/6MG8Pu9EQKgE/6gHGfBHTPWFTYx13
+	wpPoBo8Q93PhTudE9NwXlrvzznid504yyeUB46hWyeb0k6laBq5XF4CwXukD/w==
+From: Paul Cercueil <paul.cercueil@bootlin.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Russell King <linux@armlinux.org.uk>
+Cc: linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+	Paul Cercueil <paul.cercueil@bootlin.com>
+Subject: [PATCH v4 0/2] ACPI: platform: ACPI 6.5 fixed clock support
+Date: Fri, 20 Nov 2026 13:57:20 +0100
+Message-ID: <20261120125722.209609-1-paul.cercueil@bootlin.com>
+X-Mailer: git-send-email 2.47.3
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,123 +71,59 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261105030450.1946871-1-yubowen8@huawei.com>
-In-Reply-To: <20261105030450.1946871-1-yubowen8@huawei.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 20 Nov 2026 13:56:35 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0hJh+DiWhFOUTGqK20FEP-n1uW7n0RbJqyEZqyH-wBUjg@mail.gmail.com>
-X-Gm-Features: Aa3M54orcHltBuGKG-bBoskX8e4t_dh2CSRLYLe7zy3OmzWqStDFrl-d6jg5ELk
-Message-ID: <CAJZ5v0hJh+DiWhFOUTGqK20FEP-n1uW7n0RbJqyEZqyH-wBUjg@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: platform: Assign names to MEM resources from _DSD "reg-names"
-To: Bowen Yu <yubowen8@huawei.com>
-Cc: linuxarm@huawei.com, rafael@kernel.org, linux-acpi@vger.kernel.org, 
-	lenb@kernel.org, linux-kernel@vger.kernel.org, zhanjie9@hisilicon.com, 
-	prime.zeng@hisilicon.com, wanghuiqiang@huawei.com, xuwei5@huawei.com, 
-	ouyiyong1@huawei.com, dengtao44@huawei.com, tangbin55@huawei.com, 
-	mojunjun4@huawei.com, wuzhanlong@h-partners.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Thu, Nov 5, 2026 at 4:05=E2=80=AFAM Bowen Yu <yubowen8@huawei.com> wrote=
-:
->
-> ACPI _CRS resources carry no names, so platform_get_resource_byname()
-> always fails for ACPI-created platform devices -- it skips any resource
-> whose name is NULL. This prevents drivers shared between Device Tree
-> and ACPI (via PRP0001) from using byname resource lookup.
->
-> Add a new helper, acpi_platform_set_resource_names(), that reads the
-> "reg-names" string array from _DSD and assigns names to MEM resources
-> in the order they appear in _CRS. This mirrors the Device Tree
-> "reg-names" property semantics. This property is optional, if absent
-> the behavior will be unchanged.
->
-> Tested on arm64 by injecting an SSDT through the initrd table upgrade
-> mechanism that describes a PRP0001 test device with three MMIO
-> resources and a matching "reg-names" package: a test driver using
-> platform_get_resource_byname() resolved all three regions, and
-> /proc/iomem shows the assigned names:
->
->   f0000000-f0000fff : reg0
->   f0001000-f0001fff : reg1
->   f0002000-f0002fff : reg2
->
-> Signed-off-by: Bowen Yu <yubowen8@huawei.com>
+Hi Rafael, Russell,
 
-This is essentially an ACPI specification extension that would be
-Linux-specific and introduced without asking the ACPI Specification
-Working Group for feedback.  Let alone documenting it properly.
+Here's the v4 of my patchset that adds partial support for ACPI 6.5
+clock resources.
 
-I'm not going to apply this, sorry.
+Sashiko complained about the clock names being too long still, as
+ACPI device names can be up to 17 characters and the limit of clock
+names is 16 characters; so I now name them "acpi-clkX".
 
-> ---
->  drivers/acpi/acpi_platform.c | 37 ++++++++++++++++++++++++++++++++++++
->  1 file changed, 37 insertions(+)
->
-> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> index 80ea7121744d..61f04eacc2f0 100644
-> --- a/drivers/acpi/acpi_platform.c
-> +++ b/drivers/acpi/acpi_platform.c
-> @@ -108,6 +108,39 @@ static unsigned int acpi_platform_adjust_resources(s=
-truct acpi_device *adev,
->         return count;
->  }
->
-> +static void acpi_platform_set_resource_names(struct acpi_device *adev,
-> +                                            struct resource *resources,
-> +                                            int count)
-> +{
-> +       const char **names;
-> +       int mem_count =3D 0, mem_idx =3D 0;
-> +       int i, num;
-> +
-> +       /* reg-names is optional; skip entirely if not present in _DSD */
-> +       if (!fwnode_property_present(acpi_fwnode_handle(adev), "reg-names=
-"))
-> +               return;
-> +
-> +       for (i =3D 0; i < count; i++)
-> +               if (resource_type(&resources[i]) =3D=3D IORESOURCE_MEM)
-> +                       mem_count++;
-> +       if (mem_count =3D=3D 0)
-> +               return;
-> +
-> +       names =3D kcalloc(mem_count, sizeof(*names), GFP_KERNEL);
-> +       if (!names)
-> +               return;
-> +
-> +       num =3D fwnode_property_read_string_array(acpi_fwnode_handle(adev=
-),
-> +                                               "reg-names", names, mem_c=
-ount);
-> +       if (num =3D=3D mem_count) {
-> +               for (i =3D 0; i < count; i++) {
-> +                       if (resource_type(&resources[i]) =3D=3D IORESOURC=
-E_MEM)
-> +                               resources[i].name =3D names[mem_idx++];
-> +               }
-> +       }
-> +       kfree(names);
-> +}
-> +
->  static void acpi_platform_fill_resource(struct device *parent,
->                                         const struct resource *src,
->                                         struct resource *dest)
-> @@ -194,6 +227,10 @@ struct platform_device *acpi_create_platform_device(=
-struct acpi_device *adev,
->                                 acpi_platform_fill_resource(parent, rentr=
-y->res,
->                                                             &resources[co=
-unt++]);
->                         }
-> +
-> +                       acpi_platform_set_resource_names(adev, resources,
-> +                                                        count);
-> +
->                         acpi_dev_free_resource_list(&resource_list);
->                 }
->         }
-> --
-> 2.33.0
->
->
+Note that I expect warnings from Sashiko that I got on my v3 and didn't
+correct, because they are bogus.
+
+On the clkdev patch:
+"When clk_find(dev_id, NULL) is called, does incrementing match here
+give a (dev_id, con_id) entry a higher score than an exact
+(dev_id, NULL) entry?"
+
+My answer is that you call clk_find(dev_id, NULL) when you know you only
+have one clock provided, so you don't need to care about matching
+priorities.
+
+On the ACPI patch:
+"Should the con_id argument to devm_clk_hw_register_clkdev() be NULL
+instead of name? [...] Setting con_id to "<dev_name>-<idx>" instead of
+NULL prevents wildcard connection matching in clk_find(), so any
+consumer driver calling clk_get(dev, con_id) with a non-NULL con_id
+fails with -ENOENT."
+
+That's completely ignoring the first patch, which addresses this issue.
+
+So I consider that those two issues can be ignored.
+
+Changelog since v3:
+
+- [2/2]:
+  - Change clock names to "acpi-clkX", because ACPI devices names can be
+    up to 17 characters long, and our clock name must be 16 characters
+    max.
+
+Cheers,
+-Paul
+
+Paul Cercueil (2):
+  clkdev: Improve clock discovery with clk_find()
+  ACPI: platform: Add basic support for ACPI 6.5 fixed clock resources
+
+ drivers/acpi/acpi_platform.c | 64 ++++++++++++++++++++++++++++++++++++
+ drivers/clk/clkdev.c         |  4 ++-
+ 2 files changed, 67 insertions(+), 1 deletion(-)
+
+-- 
+2.47.3
+
