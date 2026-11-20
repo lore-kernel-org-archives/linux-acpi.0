@@ -1,84 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795182502;
-	b=FQYU/c/pwwb+0j/PKqAdglSHGHJsQJX5UilMxRIXwtZ1AzYsi/DaU7WQ9XQbWjWXDci7
-	 ukF5J/h6nxWmkpicBE/GjIe4aOhPOIjugfVg2BWE0FaPUKGUklnTwXtO5w2Cj4tL4lhmF
-	 l/3bZD5vS+Xgu8m9r9JWexN5Qp/yD+4s6jTsrBOsqlocywR+n8TUCCTvfxk/Ye5gnYjOt
-	 AoOMwEbOAbOKQvWz6fEvEVIFtA8JOcbIdDteFZ9qRRysJlqsSw6o1IBRzXoAWWKBqVqQm
-	 VUIBbghqMOsVAOOMegYz5PlF1Z5vsd3uaVx4d3zcF3ktBhFMjingy2+LJZhvfvoNuCg==
+	t=1795182698;
+	b=cp7ZVbu1tbNiV6NU68ycczFf3G3eRBqoIKccsG7hEFWiXdjAH0B5uBO6eiNSk3kk1fqZ
+	 cRSgJi253GDq9gyQIqrRHjHvC5W6xqX4O4KwaEqaJVmkrDSEnZEtb8+HrpbvqEqJkGzE5
+	 SpgvHyOxghwXq6T2Xs84SMrceCRp2B1DwHmrZfVaF/QDrUNJz7KH/f+pMLM5GUIUBmmwu
+	 PLSbY6FMvUtYcQRW3YeKJDtDtgRAHBv4Ih05LsViPzetse9q9Fot7I0Q/au2rxJQZ8egJ
+	 y32zoLPHWemdAFiKzdAeBJlgyot2cukxo2Cu9tMBzxikvFk4jRoRT5F1a5F02Dc6UTg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795182502;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=Rm6UaFjb16TIa3CCBCmcpaaAjDD/UlMsl/pcW357mH4=;
-	b=HwLy6SEJhGgnPMM18p20GJsJF8Ttr6Qx3cNKmIa0mmeUkYznzvZ2hsLTwW6/GxsAuzgg
-	 9/gbvp+QaYiwBpjCBEHe+QP34x9FwgxngJXzbbZYRcjEw9IVJdPg5wdgemxMyHeioDGTf
-	 Tc6oG62jhHE7IPFjzN9TmljYwLgu62T0T3gMRgIY7OeEQpAGP7hZLOfSNevIHxQ1Xg9qf
-	 orUJAKJ1u2lZYamVrz4R98bEZfqDXgBrC48zx8JeYi4ldxsIsow59hqX9ehVW7PPNiXYE
-	 FH873s+oyerzjeagE2uhj9HjOYiBLPESLzh7TMT6drgNEuuBs97H7G6nhuPkq4jpZCg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795182698;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=klNlDWbGGWZJyrp4XweM69MPghYodR7UqYEX7WrNp5Q=;
+	b=LRP9jrdqXLEypd4N9a+3SDar+zXR7TYAMc57PGh2jruz5qWZunCQrSa64uJP0X3/tFu4
+	 GUSEi995jaZ/hIu1ACimKDVbld2zwwfQmyxTUXu3RGw1I3Ygr+UU3p8z5546jf2MQEpn5
+	 nSVjrsQ09GRjUtszzLEofQQJ6izJeU39/FxzR3GkYKZ4gg1ipS5IO8TGDb561Z/SOkz/+
+	 6dGlw9t4+Pvgt4pYlVrJOUnA8gSstA3XqhKBvqC+B2tIsAP0ofRxUoqL9So6ygZP5hLXz
+	 wGVXmtdbb/InrOA5i1v/bo6zCN49srD9BcfDO31zY1XxxNkDybbvDiuJ43LBvnSFk2g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="jVu0M/vB";
-	arc=none smtp.remote-ip=192.198.163.19
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nYSpOgva;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23266606A336;
-	Fri, 20 Nov 2026 13:48:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 23266606A336
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F539606A33D
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 13:51:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=jVu0M/vB
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795182503; x=1826718503;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=h18L66jVH3PDdd8JlNPNuSB5kFtfhgqHvs74OkPhuME=;
-  b=jVu0M/vBTmH2yc8zvfJHQ3R7vX37JlNBzoGp3UCkq33gY3lqso8q+axy
-   jk/S6/0lDjJQwFnfGa+O5hUbVZBG4g0YNio+X+EpefrNF2LuJ45xnwRaq
-   AckX4j2x6IrrdQUphtF5RyjTbOOFJ9QmWB+RaXJ+CSoglX6cQOv2cG4gL
-   445FUUoFmVacRyJfdfs1SiBpBb4XNRsnkm+zqyEUICACSMgwaAZRt/WD2
-   HulGDnzBLoBms/guykEvAI2AQBtXJod7tbnFm2npYXdo2OIlBA9LP9bw7
-   PRErOb/Rm0qIqgEYx2NJFt0ab+4R6G7ySijFEULACuAwaVozCBTtNWme/
-   w==;
-X-CSE-ConnectionGUID: FoZpY69hTTiWKpHZubZ7TQ==
-X-CSE-MsgGUID: p7cRxGsZSRCIM8oFHdiO8Q==
-X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4160551"
-X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="4160551"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 05:48:22 -0800
-X-CSE-ConnectionGUID: PDUan7jDQ6++qYTZGUTJUg==
-X-CSE-MsgGUID: HVut2G1kSv6iulDK/1XOzg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="10605012"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.16])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 05:48:18 -0800
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-To: linux-pci@vger.kernel.org,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-	Rob Herring <robh@kernel.org>,
-	=?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>,
-	"Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	stable@vger.kernel.org
-Subject: [PATCH v2 05/16] PCI: acpiphp: Use pci_assign_unassigned_slot_resources()
-Date: Fri, 20 Nov 2026 15:47:00 +0200
-Message-ID: <20261120134716.3027-6-ilpo.jarvinen@linux.intel.com>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261120134716.3027-1-ilpo.jarvinen@linux.intel.com>
-References: <20261120134716.3027-1-ilpo.jarvinen@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nYSpOgva
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9237C1F000C6
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 13:51:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795182697;
+	bh=klNlDWbGGWZJyrp4XweM69MPghYodR7UqYEX7WrNp5Q=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=nYSpOgvaIuEb0MU8QzpvAmzwUXi5z2WzSSoDTNKbPpSMz54zaZf3EaDH8d/UOgn1a
+	 2Oq17AFie6dqdSJpahifkaaw9uLFhPiFrXDEyLjIi4Up95Ir+dhIelWcqVO3rouY1e
+	 pUecJs51aiZXup6JHBM1lolSzZuWnG7Yqknts+S4AvAwe/ZdfvF/q3j6I6PAfCk0DF
+	 c474H69Smc2ceGCkJX/VMXtrY8OLGF9V0KKuyfsKG1J9yPreFcS9NI+IXMZ5lEH+/d
+	 vxg26Ypek0o3FvgOIJ9OKOmPKEe8VsaFtlCaPZ8FXrWe1EaZyOuAHfuSV3G9P+MleF
+	 xlPJTZhi0BNRw==
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5be3ed646a5so1150283e87.1
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 05:51:37 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErHpWORJdqe1TH8tm4DguWs/7p8hNJFlW18OFA3hZAM9piLlpIPzb2tT834erxepxevwFrY6QdDYT/Oc@vger.kernel.org
+X-Gm-Message-State: APuU4Z9MWYsdxUpN2h0CrL09AAZg31C2dRe++CbDRpkB4mFGrh5yLats
+	sxZ2Vl9PbHqZATMWtQvkF90KBYexNuzazOM7NV/o3pZfhDiPFs6EAPNhUoomRLoRlmLu9dpoJZ/
+	GC7UAnGu41Fs6KVl4uD41HxP3a7MZ1cw=
+X-Received: by 2002:a05:6512:3e04:b0:5c1:5169:7d96 with SMTP id
+ 2adb3069b0e04-5c1bc7bcc2fmr1070965e87.18.1795182696081; Fri, 20 Nov 2026
+ 05:51:36 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -88,50 +59,56 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20261116131720.75103-1-johannes.goede@oss.qualcomm.com>
+In-Reply-To: <20261116131720.75103-1-johannes.goede@oss.qualcomm.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 20 Nov 2026 14:51:24 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0jNJ_8-Sw9jZx+-B6GA8oNLHNYT=MTfYysFRUXQ-cHLEQ@mail.gmail.com>
+X-Gm-Features: Aa3M54ojVHKtPF1tVTeprGJORFQfGjGr6dSVpnkyvUpFVQ7wIWMspvfH0fKmjOQ
+Message-ID: <CAJZ5v0jNJ_8-Sw9jZx+-B6GA8oNLHNYT=MTfYysFRUXQ-cHLEQ@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI: scan: Skip acpi_scan_dep_init() for processor devices
+To: Hans de Goede <johannes.goede@oss.qualcomm.com>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-enable_slot() calls the internal sizing and assignment functions
-directly to size only the bridges in the slot. Use
-pci_assign_unassigned_slot_resources() instead.
+On Mon, Nov 16, 2026 at 2:17=E2=80=AFPM Hans de Goede
+<johannes.goede@oss.qualcomm.com> wrote:
+>
+> acpi_bus_check_add() only calls acpi_scan_add_dep() for devices of
+> the ACPI_TYPE_DEVICE type. So the dep list of processor devices will
+> never contain any deps for that device, making the acpi_scan_dep_init()
+> call a no-op.
+>
+> Make acpi_add_single_object() only call acpi_scan_dep_init() for devices
+> with the ACPI_TYPE_DEVICE type matching acpi_bus_check_add().
+>
+> Signed-off-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
+> ---
+> Changes in v2:
+> - Turn this into a oneline change instead of adding separate top-level
+>   if statements for the device and processor cases.
+> ---
+>  drivers/acpi/scan.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 96b8b0dfe339..28563becfadd 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1881,7 +1881,7 @@ static int acpi_add_single_object(struct acpi_devic=
+e **child,
+>          * this must be done before the get power-/wakeup_dev-flags calls=
+.
+>          */
+>         if (type =3D=3D ACPI_BUS_TYPE_DEVICE || type =3D=3D ACPI_BUS_TYPE=
+_PROCESSOR) {
+> -               if (dep_init) {
+> +               if (type =3D=3D ACPI_BUS_TYPE_DEVICE && dep_init) {
+>                         mutex_lock(&acpi_dep_list_lock);
+>                         /*
+>                          * Hold the lock until the acpi_tie_acpi_dev() ca=
+ll
+> --
 
-Sizing now happens after scanning all bridges in the slot instead of
-right after scanning each bridge. Sizing a bridge window only walks the
-hierarchy below that bridge, so the order does not matter. Sizing now
-also holds pci_bus_sem.
-
-Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
-Cc: stable@vger.kernel.org
----
- drivers/pci/hotplug/acpiphp_glue.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 632344f34cae..fc95d5814ecb 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -497,7 +497,6 @@ static void enable_slot(struct acpiphp_slot *slot, bool bridge)
- 				acpiphp_native_scan_bridge(dev);
- 		}
- 	} else {
--		LIST_HEAD(add_list);
- 		int max, pass;
- 
- 		acpiphp_rescan_slot(slot);
-@@ -511,12 +510,10 @@ static void enable_slot(struct acpiphp_slot *slot, bool bridge)
- 				if (pass && dev->subordinate) {
- 					check_hotplug_bridge(slot, dev);
- 					pcibios_resource_survey_bus(dev->subordinate);
--					__pci_bus_size_bridges(dev->subordinate,
--							       &add_list);
- 				}
- 			}
- 		}
--		__pci_bus_assign_resources(bus, &add_list, NULL);
-+		pci_assign_unassigned_slot_resources(bus, slot->device);
- 	}
- 
- 	acpiphp_sanitize_bus(bus);
--- 
-2.47.3
-
+Applied as 7.5 material, thanks!
