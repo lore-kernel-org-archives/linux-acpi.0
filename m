@@ -1,66 +1,66 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.21
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795195304;
-	b=LXFKK22n6hK/LIlfU6BlIMgClganCxDyRE6muBXMY3PZJS1IFkc9QwEPopT4Hyz50AJG
-	 VT42yPj3uCnKSEsL0N9ZeJpI26F6dMqlm5WuVsJsSMgQT/KphCXQF0DQSn5A37kEiFn96
-	 5UJyQDxtP03ta/SzHG1TrnGbq2OmDYdTBFIoE+pINtRAmPduVsxuz0qgSmxOrlnScISMt
-	 OGUkHVxlI9B0cvI3KgTBo5F7vs5rSBObL+8v9/nr4H97G3wm90N3xNmRtgdRzgtZV7zIL
-	 ebPGAksB35Hd1Bv7vOggPqebFjVtxOgVC4Av9w6X7qw715OWkDtzMP2X5/kVsP8Y8zQ==
+	t=1795195299;
+	b=FcCTZdU0IaL/IczEK5ipETjHx5h6+EdrevtXV7GWrnVmcE4FPubQBCAcsMNVaDcRezfM
+	 AYjbjz20n3LOk5oRCZYjMiV9xhLaXgOioayhkZv5z8g8LkOI1S8OA5uCsJ01krLVT5zez
+	 Gb6NlZBgDmzf+gHPZT4kxVCUgN3WR/6F/bCzy1/tKhAq1zSrkJqYFLa4gDQde5XhBsvmE
+	 1salErAcJNyydiVmmA84oxv+wpbiP4wIaQwpwrQZi16T2PtU9+GNU94/GvRgkcFked5yp
+	 +4FvOIN8xk0FGdCFTz/+DRxTtd5fhpqB+X318iw33FnbRBaap/I3GXLZX7kNKW+0vEw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795195304;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795195299;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=6iXYH4zgRiCKj6TFFGT8b8gjNXrkc/FF/5cTssJWbTk=;
-	b=z24DMM3zqiSvRGxGB1aSgBIhaS+8VkyITVgt4MMStbwKXDGtxyNjXg1btwQ7NaPH5/wH
-	 GAwxpbmQ6uOZSNtFJbNYblwkyEwpbmGTa/8qGwU+70D+HXHR92UcDkcdqzv3UKe7mgOYZ
-	 V/HyYy1sViTDXmqicApatTcOHprYL8nlfh+kmV9ysDNbPQreV0svZQ1fpjzyKk/7El1wm
-	 M96AEZ8M22lEm1JthXBv2B1DOUSLAA0lmU4iIQBk20LDBJQtgBziUJGR7QJpGs0tW3Tvd
-	 223KOD6kZ3aFnONJddJfIi+bvSlqw7gF2c6LYAV9v4d4RzpYuwVSu1JHd/VzkJ5DzSQ==
+	bh=+LDM4HvgTQ8zLPS5TGTJFL1xTOJg0NIQcpVpHembXYc=;
+	b=lYGdJXojp6Dh37ahISmwK53GXSG8bDQEE92Ic2N4DJeuhxEW+I1rhVo7IeoMGuo2hJ4D
+	 SRyqbGLTwQM+/qk7glsyEtHAa22n/CRijjFv2Wz2tYsBkCM0fGKWdcq1Thn6qgRO1UFD0
+	 gUvnOe4QyzodVwvOD0NwgyqHP/Rz6MIDjGKaeZios1My9Qw5eDuUmsQu8FULZeKPQS7kR
+	 lEu+L+K0cxOBxEZ5JEjXralf6qh00YWrjM8e2uDh+LQLX5zOeeW6vAm8riUmolfngXMud
+	 SgOKqwOz/965HIzLCmWQkUP17ircNSrPQJqWSuzF7GH5MFZ8byUT0o+ySA2HCLdRzcA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=intel.com;
 	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="lgfO+/Sq";
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=eJHV9uWt;
 	arc=none smtp.remote-ip=198.175.65.21
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 225A8606A744;
-	Fri, 20 Nov 2026 17:21:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 225A8606A744
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 585EA60A3829;
+	Fri, 20 Nov 2026 17:21:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 585EA60A3829
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=lgfO+/Sq
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=eJHV9uWt
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795195302; x=1826731302;
+  t=1795195299; x=1826731299;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=YbTf5trDopxe02aOZT+b3VJbn+3UJdoGzNpd2Ze/ER0=;
-  b=lgfO+/SqjrMA5bB2+uusSDzd1PUZedVbHFTQTVGGrkPj9qJAkTrAU5wW
-   0oWDACnz26r3hnMwWCSkrAQazQBhVUxswU4rtZimObFtSuYmfNLBxUrmL
-   FZQeApX8ixVYVjJSBxqEKpIlc1jkAcCYfKHkgHgskJ1ba1Ew3Kk6kjcG7
-   Ygm3ikFOYE6xxO06EMDuHGyEfttFMg0GTFVec2ofT+KoGFYIJMl9dnVwA
-   ZeVWnxOklSchLr6DVMQYGO3DLa7p4rNi07AFLrr5BjhUWy5NdfiEb+yCW
-   cZr3tPOLnepRWVcb04/bC2HDzQmRZ3f1X7yFfbjCy3wR5x3kPkewA5bEB
-   w==;
-X-CSE-ConnectionGUID: J/0v2U1MQjO+OmcL3VvWww==
-X-CSE-MsgGUID: 55c6DZO2R7yEYuVe09CwFA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4157539"
+  bh=dsO4iylP5qjl86UgafHuRFeXwcuNunbBkQmoKM17W98=;
+  b=eJHV9uWtX6cdjwKr+RvW/7yQEoTwICgjEoqC6LQ482WAWBKvFV2GdNJE
+   gzkVMk695QLFTViWCB7NPxqXkbVkAf4OpBUK/sMbc2oL8DPfuftFWV6fv
+   sRCFyNdjs/qzddj4UwVZ+v0D/nlkjVNn941nocpIXerQUI3G+1bmbXA4r
+   mk3yC0kI7YIzyuna61cJALXPjuv7Y3C3jFQnL5ackPiONrkim+1As/8Xp
+   /bobyIrArlpwYJAj/AF34qcTLFO8YOv4IgC4zmbvfACSxh7zZVkHztmEQ
+   wWshIp77MS5sg0Kzj2umjrk3zmDH8uXPD8v9QxNXatpunQ2O2/xJwtGpX
+   g==;
+X-CSE-ConnectionGUID: oc9B5ep3RS6A3PigMUJdxg==
+X-CSE-MsgGUID: rEq6wiiYQg+zEmmSzfQkxw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11972"; a="4157531"
 X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="4157539"
+   d="scan'208";a="4157531"
 Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:42 -0800
-X-CSE-ConnectionGUID: Zn/RYkVbSwmQ5+rr9+/FNw==
-X-CSE-MsgGUID: Ws7EdMu/Tv+1IHlAX0hiWw==
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:39 -0800
+X-CSE-ConnectionGUID: uHEVtNpuSlST8y/88Qlkyg==
+X-CSE-MsgGUID: 8GJ93UBUT3ae940o0Ype4w==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,223,1787036400"; 
-   d="scan'208";a="10868216"
+   d="scan'208";a="10868205"
 Received: from hrotuna-mobl2.ger.corp.intel.com (HELO wieczorr-mobl1.intel.com) ([10.245.245.215])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:39 -0800
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Nov 2026 09:21:37 -0800
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>,
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
@@ -69,9 +69,9 @@ To: "Rafael J. Wysocki" <rafael@kernel.org>,
 Cc: linux-acpi@vger.kernel.org,
 	acpica-devel@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 32/42] ACPICA: events: Remove redundant code
-Date: Fri, 20 Nov 2026 18:18:53 +0100
-Message-ID: <5071a5286e570bc87844df41525ece3738601784.1795194329.git.maciej.wieczor-retman@intel.com>
+Subject: [PATCH v2 31/42] ACPICA: events: Add missing event mutex to AcpiEvClearGpeDispatchByOwner()
+Date: Fri, 20 Nov 2026 18:18:52 +0100
+Message-ID: <8fa96a3a40ac4e7f19679ace75ab3ccde1517bfe.1795194329.git.maciej.wieczor-retman@intel.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
 References: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
@@ -86,39 +86,43 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This snippet happens inside the case part of a switch/case statement. It
-only checks whether the switch and case value match which makes no sense
-since they will always match. Remove the check.
+While AcpiEvClearGpeDispatchByOwner() holds the global spinlock there
+are other GPE related functions that work on GPE blocks and they acquire
+the ACPI_MTX_EVENTS mutex.
 
-Link: https://github.com/acpica/acpica/commit/a7f8f92b0422
+Acquire the same mutex around handling GPE blocks to avoid any races
+between the different functions.
+
+Link: https://github.com/acpica/acpica/commit/fa543fc1bab6
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 ---
- drivers/acpi/acpica/evgpe.c | 12 ------------
- 1 file changed, 12 deletions(-)
+ drivers/acpi/acpica/evgpe.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index f74805507529..578651cde6f3 100644
+index 93e205c0709e..f74805507529 100644
 --- a/drivers/acpi/acpica/evgpe.c
 +++ b/drivers/acpi/acpica/evgpe.c
-@@ -489,18 +489,6 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
+@@ -576,6 +576,11 @@ acpi_status acpi_ev_clear_gpe_dispatch_by_owner(acpi_owner_id owner_id)
+ 		return_ACPI_STATUS(AE_OK);
+ 	}
  
- 	case ACPI_GPE_DISPATCH_METHOD:
++	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
+ 	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
  
--		/*
--		 * Re-check dispatch type. The table may have been unloaded
--		 * and its GPE dispatch cleared while we were waiting.
--		 */
--		if (ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags) !=
--		    ACPI_GPE_DISPATCH_METHOD) {
--			ACPI_DEBUG_PRINT(
--				(ACPI_DB_EVENTS,
--				 "GPE method dispatch cleared during wait\n"));
--			goto error_exit;
--		}
--
- 		/* Allocate the evaluation information block */
+ 	/* Walk all GPE interrupt blocks */
+@@ -629,6 +634,7 @@ acpi_status acpi_ev_clear_gpe_dispatch_by_owner(acpi_owner_id owner_id)
+ 	}
  
- 		info = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_evaluate_info));
+ 	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
++	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
+ 	return_ACPI_STATUS(status);
+ }
+ 
 -- 
 2.56.0
 
