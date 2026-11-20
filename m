@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795180720;
-	b=31MFpdgb10Hfg/MBNz4nk1INjv3asETJlgISUdb8JGW3zxFlaIENsF6BdcQSiKOqTSv5
-	 klSDjLuuu+wyBdgG+wRJpcM6q8i3/vbuC994gi/FBu0Gin/yWh4EMJxvDTqVrAvq/CRUL
-	 r9vxXrPFZiF+YcgkUrX2bCz2yruphsPrNZjVchsOkJSzwy0uqvx0k+vDb4PmICV95/Goq
-	 1TCdC0aTWxGquFwE6fFFTby1sboFizmfTNxyB6o55M4dF7zm1QRxic9EyU4fFVFtr19Sa
-	 ppCAADDGjxP3OpDno+nSHuGnkOY2YNVLWEis82oGzBgmraw/hnnu2rzEtYAW4zbPUFg==
+	t=1795181258;
+	b=DAm700dXcb2SuOFzlpKW8PkF6vVAs95tNza+JCnzPRCt1+Io7zxMnjpX+/zw9JBAumLa
+	 epgkFeP7Rvp6cv6mOCf9eHT+SE7gZjVSpu4fB3Qa5VZmOHpWgPgrT3eBPnzXR59KOe+T/
+	 JCj2c0MF+n9Icz6kVh7ixVJfTzGduwaGb/mh2sVr2VmPZuZ62cqflSC+bgIh3EJzkb8xP
+	 yOB3xV75vZGY/EBFpRA1PDjNdhpBHFIGGXyk6UgD/2YCSZ3zGDrTGjK1Lrrb62LNf4GxD
+	 wF7WkPOI4We3m241UnNPm255+3vK1HrW6UdmycLk4yTP20trQLwfqCrzWK3qJFhKTeA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795180720;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795181258;
 	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
 	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
 	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=ljcd7M6yImqjEDAwU6cFJxWpbKpzPiprYRyOQuuy/iI=;
-	b=gRVfySWflLAfFHmh/78v+EQJa3oKdhbB6qrbC1+1n48gd1qkxl+Qmxq1rQODn1v26nBm
-	 ETMSNERV2K5bSzHJLk/z/484vfmFvyuLnMropZ9ceOd9y7Bupr1s8Kz5OqZ/GFgtQFkr9
-	 Awx1Wx+O35HAGcziB0MMbZck2xJyewOnBJW3yjmZQEcAZfTFkiIEe60sZk+VzVIJONZGg
-	 p+Uj1UcT57FF994tVcCjrJzIE7082IVz8VFz54qpNJKsAOUOwpcywx8pzSK/6k91LiXwb
-	 zHLlcwlRpc0ce1zoQu11fhti4+XvIWED3H7qgVOQBAcuSrpNd4BzKJIImkO8cqr8Znw==
+	bh=Hc105Xifh5fHRxAJ8VF5XEpNBykHa30H+JiDrPl/g04=;
+	b=KeHw63H5prRfRf2NzlEJy6ti7kHxeetJWY1VhjRM1LWudTrflFSyIPUV0MMtr6QhjjZW
+	 KaB8FOzTR+xo7RZN6LFVWihgl3NojG8hCagyP2RsNoOXicD8sAnJbDFHg/nWTATt2R3XY
+	 Ik4G+1mwwSPZjvDvbH6K6iMskNrI4VeL22rhpKT1b0DRVzSWhmZWVzeRQGKEdmqEc4Qr9
+	 PL+G/qX+Z6Y+OiUw4StsSFScI/0mIK7STU6iVrHWV2C3tFpnbmoyihQeMwDz4aSWoUBWX
+	 a5VDxNwmyO1XrBixQJQ0zcpR6idCeI+XbeJ09sKEktqBkBbBrElSpsbFMJ6w3CRbpKA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=j8ofW76T;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VpBnBMyf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 189DA606A326
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 13:18:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA078606A320
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 13:27:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=j8ofW76T
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9670A1F000EE
-	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 13:18:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VpBnBMyf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B5B21F000CA
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 13:27:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795180719;
-	bh=ljcd7M6yImqjEDAwU6cFJxWpbKpzPiprYRyOQuuy/iI=;
+	s=k20260515; t=1795181258;
+	bh=Hc105Xifh5fHRxAJ8VF5XEpNBykHa30H+JiDrPl/g04=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=j8ofW76TNHCyIAhduPWFSXBQJJN5P6JazkCwZ4QVgsNv0dWaJFuS7evLogl0IX1vE
-	 2+bo+rEfwG6sK3GcRXn+fUadTwCrJh4ivQ3dbb9A71/7nT3I8AVdZdNeaHgRFDlGxB
-	 SwxgJ94BWXIJ/ako4utQqGs4Cp32bSgnfiycOth33dlqgW8wb6VMlmi/XpV9A90y06
-	 XsnZuP9ZlKI24isiYmYuvFLOVqqikNkdVZKLoDjqJ+YRWH9zLxINcbtyCNGk+JaplM
-	 0vYdNb8jVFSw00c8yd8BUq9GAKYNmuzX7UlRbetGs5++PqfeQBAusGNzMqeYjZfpo4
-	 zkzKrmIPP1XHg==
-Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5be3d5927ceso1227321e87.3
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 05:18:39 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErFmVmBnqBszrvPQ/sZYMBedMBvYJcU93ccCsbh0oQ+DAcnAMqcwLgATzt+Ywf9AVWwuZTZH7fme9zio@vger.kernel.org
-X-Gm-Message-State: APuU4Z/+QR8anIstWygdEz0k1ESNifOXUjYXQ0u2wB+kst4oUnaOvjh1
-	4j6fGgDvwzjlkcS+1uWI0uvtJ9KjSrP+DNaJP6xgPg/NEWvrbch/3hxoEJiCgnxWNo+7AdqTvft
-	sA84JQDOjkptIEPyCnbsS8zqSPFC0pwQ=
-X-Received: by 2002:a05:6512:23a0:b0:5c1:5d1b:9142 with SMTP id
- 2adb3069b0e04-5c1bc7fb790mr1055175e87.13.1795180718037; Fri, 20 Nov 2026
- 05:18:38 -0800 (PST)
+	b=VpBnBMyfHfKRbyF3Rsa+lAtgbMyp82V4e1bqVlg5BXhZsXOqKRRSG1+XHzNZDNgle
+	 f+qxPA7XsSNLcHycL1e3G6y1LRpvGhmZtynvyp3yuiUENpzPKXi03xbkdexNRmkLg0
+	 K5qfx6GO4GELYKxvCiQpUK7DjQ0eL7GpeSCBxcGjDfH2cfZMCHoAu/yUpKpOcxSDpv
+	 rpixGWgpc6P8wzLAPeDWyKGoGnF4DCPaYKSmXneFDQnzENTNY5K+yJ/9L7pyjRgto9
+	 vTNp+d6+qNYPCuV5z3oYvPJI3+6yVehpt0hLAmWBMpMBBQZRZ0nX+HVoroyTVDWDkX
+	 iHF9Y7Mk6mMaQ==
+Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5c1465bbbdaso661950e87.3
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2026 05:27:38 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErFa+W72pT2iGOQwemrPFL6RbMM6gFJet8VqKraQerBURDTZcF/l6Xek0HxTgyWEbt5Nv5FRiJiRDRxl@vger.kernel.org
+X-Gm-Message-State: APuU4Z9bI8U1uQE8Z+HkTnsEOaDi0aN8OKqbYdDoHgoz2XzzMPEBFZ+U
+	D9xGBV1NqpRIc+kJvxlyN+HOBC2IqXxkrVuUHlKuEZ4IqAWQY5NrPeHM3+92SNRAUr2C2gfZcCP
+	j3KNvZj9oNFAe7UxoQQI74owaEV4WNgg=
+X-Received: by 2002:a05:6512:3a86:b0:5bf:cfc4:19ea with SMTP id
+ 2adb3069b0e04-5c1bc89a85bmr1001039e87.41.1795181256500; Fri, 20 Nov 2026
+ 05:27:36 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,78 +59,186 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261116103807.736778-1-johan@kernel.org>
-In-Reply-To: <20261116103807.736778-1-johan@kernel.org>
+References: <20261114002612.219894-2-pmenzel@molgen.mpg.de>
+In-Reply-To: <20261114002612.219894-2-pmenzel@molgen.mpg.de>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 20 Nov 2026 14:18:24 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0jn32TL1N=PDY3v=9PL4ZJLainNUNN6ecXOJs=N0TSEjA@mail.gmail.com>
-X-Gm-Features: Aa3M54qddmtVTgOBhtQ8RQ2vh_Rijwl6c0663HPppe56CfxJ2daDHJegt_Ei0u4
-Message-ID: <CAJZ5v0jn32TL1N=PDY3v=9PL4ZJLainNUNN6ecXOJs=N0TSEjA@mail.gmail.com>
-Subject: Re: [PATCH] software node: fix node group deregistration kernel-doc
-To: Johan Hovold <johan@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Bartosz Golaszewski <brgl@kernel.org>, 
-	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+Date: Fri, 20 Nov 2026 14:27:23 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0hqQzn6qpqtKi5QmTGcsG5hk9Np9ih68_vDksYcHQv6+A@mail.gmail.com>
+X-Gm-Features: Aa3M54q2N71T0UGv3AEK-_9xZnoqZ-S4CdjQSFsNKpVqK6SjIlxN2LRyQPy1yjA
+Message-ID: <CAJZ5v0hqQzn6qpqtKi5QmTGcsG5hk9Np9ih68_vDksYcHQv6+A@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: battery: Refresh the battery asynchronously after
+ system resume
+To: Paul Menzel <pmenzel@molgen.mpg.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
 	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 16, 2026 at 11:38=E2=80=AFAM Johan Hovold <johan@kernel.org> wr=
-ote:
+On Sat, Nov 14, 2026 at 1:26=E2=80=AFAM Paul Menzel <pmenzel@molgen.mpg.de>=
+ wrote:
 >
-> Child software nodes hold a reference to their parent via kobj->parent
-> so there was never any need to deregister them in any particular order.
+> The PM_POST_SUSPEND notifier evaluates _BIX, _BTP and _BST synchronously,
+> and the notifier chain is the last step of the system resume: the write t=
+o
+> /sys/power/state, and so systemd-sleep and everything waiting for it, onl=
+y
+> returns after it.
 >
-> Drop the misleading kernel-doc comments which suggest that deregistering
-> a parent node before a child could cause trouble.
+> On a Dell XPS 13 9310 nearly all of the PM_POST_SUSPEND notifier chain is
+> battery_notify() (143 ms with the function_graph tracer):
 >
-> Note that parent nodes still need to be registered before their children
-> or registration will fail.
+>     @ 143043.5 us |        } /* battery_notify [battery] */
+>     @ 143513.1 us |      } /* notifier_call_chain */
+>     @ 143536.0 us |  } /* pm_notifier_call_chain */
 >
-> Fixes: fc002f0f23e2 ("media: software_node: unregister software_nodes in =
-reverse order")
-> Fixes: 0b8bf06f6719 ("device property: Sync descriptions of swnode array =
-and group APIs")
-> Cc: Daniel Scally <djrscally@gmail.com>
-> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Signed-off-by: Johan Hovold <johan@kernel.org>
+> Queue the refresh on system_freezable_wq instead.
+>
+> Time from "Restarting tasks: Done" (end of thaw_processes) to "PM: suspen=
+d
+> exit" for suspend-to-idle cycles of 8 s with sleepgraph, in ms, on Linux
+> 7.4-rc1 with other resume changes, which do not run in this phase:
+>
+>                   panel lit at suspend       panel off at suspend
+>     before        24.5  26.7  27.3  29.4     58.8  60.4  85.2
+>     after         10.7  10.8  15.9  17.7      5.7   8.3   9.3
+>     median        27.0 -> 13.4               60.4 -> 8.3
+>
+> After the change, pm_notifier_call_chain(PM_POST_SUSPEND) takes
+> 0.7-0.9 ms (function_graph, three cycles, hwrng_pm_notifier() being the
+> largest), so the rest of the phase is outside the notifier chain.  The
+> refresh still runs after each resume (kprobes, three cycles):
+> battery_notify() returns after 4-8 us, acpi_battery_pm_worker() starts
+> 0.02-0.2 ms later and takes 17.8-18.6 ms, and it ends after rtcwake has
+> already returned.
+>
+> Signed-off-by: Paul Menzel <pmenzel@molgen.mpg.de>
 
-LGTM
-
-Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+Applied as 7.5 material, thanks!
 
 > ---
->  drivers/base/swnode.c | 9 +--------
->  1 file changed, 1 insertion(+), 8 deletions(-)
 >
-> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-> index 8e12f518e13f..78e224539b02 100644
-> --- a/drivers/base/swnode.c
-> +++ b/drivers/base/swnode.c
-> @@ -954,14 +954,7 @@ EXPORT_SYMBOL_GPL(software_node_register_node_group)=
-;
->   * software_node_unregister_node_group - Unregister a group of software =
-nodes
->   * @node_group: NULL terminated array of software node pointers to be un=
-registered
->   *
-> - * Unregister multiple software nodes at once. If parent pointers are se=
-t up
-> - * in any of the software nodes then the array **must** be ordered such =
-that
-> - * parents come before their children.
-> - *
-> - * NOTE: If you are uncertain whether the array is ordered such that
-> - * parents will be unregistered before their children, it is wiser to
-> - * remove the nodes individually, in the correct order (child before
-> - * parent).
-> + * Unregister multiple software nodes at once.
->   */
->  void software_node_unregister_node_group(const struct software_node * co=
-nst *node_group)
+> Notes:
+>     Assisted-by: claude-opus-5.5 (Claude Code), analysis and patch
+>     draft; I reviewed it.
+>
+>  drivers/acpi/battery.c | 63 +++++++++++++++++++++++++-----------------
+>  1 file changed, 37 insertions(+), 26 deletions(-)
+>
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 6edea559a5bce..4e2a79d356ef9 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -105,6 +105,7 @@ struct acpi_battery {
+>         struct kfifo acpi_notif_fifo;
+>         struct delayed_work acpi_notif_dwork;
+>         struct notifier_block pm_nb;
+> +       struct work_struct pm_work;
+>         struct list_head list;
+>         unsigned long flags;
+>
+> @@ -1293,40 +1294,48 @@ static void acpi_battery_notify(acpi_handle handl=
+e, u32 event, void *data)
+>         pr_err_ratelimited("too many battery notifications within %dms\n"=
+, NOTIF_MERGING_MS);
+>  }
+>
+> -static int battery_notify(struct notifier_block *nb,
+> -                         unsigned long mode, void *_unused)
+> +static void acpi_battery_pm_worker(struct work_struct *work)
 >  {
+> -       struct acpi_battery *battery =3D container_of(nb, struct acpi_bat=
+tery,
+> -                                                   pm_nb);
+> -
+> -       if (mode =3D=3D PM_POST_SUSPEND || mode =3D=3D PM_POST_HIBERNATIO=
+N) {
+> -               guard(mutex)(&battery->update_lock);
+> -
+> -               if (!acpi_battery_present(battery))
+> -                       return 0;
+> -
+> -               if (battery->bat) {
+> -                       acpi_battery_refresh(battery);
+> -               } else {
+> -                       int result;
+> +       struct acpi_battery *battery =3D container_of(work, struct acpi_b=
+attery,
+> +                                                   pm_work);
+>
+> -                       scoped_guard(mutex, &battery->property_lock) {
+> -                               result =3D acpi_battery_get_info(battery)=
+;
+> -                               if (result)
+> -                                       return result;
+> -                       }
+> +       guard(mutex)(&battery->update_lock);
+>
+> -                       result =3D sysfs_add_battery(battery);
+> -                       if (result)
+> -                               return result;
+> -               }
+> +       if (!acpi_battery_present(battery))
+> +               return;
+>
+> +       if (battery->bat) {
+> +               acpi_battery_refresh(battery);
+> +       } else {
+>                 scoped_guard(mutex, &battery->property_lock) {
+> -                       acpi_battery_init_alarm(battery);
+> -                       acpi_battery_get_state(battery);
+> +                       if (acpi_battery_get_info(battery))
+> +                               return;
+>                 }
+> +
+> +               if (sysfs_add_battery(battery))
+> +                       return;
+>         }
+>
+> +       scoped_guard(mutex, &battery->property_lock) {
+> +               acpi_battery_init_alarm(battery);
+> +               acpi_battery_get_state(battery);
+> +       }
+> +}
+> +
+> +static int battery_notify(struct notifier_block *nb,
+> +                         unsigned long mode, void *_unused)
+> +{
+> +       struct acpi_battery *battery =3D container_of(nb, struct acpi_bat=
+tery,
+> +                                                   pm_nb);
+> +
+> +       /*
+> +        * Evaluating _BIX, _BTP and _BST takes tens of milliseconds on s=
+ome
+> +        * systems, and the PM notifier chain delays the end of the syste=
+m
+> +        * resume, so do it asynchronously.
+> +        */
+> +       if (mode =3D=3D PM_POST_SUSPEND || mode =3D=3D PM_POST_HIBERNATIO=
+N)
+> +               queue_work(system_freezable_wq, &battery->pm_work);
+> +
+>         return 0;
+>  }
+>
+> @@ -1516,6 +1525,7 @@ static int acpi_battery_probe(struct platform_devic=
+e *pdev)
+>         if (result)
+>                 return result;
+>
+> +       INIT_WORK(&battery->pm_work, acpi_battery_pm_worker);
+>         battery->pm_nb.notifier_call =3D battery_notify;
+>         return register_pm_notifier(&battery->pm_nb);
+>  }
+> @@ -1525,6 +1535,7 @@ static void acpi_battery_remove(struct platform_dev=
+ice *pdev)
+>         struct acpi_battery *battery =3D platform_get_drvdata(pdev);
+>
+>         unregister_pm_notifier(&battery->pm_nb);
+> +       cancel_work_sync(&battery->pm_work);
+>  }
+>
+>  /* this is needed to learn about changes made in suspended state */
 > --
-> 2.56.1
+> 2.54.0
 >
