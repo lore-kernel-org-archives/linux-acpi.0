@@ -1,100 +1,68 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.210.54
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795305634;
-	b=K4etnK6xVVxQHqpXxg/zFeP2AlgP+OygEKZYn0dghrvcQ6EI1wTWoAL3I3K4PX9GYCY6
-	 6gUcXkvDBK0gsiDpmCojGqiNGZ3JeYGb+KJBprXeFBJIMRCMIuWgP4xQguMzIqXTMhLvc
-	 S8J+6qvpK+3rjW8CePr3YtSlHzU+waXK7/D+xx/br7m70q/PI+OPIjuENxh6FRlFuE+WL
-	 dW6F/J7YF7hJhhl5ZbRnV6aaOx6alZg4AHIs1JwKkcwemCKSF1Q6xXtBs1DBJD3rv2sKd
-	 tVOy+K6LDNIpKpHaRcrQNbiChgQoOSBtn4iTi07hKQ2Mgl/62+deuYTSDm1r25TfOTA==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795305634;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=oX79inJRzxgZwR0Tcie38RtbzYQdIj/eTCukvbMNytI=;
-	b=GSm8FS/xoYYanMRDbn2LIg6uHhFTLFzmwk+msTW3u8ApZglhrO8RoQvWkd08tKabO/Oo
-	 09xT/rYOL2hZJpgIy6PZ7/O0TUVMp/gmMjxVHGoHxGn6mLVKKrLpT7CAGECE/hA87WCOi
-	 0hmczv5dFGwFeOJ36uhU0pV3LeIDDUf0oQ5SjbOKi0ZZCbyvIHnzebWd5bm2+6fPx44cu
-	 VB2ELf+PBOEgVOL699Mt7p0bq4yJ5kezURPeDSU0QmsAXLo8fhI6Oasg9O/7pdTKVX3a4
-	 9YcBVZZ7hDxkk2fwQXxP5CBwOytTGQoKResmx5Txfyjvrj4If3c08scbFK84r/ys1og==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=r4RcuYCf;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.210.54
-Received: from mail-ot1-f54.google.com (mail-ot1-f54.google.com [209.85.210.54])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=80.241.56.171
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795335071;
+	b=Ir9mEl7rieF0m5Ex3Qq5e0YNzvsS+xYwTuod9SDqiy62K3RTu7MuOuTTe0y1H/H0BlkJ
+	 SL7VGryuwfMYBs1BrvBxrgXm/vQCOHaiccLRLuo8xdwyy1p0f1SNpeU7x9pH5GR9l/CFr
+	 /7AhJRlb8GtMWFm7YNP3wBP+Aism0LBHmjGbQV6LWQ2SzHKqlt8rt9VO5F9tGQKugAfnS
+	 jE6grF3lftV/SaBVWKR23yUP0cZGSlgJ1tBEffl3ZOStvve0q4gzl6NXnUAUhv6ZLhyLS
+	 nkvX1V3IcUhozLwn2pT69fbA8hzAIbzVITuFds9Gfju7JcUsG9NKyPIjJnYTWs9Nhjw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795335071;
+	h=DMARC-Filter:Received:DKIM-Signature:Message-ID:Subject:From:To:Cc:
+	 Date:In-Reply-To:References:Content-Type:Content-Transfer-Encoding:
+	 User-Agent:MIME-Version:X-MBO-RS-ID:X-MBO-RS-META;
+	bh=OXQIPCAy+eaQ5fg1Vwh7mv8zcCQEMw6r0Y6CCqTMlSs=;
+	b=rVBWVnVLmbLvJGiiIyivjBDsHgyGh4NzVCVAySEnqffhnLsQGLUusXR1tvW2rYkYda/V
+	 89d9HDPk49pasX5qzgCqZS2K0xbNjFsnwREZ8gxIjvK06Jbgt2Kt8ZApyidBxeKDWHnjK
+	 ux9vaiyA/CB2jKAj8Lzqlqq6fCazuOpMph25er/EPVhoahXv9Yr/kuLHmeJQUuJzakPsW
+	 EkvFPtiXZZ6P6Hc1NwMWqpY/WZ0P9jY1TImxEV3TZdaG/qj7kD8mxKUSQ4qA+6xuHW0Ye
+	 G27J4MfbTMBOc0s8TOnMkimwwqO1dYwkr11K2XmDF/s4CX/OAM7ChH2MImIG1CqDuKg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=mailbox.org;
+	spf=pass smtp.mailfrom=mailbox.org;
+	dkim=pass header.d=mailbox.org header.i=@mailbox.org header.a=rsa-sha256 header.s=mail20150812 header.b=RdtjCIh2;
+	arc=none smtp.remote-ip=80.241.56.171
+Received: from mout-p-201.mailbox.org (mout-p-201.mailbox.org [80.241.56.171])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5334606A336
-	for <linux-acpi@vger.kernel.org>; Sun, 22 Nov 2026 00:00:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D5334606A336
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A623606A32A;
+	Sun, 22 Nov 2026 08:11:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4A623606A32A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailbox.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mailbox.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=r4RcuYCf
-Received: by mail-ot1-f54.google.com with SMTP id 46e09a7af769-862b090e3c3so1191015a34.2
-        for <linux-acpi@vger.kernel.org>; Sat, 21 Nov 2026 16:00:33 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1795305633; cv=none;
-        d=google.com; s=arc-20260327;
-        b=Qe4NWtPXfi+eRq3iKSvFTBrk3YYCzMUcVg+2dddex9Y9jXwpe6g8OR4RmqpkSPWteM
-         +2Fg33zkmlh1rOEanxZiH+ZeWXuyfdQ29nTdjLHGyRuo5NJ1JOFwDyN8KHBwb7AKpApf
-         idJRr8a0ys9d0uFCMHKHRA8Ew3wcT1/BSr/aeZSKWaHdt4G+kpRXdXq0GL6mtL4AM0Lg
-         mogHpZpzIgXz/QEFgqg9VOPug0+w4FwEgHkdYfTHGZGd0RTrIIGNY9V06jZ/c0ftI6bJ
-         pbzJ6sv6DbcKK0cvTGb+LGtL5+KBDKGH6SQBihFLywR7HOvI413D0XRQZRvalbdoUNrX
-         FGGA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=oX79inJRzxgZwR0Tcie38RtbzYQdIj/eTCukvbMNytI=;
-        fh=bnA3vrO7CGEPqUCrHCtutRaSx4WwrhEea3uEO/WglX0=;
-        b=rV5+idiG7t2YILqnF30cAM39LsZDcI2Vf451TQnhZGcAKr4LBb1NOpZUNmD7qUXpjq
-         mmx4P8mRnIdp4rGZ3yngXjZDuC4v/o+LgmcNKFNP4/npGo+5hHQ7hYD4UgYbwM7ihOOE
-         GFfwBo72oFoXnqhn43bv2hdsVfcXGKhpVc2SMO8ELoZh4W81trgqKcVuDodUoEh0YvUs
-         Be3rouQ2Ns1/Yqgfr+TmONkTGEo5U/TzkG5wu6Wgz0mjSHYyvIc6VQOLmJoI89TAKBD2
-         TYNm8QTSK/+WDScjNs1yIYVNfSeKf09ATWCUbst2xlMgj6230hwjFTf0gzaI99WJQgFG
-         mtwg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795305633; x=1795910433; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=oX79inJRzxgZwR0Tcie38RtbzYQdIj/eTCukvbMNytI=;
-        b=r4RcuYCfIn90HdIwxItumjaK30zdLhmUJVAGcRQ71nWGgskz24QbkTinofHlgkbenY
-         G4MS+YOI2jv+T9Xu/GlYrHhhMxTKnQSORkt1g1N9xvgo09K+WmL6Ol4n4KlM7ZnHdfYH
-         Dga8N+dVnRKwEx03n6ZRzaZUmZamKVkc3zEM3qYrvuR/ZiJ6LVd5aEscodL4zVuRKxr3
-         1CeCqEP8fs5yW/L1fJ7f2jpubwiyYMJLqCP2Y6+Ydqe1XIaG30BcseHXiwDcr3LDh8h8
-         aceKX/ezytlgYuce5vlrWJqmIhso+LfDOfRKsao1qd8ZMx8JiPefxktTgvAjr8j03MY9
-         f62A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795305633; x=1795910433;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=oX79inJRzxgZwR0Tcie38RtbzYQdIj/eTCukvbMNytI=;
-        b=ik1dwqNDBTz6mEKTg7PM1le3zVAmQNcn1P/pehkveqJKVwggaOfjBn7z+yqxokiCjP
-         wZgUULvVn0XQcQBvJdAJrwcrUtjM7X33J5Tmm2oFTG9DC90OzmWB7KduZdXAgm7nZ3EQ
-         KQFL2x6bZG05qW9/V+wlh9LAQ7+IdfzT2XYEBtwS7HB1zXSuO/AifRdINnrH0zFWeNDD
-         nuc9w41IJ4JwtfRNRe9vjxnUL2/xZkXM+wVJ/S4VPzecNW87Zj27n83v7nDtgIY3pd0Z
-         DzOKtUcHYLAYYCyCYU3id2wLjHRRBXdbB7uC22LCzMIP/hTP1aasRC0ZfeF37tMpyDtR
-         ttIg==
-X-Forwarded-Encrypted: i=1; AL+hErG7By6lUvVDgvAty6tfThXlJTtFMe0x+wkiUuba1H1KTRSqpaNwRTAF75YiSvZXQXGnTfwX00XfzWmx@vger.kernel.org
-X-Gm-Message-State: APuU4Z8HS2nUUF2GSjrgkKNiXRPZ7/oxhD/GmPTgODPmchG4RrQP412F
-	JktsJ85lqpMrWr+SoKAPo+VlegqWOSs2zhoKnV9y2bqe4fOfDqkFgaqJbyrNnV73IRePaYS27bi
-	Ti0zy12vRQcsIRTHfayRKtoV6WmvI0QM=
-X-Gm-Gg: AZFdTZeVVU12Bjq24UCkCVgwN0O8947yics+lq+JpTfKql1TUDOSo7L2eOMCSJivsUT
-	U0nhWRnl7Yv7LY5CWnb8pBfU7t5wphgF6jUWqtQIaPnvptKJZLfnVuVXuSjiNT/jebiGKODQq0c
-	St03xkpq8eNuj8xlDknbu1e0LSsbI50E8q41kOaaSrph+gEBVDJo87PKdpG9GM8k2+uXzCgieF3
-	hY1I1YzmVLVXBcVVkcGOrUHe0As/3QPxvjgUubVNc1xFF8SyKTFZcwpwnNXl0eb3dskdnhhvg4Y
-	95gCMyZOuERDD4+SP2sVtLg4yMawji4DfVfPRf5FSDKN+wAupntsJkDrzaS1FtP0tJU7DFVE5w5
-	RzmhS3+hoyuoDyH7m/zDNqpej0uSYjazPkjsW
-X-Received: by 2002:a05:6830:6a88:b0:863:3a1a:91e0 with SMTP id
- 46e09a7af769-8633a1aa039mr1043518a34.10.1795305632770; Sat, 21 Nov 2026
- 16:00:32 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=mailbox.org header.i=@mailbox.org header.a=rsa-sha256 header.s=mail20150812 header.b=RdtjCIh2
+Received: from smtp102.mailbox.org (smtp102.mailbox.org [IPv6:2001:67c:2050:b231:465::102])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519MLKEM768 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mout-p-201.mailbox.org (Postfix) with ESMTPS id 4jXMGM1gV6zMlLB;
+	Sun, 22 Nov 2026 09:11:07 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mailbox.org; s=mail20150812;
+	t=1795335067;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=OXQIPCAy+eaQ5fg1Vwh7mv8zcCQEMw6r0Y6CCqTMlSs=;
+	b=RdtjCIh2Z9yb6x02bW5dMmERxcrf3gd7kRu63m9W0E+/dc+bZqv7jSA7Vfo+SbQlsVp67Z
+	IpQf5fBw46626aKIs9NdH0/YAjWsjhYUQfk4jqSFWoOk8oYTjODAMMOZMMboq77Relxml0
+	D87xfowWNWecZcIhh6e6HZgQWLM5Q6cHNvYH4qljMF53Bhmg4YiqYsNlXqTMtPcpRoy9n2
+	LMhtEKdAe4lf4Ea9jLHlW/a2D5tFaLchk142bgUMQiS8j/T24bgcbZ285AHOb4s015BUme
+	JPyogPOl/zCuK3EVdEHglPsfn0KwJ3Z9ec7P987EaT6owHKkF3IBwWZataF/aA==
+Message-ID: <67e8543e875b8bf6f7f02d69274f9be8e23cc2ec.camel@mailbox.org>
+Subject: Re: [PATCH] ACPI: docs: Fix brackets
+From: Manuel Ebner <manuelebnerli@mailbox.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Date: Sun, 22 Nov 2026 09:11:04 +0100
+In-Reply-To: <20260903160846.734870-2-manuelebnerli@mailbox.org>
+References: <20260903160846.734870-2-manuelebnerli@mailbox.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
+User-Agent: Evolution 3.62.1 (3.62.1-1.fc45) 
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -104,53 +72,41 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20260726212812.89266-1-shijujose2008@gmail.com>
- <20260726212812.89266-3-shijujose2008@gmail.com> <20261017055852.GBatMOnEl66YObvU5k@fat_crate.local>
- <CAG4KcR+NOKHNzg6FN-oLLHgUxeitZHKXg9cN7dz24+Ap=RrwSA@mail.gmail.com>
- <20261110071729.GIavLFCfLKzPx8R0i0@fat_crate.local> <CAG4KcR+ikfQEBjCZiNJ1CUz=u3Gtbk_XDroA_GQqYpgO4Lo5Qw@mail.gmail.com>
- <20261121194030.GBawHzrrCNCMpfr7Gx@fat_crate.local> <CAG4KcRKhE1UXwrhscUdSpDJS8R0t7kWp8RXZm8j_9yXYJSQ2KQ@mail.gmail.com>
- <20261121210749.GCawIIJcidCeWs3ij9@fat_crate.local> <CAG4KcRKzXNsvBWuuU2_aX5gO7u4vgKAK+bkrB2vgEFBGu3WJCA@mail.gmail.com>
- <20261121230942.GDawIktifTKlYhUlpB@fat_crate.local>
-In-Reply-To: <20261121230942.GDawIktifTKlYhUlpB@fat_crate.local>
-From: Shiju Jose <shijujose2008@gmail.com>
-Date: Sun, 22 Nov 2026 00:00:20 +0000
-X-Gm-Features: Aa3M54qnCHZib5IMTc_EQOb3UJ-aKnrHrCYP9h8mtw0fwRaNzLI4HvK65GdTkSg
-Message-ID: <CAG4KcRJjU9WB7o0woOaAhtWDPoaL-52T8MUmbYJ9iC0EqP93Cg@mail.gmail.com>
-Subject: Re: [PATCH v23 2/2] ras: mem: Add ACPI RAS2 memory driver
-To: Borislav Petkov <bp@alien8.de>
-Cc: rafael@kernel.org, akpm@linux-foundation.org, rppt@kernel.org, 
-	dferguson@amperecomputing.com, linux-edac@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-doc@vger.kernel.org, 
-	tony.luck@intel.com, lenb@kernel.org, Yazen.Ghannam@amd.com, 
-	mchehab@kernel.org, ashok.raj@oss.qualcomm.com, jic23@kernel.org, 
-	linuxarm@huawei.com, rientjes@google.com, jiaqiyan@google.com, 
-	Jon.Grimm@amd.com, dave.hansen@linux.intel.com, naoya.horiguchi@nec.com, 
-	james.morse@arm.com, jthoughton@google.com, somasundaram.a@hpe.com, 
-	erdemaktas@google.com, pgonda@google.com, duenwen@google.com, 
-	gthelen@google.com, wschwartz@amperecomputing.com, wbs@os.amperecomputing.com, 
-	nifan.cxl@gmail.com, tanxiaofei@huawei.com, prime.zeng@hisilicon.com, 
-	roberto.sassu@huawei.com, kangkang.shen@futurewei.com, 
-	wanghuiqiang@huawei.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MBO-RS-ID: 81eaf0a109a6c61fb71
+X-MBO-RS-META: 71r9hrbjseqw9pmq4byawskwswmba85y
 
-On Sat, Nov 21, 2026 at 11:10=E2=80=AFPM Borislav Petkov <bp@alien8.de> wro=
-te:
->
-> On Sat, Nov 21, 2026 at 10:24:28PM +0000, Shiju Jose wrote:
-> > Thanks Boris for fixing this and verified by testing.
->
-> I cannot test because I don't have the hw. I rely on you to do the testin=
-g.
->
-Sorry I meant I tested with your fix, which worked fine.
+T24gVGh1LCAyMDI2LTA5LTAzIGF0IDE4OjA4ICswMjAwLCBNYW51ZWwgRWJuZXIgd3JvdGU6Cj4g
+QWRkIG1pc3NpbmcgJyknIHRvIGZ1bmN0aW9ucy4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBNYW51ZWwg
+RWJuZXIgPG1hbnVlbGVibmVybGlAbWFpbGJveC5vcmc+CgpDYW4gSSBkbyBhbnl0aGluZyB0byBn
+ZXQgdGhpcyBhcHBsaWVkPwoKVGhhbmtzCiBNYW51ZWwKCj4gLS0tCj4gwqBEb2N1bWVudGF0aW9u
+L2Zpcm13YXJlLWd1aWRlL2FjcGkvZW51bWVyYXRpb24ucnN0IHwgMiArLQo+IMKgRG9jdW1lbnRh
+dGlvbi9maXJtd2FyZS1ndWlkZS9hY3BpL2kyYy1tdXhlcy5yc3TCoMKgIHwgMiArLQo+IMKgMiBm
+aWxlcyBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAt
+LWdpdCBhL0RvY3VtZW50YXRpb24vZmlybXdhcmUtZ3VpZGUvYWNwaS9lbnVtZXJhdGlvbi5yc3Qg
+Yi9Eb2N1bWVudGF0aW9uL2Zpcm13YXJlLWd1aWRlL2FjcGkvZW51bWVyYXRpb24ucnN0Cj4gaW5k
+ZXggMTY4YzQzMDEyLi5kYTdjYzg1MjggMTAwNjQ0Cj4gLS0tIGEvRG9jdW1lbnRhdGlvbi9maXJt
+d2FyZS1ndWlkZS9hY3BpL2VudW1lcmF0aW9uLnJzdAo+ICsrKyBiL0RvY3VtZW50YXRpb24vZmly
+bXdhcmUtZ3VpZGUvYWNwaS9lbnVtZXJhdGlvbi5yc3QKPiBAQCAtMzc0LDcgKzM3NCw3IEBAIEZv
+ciBleGFtcGxlOjoKPiDCoAl7Cj4gwqAJCU1ldGhvZCAoX0NSUywgMCwgTm90U2VyaWFsaXplZCkK
+PiDCoAkJewo+IC0JCQlOYW1lIChTQlVGLCBSZXNvdXJjZVRlbXBsYXRlKCkKPiArCQkJTmFtZSAo
+U0JVRiwgUmVzb3VyY2VUZW1wbGF0ZSgpKQo+IMKgCQkJewo+IMKgCQkJCS8vIFVzZWQgdG8gcG93
+ZXIgb24vb2ZmIHRoZSBkZXZpY2UKPiDCoAkJCQlHcGlvSW8gKEV4Y2x1c2l2ZSwgUHVsbE5vbmUs
+IDAsIDAsIElvUmVzdHJpY3Rpb25PdXRwdXRPbmx5LAo+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0
+aW9uL2Zpcm13YXJlLWd1aWRlL2FjcGkvaTJjLW11eGVzLnJzdCBiL0RvY3VtZW50YXRpb24vZmly
+bXdhcmUtZ3VpZGUvYWNwaS9pMmMtbXV4ZXMucnN0Cj4gaW5kZXggOTZlZjQwMTJkLi5kNGNlOTBk
+MDAgMTAwNjQ0Cj4gLS0tIGEvRG9jdW1lbnRhdGlvbi9maXJtd2FyZS1ndWlkZS9hY3BpL2kyYy1t
+dXhlcy5yc3QKPiArKysgYi9Eb2N1bWVudGF0aW9uL2Zpcm13YXJlLWd1aWRlL2FjcGkvaTJjLW11
+eGVzLnJzdAo+IEBAIC0zNSw3ICszNSw3IEBAIHdoaWNoIGNvcnJlc3BvbmRzIHRvIHRoZSBmb2xs
+b3dpbmcgQVNMIChpbiB0aGUgc2NvcGUgb2YgXF9TQik6Ogo+IMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgIERldmljZSAoQ0xJQSkKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoCB7Cj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBOYW1lIChf
+SElELCAuLi4pCj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIE5hbWUg
+KF9DUlMsIFJlc291cmNlVGVtcGxhdGUgKCkgewo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoCBOYW1lIChfQ1JTLCBSZXNvdXJjZVRlbXBsYXRlICgpKSB7Cj4gwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIEkyY1NlcmlhbEJ1cyAo
+MHg1MCwgQ29udHJvbGxlckluaXRpYXRlZCwgSTJDX1NQRUVELAo+IMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBB
+ZGRyZXNzaW5nTW9kZTdCaXQsICJcXF9TQi5TTUIxLk1VWDAuQ0gwMCIsCj4gwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgIDB4MDAsIFJlc291cmNlQ29uc3VtZXIsLCkK
 
-Thanks,
-Shiju
-> Thx.
->
-> --
-> Regards/Gruss,
->     Boris.
->
-> https://people.kernel.org/tglx/notes-about-netiquette
