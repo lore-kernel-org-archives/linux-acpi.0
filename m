@@ -1,60 +1,80 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=79.135.106.31
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.13
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795446218;
-	b=0G4tQ6uAdS2Bua+8OW/cFqwGMO80SZIC7UECkxgfabelrerSCLhTNKrOaRWNEy6qyLco
-	 KKV/4Rgd/0AvxOhJXamlz/GKSjju7OJnr/LZIVAxDPm3eDAgnEvQWxCpv0aS9EmYXyjrS
-	 jTG4uMlCo1NF8gAaKaM8uG6cZXUiz/CUfb4uTTwPAtLfr4ILBmTWu4UBWsUDCGQI0xv4q
-	 VZjJpsuPiBRySpMexjksY0oFa3BTZ7KbywdKk5CUfMsSbh41bg0MMVCA4Ubob5puOQYq5
-	 jEshNv980nJew5an28MUtFkFbbDaSUqEcpz7fCxhfQciXhde3BLY+oArwDcBzzqmtlA==
+	t=1795450652;
+	b=uUM+CoyQWWOn1LHfWrJjV7WcI5D2szmaaVKSrt+YlFO6pedHBh+/4QyVopGPQHzGOiae
+	 s73HmR/jbM/bC3AMf22fbwKcUhMtnjooddb/hrV88hPMcmXP29YZTQERg1hea+mYILaji
+	 /Yh1uHcVme3UzFXL9TLNiaVX6RBNOQs477GRHwZNY4G1auwxI6XirHxbZztxYUys+A2Sl
+	 nNDTOm7KEsbeqiiN6CIQOvi6ssc7sxHSCRiR0dw8ESf3qM5xE6eGK/JvRJgpn4X/B/kFs
+	 8QG+6sqahwQqXQMbI5OxBsElaJybcDVAzc++cosjTxyrrbrPv/ZEXCRO7fffykb4mdg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795446218;
-	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
-	 In-Reply-To:References:Feedback-ID:X-Pm-Message-ID:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=Hv1e4J9mZaDtpUBaC+0XrDwxU8XMKC697ozcM5Q6eUE=;
-	b=Qm0gGidjXMFmhU2AFlfBFbKYUffRNDxDzkBzOpW34kGqzpI4CGeq8bZu4BSGtIQFQ36G
-	 TvF669+KcD2VZystmhwX3ZM0X8qEhHi64VqUEIhefz89xVK3ze0i7bGBSVgRR/vdlus6v
-	 lhI7Ym+LQ3lwCI+pr/lMkl6SFULtB6ComMhxl61Q612LBE16Suu7BxI/dZEi9BYjuVGYu
-	 4p4JCETgPmUbM7Wyda+HM+wNsWTS/CalTokVbMG2BAVqiQX+acLtcZcPMsA22px61JjWb
-	 YO+L7eeB6QAGxXSRAW+X4fzI4ouGZxlOq/lI9EikVG2aJPWv0XfLO57GHwXdLiOeSKw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795450652;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=BctZxZhIdIRTeiVtsV2WTzSCZ0j/fyCHZmPwKEC+K5M=;
+	b=cpEl7V41D7uea0hW1ulny6yrfJPf/9Jzzgpil3ht4zRdf407Ejxhyex2Vkz3qCd8T0EY
+	 0U9Y+GXivdIXcqhKbIjsDKfJnxheeUow93SBPwSr+Ec4tRY3+SJ4+3AOS0nlLCO1KnzGj
+	 AZnLbfsEc4hZNO9UfOjGcPEh3SfjuYvQ7+OaT1pgBJGcBzlrQNjHFA+MhQhxXR0ybJD1A
+	 DAWj3FkcOI1aGU060s4y4VoqjGE+s5Eu8WgqTSNG3OFcaK+GNCD6dRMivgO90SpNbgQTi
+	 WWRULEd1jM9txBTiVB1lXDrebotODF7DBEoAZ7ERJH6nXiN4TmHW/XPFyAbqHGotwnQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=proton.me;
-	spf=pass smtp.mailfrom=proton.me;
-	dkim=pass header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=protonmail2 header.b="B/IayE/J";
-	arc=none smtp.remote-ip=79.135.106.31
-Received: from mail-10631.protonmail.ch (mail-10631.protonmail.ch [79.135.106.31])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=kxMz9x8D;
+	arc=none smtp.remote-ip=192.198.163.13
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E4CC606A31F
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Nov 2026 15:03:38 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4E4CC606A31F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA871606A31A;
+	Mon, 23 Nov 2026 16:17:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EA871606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=protonmail2 header.b=B/IayE/J
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
-	s=protonmail2; t=1795446216; x=1795705416;
-	bh=Hv1e4J9mZaDtpUBaC+0XrDwxU8XMKC697ozcM5Q6eUE=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
-	 Message-ID:BIMI-Selector;
-	b=B/IayE/JJnRJXbC4nUgTCdXloEAZNr+GRF5dd1eJhzP/L0Z1y8YeQkt5mnc6oVywT
-	 ocHiWTOKX+BzHOF0SU8s5x7Sqoy71uNLDffy/RcYKujOW1vcZcHNnCV+y23E+c57/Y
-	 ZxGr6f3/xHXMuC13Exc1507ZaL+Rj1/3BKRWbfk9JgJfCpCJFOAzBUw3x9er8ZvQWT
-	 tANYFsIEtjZi/s3LLhx75CI6+LOlxb2dKrD5z197nMjG6stjNtNxS9VBwlAnngqsBn
-	 Ks1Kr+RUZHV7oo1nXNoIk+cJR9JRImB8BK6Z9du8xf3IoaqKX7bRca3FaV8fSRduYX
-	 AV0su0CHLPvdg==
-Date: Mon, 23 Nov 2026 15:03:29 +0000
-To: Hans de Goede <johannes.goede@oss.qualcomm.com>
-From: penhouse24@proton.me
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andi Shyti <andi.shyti@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2] i2c: acpi: Force Dell XPS 17 9720 touchpad to 100 kHz
-Message-ID: <z-Mjt3eV50ZiycWjeVe9dfla5WKoCPC1UXZdFSx2V8YVhr77FH3eKc-WLQgGT_gu1l8NS_-IUcw_-ASU1x_al7IzQuW6FhccBUylTg0yZqM=@proton.me>
-In-Reply-To: <70618789-f82a-4cd7-953a-a97f555fa98d@oss.qualcomm.com>
-References: <20261118073607.297350-1-mika.westerberg@linux.intel.com> <70618789-f82a-4cd7-953a-a97f555fa98d@oss.qualcomm.com>
-Feedback-ID: 217801480:user:proton
-X-Pm-Message-ID: 82fefb8563f78b51c94ce8173912501dcdd98a0e
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=kxMz9x8D
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1795450651; x=1826986651;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=GOsvAtow4CHEx/fp/L9dAzHYy4b9WgH2aM55XWA3h1A=;
+  b=kxMz9x8DS+4Skr8AGloG2oMrfbhR7wQF0qV4LpbHA2uQuKdzfnHfrBHP
+   ljuPZW9N4ZqfDtJD9dWP1XYyzZitdmVwySnavI678mEDPzF54rHw24obx
+   hHCuOQDJ4Rw4fuQsKCBqzkMLESw8XeyNfQtTMgaPwGyH2+jwwcq2SXfHc
+   x11LQtaV2232jBoVoVklhzsuEqEF4OqW0B2TDbShBUcFhfhaZPRtrr+JE
+   TivPOKC3v2fyYk96mNeC2zr6wR//CAWYmO5YmcFcSKhoV6ARQ48JE4aE6
+   kyiNAnU+PNroHv3wTq5hkMsubxobkBikWHVL+ROCIDsg8MDeodOW55cfx
+   Q==;
+X-CSE-ConnectionGUID: gun2EC/vRgiZTNhDmxWYNQ==
+X-CSE-MsgGUID: 7BvLn0PhRlOqFN4vBwU7iw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11975"; a="4240243"
+X-IronPort-AV: E=Sophos;i="6.27,229,1787036400"; 
+   d="scan'208";a="4240243"
+Received: from fmviesa011.fm.intel.com ([10.60.135.151])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2026 08:16:24 -0800
+X-CSE-ConnectionGUID: ZOXQYvZCTa+z5mYAHslYCQ==
+X-CSE-MsgGUID: +r6vlMnWSUueIc4LN0kq5w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,229,1787036400"; 
+   d="scan'208";a="13125051"
+Received: from tassilo.jf.intel.com (HELO tassilo) ([10.54.38.190])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2026 08:16:23 -0800
+Date: Mon, 23 Nov 2026 08:16:18 -0800
+From: Andi Kleen <ak@linux.intel.com>
+To: me@ahmedabdelfattah.dev
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>,
+	Ying Huang <huang.ying.caritas@gmail.com>,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] ACPI: APEI: GHES: Poll error sources at their poll
+ interval
+Message-ID: <awRm0j8bBPrgMhw2@tassilo>
+References: <20261119-acpi-ghes-poll-interval-v1-1-6f45cc65fd62@ahmedabdelfattah.dev>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -64,73 +84,26 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261119-acpi-ghes-poll-interval-v1-1-6f45cc65fd62@ahmedabdelfattah.dev>
 
-Hi all,
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 5d888c82efea..92d54c6b209a 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -1276,7 +1276,7 @@ static void ghes_add_timer(struct ghes *ghes)
+>  		return;
+>  	}
+>  	expire = jiffies + msecs_to_jiffies(g->notify.poll_interval);
+> -	ghes->timer.expires = round_jiffies_relative(expire);
+> +	ghes->timer.expires = expire;
+>  	add_timer(&ghes->timer);
 
-Is it safe to say that this fix is going to get pushed to the main kernel?
+Makes sense. I guess at these long intervals rounding isn't very
+useful anyways because the power impact is already low. It's more
+for stuff that runs every few seconds.
 
+Reviewed-by: Andi Kleen <ak@linux.intel.com>
 
-Sent from Proton Mail for Android.
-
--------- Original Message --------
-On Wednesday, 11/18/26 at 03:54 Hans de Goede <johannes.goede@oss.qualcomm.=
-com> wrote:
-Hi,
-
-On 18-Nov-26 08:36, Mika Westerberg wrote:
-> The Dell XPS 17 9720 touchpad has the same lagging issue as with others
-> when run at 400 kHz as the ACPI tables describe. This particular system
-> does not use standard ACPI ID but it seems to use "Windows Device ID"
-> VEN_04F3 for whatever reason. Add this one to the 100 kHz quirk list as
-> well.
->
-> Link: https://lore.kernel.org/linux-i2c/20261109104542.GL176724@black.igk=
-.intel.com/
-> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=3D214597
-> Reported-by: penhouse24@proton.me
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-
-Thanks, patch looks good to me:
-
-Reviewed-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
-
-Regards,
-
-Hans
-
-
-
-
-> ---
-> v2: Drop the DMI match, add bugzilla link.
->
-> v1 can be found here:
->
-> https://lore.kernel.org/linux-i2c/20261113083940.2583439-1-mika.westerber=
-g@linux.intel.com/
->
->  drivers/i2c/i2c-core-acpi.c | 6 ++++++
->  1 file changed, 6 insertions(+)
->
-> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-> index 84841ed13487..64fdf8ffb5ff 100644
-> --- a/drivers/i2c/i2c-core-acpi.c
-> +++ b/drivers/i2c/i2c-core-acpi.c
-> @@ -377,6 +377,12 @@ static const struct acpi_device_id i2c_acpi_force_10=
-0khz_device_ids[] =3D {
->  =09{ .id =3D "ELAN0678" },
->  =09{ .id =3D "ELAN06FA" },
->  =09{ .id =3D "ELAN1300" },
-> +=09/*
-> +=09 * This is non-standard ACPI ID used by some Dell XPS 17 9720
-> +=09 * systems. They do have the same issue when used with 400 kHz so
-> +=09 * force 100 kHz.
-> +=09 */
-> +=09{ .id =3D "VEN_04F3" },
->  =09{ }
->  };
->
-
-
+-Andi
