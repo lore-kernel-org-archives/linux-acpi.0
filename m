@@ -1,54 +1,104 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=114.242.206.163
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.180
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795397153;
-	b=WpXCKgIjHsnLqOaVBZC0mDxG6xWA7E5KN1yzoXgvNbeXv04zLCTNw72OL2UO4n90Fvyw
-	 JR9oeoqs+uA1mHcNARd3uP6b0NnI8s5qlV1NZOQXpjTY4K+nWjKvOEb2TA1xty6bhVmBj
-	 L3odpUQEV3Elarg8am0y7TXlAFO0mi7ryDp99dP16Vp0TsIFeTBuTFrXwN3LvHzATr4Fl
-	 umgn7RG4j0mKlMCIuNvyoSU6jnSRamZxDpCS1sBJNtwx2gpW3u/qsbSa5AQMERz1OOSZM
-	 tQYxWnrFcgwlE9hVr4P5XO4pnoVHBMEuiAWhsdCfEin5PTvl2F5+47rEGFqhTXBcEmA==
+	t=1795416477;
+	b=i6RKXFEgUf6wwT6RX7Z/wmgl8Z3CLPAS7rIVk2Y733uMOs3V6BnsOXIQ2AFX7Xv7x2bd
+	 TeXyZlPviSNc5CIazDV+MXCGiC/hZa8iksh4451EamWTv4aSmkIgiLI/YdJQrUwIO0LM7
+	 ETy3qIQKbqPCHaLj952K+u/uQtNr8kCP6HWGHDcqzGmym9oED2flM08V+4PsDUAzuL6u/
+	 1dXoHma9OJ6tFE/mQPUADl2EmQvC+pUZmIbKyrOGvcOZ5GeGHmoRyxTeQPzIKXxiy6MU0
+	 kZz+z+dFpY1/CivoPjHfMNI7MDDsm5hK4mc5R1Evkhy8UvieLSWn0JqRpPxiBzchWaw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795397153;
-	h=DMARC-Filter:Received:Received:Subject:To:Cc:References:From:
-	 Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:Content-Type:
-	 Content-Language:Content-Transfer-Encoding:X-CM-TRANSID:
-	 X-CM-SenderInfo:X-Coremail-Antispam;
-	bh=6YsYPTuo2VbtL6rAHEG5MgX/FjIFiklyL5vCpof+Lk4=;
-	b=ega3VnZGxYyo/c0S9eGEraFfw2Dgv9KwAP5leTZ5YrhCP2BVoy4QvBNYjL8U9ZM++GON
-	 ujiSilK0L9mQcgdqDnwj6BoQx73sAqT1ZwPWvH3h3/VlG7jz+qzw4LHIWAZMK72cSZD1K
-	 +GYxEVCsulqZhvrfB3AGUABSEiJOrEf9R7yRHtzKD94yrhD0oeGYKIr1JBrC+luaKKUnr
-	 6zYbiNzx0XNAQXnWUOv8J4rqGfi5k+FC0EW6pTfA2YPuueNUmNtxuf2EPSlpfiYrjt2Jw
-	 GF62Wcp7jNoTTX/R3Opr6ZXme7nUo4zy3YhFLtR3sikfDMrLxfegJ5Nki8l4pU8CF7g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795416477;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 Content-Disposition;
+	bh=MpdWRQGt7FrCuyLLRBTmUxjIIESLmxZZy2MLy3uKw7k=;
+	b=ZBDeuAQgSwGiSrPGYc5vAt2kB09GIdL0C89JTbX2cvRZ2ySnlgJIU/Lse6gZWTXNIZyv
+	 3R3cy0a7ensG+DZ00qj1xwVZBLhKvGle65lG7BcSxBaVFIhqt2jUD/zDCklXw8juEHXL2
+	 bA0TgWwu98wfi7OMGtNBaW1HJ9ngmfe7dnaOFZAPN1z2IOZDy85a/C9ILldry1arbUx29
+	 7wqgG0lTaAsTtkGpJZp0KMW7bxDRmTq2ZHsva3P+neoT78zCuG8CyrAsVRY+fFupD+wDk
+	 fkBzjugNHZiUGdwMvFEq8MFnsUi2NwDi8VEgg0Dv5Gb/1NWjbmRtA+UOvpmmig1zU8Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=loongson.cn;
-	spf=pass smtp.mailfrom=loongson.cn;
-	arc=none smtp.remote-ip=114.242.206.163
-Received: from mail.loongson.cn (mail.loongson.cn [114.242.206.163])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E76FC606A327;
-	Mon, 23 Nov 2026 01:25:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E76FC606A327
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=loongson.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=loongson.cn
-Received: from loongson.cn (unknown [10.20.42.62])
-	by gateway (Coremail) with SMTP id _____8DxytEalgNrqRQiAA--.31297S3;
-	Mon, 23 Nov 2026 09:25:46 +0800 (CST)
-Received: from [127.0.0.1] (unknown [127.0.0.1])
-	by front1 (Coremail) with SMTP id qMiowJCxNs13lANrO782AA--.30056S2;
-	Mon, 23 Nov 2026 09:18:49 +0800 (CST)
-Subject: Re: [PATCH v2 42/42] ACPICA: acpica: Fix typo in the IOVT_IOMMU table
- definitions
-To: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
- Huacai Chen <chenhuacai@kernel.org>, "Rafael J. Wysocki"
- <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- Pawel Chmielewski <pawel.chmielewski@intel.com>
-Cc: linux-acpi@vger.kernel.org, loongarch@lists.linux.dev,
- linux-kernel@vger.kernel.org, acpica-devel@lists.linux.dev
-References: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
- <e20e813ff50db584712f86edd2bb8c672ad755e3.1795194329.git.maciej.wieczor-retman@intel.com>
-From: Bibo Mao <maobibo@loongson.cn>
-Message-ID: <38cd8d64-8e08-4eab-78d3-3775b0eb93cc@loongson.cn>
-Date: Mon, 23 Nov 2026 09:20:00 +0800
-User-Agent: Mozilla/5.0 (X11; Linux loongarch64; rv:68.0) Gecko/20100101
- Thunderbird/68.7.0
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=sui00Ob7;
+	arc=none smtp.remote-ip=209.85.210.180
+Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 48ED3606A31F
+	for <linux-acpi@vger.kernel.org>; Mon, 23 Nov 2026 06:47:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 48ED3606A31F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=sui00Ob7
+Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-8b2382bf051so1408815b3a.3
+        for <linux-acpi@vger.kernel.org>; Sun, 22 Nov 2026 22:47:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795416475; x=1796021275; darn=vger.kernel.org;
+        h=content-disposition:content-transfer-encoding:content-type
+         :mime-version:references:in-reply-to:subject:cc:to:from:message-id
+         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=MpdWRQGt7FrCuyLLRBTmUxjIIESLmxZZy2MLy3uKw7k=;
+        b=sui00Ob749YP/4E0URw2ubSzDUQP9KyBjfsmmDw9AzxIDxTYS6M49S1JibeFvPEBVc
+         qxmPMlLkjqeHtjjaN7HvIH7fHwsh4z3btvPa519DONCM3a8F31p3NAmeMGSbIBAqhVXw
+         5txmr4OBG91xAg91dxl180zBYNgs2sAiXvTgDE7cFJeajijmCEsby493dgeu2NU9qZIe
+         AOvHl8i6VREYiO1AJs8bd9Y+u3Wd8mtajSfG6AMj9CMP8bF0uqYgd4Y9TA7w5AXW8uDK
+         YQ+QuR6/yknUWT84taqMCfSyX7b6XxC7IIgRv2PGwskSgwLDtlasV+5SLJy7c7g+qSd2
+         P3Lw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795416476; x=1796021276;
+        h=content-disposition:content-transfer-encoding:content-type
+         :mime-version:references:in-reply-to:subject:cc:to:from:message-id
+         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=MpdWRQGt7FrCuyLLRBTmUxjIIESLmxZZy2MLy3uKw7k=;
+        b=XW4HpI3K+VK1TgJvN6XK/UX9S/Rq2npj4LrBaemDRl6LvidRZF+D11ELrTT1kdFp9W
+         LLOruBxBvFgAjE1nc2SOph7Ib4TrELpy4MYMf2FdFeqqA03Y1lbr8o3KnV1TgG7aJIVB
+         BfrHbhrSx3eLYtydUlhLymmndBAmOY64dTh7kc2hQJf1fIa19RVAq34YvqPwmpfdlJcL
+         fIckdqIlKSPtkQeS4IFXDA3xwpw5tkWfplfRN6/t5M9U9SygufczJQPQhXEX2lej4HdE
+         ucs6Eh6b49dEsVb472LkN6K9BLPXj4WX63IEssPjxPf+W1G3PsEnhww0acwnx6T9jP5A
+         bcHw==
+X-Forwarded-Encrypted: i=1; AL+hErHq0q2407dR+4JvDJl0EgcWdtKnGIFlSGI/7VX15ychxVDl8UszyJKBnB8SEz9Q6N/qhNgnRWi1XsDv@vger.kernel.org
+X-Gm-Message-State: APuU4Z/fuUhZ9y0enSma6+sVJ8ICxSDC1E8rD01SlrDEbtF/ws+R+Xem
+	2pWkG5YMHu4KcndMiH6d6tjrWZ/DHNjOCyAtuzD+5SGC7AZ3I0L6U909
+X-Gm-Gg: AZFdTZdU6iNYyuq5+eyUaHPjwBGPKr6QIUmaKQSNXz6jutSfNI4IcUF8XfdODRFDShA
+	zxyjCoLjNPqz1CCjP+a6N7j9eeMPIVfDibhah0WUcYo3eCwNbVJqhq3F+8D2b7W08iuObeQWn9z
+	oaDN3FIpBBD7dpOR8qtlKYjO6UGQ3F7iVcHDyxZ753dLklOz993SZ6sY647KXw4AqVe91er//uF
+	bCpzcrSzDryKgn0EbvzbgZXhvm5gZa0MPqdI3mQVoTp6M+pC/31rhrqlp/gxrZZTu2ZR5Q8tbdr
+	k/SbnQ+EWmsgqy5p3RT3+FrW1VVi+AcVAOOj4C/kVr/JD5Mvpfn4h/tv5IsLaneYDvQMlnn29E9
+	UDX9mLDC1FNFdXKIUWL7KDLfbPZAxHYrQXX0xWsZAja30N+88dhdkoiNnb7zZyXgCD93mXxaafU
+	IYJCW1t5dzH5LSUfmCW89OFpkCwaUXPD7Uk/X4QeWSQ6dGGusGsnF/1NB8SkN8cDpLHYId7eT7z
+	YaweuFprt8RPcpb1H7+JgPFnzI573HPK1Fy+cLzQKwafc9ahwFS2GBR+mo0MGfdeEWpaxWJvI0a
+	vpiPseJxp1sgq8mdcUGHdfu4wjAmeputgkAFxtexW2oNJKnp32+VxxL9FbPNEwjMYP7O1w==
+X-Received: by 2002:a05:6a00:2196:b0:878:3538:8f77 with SMTP id d2e1a72fcca58-8c87c6701c8mr9415691b3a.37.1795416475541;
+        Sun, 22 Nov 2026 22:47:55 -0800 (PST)
+Received: from localhost ([2a00:79e0:2ebe:8:4121:d698:201c:9274])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8c87077fe3fsm5152686b3a.4.2026.11.22.22.47.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 22 Nov 2026 22:47:54 -0800 (PST)
+Date: Sun, 22 Nov 2026 22:47:54 -0800
+Message-ID: <5ec374e9acccdbb5422291d106bd9ea9@gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Andi Shyti <andi.shyti@kernel.org>
+Cc: Mika Westerberg <westeri@kernel.org>,
+	Corey Minyard <corey@minyard.net>,
+	Hans de Goede <hansg@kernel.org>,
+	Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>,
+	Sebastian Reichel <sre@kernel.org>,
+	linux-i2c@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-input@vger.kernel.org,
+	openipmi-developer@lists.sourceforge.net,
+	platform-driver-x86@vger.kernel.org,
+	linux-pm@vger.kernel.org
+Subject: Re: [PATCH 2/8] i2c: docs: update i2c_smbus_read_block_data() prototype in writing-clients
+In-Reply-To: <auo-JCn9VES7OwX5@google.com>
+References: <20261024-i2c-smbus-read-block-data-v1-0-19bb97467982@gmail.com> <20261024-i2c-smbus-read-block-data-v1-2-19bb97467982@gmail.com> <auI4Qq1KUo7YYVtG@zenone.zhora.eu> <auo-JCn9VES7OwX5@google.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -58,89 +108,28 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-In-Reply-To: <e20e813ff50db584712f86edd2bb8c672ad755e3.1795194329.git.maciej.wieczor-retman@intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qMiowJCxNs13lANrO782AA--.30056S2
-X-CM-SenderInfo: xpdruxter6z05rqj20fqof0/
-X-Coremail-Antispam: 1Uk129KBj93XoW7CF18CFW7GrWDKr4xGFWxAFc_yoW8Kw48pr
-	sF9F47KF4xJrs7GF18A3sF9F1rZa95KFy2gr43Kr9F9F1qkr15tayayFWYyFn8GFWkuas3
-	tFyUtr1rJF4jqwcCm3ZEXasCq-sJn29KB7ZKAUJUUUUr529EdanIXcx71UUUUU7KY7ZEXa
-	sCq-sGcSsGvfJ3Ic02F40EFcxC0VAKzVAqx4xG6I80ebIjqfuFe4nvWSU5nxnvy29KBjDU
-	0xBIdaVrnRJUUUPFb4IE77IF4wAFF20E14v26r1j6r4UM7CY07I20VC2zVCF04k26cxKx2
-	IYs7xG6rWj6s0DM7CIcVAFz4kK6r1Y6r17M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48v
-	e4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Gr0_Xr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI
-	0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVW8JVWxJwA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_
-	Gr0_Gr1UM2kKe7AKxVWUXVWUAwAS0I0E0xvYzxvE52x082IY62kv0487Mc804VCY07AIYI
-	kI8VC2zVCFFI0UMc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUAVWU
-	twAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcVAKI48JMx
-	k0xIA0c2IEe2xFo4CEbIxvr21lc7CjxVAaw2AFwI0_JF0_Jw1l42xK82IYc2Ij64vIr41l
-	4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1l4IxYO2xFxVAFwI0_Jrv_JF1lx2IqxVAqx4xG67AKxV
-	WUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI
-	7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_JFI_Gr1lIxAIcVC0I7IYx2IY6xkF7I0E14v26r
-	4j6F4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI
-	42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjxUcpBTUUUUU
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hi Maciej,
+Hi Andi,
 
-Thanks for the fix.
+On Tue, Nov 03, 2026 at 12:04:29PM -0800, Dmitry Torokhov wrote:
+> On Wed, Oct 28, 2026 at 07:00:49PM +0100, Andi Shyti wrote:
+> > On Sat, Oct 24, 2026 at 07:48:42PM -0700, Dmitry Torokhov wrote:
+> > > Update the prototype of i2c_smbus_read_block_data() in the SMBus
+> > > protocol function table to include the length parameter.
+> > > 
+> > > Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > 
+> > Reviewed-by: Andi Shyti <andi.shyti@kernel.org>
+>
+> Andi, so will you be picking up the patches affecting drivers/i2c?
 
-Reviewed-by: Bibo Mao <maobibo@loongson.cn>
+Gentle ping on patches 1/8 and 2/8. Will you be applying them to the i2c
+tree, or do you expect me to queue them through my tree?
 
-On 2026/11/21 上午1:19, Maciej Wieczor-Retman wrote:
-> Change MAGAGE to MANAGE in ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT.
-> 
-> Link: https://github.com/acpica/acpica/commit/dee9a9e3c797
-> Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-> ---
->   drivers/acpi/loongarch/iovt.c | 6 +++---
->   include/acpi/actbl2.h         | 2 +-
->   2 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/loongarch/iovt.c b/drivers/acpi/loongarch/iovt.c
-> index 1e97669eaeea..e891170d9b8b 100644
-> --- a/drivers/acpi/loongarch/iovt.c
-> +++ b/drivers/acpi/loongarch/iovt.c
-> @@ -42,7 +42,7 @@ static void __init iovt_enable_acs(struct acpi_iovt_iommu *iommu)
->   
->   	/* IOMMU V1 only supports PCI device management */
->   	if ((iommu->header.type == ACPI_IOVT_IOMMU_V1) ||
-> -	    (iommu->flags & (ACPI_IOVT_IOMMU_PCI_DEVICE | ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT))) {
-> +	    (iommu->flags & (ACPI_IOVT_IOMMU_PCI_DEVICE | ACPI_IOVT_IOMMU_MANAGE_BY_SEGMENT))) {
->   		pci_request_acs();
->   		acs_enabled = true;
->   	}
-> @@ -151,7 +151,7 @@ static int __init iovt_add_iommu(struct acpi_iovt_iommu *iommu)
->   	}
->   
->   	/* All devices in the segment are managed by this IOMMU */
-> -	if (np->flag & ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT)
-> +	if (np->flag & ACPI_IOVT_IOMMU_MANAGE_BY_SEGMENT)
->   		goto skip;
->   
->   	if (iovt_validate_entries(iommu) < 0) {
-> @@ -280,7 +280,7 @@ static int iovt_pci_iommu_init(struct pci_dev *pdev, u16 dev_id, void *data)
->   		if (dev_id == np->devid)
->   			return -EINVAL;
->   
-> -		if (np->flag & ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT)
-> +		if (np->flag & ACPI_IOVT_IOMMU_MANAGE_BY_SEGMENT)
->   			goto found;
->   
->   		list_for_each_entry(entry, &np->ep_list, list) {
-> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-> index 1dafb2a71368..fe767fcf5726 100644
-> --- a/include/acpi/actbl2.h
-> +++ b/include/acpi/actbl2.h
-> @@ -928,7 +928,7 @@ struct acpi_iovt_iommu {
->   /* Masks for Flags field above */
->   #define ACPI_IOVT_IOMMU_PCI_DEVICE		(1<<0)
->   #define ACPI_IOVT_IOMMU_PXM_VALID		(1<<1)
-> -#define ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT	(1<<2)
-> +#define ACPI_IOVT_IOMMU_MANAGE_BY_SEGMENT	(1<<2)
->   #define ACPI_IOVT_IOMMU_HW_CAP_SUPPORT		(1<<3)
->   #define ACPI_IOVT_IOMMU_MSI_INT_BYPASS		(1<<4)
->   
-> 
+Thanks.
 
+-- 
+Dmitry
