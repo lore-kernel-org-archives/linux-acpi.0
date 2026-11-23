@@ -1,111 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.53.18
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795424533;
-	b=lLCXLBcsDWUbpN1rSLqE/vtK5MBR+R0qrGkC5M1AdBTpLV9qud4N4pMJSGJgdJkcJS8T
-	 AiAFeirA/XNMkeo3uUs+LlbLrhWIpGiJUlDVo06gBFCRCAed42akfWAk87t5o2QbRQrvA
-	 o8SQ4G8sPTOFex5vf2ScwPR6W1g53smNmTMjk9PSCgSzvUcfYRRtfMv17kjdzFftaKtZb
-	 AMsyLG+ZbYiZEJmy5/PY3+MhVBl4RNMNuDsNNbsjOMF2El4iTiaI4NsmbKpIaiMKG3XCR
-	 3SPoxMJ6cOPoPOVh/PavgZTP4EDZqfEE8pstIDa4zvXIKEpjcyaCSYlw5VipLMV5b3w==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795424533;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:
-	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
-	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
-	 Content-Type:X-EOPAttributedMessage:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=bkGDFO70vWBKhUp1LATRTjL4dgwHVoXab95WIO6BG2Y=;
-	b=X+DRPlaip0K1TX/xlRGa2mrDxeeJ85vWhvi6Sld13xExn9V0Q550BfwjVcrr48m3hV+9
-	 VILR1N05BdNAfU4epYENQ7U2VAsZYMirj5D36yuftKNXR1uJhup1aa9ntk5TKQXk6gZIu
-	 y4KcKb6v+hPNXHWkk9ugaq6dhl1TO3t089HezorwfBS2lu0frDqXiDCSdzFuujY06nsGD
-	 l0nUJ6JkJJoipp4Celfr64Oioo7BRqnfVGaozca3tJDFtt5ND7n084nmXP6OZnbJncoHl
-	 Szrm2VHZ05ZXsVQIlgwrUu65empxgeucXVgafjCdj1yK7hxzt3TeMUQV1VUY+nezu+g==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=amd.com;
-	spf=fail smtp.mailfrom=amd.com;
-	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b="EnuGc/iS";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.53.18
-Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012018.outbound.protection.outlook.com [52.101.53.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.45
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795435772;
+	b=Iimz0xbpUUMF/tpxN3p3u5Eqe2wdwYvPvYC7hHAm6oN7a8egWZ+7gjIcZ4ygemgchuHI
+	 p2809zMQhugTE/9ARfMOyR0RNtRKElrUhe9H4gvX4k1AK3ZdPnXOTntUakN8BmbKwpakj
+	 75eFem4KN/xGaan3KHj8O5R42WKWhXpiqAj94GiR9u9prz/8xdG2ZKJqyt55n3AVSL7ak
+	 VdzxsoV+/waC0OB1rKMsoZz4Jh+lzsXY18eQtA5DRqp4Kv6ECGkM2QlhgSWRCAq1d1elC
+	 fVM2PPd8nybDVIkdIeCrL61Gt+MsutdCpjM+Z7eAugYMMtru1T+nNWOtBj9581rBSWA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795435772;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:Content-Type:
+	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
+	bh=MOSUyRgfPJO47oTq4VBkWpT+RLTK5kL/NVumirQl9G8=;
+	b=hL7YjqvN/kTKXvtm2uPSD6dejkheLVAktzYteKo+MKDc32nLGs693Deu0jF50Rm67ft7
+	 PPzRA5Yy6JqplpOTQHiOKbmiTeACtCJXeO1FY6eJdZXV9KOo/48hzMM3ewsmxr3Mx9X70
+	 jWWUx8QVOt0Psi8uE1mYGnVYmleomVbK6uzhKBRvFuKAhNkAdvoyRGzEOhnSNRAbz17iU
+	 1A1UVw+wna7MurQEVfPBV5vS/O/fHFzLFj5+8ztAPUU2Xc/s5eBE9UpEEwHRqQju3nwlE
+	 4nqX1hLU11d0cGN+DVt98Ducmw3cRn4REwnlnR8/pBtvU3RWRanl28U2sXlOkoNELsQ==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=baylibre.com;
+	spf=pass smtp.mailfrom=baylibre.com;
+	dkim=pass header.d=baylibre.com header.i=@baylibre.com header.a=rsa-sha256 header.s=google header.b=fO6MZDZO;
+	arc=none smtp.remote-ip=209.85.221.45
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 839DD606A31A;
-	Mon, 23 Nov 2026 09:02:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 839DD606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A5FA606A332
+	for <linux-acpi@vger.kernel.org>; Mon, 23 Nov 2026 12:09:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0A5FA606A332
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=EnuGc/iS
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=xd7Hfpp2m0aNMv+hYwVXTztiZ1vHqRwsdt5JnLjFnSGbLYcMnkCibiKtx/8fJv5em4RgJNbg5hf+L9w0+Dwtf1g3+4tURUwC/vPJ2Y5cHI4pKbXc3YFnR9Kqt3g9AiHvV+PFeFM/Hs8aDFib73u1bll7bjIW069txJMXxQwwNPlAGEHy7uLasnK86oaZ72bldFOE1PamVXlnadjFNI3uK5jEgdeFgj+FqEl/SPrsI8Axo7g2wlVxgjL3pDdk3zF87EikGOtfkYEa76tZ7FNV4EexaI/tfdOB53PXOv0Ygxl3o+AWNKi5/X60aeG6sq0YAghenSm1XMucNZjZ89DZVQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=bkGDFO70vWBKhUp1LATRTjL4dgwHVoXab95WIO6BG2Y=;
- b=OzAuDSpmwfsDOxBoS1Y80a8mn+JLSCvxpSl7Lh8Jvgm7ffrsn/DXjCK6GlKFIAJ5VlMowQV1h4F1iEGwcxub2D+pnnovSv7lpC8JweunM/+rmRgklKOGin4QxC3nwxL0qHJrtkqneQY9RWcsUFxth74SygNFBNSO+yHcoO0FjzOkRDT/xz/GP/pK7OEAnyYBPVtGEBapxqkLybKoBTTJ4d8mk83w1k8BnwysbSbexRg86p4IDGGHR1tAsvRCAGBJTEARIheaeb8XHY5lyINqOzvOTHRaf/PyqU48SZ7KBNlHG55xPR9RB5e0+w0LLsIptK6leDIkCgft0yoNBQBMxg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=bkGDFO70vWBKhUp1LATRTjL4dgwHVoXab95WIO6BG2Y=;
- b=EnuGc/iSMQRxfkdXByUxpLaViiQIjNBRblex5FSCGoIb8kk636YqgEYfBDaRVAm/75jt7wZe2wKODOFvJbx0PX9a15U23sOY6pua+Wz1N28dlRGSE07d/q1MIMFhvRwLM1phvh8A/r6DUvWrFwh2o834U9c0MVRxPFAsPSuSk4w=
-Received: from SJ2PR07CA0010.namprd07.prod.outlook.com (2603:10b6:a03:505::27)
- by SN7PR12MB7155.namprd12.prod.outlook.com (2603:10b6:806:2a6::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.639.14; Mon, 23 Nov
- 2026 09:02:07 +0000
-Received: from SJ1PEPF0000231F.namprd03.prod.outlook.com
- (2603:10b6:a03:505:cafe::af) by SJ2PR07CA0010.outlook.office365.com
- (2603:10b6:a03:505::27) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.639.14 via Frontend Transport; Mon,
- 23 Nov 2026 09:02:07 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb08.amd.com; pr=C
-Received: from satlexmb08.amd.com (165.204.84.17) by
- SJ1PEPF0000231F.mail.protection.outlook.com (10.167.242.235) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.639.5 via Frontend Transport; Mon, 23 Nov 2026 09:02:06 +0000
-Received: from satlexmb10.amd.com (10.181.42.219) by satlexmb08.amd.com
- (10.181.42.217) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Mon, 23 Nov
- 2026 03:02:06 -0600
-Received: from satlexmb08.amd.com (10.181.42.217) by satlexmb10.amd.com
- (10.181.42.219) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Mon, 23 Nov
- 2026 03:02:06 -0600
-Received: from localhost.amd.com (10.180.168.240) by satlexmb08.amd.com
- (10.181.42.217) with Microsoft SMTP Server id 15.2.2562.57 via Frontend
- Transport; Mon, 23 Nov 2026 03:02:04 -0600
-From: Baorui.Liu <baorliu@amd.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>
-CC: Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<acpica-devel@lists.linuxfoundation.org>, kernel test robot <lkp@intel.com>,
-	"Baorui . Liu" <baorliu@amd.com>
-Subject: Re: [PATCH v8] ACPI: button: Report wakeup key only for power button wakeups
-Date: Mon, 23 Nov 2026 17:02:03 +0800
-Message-ID: <20261123090203.573-1-baorliu@amd.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <CAJZ5v0gxGtEENP9kBmwFvcrSxPMyguYsYoYKpa6oa7hhvAvN=A@mail.gmail.com>
-References: <CAJZ5v0gxGtEENP9kBmwFvcrSxPMyguYsYoYKpa6oa7hhvAvN=A@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.a=rsa-sha256 header.s=google header.b=fO6MZDZO
+Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-4ac08f4a0b2so2286775f8f.3
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Nov 2026 04:09:30 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre.com; s=google; t=1795435769; x=1796040569; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=MOSUyRgfPJO47oTq4VBkWpT+RLTK5kL/NVumirQl9G8=;
+        b=fO6MZDZOb2UGccheqr7ZC7v5mNXg7UJBUFO0CUokvX2o1o9EhtlD3bUcYHOBm8zm6l
+         KRb4VsMpDofuEGjNQxQSRRaSIVf8UZYPFbTBRHqeiA5RTZLgjV1MDiTbeZVlMom8jjgo
+         yXLPWPsh/6NCOcAMJNIGesIAGdPtf0Qn0cJPjSE4gdzvBEO3J8hq6drMKA2lRcl3GHWX
+         I9I8Sz2Mo+ffhApvIOoghhU9JmVtm04KURIcVC/RD1KJhtie1ImYQE8o0+e1qQkNPl6Q
+         cazCXqN97ZFmDM/w7AIG+H9l773cpdiWDxgS+K6sSMTzyj5DjgUeLwbJ678lmBqsOhe4
+         TvZQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795435769; x=1796040569;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=MOSUyRgfPJO47oTq4VBkWpT+RLTK5kL/NVumirQl9G8=;
+        b=MUf6Vu3YwhcEdGwOh+tf63NIAi9h1dLRsWYC1AMpCPa4kskHxvYhgcooYc+fFdGAOG
+         eJ6DmVH8TxtBgnVWxUjUgwC7FOe0WMPnFNjFNKT3TjXDCoM9UsWl3q5VU0nlDiy41Paa
+         TkElY3my2mQ4YxSuik9sMKWnlR/100uQAY4P//fEW8TN+sYidUsm9CDe+7ZbDFyDbwly
+         ezuJZ97FA4DPihHnLXtFrIIrERRCkffSXBciGUTkdWWL/NF2jFQUg5PMPp9d6KIv4z6Z
+         R8tSPvmC7Q9yMtr7kvpjKJpChRsUZZap2SgoiN5vYB44B/apTKG0xZBdyXzZq+L6yLbD
+         ApSQ==
+X-Forwarded-Encrypted: i=1; AL+hErFDKgMPf5oyCaNiV0yqyaT2CSHCkNMkO2NFiV/TBhSE0aqGQZ96xuT6pI4V7z+VBfEsmkZunA0Tm73K@vger.kernel.org
+X-Gm-Message-State: APuU4Z826KZCabXyPGYJt7Lx7D3JXpAjI2u6QrJMKcs9LLx9yU6wE5fk
+	C1cfmMFr1aH7HgI5EQYYipNQTcHjMo6gnd7CxSWw5FF3Iec90IINP49rZDBTdN7Y/t8=
+X-Gm-Gg: AZFdTZe+su1XVwyB4L6X6cJIk0Tq6SUh+UWI1neu2vUcjjSVEu5z8iGADEkqx4JRT76
+	Yqjd0cSjDNd14dNW5zeBBdA8dNWqGt3g0RjUnbWWlvugFm9uwgPXou6nM9kVdL7CFMif2JQfjrZ
+	rLh7tMO9wI9a9k9Y5QmfpFIygTNMlW2u81oKgUEUcYT1jzI3dODLy50BJgwf68x3sJA3hG9BeYc
+	1rpK9/xz4/ONKDAGQ3udM11J4EzNCWgLQpsmpP49Prybq1qOl4/LoF9Zs6eRQGfuzuFn1esDfKi
+	t0IIfhJRJ+gUrJnS6cFd3eyAT5bpn2JWyiyQ5sdQbuORC1Pj7UEff/4SZAdjSXBAg+9iTOjBlYG
+	fTJE7rFN+nN7eFQslwjCJJsHZp244nyZTDCgxv2wB7fuoYJSb8TTdl4h+J1Qu+T9vnRTpNpe65T
+	U4vDDCs907oQYFK35kTKy4WwXkruPhZxwid2JMUvpSoDs9EJC4xvkOv664LawOveVi9rULpqCPU
+	197ubW+tGEZQ0mAlAGvvwrCosfnagsFAo9D8xmup/PQvmkOwM9dt7ZI/So9a7EabbyZLD0TMp9n
+	Vmeyh5yR6aK9HoBi2FGOPaSS6QoWpZGoxpmjKCjQeDkzGk+sDn0yYJd/HNbg1T8Dw9bDZUBBAWl
+	HruwXaW76U44v0q6O
+X-Received: by 2002:a5d:64c8:0:b0:4a6:c5f4:cdf7 with SMTP id ffacd0b85a97d-4abaa976b7fmr20283637f8f.5.1795435769345;
+        Mon, 23 Nov 2026 04:09:29 -0800 (PST)
+Received: from localhost (p200300f65f19a90438645cebc2ee104e.dip0.t-ipconnect.de. [2003:f6:5f19:a904:3864:5ceb:c2ee:104e])
+        by smtp.gmail.com with UTF8SMTPSA id ffacd0b85a97d-4ab658e2d55sm22103392f8f.5.2026.11.23.04.09.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 23 Nov 2026 04:09:28 -0800 (PST)
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig=20=28The=20Capable=20Hub=29?= <u.kleine-koenig@baylibre.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	Randy Dunlap <rdunlap@infradead.org>
+Subject: [PATCH v1 RESEND] pnp: Documentation improvements
+Date: Mon, 23 Nov 2026 13:09:19 +0100
+Message-ID: <20261123120920.2569882-2-u.kleine-koenig@baylibre.com>
+X-Mailer: git-send-email 2.56.0.rc1
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -115,60 +100,105 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2832; i=u.kleine-koenig@baylibre.com; h=from:subject; bh=RWvctio2iC5bvxeB0uVnbkQOnoWZqDlCKT2BtO2MqaE=; b=owGbwMvMwMXY3/A7olbonx/jabUkhmwWnQ8Gipub/ZPLMz+VypWJKv/h049RYi5ov5vmY/6dh 5Xx+4FORmMWBkYuBlkxRRb7xjWZVlVykZ1r/12GGcTKBDKFgYtTACbS6sbBsJpX80du0+wI2fM8 dzt/LN16qpO1YEpEw/ofwnxajBf4z+fmruqek6di/irqUeIlr1zeRdVLq3/XOd55KJL//K5ayKl fO9WTb9vbLNL8zr+Zp0fHecsSli/sZ2X2nPpyaNVf7iv88gbNcc1rnSYaeLZnaGgvkIrUl4xceD Pbk904YbedsmU1p8qsA64bp7AEc14uuTzXcHdua51MOMu55sv3L3LbHDZd8ehZbcpkbdebPW8Wh TQYLCthiBG6E5pU8NP99dfqP5UF3Ku7d9b7rbrcYi3ws14oZrUK17aOrQI6mxZm7D4U75phF225 wyuwKu4u45wd9y6+9/wnonaR53alCu+SabfkDbtSF+kAAA==
+X-Developer-Key: i=u.kleine-koenig@baylibre.com; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ1PEPF0000231F:EE_|SN7PR12MB7155:EE_
-X-MS-Office365-Filtering-Correlation-Id: b9f52c03-d57f-46cc-378d-08df49407345
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|23010399003|82310400026|1800799024|376014|261102123227099003|261026121527099003|261026140227099003|261021121427099003|261028144727099003|261022105027099003|11063799006|56012099006|10067099003|18002099003|22082099003|6133799003|261009223027099003;
-X-Microsoft-Antispam-Message-Info:
-	n7Z4vpLudtUpgXGHObI4QF6/8ABnKhyB3CF/TnfMsa/PRzdQGTs2UjanJMNAGa9yhu8JP4nN4i+t/RQPWqssWrGJzGfjn1BPvQTgL/GccNii9xD/hWol59DqnsSHHn/nZaEOQ1CwRpFvpAlNZ2ICtRLWRg7NWlT2m7WphsU3bFcOaTxrGDPT6BPJFLbv1UIBtHTegbGurqoHI58CKPratfJhLWuVRb/byuPZMgWqoqu70mwO4bKFDt7juu2BhNuCqlmz6S+v5kfXYLf3Bwc9vqOUzAzmbt8XUIijRfH2P4HtAdmf7MlMTSH1FEVmY4J3yLb5EF3+9vf41OX0/EY1g9qfC62SUqvIn/Qg9rV+cBwpSaMhrizAniZPrJ2gdqXxZT7ifPs1LerRm8m+LX49bA5sTVxfiDnXWuB9+ek1PtucU2qpQcQOzru4yni1TzMDQ6x7+IMvtacDxjYp/7A1ajymtrjlaBn7qB6ig3U6nGoGLjBLp0zkcKOrTzOqf9TFl29A0pd5aKX31sA8eE/xnj8kJJftfmCMxZ2y8SANHkT9GVUyDZBeLMMnMsRrlGe2DPPTVK5OHB0GCRiYvLnFj6B/za/DiaF5Svxx6YnT938jJmfEZbhXzr2q0Y2DKGA1utz0B9CpJmPeh5zwH4axQQ==
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb08.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700016)(23010399003)(82310400026)(1800799024)(376014)(261102123227099003)(261026121527099003)(261026140227099003)(261021121427099003)(261028144727099003)(261022105027099003)(11063799006)(56012099006)(10067099003)(18002099003)(22082099003)(6133799003)(261009223027099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	LGOuj9t+FblZsk+tfHp2FmI2nmpvEPdkh9JBPHfGnp5oFfeVfez15bn35u3vRV7KWZHhW2K3PTQYwsmP7vrb7tc50IUVbnfzUyxeMF/UZ2h1XvhC8USKxPWRXhZvFBfugg9LyBNEcQsBuowFNUopyS6ZPzbU1wEVuG3n07ikzMirF1h237br/zAyL2m07eNEy1HtSeu3lMD1CNGfR61EmZiF4OUD6VgAGPTmur/csYS3/mnzaVRgpqh+CM9T1enfStNPACIP1R5yTbe5R944TYWlodoFzvXofETDEOfIFTH0gNGJuzKRtU1xodj36rHQeeRMiVpiBTsATTfLpC8bsqy88iMIQsX71muS70Lu9Dql/GzLrrYqVaSK3SkcQfuW1Ziez/ZtVFjs9DWlBiIn3cEgp1SwU40sAhgh9KuG0aVaa077brKDj5UxZUiY4Aod
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Nov 2026 09:02:06.9816
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: b9f52c03-d57f-46cc-378d-08df49407345
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb08.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SJ1PEPF0000231F.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB7155
 
-On Fri, Nov 20, 2026 at 2:56 PM Rafael J. Wysocki (Intel) wrote:
-> Please let me know what you think about it.
-> Also, if you decide to send a new version, please do so in a new thread.
+ - Consistently use named initializers and simplify sentinel
+ - Skip assignment to .driver_data if all are 0
+ - Use consistent spacing to match Linux coding style
+ - Fix prototype of probe function
+ - s/pnp_id/pnp_device_id/
+ - Drop non-existing .card_id_table
 
-I agree with the three comments Sashiko kept, and v9 is sent as a new
-thread:
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Uwe Kleine-König (The Capable Hub) <u.kleine-koenig@baylibre.com>
+---
+Hello,
 
-https://lore.kernel.org/linux-acpi/20261123085607.476-1-baorliu@amd.com/
+this patch was already send before[1], Rafael replied "I'll pick it up,
+but please send it to linux-acpi@vger.kernel.org for easier processing."
+which I failed to do until now.
 
-1. The fixed-button flag is consumed before it is combined with
-   wakeup_pending, and only by ACPI_BUS_TYPE_POWER_BUTTON, so a
-   short-circuit cannot leave it set.
+This is a clean rebase to next-20261120, the file didn't change in 2026
+yet, so it's essentially the same patch.
 
-2. suspended and wakeup_pending now use SMP barriers, and resume checks
-   wakeup_pending again after clearing suspended.
+Best regards
+Uwe
 
-3. The commit message has
+[1] https://lore.kernel.org/20260609145117.1355753-2-u.kleine-koenig@baylibre.com
 
-   Fixes: 16f70feaabe9 ("ACPI: button: trigger wakeup key events")
+ Documentation/admin-guide/pnp.rst | 22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-   and the version changelog is below '---'.
+diff --git a/Documentation/admin-guide/pnp.rst b/Documentation/admin-guide/pnp.rst
+index 24d80e3eb309..14a0bf400d2d 100644
+--- a/Documentation/admin-guide/pnp.rst
++++ b/Documentation/admin-guide/pnp.rst
+@@ -203,12 +203,12 @@ The New Way
+ 
+    ex::
+ 
+-	static const struct pnp_id pnp_dev_table[] = {
++	static const struct pnp_device_id pnp_dev_table[] = {
+ 		/* Standard LPT Printer Port */
+-		{.id = "PNP0400", .driver_data = 0},
++		{ .id = "PNP0400" },
+ 		/* ECP Printer Port */
+-		{.id = "PNP0401", .driver_data = 0},
+-		{.id = ""}
++		{ .id = "PNP0401" },
++		{ }
+ 	};
+ 
+    Please note that the character 'X' can be used as a wild card in the function
+@@ -217,14 +217,14 @@ The New Way
+    ex::
+ 
+ 	/* Unknown PnP modems */
+-	{	"PNPCXXX",		UNKNOWN_DEV	},
++	{ .id = "PNPCXXX", .driver_data = UNKNOWN_DEV },
+ 
+    Supported PnP card IDs can optionally be defined.
+    ex::
+ 
+-	static const struct pnp_id pnp_card_table[] = {
+-		{	"ANYDEVS",		0	},
+-		{	"",			0	}
++	static const struct pnp_device_id pnp_card_table[] = {
++		{ .id = "ANYDEVS" },
++		{ }
+ 	};
+ 
+ 2. Optionally define probe and remove functions.  It may make sense not to
+@@ -234,14 +234,13 @@ The New Way
+    ex::
+ 
+ 	static int
+-	serial_pnp_probe(struct pnp_dev * dev, const struct pnp_id *card_id, const
+-			struct pnp_id *dev_id)
++	serial_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *dev_id)
+ 	{
+ 	. . .
+ 
+    ex::
+ 
+-	static void serial_pnp_remove(struct pnp_dev * dev)
++	static void serial_pnp_remove(struct pnp_dev *dev)
+ 	{
+ 	. . .
+ 
+@@ -253,7 +252,6 @@ The New Way
+ 
+ 	static struct pnp_driver serial_pnp_driver = {
+ 		.name		= "serial",
+-		.card_id_table	= pnp_card_table,
+ 		.id_table	= pnp_dev_table,
+ 		.probe		= serial_pnp_probe,
+ 		.remove		= serial_pnp_remove,
 
-I am not changing the three dismissed items: the Signed-off-by name,
-the CONFIG_ACPI_SLEEP guard already in v8, and
-acpi_os_wait_events_complete() in button resume.
+base-commit: 909ef7a9a30fa139e69e555e3606680f5cca7726
+-- 
+2.56.0.rc1
 
-Thanks,
-Baorui
