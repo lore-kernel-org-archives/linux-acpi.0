@@ -1,97 +1,115 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.43
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795476437;
-	b=ll5Nul/NoZLnRL9hnJ0HB/ihNtzbT5Ks/HE/Kciir+YMPfpxc7QMyTKJ0k7K5rDp1+dP
-	 UAHazyWTp6ah48itH4U8PGxxTW8QDli2a/0AdXs5ymETRGeNRESFrw/IMFkwsu5LdcJ+G
-	 AyQMu+TwWEMGxJQkIBokVukPbMb+gpOCQZcVuOlME9vz1NmbZ3VOXtZoqDoom4OYtQZLU
-	 uiF41KbvzJvAX3H6IlxEfsLnlSg8r6LiMhCdgWzBuNVgIgwSzzPXznNGPgAPS9/TYmUOe
-	 aVZip1t2Do8fQA+x43fjPNyKMOoW8PPXqStt5enego9H+PKn+qUEeg5l11r5R541keA==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795476437;
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.50
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795478343;
+	b=q1KBL1VXUhwUPeE995KSC92MLzw61oGlZ72XeiLqq7X3f+8Y7hxoEYmip0H5J952sGGi
+	 CvtMQGLatrJ07kVXtNceupTfkJ6wZkFuYxz7+Yzq3MeJe1PDInUXqD2nj+Ti6/+90s8S5
+	 pQk/vdRJPeItNvkRDhk9Epd3eiAMQ9SwbfOatlouf0drJdrc32HzhJiZSfIPNufZqwKoR
+	 /oj8V2fwJP+0/ehlxuZzVyIZwEJ3YIrBEzu0qDrygZ+cyK+IX0XfR4TeXrpq1NwluFGHB
+	 F6PyaIbzgSG4DW3CvfvoTOX1vj6SYjxbWuZWlRGH3byuFbgqiNUqMHtpzBljQ9SJfIw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795478343;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:
-	 Content-Type;
-	bh=ZuaNBh6pkcJ/82GdHcWJ4tfu5uUzu4/Xw5l2qcnwFHA=;
-	b=z5nC5IHaT0aoknROs0ugYtNI2XxbrDNXnhmmk2/Uh6I2WX48KNea537ExTJusdVyF0bd
-	 epo0x+9Ynhv0Gj8LLKbvPlVSQLnpvJ+Oqm/i+c5TDJ964niXMraO8z7WnegkXvoScnSFF
-	 k3M+XFEdyCRhEGUeCJFAQlWYCiqodZkx9Ht9rzjUnD8jqh4bGo6Two4/5LYXi42sZBUxX
-	 eaABJkVINg98fJ3Bz8Of84FQBrT3tVlkmNS6KXlAfjxD+AeMf7MXcbtqV9/4Fleq8d/kX
-	 2RWA5tc7tXjrTDacx5eRsguUqTQqZnRpozFOzUtcYPqEsGDR3a4BiWH1vWYP14pB8FQ==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=lFezoO2N;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.43
-Received: from mail-yx1-f43.google.com (mail-yx1-f43.google.com [74.125.224.43])
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=1KEZlJHY2iJZV5bGkgX8FT1FWywheNVCNg2fp4w3t8o=;
+	b=OTxQ6Wupr5xS8WNDrWOlng6HBErndIQ2MqlQG6h+JVWBcgsget+ssLj8td42AZ43cYQR
+	 iUFU7RR/i7Rgjx3yk5GKznmrp6lSejN5rjgzuwo+S9DWKtMzr21t2nqDEGeKhC6filKua
+	 NGtcyhoFLuagStgywXTD3cc3E1sDCTRchkdZv7oPnYr5Jgi+ihrg8hj6QolYxcaybohzy
+	 MCrv05C8EQSZ1ZsMXN15P9L5UdkCCkUVWhPMHNwa3p2K/elcCUc5ylXfLs0xYi4RFswbk
+	 AqZvb+WoDPsgoB7QH/ysB+QevPB+ot2fkijGyijLgd6M6h6WFhzhdIwOl16n4RotgRA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=chromium.org;
+	spf=pass smtp.mailfrom=chromium.org;
+	dkim=pass header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=STikYJ43;
+	arc=none smtp.remote-ip=209.85.221.50
+Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE5DC606A31E
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Nov 2026 23:27:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DE5DC606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACBA4606A321
+	for <linux-acpi@vger.kernel.org>; Mon, 23 Nov 2026 23:59:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org ACBA4606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=lFezoO2N
-Received: by mail-yx1-f43.google.com with SMTP id 956f58d0204a3-67583c777abso4004474d50.1
-        for <linux-acpi@vger.kernel.org>; Mon, 23 Nov 2026 15:27:16 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1795476436; cv=none;
-        d=google.com; s=arc-20260327;
-        b=eXSluTM2srtWZgHrBU776WbBPg24+06JN+lPGXrnSQM5LurYso7MEm/OgJlwz7hlNh
-         D2lW09/eBifh19WdcwFvLjeeA51zOh+0guyo6LdtgDQe0DSFXEdltv2pPe/O29uEiE49
-         zwg61zXM/UeBar1pFT7DFbnRosFWspPe+d4HqBSuZTP72VLNXM8HSpf372iHfl2jJM4I
-         UKyVCu1SCMvliEOnRJzLNF/zRKhDYXcnPyWGJ9ZXbAWO2H7D0HWyNC6bQ9AENBOzOZbH
-         b8mitBK4Bv1GrR5JWSE/1prDdIHBOBh7v2PoU3FcmNeC//CBtMcNBj5CC+OZJLLa7LXj
-         viCw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=ZuaNBh6pkcJ/82GdHcWJ4tfu5uUzu4/Xw5l2qcnwFHA=;
-        fh=Vw/aoikC/RD2J2Ba124WJuQFkDxjh5mpq/erawUhgo8=;
-        b=CiOeu6Qel0VQ1Wg0y65D0OpGxMzJxuYB2X2bLyTh5CvHDTvzsFgdF5h+/JCzAJ0Ar3
-         TwAr2MU/r4FcWgMFB7cilrIt8vE4QwkOXztK27XJOkVQAc0+VbddPj23aqocpjAtuY7S
-         vY9BXr8+drDYlMLJYECulReIX2xalaUdx8rgvbPepfdnOznjS5OICc0eMhWtPcW6f0je
-         6XIoHHkrJUkBDlRCjBZx/eqKVa2FdK5XKH0p6uLCu669Y3mYCJ+qNyWlQWpm00gVLywG
-         0k3ENhdG705G20GqbER/M/IiL54MPYD17GxRXKY7dG5Uxw9vekrzIibde6oOuq7lmIMA
-         OB9g==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=STikYJ43
+Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-491846221ffso3287101f8f.3
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Nov 2026 15:59:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795476436; x=1796081236; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=ZuaNBh6pkcJ/82GdHcWJ4tfu5uUzu4/Xw5l2qcnwFHA=;
-        b=lFezoO2NBjbOSWwbx9cyt2GR9xQ6nOxGpKuE2wAuIoVbVbOFVeSxKKa/xvLGdsLQxa
-         n6lzgTAANX+ex7kKU1KCf6QIoZXUcn/QxzJKdHn2OUmhrVcDS6kgSrCTHV9Hqg0UprlK
-         z1YIR1ZH503kFhBSG/L1yvAOnN0xQD69dJr7o5X92KKXzZGDSEXYM4qi+WonbVkUwy19
-         U/ANFEMEZeZrAzYtE4dQ0Vx6hTBLHiaMN7H+LAXXi1NecGB8lYnZtWnvGfFGVLSJgak2
-         ullyR8MrRAt2PFwNljaWmqvWzTIDzu3L6GpO2O07aSGWUUE+XwhQNTlLk3115NtA+aP9
-         Zo+w==
+        d=chromium.org; s=google; t=1795478341; x=1796083141; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=1KEZlJHY2iJZV5bGkgX8FT1FWywheNVCNg2fp4w3t8o=;
+        b=STikYJ43suh43QJ8vmzVNSCO6iCeQchd6lx48KeLmIArc+Ky8rT3PMBUz4QMWOruDU
+         NcuTTu9xgibmhlmEE2Edb4vyhOWSpekv8xw1bJR5Uh9/3PAywTViopxhnvReTFs/4VGh
+         zfnweL6t2DJJlHgkSGHsMmHykvfxa5y5MsbN0=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795476436; x=1796081236;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=ZuaNBh6pkcJ/82GdHcWJ4tfu5uUzu4/Xw5l2qcnwFHA=;
-        b=A8CSkEsECACcw7j+SRgkVb4EMaIe8GybMNbgo2yq0g/SceGYsLVihwUt2OF7Dhpcb4
-         Ata0TDOjKKAQc/gs94OZPgxgrAj2T6DL5FfPjCNoZaHF0mEVmq+PzDPR5sM4Lp6wTDRg
-         BwhljQ3O8D/n+5MqCjJayVpxu6aGhzyN/m7VSjUxDwmv4HVXE4TOF6nCSMC6cuL2F8jM
-         WXWDWDeUZfODurmWe7AU3lMn7hCI379wH3b7i0rC+TlYUVTNwRIOocVcIrIGgCc49O+c
-         tb7vPyV4M22XY8fXwSeyic6y8EuWYESEucAN1V1Z5rQXqKNl36w6c6Kmi/L0K3jF+C/o
-         1pag==
-X-Forwarded-Encrypted: i=1; AL+hErF743cPBs3ZIFuGFl8TvnYsyFkzQiRIhQ7Ol2oGbfhAmOtYGrjFfH6IdbXTCzNp63gDwOUEPrN2adYH@vger.kernel.org
-X-Gm-Message-State: APuU4Z//Llhd2pMq5QIALjmkEM2rqlp8r4Pob54VwToFr6Ey3r97d4Pn
-	ufUdolXvdnbyTr88PB0Ki8kvfGl7jy2JQFzyFko4yuOPadYx9gqx+KEHy1LobAN1L+tgiZ+uuGP
-	KlIzMzmMGdqu9nPRC5gjFSTWL8KmDMC0=
-X-Gm-Gg: AZFdTZerCJexTtE3oPCPpdbURvPJo6uPrxoHuvbJOtbA/TLcAXYxSr3anfaxw5YfzZa
-	DLrqmIDZuU7dxdcaEk/grbISHSUiWGamoxP446NQubkrRSdEVliL/nN+tfiZrN0twXq1ltDYn7a
-	g0F7IHksRCUK1yD39zBM9XTSY3IJafdqqbMK047g1GFBLh98SwS4V6zVu8QHB0U9jVwQos/MsAo
-	YeFG46X93q/5/ykH3ADMC7UQNQ0qr22UsWMaw/XCqQ69rbbKbkMdF6I/cq3pApPOrhZaEgl06gd
-	YuitaE1Fxm2nO5cNUMqXLWWCW1c4CNcKgN06b0r/LywRGaTa2FumH2cVWDjcR3c+UiVdALOR9Mh
-	58l+sesQd1/GlLWjgcuEyCpIf+MNWEDwgjoCfGg==
-X-Received: by 2002:a05:690e:4814:b0:67d:d7ec:565 with SMTP id
- 956f58d0204a3-67dec420419mr3923630d50.13.1795476436059; Mon, 23 Nov 2026
- 15:27:16 -0800 (PST)
+        d=1e100.net; s=20260707; t=1795478341; x=1796083141;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=1KEZlJHY2iJZV5bGkgX8FT1FWywheNVCNg2fp4w3t8o=;
+        b=s07FTP35XGgyLtGCmn2EY11jqmZj1412nr3UcQ+vA36f6A2aemFQ2sqd0VlDeAIg1k
+         SDdds1PgvdhRvFWKvl7zTglTJgDeXIctgaaNvENTIyha8XnqqvzQwyWJ1cHO0VXji11p
+         WKqr+zZ9KR3BCda86k96P8HM0L9PBTV5BMl/yjbyR0GwWxD7i2mni1kXDhJKSNdPHh4B
+         i16zXFeJn2zyWAssxaA4l4Kz4fclxaz5Q/h+vHAGqTDKIlEYWnbfS8LAUhlcf2/36ZNw
+         gHKrQAqrTIiJAkq2SiXG99/bJe3qUTtrrp/WJfpdiP/ajVUjh0LyGqAIlJUhPd3ToAqh
+         fhUg==
+X-Forwarded-Encrypted: i=1; AL+hErGZCaV/+o5eYYfG5nOjjCSan5OyRpOvtVpGE0eA8t6im/Z5InOPMCZ/bu6Xkt0+jL/qkR1R7C6v/4eH@vger.kernel.org
+X-Gm-Message-State: APuU4Z/zllSAcau2T19x6pJMVngZBxUJwotWx9lxlxMUpiHYtlwwmQXd
+	uKW/ReXn0YJevBNcD3/PwqFt189lOzpENUkz1fjPL2i+FlH/pDi1x2f7Wml2mZKchw==
+X-Gm-Gg: AZFdTZeto35YEn5g9J5gpX6Zz3MooTWfD4zXCDF//cOVtOuScEOJd5nPfJ/CEOlZrrA
+	d6N7bat09FHPPqzLeSIq66AUlfyHeJqRt9r7nDkHOHeuZ1JK9qk1hsSdSMQT4h/bgTefWFJfoii
+	ajxY44hkLwrE3xEyaErNGIKqBC3nv5rtiFgYTgrMGGZwpN83JvL2RqDyyFfq3PkJNpIu5Cl9WhO
+	/uBFGN26qkSjOBV/BVhXv0T93sRurme0EyMoDcRjoAxavRJguKQkAzstEA9hJ2f5Cbb47i9NI48
+	b4oUrB6154eBs0M8jkutok2xiIwV/pXKQ/FDRTYp+JtE6659QsQztlFcBE3M/mLvdEC5k5JGzjT
+	dCj7YSzN1aa7zXpVK1ZjlaiW/fFP9nMdL4a6ltd09kU9G67aTZfOtDN2LXR9nNHDBJr0rEgjkEn
+	k1N8ynS6+H/ILGsWz6Cyv6F8QJUeaIWfVFPHEEUkqyCGjH6xuVsTMo1cgGuswUbNlC6IVIno3ow
+	HV7I1yeN2nQVkLWizmd6zZkR4GENE9JjJ9hgbPptXrStGl3CtQeB5I8j0gUUf/hqJztdc1DWKmW
+	BvDXK+a5h8f/YcJb4g3Z+OSOPgGal44k+kKW12H3BtyUTzozMWyGbTzlF8S0HY+XAVIiq3JX5od
+	l/na/VqubQDPM7g+6Dg==
+X-Received: by 2002:a05:6000:40c9:b0:4aa:f8a3:3cf6 with SMTP id ffacd0b85a97d-4abb3955aa0mr26517246f8f.30.1795478340984;
+        Mon, 23 Nov 2026 15:59:00 -0800 (PST)
+Received: from dmaluka.c.googlers.com.com (120.142.205.35.bc.googleusercontent.com. [35.205.142.120])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4ab6c61e53asm25727068f8f.59.2026.11.23.15.58.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 23 Nov 2026 15:58:59 -0800 (PST)
+From: Dmytro Maluka <dmaluka@chromium.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Lu Baolu <baolu.lu@linux.intel.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Dmitry Torokhov <dtor@google.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Bjorn Helgaas <helgaas@kernel.org>,
+	iommu@lists.linux.dev,
+	Jean-Philippe Brucker <jpb@kernel.org>,
+	Joerg Roedel <joro@8bytes.org>,
+	Joshua Peraza <jperaza@google.com>,
+	Jesse Barnes <jsbarnes@google.com>,
+	Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	"Oliver O'Halloran" <oohall@gmail.com>,
+	Pavel Machek <pavel@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Rajat Jain <rajatja@google.com>,
+	Rajat Jain <rajatxjain@gmail.com>,
+	Will Deacon <will@kernel.org>,
+	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Vineeth Pillai <vineeth@bitbyteword.org>,
+	Aashish Sharma <aashish@aashishsharma.net>,
+	Grzegorz Jaszczyk <jaszczyk@chromium.org>,
+	Tomasz Nowicki <tnowicki@google.com>,
+	Dmytro Maluka <dmaluka@chromium.org>
+Subject: [PATCH v11 0/2] PCI/ACPI: Support Microsoft's "DmaProperty"
+Date: Mon, 23 Nov 2026 23:58:27 +0000
+Message-ID: <20261123235845.564027-1-dmaluka@chromium.org>
+X-Mailer: git-send-email 2.56.1.831.g720f3f5937-goog
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -101,69 +119,141 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-From: =?UTF-8?Q?Riccardo_Zangh=C3=AD?= <riccardo.z.dev@gmail.com>
-Date: Tue, 24 Nov 2026 00:27:04 +0100
-X-Gm-Features: Aa3M54o5GEwOqBfEtPm2l2KM1CFzpqc22tehqKHIdacZtC0LqG3L8T2gE5Q7iOo
-Message-ID: <CAMnz_-Dgg2eCgZxcCaGuKPV=3-kCfg7ajd9w=vs2fGL-Cb6hvw@mail.gmail.com>
-Subject: [BUG] ASUS TUF Gaming A16 FA608UM: working backlight device differs
- between MUX modes
-To: platform-driver-x86@vger.kernel.org
-Cc: hansg@kernel.org, ilpo.jarvinen@linux.intel.com, 
-	"luke@ljones.dev" <luke@ljones.dev>, denis.benato@linux.dev, 
-	"ddadap@nvidia.com" <ddadap@nvidia.com>, linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Hello,
+[ Resending + rebasing a series which was last submitted by Joshua and
+  acked by Greg over 1.5 years ago [7]. ]
 
-On an ASUS TUF Gaming A16 (AMD iGPU + RTX 5060 Max-Q, MUX switch) no
-single kernel command line gives working brightness control in all
-graphics modes.
+Threat model: An overview of the security implications of non-strict
+IOMMU is presented at [1]. This change is motivated by “Case 1” where
+a DMA-capable device is processing untrusted inputs, e.g. network
+devices.
 
-Laptop: ASUS TUF Gaming A16 FA608UM_FA608UM
-BIOS: FA608UM.311
-Kernel: 7.3.5-2-cachyos
-NVIDIA: nvidia-open 620.73.04 (nvidia-drm modeset=Y)
-Distro: CachyOS, KDE Plasma (Wayland)
+This patchset proposes using “DMA protection” to mitigate these risks.
+This has the following effects, currently controlled by the
+“pci_dev::untrusted” flag.
 
-asus-nb-wmi exposes gpu_mux_mode on this machine.
+- Separate IOMMU DMA domains
+- Use of SWIOTLB if CONFIG_SWIOTLB
+- Disables quirks in Intel IOMMU
+- Disables Address Translation Services
 
-Observed ("type" in parentheses where recorded):
+The “untrusted” flag was introduced in 2018 in [2]. The motivation for
+that change was to enable using IOMMU to protect against DMA attacks
+from externally facing devices such as thunderbolt ports. The patchset
+introduces the “untrusted” flag which “is supposed to cover various
+PCIe devices that may be used to conduct DMA attacks.” The patchset
+originally proposes naming the flag “is_external” but is renamed to
+“is_untrusted” and then “untrusted” supposing that it could apply to
+more than just externally facing thunderbolt devices. The fact that
+“ExternalFacingPort” is not part of any standard is called out during
+review but also that Windows expecting firmware to identify external
+facing ports makes it “as good as a formal standard in the Windows
+world.”
 
-1. Integrated and hybrid, no backlight parameters:
-   /sys/class/backlight contains only nvidia_wmi_ec_backlight
-   (firmware). Brightness control works.
+This current patch series was first proposed in January 2022 [3]. It
+originally proposed a new property “UntrustedDevice” which would cause
+the untrusted flag to be set. In V1 Greg questions whether the new
+property is part of the ACPI standard and asks who is making this
+policy decision. Mika links to Microsoft's documentation of
+“DmaProperty” and suggests that property should be adopted instead.
+Greg objects that Linux does not have “dma protection” but Mika says
+that this is the IOMMU. Today, the term “DMA protection” is used in
+thunderbolt driver code with the same meaning and in an Intel white
+paper [4] describing the technique. Mika also observes that Linux has
+recognized several properties documented by Microsoft but not part of
+the ACPI standard. There is discussion between Mika, Rafael, and Rajat
+about seeking to align with Microsoft on the semantics of
+“DmaProperty” for compatibility with firmware produced for Windows.
 
-2. dGPU (MUX), no backlight parameters:
-   Same single device (firmware, max 200). Writes are accepted but
-   the panel does not change. The kernel log contains:
-   "nvidia-modeset: ACPI reported no NVIDIA native backlight
-   available; attempting to use ACPI backlight."
+V2 of this patch series [5] again proposed an “UntrustedDevice”
+property which Greg objects to because it is not sufficiently
+descriptive, not sufficiently documented, and policies about trust
+don’t belong in the kernel. Rajat describes the “untrusted” flag’s
+current use, controlling IOMMU and Greg suggests naming the flag
+“use_iommu” or “able to do DMA.”
 
-3. dGPU with acpi_backlight=native:
-   Only nvidia_0 exists (raw, max 100), and it controls the panel.
-   The message above no longer appears in the kernel log. If
-   nvidia_wmi_ec_backlight.force=1 is added as well,
-   nvidia_wmi_ec_backlight (max 200) also appears, but only
-   nvidia_0 changes the panel.
+V3 of this patch series [6] proposes recognizing “DmaProperty” with
+slightly altered semantics from Microsoft’s documentation. Greg
+suggests adhering to Microsoft’s semantics for “DmaProperty” and to
+introduce a new property with new semantics instead. Greg again states
+that the flag being named “untrusted” is confusing.
 
-4. Integrated with acpi_backlight=native:
-   Only amdgpu_bl1 exists. It accepts writes but the panel does not
-   change.
+V4 renames “untrusted” to “poses_dma_risk”. Christoph suggests
+“untrusted_dma” and Rafael agrees.
 
-So integrated and dGPU need opposite settings: the default works in
-integrated (and hybrid), while dGPU needs acpi_backlight=native, and
-each setting breaks the other mode. I have not tested hybrid with
-acpi_backlight=native. In dGPU mode the NVIDIA driver appears to ask
-ACPI for a native backlight, get "no", and fall back to a device that
-does not control the panel.
+V5 renames the flag to “untrusted_dma”. Bjorn asks for clarification
+about whether the semantics of this flag will match Microsoft’s
+documentation. Rajat responds that Microsoft has agreed to update
+their documentation to have aligned semantics, in particular “the
+property is not restricted to identify ‘internal PCIe hierarchies’
+(starting at root port), but to "any PCI device". As of today,
+Microsoft’s documentation does not appear to have been updated.
 
-Similar reports on other A16 models:
-https://github.com/OpenGamingCollective/asusctl/issues/118
-https://bugs.launchpad.net/ubuntu/+source/linux-hwe-6.14/+bug/2134615
+In V6 Rajat updates a link to Microsoft’s documentation, renames a
+function to pci_dev_has_dma_property() and uses
+acpi_dev_get_property() to read “DmaProperty”.
 
-Would a MUX-aware backlight choice be acceptable here, or is a DMI
-quirk the expected route? I can test patches and provide dmesg or
-acpidump output if that helps.
+In V7 (Nov 2024) Joshua re-sends and Greg requests a summary of the
+history of discussion about the name for the “untrusted” flag and
+justification of the new name.
 
-Thanks,
-Riccardo
+In V8 Joshua renames the “untrusted” flag to
+“requires_dma_protection”. Greg requests more information about the
+threat model, what does this property convey, and why we should use
+Microsoft’s DmaProperty and its semantics instead of inventing
+something new.
+
+In V9 Joshua updates the cover letter with more information from
+previous submissions in this series and the “untrusted” flag’s
+introduction.
+
+In V10 Dmytro rebases the patches onto the newest kernel (v7.1-rc5)
+and applies s/system may need protection/system needs protection/
+per Greg's suggestion in V9. No other changes since V9.
+
+In V11 Dmytro rebases the patches onto the newest kernel (v7.4-rc4).
+Also collect the links to all 10 previous versions of the series in
+one place in the cover letter for convenience.
+
+V1: https://lore.kernel.org/all/20220120000409.2706549-1-rajatja@google.com/
+V2: https://lore.kernel.org/all/20220202020103.2149130-1-rajatja@google.com/
+V3: https://lore.kernel.org/all/20220216220541.1635665-1-rajatja@google.com/
+V4: https://lore.kernel.org/linux-pci/20220320062907.3272903-1-rajatja@google.com/
+V5: https://lore.kernel.org/linux-pci/20220325184609.4059963-1-rajatja@google.com/
+V6: https://lore.kernel.org/linux-pci/20220426000640.3581446-1-rajatja@google.com/
+V7: https://lore.kernel.org/linux-pci/20220426172105.3663170-1-rajatja@google.com/
+V8: https://lore.kernel.org/all/20241118193024.2695876-1-jperaza@google.com/
+V9: https://lore.kernel.org/all/20250221000943.973221-1-jperaza@google.com/
+V10: https://lore.kernel.org/all/20260525224023.2753569-1-dmaluka@chromium.org/
+
+Links:
+[1] https://lore.kernel.org/linux-arm-msm/20210624101557.v2.3.Icde6be7601a5939960caf802056c88cd5132eb4e@changeid/
+[2] https://lore.kernel.org/lkml/20181129155153.35840-1-mika.westerberg@linux.intel.com/
+[3] https://lore.kernel.org/all/20220120000409.2706549-1-rajatja@google.com/
+[4] https://www.intel.com/content/dam/develop/external/us/en/documents/intel-whitepaper-using-iommu-for-dma-protection-in-uefi-820238.pdf
+[5] https://lore.kernel.org/all/20220202020103.2149130-1-rajatja@google.com/
+[6] https://lore.kernel.org/all/20220216220541.1635665-1-rajatja@google.com/
+[7] https://lore.kernel.org/all/20250221000943.973221-1-jperaza@google.com/
+
+Rajat Jain (2):
+  PCI/ACPI: Support Microsoft's "DmaProperty"
+  PCI: Rename pci_dev->untrusted to pci_dev->requires_dma_protection
+
+ drivers/acpi/property.c     |  3 +++
+ drivers/iommu/amd/iommu.c   |  2 +-
+ drivers/iommu/dma-iommu.c   | 16 ++++++++--------
+ drivers/iommu/intel/iommu.c | 10 +++++-----
+ drivers/iommu/iommu.c       |  5 ++---
+ drivers/pci/ats.c           |  2 +-
+ drivers/pci/pci-acpi.c      | 22 ++++++++++++++++++++++
+ drivers/pci/pci.c           |  2 +-
+ drivers/pci/probe.c         | 10 +++++-----
+ drivers/pci/quirks.c        |  4 ++--
+ include/linux/pci.h         |  7 ++++---
+ 11 files changed, 54 insertions(+), 29 deletions(-)
+
+-- 
+2.56.1.831.g720f3f5937-goog
+
