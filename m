@@ -1,71 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=79.135.106.31
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795444026;
-	b=i1cxoIHUAZjkOX22IUVCMFV4yeBazPpwC9OfTCcd8yhcXgaQIYkLSixY8NEIlRqHqRvf
-	 1lYVluLlnu3DfUDkUnaxf3gPVCgy3/ton3CsfnojzZd3QKmxRDNRWw2CEuBU9vPuMXwRL
-	 /GVsupLANvFheQNfY8L1wVDBBxccr+GUt/3N8gV4qEv3opkIQZn1J11Ghwu7q7mMlKZvH
-	 NyVL2K8zx7bqe1i0fdjm6Hnhz4sIMowYtZUH/nu0aBF8/76aHaTen/AFfDQxTpdogxXLQ
-	 mtCDAgNiHwUsd5qFzjY7x1e3ndzx1eiq5Ap97qcbSO1zQuqxxvttJftqkU9rdVncR1w==
+	t=1795446218;
+	b=0G4tQ6uAdS2Bua+8OW/cFqwGMO80SZIC7UECkxgfabelrerSCLhTNKrOaRWNEy6qyLco
+	 KKV/4Rgd/0AvxOhJXamlz/GKSjju7OJnr/LZIVAxDPm3eDAgnEvQWxCpv0aS9EmYXyjrS
+	 jTG4uMlCo1NF8gAaKaM8uG6cZXUiz/CUfb4uTTwPAtLfr4ILBmTWu4UBWsUDCGQI0xv4q
+	 VZjJpsuPiBRySpMexjksY0oFa3BTZ7KbywdKk5CUfMsSbh41bg0MMVCA4Ubob5puOQYq5
+	 jEshNv980nJew5an28MUtFkFbbDaSUqEcpz7fCxhfQciXhde3BLY+oArwDcBzzqmtlA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795444026;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=2oJdV17KIZUZasV35CEvbX1/9MgA6Fm/bZE/QeZLfdk=;
-	b=OhOJCTdURrZtVmiNpLy8Mvt29H+VzX+RUYHOpkF8LqXUm8vLSTZP+I3BHFOcAt84bQxc
-	 JHYyDFLhzf/1/6p2Ga6W+3U/tBUdoeRi/nntj03MQ2gCh8A2maw2xXAiC6MxJb8wA5i1O
-	 vOXLOcXxPw0fQYWbtV4iftgFqVjI2SOuPLLLgkQjvlXzyCdWR2zHmM40tAWE20f4uDqBL
-	 WqG0EPJtA43uHSXoplCGtfDy3W4A9J43IvvmTeFoTb2ZnBFe7WRaNr92NOgEoaSF+EXb5
-	 cZTWuLj71WXGdNkJxuXJ2+PeGiUzI5BEIN3LAAXKp0rqC8anONQAiDoMA7pdS2TxKyg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795446218;
+	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
+	 In-Reply-To:References:Feedback-ID:X-Pm-Message-ID:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=Hv1e4J9mZaDtpUBaC+0XrDwxU8XMKC697ozcM5Q6eUE=;
+	b=Qm0gGidjXMFmhU2AFlfBFbKYUffRNDxDzkBzOpW34kGqzpI4CGeq8bZu4BSGtIQFQ36G
+	 TvF669+KcD2VZystmhwX3ZM0X8qEhHi64VqUEIhefz89xVK3ze0i7bGBSVgRR/vdlus6v
+	 lhI7Ym+LQ3lwCI+pr/lMkl6SFULtB6ComMhxl61Q612LBE16Suu7BxI/dZEi9BYjuVGYu
+	 4p4JCETgPmUbM7Wyda+HM+wNsWTS/CalTokVbMG2BAVqiQX+acLtcZcPMsA22px61JjWb
+	 YO+L7eeB6QAGxXSRAW+X4fzI4ouGZxlOq/lI9EikVG2aJPWv0XfLO57GHwXdLiOeSKw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="E7YJwu/t";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=proton.me;
+	spf=pass smtp.mailfrom=proton.me;
+	dkim=pass header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=protonmail2 header.b="B/IayE/J";
+	arc=none smtp.remote-ip=79.135.106.31
+Received: from mail-10631.protonmail.ch (mail-10631.protonmail.ch [79.135.106.31])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76E72606A31A;
-	Mon, 23 Nov 2026 14:27:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E4CC606A31F
+	for <linux-acpi@vger.kernel.org>; Mon, 23 Nov 2026 15:03:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4E4CC606A31F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=E7YJwu/t
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF61B1F000CF;
-	Mon, 23 Nov 2026 14:27:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795444026;
-	bh=2oJdV17KIZUZasV35CEvbX1/9MgA6Fm/bZE/QeZLfdk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=E7YJwu/tt5HLoe4Fm1DuHMFT6R/8PllezXlnn2sgTYRc8GbaCMFUtuRDw9aHl2nnf
-	 3SmwP+ULPEU655DZfUriz7QR0arv5Wd/dW5inCUGP+cWKf3QejQKHOyfprTeYV55B3
-	 jlFlGveLiQoN1/MM4yVQBILuWbEPGsfkN/UiaehYLNHuvVTZMlJrbYY4f7Kw6FABma
-	 mdYPsbFnSdvGYBOiFu1FydX73fRdtGRT3+PC5j9LyEBinMJGrZbw3L2OYXx8Qn9XLe
-	 8t9ByqBH1hlkoXFH+nAtgIdXCh73I+0P5qXOdD4Npvnri4p+Fkgu9HJbGB2d6y7YKb
-	 EnJe1mQ5A3jUw==
-Date: Mon, 23 Nov 2026 08:27:03 -0600
-From: "Rob Herring (Arm)" <robh@kernel.org>
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Johan Hovold <johan@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-acpi@vger.kernel.org, Daniel Scally <djrscally@gmail.com>,
-	Kees Cook <kees@kernel.org>, linux-hardening@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org, Hans Verkuil <hverkuil@kernel.org>,
-	Linus Walleij <linusw@kernel.org>,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	Len Brown <lenb@kernel.org>, linux-gpio@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Andy Shevchenko <andy@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>
-Subject: Re: [PATCH v2 05/10] of: property: implement the
- .property_get_names() fwnode operation
-Message-ID: <179544402303.2319923.12244969864693220730.robh@kernel.org>
-References: <20261113-fwnode-for-each-prop-v2-0-4edc23d5cf50@oss.qualcomm.com>
- <20261113-fwnode-for-each-prop-v2-5-4edc23d5cf50@oss.qualcomm.com>
+	dkim=pass (2048-bit key, unprotected) header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=protonmail2 header.b=B/IayE/J
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=protonmail2; t=1795446216; x=1795705416;
+	bh=Hv1e4J9mZaDtpUBaC+0XrDwxU8XMKC697ozcM5Q6eUE=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=B/IayE/JJnRJXbC4nUgTCdXloEAZNr+GRF5dd1eJhzP/L0Z1y8YeQkt5mnc6oVywT
+	 ocHiWTOKX+BzHOF0SU8s5x7Sqoy71uNLDffy/RcYKujOW1vcZcHNnCV+y23E+c57/Y
+	 ZxGr6f3/xHXMuC13Exc1507ZaL+Rj1/3BKRWbfk9JgJfCpCJFOAzBUw3x9er8ZvQWT
+	 tANYFsIEtjZi/s3LLhx75CI6+LOlxb2dKrD5z197nMjG6stjNtNxS9VBwlAnngqsBn
+	 Ks1Kr+RUZHV7oo1nXNoIk+cJR9JRImB8BK6Z9du8xf3IoaqKX7bRca3FaV8fSRduYX
+	 AV0su0CHLPvdg==
+Date: Mon, 23 Nov 2026 15:03:29 +0000
+To: Hans de Goede <johannes.goede@oss.qualcomm.com>
+From: penhouse24@proton.me
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andi Shyti <andi.shyti@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v2] i2c: acpi: Force Dell XPS 17 9720 touchpad to 100 kHz
+Message-ID: <z-Mjt3eV50ZiycWjeVe9dfla5WKoCPC1UXZdFSx2V8YVhr77FH3eKc-WLQgGT_gu1l8NS_-IUcw_-ASU1x_al7IzQuW6FhccBUylTg0yZqM=@proton.me>
+In-Reply-To: <70618789-f82a-4cd7-953a-a97f555fa98d@oss.qualcomm.com>
+References: <20261118073607.297350-1-mika.westerberg@linux.intel.com> <70618789-f82a-4cd7-953a-a97f555fa98d@oss.qualcomm.com>
+Feedback-ID: 217801480:user:proton
+X-Pm-Message-ID: 82fefb8563f78b51c94ce8173912501dcdd98a0e
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -75,20 +64,73 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261113-fwnode-for-each-prop-v2-5-4edc23d5cf50@oss.qualcomm.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi all,
+
+Is it safe to say that this fix is going to get pushed to the main kernel?
 
 
-On Fri, 13 Nov 2026 16:47:05 +0100, Bartosz Golaszewski wrote:
-> Implement the property_get_names() callback from the fwnode interface
-> for OF nodes.
-> 
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Sent from Proton Mail for Android.
+
+-------- Original Message --------
+On Wednesday, 11/18/26 at 03:54 Hans de Goede <johannes.goede@oss.qualcomm.=
+com> wrote:
+Hi,
+
+On 18-Nov-26 08:36, Mika Westerberg wrote:
+> The Dell XPS 17 9720 touchpad has the same lagging issue as with others
+> when run at 400 kHz as the ACPI tables describe. This particular system
+> does not use standard ACPI ID but it seems to use "Windows Device ID"
+> VEN_04F3 for whatever reason. Add this one to the 100 kHz quirk list as
+> well.
+>
+> Link: https://lore.kernel.org/linux-i2c/20261109104542.GL176724@black.igk=
+.intel.com/
+> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=3D214597
+> Reported-by: penhouse24@proton.me
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+
+Thanks, patch looks good to me:
+
+Reviewed-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
+
+Regards,
+
+Hans
+
+
+
+
 > ---
->  drivers/of/property.c | 34 +++++++++++++++++++++++++++++++++-
->  1 file changed, 33 insertions(+), 1 deletion(-)
-> 
+> v2: Drop the DMI match, add bugzilla link.
+>
+> v1 can be found here:
+>
+> https://lore.kernel.org/linux-i2c/20261113083940.2583439-1-mika.westerber=
+g@linux.intel.com/
+>
+>  drivers/i2c/i2c-core-acpi.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+>
+> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+> index 84841ed13487..64fdf8ffb5ff 100644
+> --- a/drivers/i2c/i2c-core-acpi.c
+> +++ b/drivers/i2c/i2c-core-acpi.c
+> @@ -377,6 +377,12 @@ static const struct acpi_device_id i2c_acpi_force_10=
+0khz_device_ids[] =3D {
+>  =09{ .id =3D "ELAN0678" },
+>  =09{ .id =3D "ELAN06FA" },
+>  =09{ .id =3D "ELAN1300" },
+> +=09/*
+> +=09 * This is non-standard ACPI ID used by some Dell XPS 17 9720
+> +=09 * systems. They do have the same issue when used with 400 kHz so
+> +=09 * force 100 kHz.
+> +=09 */
+> +=09{ .id =3D "VEN_04F3" },
+>  =09{ }
+>  };
+>
 
-Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
 
