@@ -1,86 +1,80 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.179
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.12
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795522577;
-	b=FBhAg/epzYTuTpm8KEHvU12w86VkqtA5hqkdAa4jWVyNRypZyDCgaHL1Dt6XIPgKx4nw
-	 jHCsAOcDrzBA05/tNS6yjK2exBsmLBjrbHHOTClNUFgzWZiCC2aKH9Pgk6Of0VCfyAeM8
-	 HZxILUmCOX7mhWrbSjbLVv+0yjqH1VV+T4qh6S2w137xYooyOfY/UX3ZKEfSPjz2WFBS1
-	 M70MrIIAehi6V61FOlhUbGFDL4iiMuLPPXPCH4gBzGi6ZBJeGJc/gQaQnuOTFNLAMeYpl
-	 dqWVVPOvQ3d18yVYTJ6hT1xoJqDV9RZQxB0p0mhD/KlTiAgVJCV01bAW9RpJxkweskQ==
+	t=1795527192;
+	b=XaR8SPtO3ifTQhYAkuMaOq4HgJcpr8woAPkZA+OpYFqQN9rUqyM/xeztpsoDq0ulp4vt
+	 jR6zgJ12HtT0wrAKqlebjArLOxof9y5wgZP7F1YL9rWqlGlvCEj2xyJkAQW2iQ/LAjVRJ
+	 7MQKOo4+fkzCAkYS/varnY5kxNKghcVBLPA3MLIZ+pSpC8VRFFnAxYf+eTIcqvKqQOtdN
+	 MQmzXWM5tMrp995T+VuGfK8mJ+PydcOESVvEYNgV46h0Q3pfFFtJZ0H+O/9iycnULr4TE
+	 BmLndkyLlereIWmBqlP7zxLGWxHpBytmr+emxwhKnbhQ+ukwNHW7ImK7yjm4JXPaSKA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795522577;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:Date:Subject:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:
-	 X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:X-Developer-Signature:
-	 X-Developer-Key;
-	bh=FwhaqWUjSIW6EMpKOPqi42yvxqCff3SEZc5RRREEmFs=;
-	b=cxWhyYszkK7rcXvTXSRxlpaJ9+jxEi5E03TL6O/aipN+wq4qcKPqjaVzDiudZ7cPBIcJ
-	 apjTRx2M1ck9LLVbv7+oBaBx6eBctsB0tZYOU/YGgdGQVF3pYBt/C26dvHJDSh9EAI7ia
-	 Nte8DMOvpyXfocEZqGmEvmWjGbrtMak2kAQts/k1PI63tAlUfCAjr5KqCqwS/lRicP8dA
-	 79OiNArgTQWwFSajA2Bn0XrJLxBm5bI3D2Jpv7g223BA+yYM6PS0kBYTV6Vnnw2yGcqKo
-	 BqmkTnVwJoT5NnOtVALjkyDuQU2GcSLJ1t4r8vAFTrshfxcFpEIfFkDYxBe6JZjFz1g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795527192;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=599vSAb1qpW+ivOrvJ5DYuGSGKJSCi2Fy0I3YlD0SOY=;
+	b=kH0ZpRhWEfteHWlibFy90RU3/sJLe94Kc/9Vyg+HjIe5Z/XWWda3Q79n4SGrMNZ8nPXF
+	 x4thsD3M139HeIVgOgrylf5lRFiqq2+FtZvbAxc4pVwXQuOmFDVxihsL6hmEaSW60+gUB
+	 SaitGmlMwsXLKwR0xrwyJc6vcOzuguQ9eFA5zAX9LyvvJVGa+Iw3nkKM/dSIANnl11bgy
+	 /SOr9N782uBHwAeiIM+b2RYAFni1iUhPNmIZP5OhCUTmKVg5LKYVreNypcCDyqrz3k6SU
+	 9HvxJeGbRVUfmTOiA3/mNp6UGm/qqjbpU24VqQ6GA4MV3+O42sFW0WosPIQOv+979Og==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=beagleboard.org;
-	spf=fail smtp.mailfrom=beagleboard.org;
-	dkim=pass header.d=beagleboard.org header.i=@beagleboard.org header.a=rsa-sha256 header.s=google header.b=foML1HiD;
-	arc=none smtp.remote-ip=74.125.82.179
-Received: from mail-dy1-f179.google.com (mail-dy1-f179.google.com [74.125.82.179])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=JcxABt8m;
+	arc=none smtp.remote-ip=192.198.163.12
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4621606A331
-	for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 12:16:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A4621606A331
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=beagleboard.org
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=beagleboard.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECF77606A699;
+	Tue, 24 Nov 2026 13:33:11 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org ECF77606A699
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=beagleboard.org header.i=@beagleboard.org header.a=rsa-sha256 header.s=google header.b=foML1HiD
-Received: by mail-dy1-f179.google.com with SMTP id 5a478bee46e88-386c4d2e2ccso789798eec.0
-        for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 04:16:16 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=beagleboard.org; s=google; t=1795522576; x=1796127376; darn=vger.kernel.org;
-        h=cc:to:message-id:content-transfer-encoding:content-type
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=FwhaqWUjSIW6EMpKOPqi42yvxqCff3SEZc5RRREEmFs=;
-        b=foML1HiDg0i2JwV0Ln08y9Bb3PaYElgruBIa33RMSp2PjsLDdEjI3w+MFe/q/lZ1so
-         9nK7n6cMPfPfPKm/SzmCaZMeyigXUtUQnXLnyDInpioR8MGPkXs8nVUxCa6gSC4CTKj2
-         5N3yUtsyrYsV3BvlMRaV+RUOAINtyf40zsJ+aVdrS/gElxAN1m6nazcACJrs0iW2OGsJ
-         q6OzD33oMbkqFRS/ZKdsLvPBkhY/U9GMYwAqAKG1Hx+75MJoUyxmrs4pvCWPLrJWYCJ2
-         CINNCAwm6o1cjZ/nL1LPsj4X1t1TYCUzB8H5mjb4/nME+9yJ8+SJ/Ys3qlf9Dse6rgWO
-         pG/w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795522576; x=1796127376;
-        h=cc:to:message-id:content-transfer-encoding:content-type
-         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to:content-type;
-        bh=FwhaqWUjSIW6EMpKOPqi42yvxqCff3SEZc5RRREEmFs=;
-        b=yI+F+JcgKLDH6PSwixTTyyRaOftWEPA0AhhXVxmyogpsuRmpkwv+RHHl637SKUxtVv
-         yjFMgFuj1US+mbhJA7mzjLjc0m6ExYZC7CJ4RA1aSPOAZYGAToP1uI/YnSGUg8XPDgs0
-         fYc7z/ZT12nVcie4E+4wCcyPRzQMUtsIHFbifqUX5+LpMM07rbAK+rAllZZeLUFbaYeH
-         5/tBaCirdv5qu96QGlwC5Z7U43rOTuvRwgAM9jFxxljr+oaz6TN7phVxvPnxlY3eTLpI
-         xntnh0m96+v1CT4dS0baAb9fX0z6ERJO/oRQ6rWgr1YyoC4x8pCeJyovNhOaxwGMyhy8
-         7sLQ==
-X-Gm-Message-State: APuU4Z/7lBo8Bs2KpjlARx6Pyb4j19KNsxYJbtd8oLHnUNCVXE16QSMJ
-	twhoJK/SJG4VNwyRvP424CwEwWAXNrRBtACkmnI/VvDMUVmf3xAijZnOMsKvFqUZkw==
-X-Gm-Gg: AZFdTZeD03SugOe4mdJe+K7+elvkxzt3WfboiO1tlu0/7uL1xO3WekpCL8ct8Q8n9Ff
-	L1jv/tRefV0Q/ZAzq+E7itrpz8zRyMqwAtkkJLf7csleZoPTCRKlMwpJoG/Lj/09vc810V5Fybe
-	8fxoM5uwo68O1+blHOr8CX2y0+gSF8YIHoIK33ksalfDzBmQ2kQxjvaNyP4nZXcWikIUgSsu3W4
-	VTijZczQUBmJrgQTTSoKMaRp4JkMAOhFlwW83jraRoj8FLYc8ViGjroTDsQ0CRlrGD8fAGLkbGj
-	nBtlIxANQ1ppCgZvlKj21JZCoIGeOnzFzFy6msTAPDpnDhsqhI0bd1+9ad9mpEsdY3ELLZgekiS
-	1nBUWm0ogXwNfnlXpv9wumW5io2rAHQfErUKhrdeq7xzMgAI3g4ZVncumTPkgoMOdMCRf3xuTYf
-	y59XrKjPuDj88Se41KnEpNr+Fl03nzlPM0uj5BcIOWDI36KqD0gHWMNgf4qQK8IvK6hkD0ySuw3
-	3DiVNqIxtMogEe+Up17jfjhq4WJfGiKDmB+YD2q9cPLwWKvE3rvh0JUnEc2Q7Zu9jzte/0T94z0
-	vr5x6rtf0wJzfInRCwhA+otDyLJgyOi7YHDTKVw=
-X-Received: by 2002:a05:693c:42da:b0:386:95e7:8497 with SMTP id 5a478bee46e88-38695e790e1mr11295825eec.28.1795522575327;
-        Tue, 24 Nov 2026 04:16:15 -0800 (PST)
-Received: from [192.168.29.131] ([2405:201:4019:32fc:2fd:478e:999:d6fd])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-385672ce402sm42026281eec.16.2026.11.24.04.16.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 24 Nov 2026 04:16:14 -0800 (PST)
-From: Ayush Singh <ayush@beagleboard.org>
-Date: Tue, 24 Nov 2026 17:45:14 +0530
-Subject: [PATCH] ACPI: power: Add serialize_power_on_quirk
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=JcxABt8m
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1795527193; x=1827063193;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=599vSAb1qpW+ivOrvJ5DYuGSGKJSCi2Fy0I3YlD0SOY=;
+  b=JcxABt8mMpPSHRsnVhjaJIT/Vc/v5QwjU2yT5XxeLygHOKS/US4s0xwS
+   gggvtwzdstmImeAF1ER21G2b6vYSxz+pJ+GgzSPrxaqsg3hgzF841wGrW
+   0voWpIihtrYaglIDaDlpX+wlokGbw+8ylTXhHpYLBHsfdGO7iGMKH5HlH
+   7NAYmfy56IROcCYNBdJP43dwjwpMq64i1kYtN159ylScrnl8nd4cKGcq5
+   lNvCvQl8DGWFgTHNDnx3VyGqIMNAfcjrjqmBeYByDgVSusvd+PJd/HYUQ
+   5QGbtJYrTXiH6I26JpmdMFY3mf6c9uJlIlg0RsRmrIjG7mbR4Gi68Kkhk
+   A==;
+X-CSE-ConnectionGUID: Xd3dT05kT2C/g3/NCRfM5w==
+X-CSE-MsgGUID: qBDu2pdsT/KNCVWq//YNPQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11976"; a="4242995"
+X-IronPort-AV: E=Sophos;i="6.27,230,1787036400"; 
+   d="scan'208";a="4242995"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2026 05:33:12 -0800
+X-CSE-ConnectionGUID: acne9dIBRrufqDVaT4Aycg==
+X-CSE-MsgGUID: ihL9+qSLTqmuwiNpyfOShA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,230,1787036400"; 
+   d="scan'208";a="11920759"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by fmviesa007.fm.intel.com with ESMTP; 24 Nov 2026 05:33:10 -0800
+Received: by black.igk.intel.com (Postfix, from userid 1001)
+	id C584594; Tue, 24 Nov 2026 14:33:08 +0100 (CET)
+Date: Tue, 24 Nov 2026 14:33:08 +0100
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: penhouse24@proton.me
+Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>,
+	Andi Shyti <andi.shyti@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v2] i2c: acpi: Force Dell XPS 17 9720 touchpad to 100 kHz
+Message-ID: <20261124133308.GP229695@black.igk.intel.com>
+References: <20261118073607.297350-1-mika.westerberg@linux.intel.com>
+ <70618789-f82a-4cd7-953a-a97f555fa98d@oss.qualcomm.com>
+ <z-Mjt3eV50ZiycWjeVe9dfla5WKoCPC1UXZdFSx2V8YVhr77FH3eKc-WLQgGT_gu1l8NS_-IUcw_-ASU1x_al7IzQuW6FhccBUylTg0yZqM=@proton.me>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -90,176 +84,16 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261124-ssd-fix-v1-1-ee8ef43190b1@beagleboard.org>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAA/x3MQQqAIBAF0KsMf62QBoZeJVpUTjWbCgdCCO8e9
- A7wXigXYUWiF4UfUblOJHKGsB7zubOVjETwnQ/OeW9Vs92k2rAM8xL6OMSQYQh34U3qP41Tax/
- DpNu1WQAAAA==
-X-Change-ID: 20261122-ssd-fix-6b7ab639796d
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Ayush Singh <ayush@beagleboard.org>
-X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5655; i=ayush@beagleboard.org;
- h=from:subject:message-id; bh=S0z6z4N3ZMIBglxNCwabxNIKv0VTwOKGh+I/Nze3qpw=;
- b=owEBbQKS/ZANAwAKAQXO9ceJ5Vp0AcsmYgBrBYALgPhdbLsnw4jjC4NJbI51eSG0JOXyuP+Pc
- Ev+6RXeqXGJAjMEAAEKAB0WIQTfzBMe8k8tZW+lBNYFzvXHieVadAUCawWACwAKCRAFzvXHieVa
- dO+oD/9m9b0n34IlNsaMtwkxUECuBH7WpIoHV5NraHW9R+A9prza461kxMRJdPUzTIY18xZD7XH
- hcLz7XdFFkvsQ7fVM07oMoQRf1nmXY+gXgzK3x7UlXb1+gsc8Y9mUunOdL+oWVHP7UfCbNHPNII
- DkIPoFHlpxNwIYfK9OKhTZB3EDVgi7Ef+JAR4FIuPWk4RKviqLPKROiUagqJLuy2EsLo6I/Zfse
- hKJ8Zbdq2itjlt6RuzVXe695Orlsc90CsrslF+gwZshkLjFSSr5aaDKJVork6qUEIXYksv+ZZ7K
- FKShv2LOiPCN+zEsAVCh+dT6QCuGW9iV+lBVx6SJU4+MO4PvsB9aAC4NM+YzRjaUnQaBcp6u7U3
- TjxKoKptJ3p3PAD7a3Lu5noFiSvOvC1ON9gcbquw4sMkU87nqfJUUm0yS8PBJj6Ix6AINHnggQL
- ZphQIX1EJFL+lZmlqy3ueW8wuAjTa8uw2m1akNTBB3YW+V1M5kQc9TdMORD2Ne+ZlAjaI6KdZeQ
- 4rZWr+SIdZaNVfQ0956zn7N8MlMitk+SM9LPefWskkRBsLvl7ZFOyi4lWJlI0usypKjk3i9Iwh3
- O68hea5Hrz2rxExpUeIEO7s+nOCdhtrEmMXXKVSJ566nwy0CIE19erXZWuev5n4ZRMxtUK3mNZD
- eheDsQJb3MtrWgw==
-X-Developer-Key: i=ayush@beagleboard.org; a=openpgp;
- fpr=DFCC131EF24F2D656FA504D605CEF5C789E55A74
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <z-Mjt3eV50ZiycWjeVe9dfla5WKoCPC1UXZdFSx2V8YVhr77FH3eKc-WLQgGT_gu1l8NS_-IUcw_-ASU1x_al7IzQuW6FhccBUylTg0yZqM=@proton.me>
 
-On the Lenovo Yoga Pro 7 14AKP10 (83KG, AMD Krackan), the NVMe drive in
-the second M.2 slot is frequently lost after resuming from s2idle:
+Hi,
 
-  pcieport 0000:00:02.1: broken device, retraining non-functional downstream link at 2.5GT/s
-  pcieport 0000:00:02.1: retraining failed
-  pcieport 0000:00:02.1: Data Link Layer Link Active not set in 100 msec
-  nvme nvme1: Disabling device after reset failure: -19
+On Mon, Nov 23, 2026 at 03:03:29PM +0000, penhouse24@proton.me wrote:
+> Is it safe to say that this fix is going to get pushed to the main
+> kernel?
 
-The _ON methods of the two M.2 slots' power resources update a clock
-control register shared by both slots without any locking, and sleep in
-the middle of the update. Since the root ports are resumed
-asynchronously, the two methods can run concurrently, and one of them
-can undo the other's change, leaving that slot's reference clock
-disabled. Its link then never trains.
-
-Evaluate power resource _ON methods one at a time on this machine.
-With this, 20/20 s2idle cycles succeeded, versus failure within 1-2
-cycles before. Also tested in normal laptop usage for a few days.
-
-The same symptom has been reported on the closely related IdeaPad Pro 5
-14AKP10 (83JL) [0], which may need this quirk as well, but it is not
-included here as it could not be tested.
-
-[0]: https://ratatoskr.run/linux-pci/2026/04/6586201/t
-
-Assisted-by: claude-opus-5-5
-Signed-off-by: Ayush Singh <ayush@beagleboard.org>
----
-On the Lenovo Yoga Pro 7 14AKP10 (83KG, AMD Krackan, BIOS QFCN29WW),
-the NVMe drive behind root port 00:02.1 (ACPI GPP3) is lost on nearly
-every s2idle resume, while the drive in the other M.2 slot (GP10) always
-comes back. Updating to the latest BIOS did not help, and neither did
-disabling SSD power management via kernel parameters or recovering the
-device from userspace.
-
-The "broken device, retraining non-functional downstream link at
-2.5GT/s" / "retraining failed" messages come from the Target Speed quirk
-reacting to a link that cannot train at all. The actual cause is a race
-between the two slots' power resource _ON methods in firmware, which
-can leave one slot's reference clock disabled, as described in the
-patch. I can share the relevant AML and debug logs if useful.
-
-Testing: 20/20 s2idle cycles with real S0i3 residency, versus failure
-within 1-2 cycles without the patch. I have also done normal daily use
-testing outside of synthetic suspend.
-
-The IdeaPad Pro 5 14AKP10 (83JL) appears to have the same problem on
-the same root port [0]. I don't have one to test, so it is not in the
-DMI table.
-
-I went with a DMI quirk that serializes power resource _ON methods
-on this machine only. If serializing them unconditionally, or some
-other approach, is preferred, I'm happy to rework it.
-
-[0]: https://ratatoskr.run/linux-pci/2026/04/6586201/t
----
- drivers/acpi/power.c | 41 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 40 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 23a4e207a01e..b997d98f38c4 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -64,6 +64,10 @@ struct acpi_power_resource_entry {
- 
- static bool hp_eb_gp12pxp_quirk;
- static bool unused_power_resources_quirk;
-+static bool serialize_power_on_quirk;
-+
-+/* Serializes _ON evaluation when serialize_power_on_quirk is set */
-+static DEFINE_MUTEX(power_on_lock);
- 
- static LIST_HEAD(acpi_power_resource_list);
- static DEFINE_MUTEX(power_resource_list_lock);
-@@ -362,13 +366,27 @@ void acpi_device_power_remove_dependent(struct acpi_device *adev,
- 		acpi_power_resource_remove_dependent(entry->resource, dev);
- }
- 
-+static acpi_status acpi_power_evaluate_on(acpi_handle handle)
-+{
-+	acpi_status status;
-+
-+	if (!serialize_power_on_quirk)
-+		return acpi_evaluate_object(handle, "_ON", NULL, NULL);
-+
-+	mutex_lock(&power_on_lock);
-+	status = acpi_evaluate_object(handle, "_ON", NULL, NULL);
-+	mutex_unlock(&power_on_lock);
-+
-+	return status;
-+}
-+
- static int __acpi_power_on(struct acpi_power_resource *resource)
- {
- 	acpi_handle handle = resource->device.handle;
- 	struct acpi_power_dependent_device *dep;
- 	acpi_status status = AE_OK;
- 
--	status = acpi_evaluate_object(handle, "_ON", NULL, NULL);
-+	status = acpi_power_evaluate_on(handle);
- 	if (ACPI_FAILURE(status)) {
- 		resource->state = ACPI_POWER_RESOURCE_STATE_UNKNOWN;
- 		return -ENODEV;
-@@ -1096,6 +1114,24 @@ static const struct dmi_system_id dmi_hp_elitebook_gp12pxp_quirk[] = {
- 	{}
- };
- 
-+static const struct dmi_system_id dmi_serialize_power_on[] = {
-+	/*
-+	 * On the Lenovo Yoga Pro 7 14AKP10, the _ON methods of the M.2 slot
-+	 * power resources update a shared clock control register without
-+	 * locking and sleep in the middle of the update. When the root ports
-+	 * are resumed concurrently, one slot's reference clock can end up
-+	 * disabled and its NVMe drive is lost after resume.
-+	 */
-+	{
-+		/* Lenovo Yoga Pro 7 14AKP10 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "83KG"),
-+		},
-+	},
-+	{}
-+};
-+
- static const struct dmi_system_id dmi_leave_unused_power_resources_on[] = {
- 	{
- 		/*
-@@ -1156,4 +1192,7 @@ void __init acpi_power_resources_init(void)
- 	hp_eb_gp12pxp_quirk = dmi_check_system(dmi_hp_elitebook_gp12pxp_quirk);
- 	unused_power_resources_quirk =
- 		dmi_check_system(dmi_leave_unused_power_resources_on);
-+	serialize_power_on_quirk = dmi_check_system(dmi_serialize_power_on);
-+	if (serialize_power_on_quirk)
-+		pr_info("Serializing power resource _ON methods\n");
- }
-
----
-base-commit: 988117cc1bb17338c586a4e21ade88b5397eac33
-change-id: 20261122-ssd-fix-6b7ab639796d
-
-Best regards,
--- 
-Ayush Singh <ayush@beagleboard.org>
-
+This still repends on Andi to actually pick it up. Once it is in his tree
+it is likely it hits the mainline as well unless something catasthropic
+happens.
