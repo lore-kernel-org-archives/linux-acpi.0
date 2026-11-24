@@ -1,113 +1,77 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.47
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.227.17.20
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795546718;
-	b=ruC/NHeejLLkeOS4r2K62T3+Z663SFJWLD3L4WhR50keOf00zXX1SFjl8X4UQ+qAATsv
-	 SZ+Ggvj5EfHfNGHIEa8/acS567JXxbe4JAjeFV1hY8VaRMWJU+kHMsDoepdD+ESyzk2qs
-	 PwftYT2H988NVmV+hm+fs2rg0VF395yom/uQlREJvDNVUffCgFnV7JiObQbkwHBPTV+82
-	 df9P2tFz37ebluzn6VBp33+h2IW+hCYqG0qYde+jsPcaSxWYtcJ2GDTKVlyfvChj8SDt2
-	 4NQFq1SL9q+0MYQHYVn+g75+xhXYljEzytw3rLacPm2OEXVyRmawveTZGaFLI26iavQ==
+	t=1795551008;
+	b=KiAlhzRhal8w/p06XPwNJDSHUpet1DZ4IJrnZ3d4x6pFrM5rhqQeAcySGP6Cnvj3IbhT
+	 WWtZ1SaltoZo7ZXl/VhHmCKkxSRoQmlkjJ30uPYZa1PBqzjeYk5Yp85WjLNiAjb76zBKt
+	 1L+WGPCRJS3tmm3OwN24Zsw7GB03RYV2qEOMvOobS8JUu2pZEg3jJ7YB0AuMKH4Q+WUoi
+	 VPIxcqC62GHuD8U/HP04O/a+ZajcT7XsvxhTMB8SotV2tMs3t/TdtrzdWXSbzb26/xBsX
+	 OgrDLXzDFXNhLhzq4mWz2oQChSJziLvcjnDQIHNj0gOV7GCyLqFzJNR4RcaSZVrYfOQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795546718;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=rKVd0WB9GKER5oLiGhqXKhoz1U/fSQCfKOepi4KUjiM=;
-	b=zY+zMZaJ1QZV6EImE2sC7wG4bxKtWFw1AhDsowUX4vFS9uFev5VpaPULFJmkOSxRW3iE
-	 ZmlH+NQUU4gbToH3GWLYBCh8cHoMOFTGI8R4Y8ZoKdFJ3ZeufUcG0RHm96dhVneZxNIsd
-	 aUE0LZgpMlj3BvsAdveOj5of5txjtw3ZUAHfPsJ3KX4K1pZy/z8KR/q6IzYxGwLdXfoj2
-	 y2b+efOe1SkSu0FEN8knDW9kkOzi8ptAK/Wk2aRur22MuxkVsOSKmZGcxozstSOZV3wbo
-	 5uWmAkxVEJrvEdl5CSqidBD9fuSLhaJLVQxIYqp5gSqo1AbR71p3KaHp3MCz3FktKEg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795551008;
+	h=DMARC-Filter:DKIM2-Signature:Message-Instance:DKIM-Signature:
+	 X-UI-Sender-Class:Received:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-Provags-ID:X-Spam-Flag:
+	 UI-OutboundReport;
+	bh=5Xz6Dtq+wq+1buX+CnU2zQmWn060HNZJMe0vWvAGlqs=;
+	b=gCOdD1FzBI8cDL+E9F6RH9pREeZjK11l3vkcOU/HaqKPJSK4sEKBmRX8YBFCi3PFJkNe
+	 S4oxkQ0fKhZxfbnrsr5D89dthxo+5cdj9kVEM9eAkQK+lI1ZD1zlaHwFPfP8fW0ISQx5w
+	 OkpqC9daeStY+pqRtxOLMOybY/QjmCJtm8JNJXFK+MS4Ul9pPecTlZea5Y6xZW6H+rMuc
+	 GjJTSTsGHeQVmjXyd177Bt1aACPPDbhL61nSYWlKVMN4On3WglEEztMJsyv6OT5cnMpN5
+	 20sTNVUZnnJ0mIWQM7EXKiiiYbcpc5U8oY20ZCF0O/ZiuTiMN1odAizNr9ZOHAFoXBQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=chromium.org;
-	spf=pass smtp.mailfrom=chromium.org;
-	dkim=pass header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=bDP7tg7r;
-	arc=none smtp.remote-ip=209.85.221.47
-Received: from mail-wr1-f47.google.com (mail-wr1-f47.google.com [209.85.221.47])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=gmx.de;
+	spf=pass smtp.mailfrom=gmx.de;
+	dkim=pass header.d=gmx.de header.i=w_armin@gmx.de header.a=rsa-sha256 header.s=s31663417 header.b="btpT5X/q";
+	arc=none smtp.remote-ip=212.227.17.20
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.20])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1332B606A68B
-	for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 18:58:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1332B606A68B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 011EE606A31E
+	for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 20:10:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 011EE606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=bDP7tg7r
-Received: by mail-wr1-f47.google.com with SMTP id ffacd0b85a97d-4a5024b3c28so3476578f8f.0
-        for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 10:58:37 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1795546716; x=1796151516; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=rKVd0WB9GKER5oLiGhqXKhoz1U/fSQCfKOepi4KUjiM=;
-        b=bDP7tg7rXIWgB+hAPfjr5hkfXqq3/feAOEYjiTHuNZrQlhTtTN46nfDNyfwQbJPZFF
-         9dIgjYOemEri6j3ST+69bdA6wEwAor2eTWvN7U35JZAsxdhhRIUlxX9rIE9vYUa4xshh
-         me3UKBz9ojnotyqPz1jk4D5mb5c58YTf5H6Ys=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795546716; x=1796151516;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=rKVd0WB9GKER5oLiGhqXKhoz1U/fSQCfKOepi4KUjiM=;
-        b=ZcFrFsZljL22yWRbO/LJ3K/d+aiow8U1/I1SLKre9iSxElNasDEYn+OP7v90M4Opa8
-         RBl1aOF5HHj1KXvjY6whStC7yANRDeFBS4pSyaOqdpypYWB3XDaT5bergxTzkMlMxRSe
-         T/N+vwGP6CpjlW35LYb+ihS8A24t6qsg5UbVrugflUD5Q+pTnn8RqRSWDvKnkrCiLDnp
-         2oPkapEmxWBG/LTdfZk2f012msVTKQqOqj8E4fG/bKf1KA3Sr/ilqFe3f74oVlxEiw0D
-         6DghGzLZ8x4oiIU2QuZtskO14TmLCqckCwDX2Hrr0rSJXWFYe3/7wVLkH1RC4VzBxMkn
-         sp4Q==
-X-Forwarded-Encrypted: i=1; AL+hErGS6OXw6qVCepK+u3Nx5lUU0rD7w1rc5zT38kWtmiStAKpNc2n1ZQpVv9bKwc5NlZf0SXrjVzeJbVGF@vger.kernel.org
-X-Gm-Message-State: APuU4Z/MNsrcATPuqL/hIOgW8mVSmgdInKz8rqrDqEd/Bw4+OpEYV4jX
-	ZnWBkk3MoCiaX2oC2oaq5qjOrWgPtE4nRWWvBkiUrCSpVMfmpzmBkWdJyzqFFdnHmQ==
-X-Gm-Gg: AZFdTZf4L09mxXKIBFOlOy6zpHxCMSexFk/EhNpMOeq/3YP58u/3gGe6QiIccb1/wVw
-	heUVXVYbEVzQzRtXCH+hdFta4fgrreWpfEpwv9jcQpRe4mhP6sggOsToGX81YDqamLf20kzawSh
-	Fa9RhbrSMKKDDYYDsPxZ59ZEARcQsBhK9zfUbKHUMdV09T0mUV4dErrmcmc0jXS1wBY9O5QEFfK
-	fzP9rjn2x7yUbkTkkvngUMX0rbq2Ync9i8bdHCLUHSb8jP4vkGaCENjncJ/9C3oisqvr46Wig9E
-	fUWDZAzgzfQqmB8uyGIVtrwnhUi0TgP0FHv6m409BHZp2P+3Vda090J8AOv+Ku9aS9h0XXJ7Urk
-	CjSNeAsUDN61toggP5WTai4t/CdrLODtAiNKk8xQ2p46kYT4LTHJE8yQgyEirlddwRZjZQFA9Ex
-	Xux5QBCukiUDcgY5W6b0Nz78feQ/NgHF1OlWbMHQdCm8yto9BqU10szK6XRrfz8v6Qfog+Dd+ti
-	gFNCaMuy2qO6enkdnEYZCR572nyZH1/bDPlh7BqHIQkbIrInm5iuhS5vtPIpiPKPeDWjHQdMbp1
-	3xTqFg+vGKYvvEp4DprW1DsIO5UYFmuerTUCXsWze/bH0VSmjWGB1wuiXuaCk/BL
-X-Received: by 2002:a05:600c:4585:b0:4a1:c6f5:2450 with SMTP id 5b1f17b1804b1-4bb8881b8e4mr321879025e9.17.1795546716413;
-        Tue, 24 Nov 2026 10:58:36 -0800 (PST)
-Received: from google.com ([2a00:79e0:285b:8:af0c:c5f1:ee8a:b81f])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb853ca452sm445870355e9.15.2026.11.24.10.58.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 24 Nov 2026 10:58:35 -0800 (PST)
-Date: Tue, 24 Nov 2026 19:58:31 +0100
-From: Dmytro Maluka <dmaluka@chromium.org>
-To: sashiko-reviews@lists.linux.dev
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Lu Baolu <baolu.lu@linux.intel.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Dmitry Torokhov <dtor@google.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Bjorn Helgaas <helgaas@kernel.org>, iommu@lists.linux.dev,
-	Jean-Philippe Brucker <jpb@kernel.org>,
-	Joerg Roedel <joro@8bytes.org>, Joshua Peraza <jperaza@google.com>,
-	Jesse Barnes <jsbarnes@google.com>, Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	Mika Westerberg <mika.westerberg@linux.intel.com>,
-	Oliver O'Halloran <oohall@gmail.com>,
-	Pavel Machek <pavel@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Rajat Jain <rajatja@google.com>, Rajat Jain <rajatxjain@gmail.com>,
-	Will Deacon <will@kernel.org>,
-	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Vineeth Pillai <vineeth@bitbyteword.org>,
-	Aashish Sharma <aashish@aashishsharma.net>,
-	Grzegorz Jaszczyk <jaszczyk@chromium.org>,
-	Tomasz Nowicki <tnowicki@google.com>,
-	Dmytro Maluka <dmaluka@chromium.org>
-Subject: Re: [PATCH v11 1/2] PCI/ACPI: Support Microsoft's "DmaProperty"
-Message-ID: <awXeV5Jo4WTjLc8c@google.com>
-References: <20261123235845.564027-1-dmaluka@chromium.org>
- <20261123235845.564027-2-dmaluka@chromium.org>
- <sashiko-outbox-230247@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.a=rsa-sha256 header.s=s31663417 header.b=btpT5X/q
+DKIM2-Signature:  i=1; m=1; t=1795551005;
+ mf=PFdfQXJtaW5AZ214LmRlPg==;
+ rt=PGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnPg==;
+ d=gmx.de;
+ s=s31663417:rsa-sha256:t2bCZ2Gr5TiMfFRuVE6X+xnm6K1M
+   sFbqmNrrrE79gT6jdDSpsGuf0lz96nZaRWBVNW8xwg1Qu9NVxg1V5fR1JnB1uyYd6Uov1TLP7zS
+   SSohpgjjAFLXtwQLXwPwJeAAKBUuff+HFo1yr1AhnbXj6svoLpQAo7ZuADw95rD2788Iye8kNHg
+   ntaXPpHiUv1dFQodFzC961sY5V+hR0WGxkK4xWOFu6aS+7udUcJIUnrd76TZAYjbKYSINox/4tf
+   OgtVQcQ5k7541FJre7dOTBViv0dmkMBm0Zb+MltxMtcqdC7nqL6MbxUtwua/liJQwfGCFpessaF
+   I4HgmxrspCwUjQ==;
+Message-Instance:  m=1;
+ h=sha256:
+   LJjM84DaSF355nmHVclyASiMa51azJtV0asniBpOgPM=:
+   5Xz6Dtq+wq+1buX+CnU2zQmWn060HNZJMe0vWvAGlqs=,
+  sha512:
+   Ubk7aEVnEpcqyNA8crhP5yO3NGidV4kjEH3LEUEF4Avz24w/h7azpjmxW1Wri3io+LPI8jlpWGn3FrlKE+k93Q==:
+   7GGJe1BDeAuqjnunq3H81JFNeh1nE8uRfXuFYALm8A0rSZXDtGQV9Kcx3TBLjxhuTAL42AMhIrfWAuksOXz9JQ==;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
+	s=s31663417; t=1795551005; x=1796155805; i=w_armin@gmx.de;
+	bh=5Xz6Dtq+wq+1buX+CnU2zQmWn060HNZJMe0vWvAGlqs=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
+	 References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:cc:content-transfer-encoding:
+	 content-type:date:from:message-id:mime-version:reply-to:subject:
+	 to;
+	b=btpT5X/qQg5HIJESxqPy1mXt67WHiEvznvmxukkyg5vjZ3uOeFRqza1xj2hXoChW
+	 LW94ffX02KYXEY5IP3YYiHgUlj5NgNLA9BNIZgQun6CyxAdlzRibf8dX8yhS3gXcI
+	 SVZYN5NtMqr+1tTuvQDUQ4BjcMYzmi/Qo7u12FMyTDgGmYqtcnDSvqHYIKvQCRfB5
+	 hAYHWtfyADvkI2CawuaAE7sFIH6Zzktlruue9PjVAwyOA0vOX89ezQCLHPFWcis6I
+	 DPCj9bzJXbI9cYB73YCj9+ip5CymAIKRlM+gZ0ETbBdIzPzyc7UQh9hlubnodXjal
+	 Q/2Fl7Cx81TK0Al4Gg==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from client.hidden.invalid by mail.gmx.net (mrgmx105
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1MWigq-1y2qrk30hc-00YcOT; Tue, 24
+ Nov 2026 21:10:04 +0100
+Message-ID: <4258d1af-f088-4d04-835d-b769264d1f9b@gmx.de>
+Date: Tue, 24 Nov 2026 21:10:03 +0100
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -117,119 +81,130 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <sashiko-outbox-230247@kernel.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v1 0/5] ACPI: fan: Assorted cleanups
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
+ Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+References: <3985766.kQq0lBPeGt@rafael.j.wysocki>
+Content-Language: en-US
+From: Armin Wolf <W_Armin@gmx.de>
+In-Reply-To: <3985766.kQq0lBPeGt@rafael.j.wysocki>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Provags-ID: V03:K1:NfEfoIsBd1T3Q88J/8HjnheasBPtpNCKb3Fodm9zmYatjDfvP1W
+ AevmWUM8nltBEzkG5pzWwf/2eum3SiYHwHdQUjVE1dpk/3z3ehtWA/fhLvEfqantkOX7GMD
+ 7BSLdNrx4DmEIBf1xDjVNjWNgA8CyY4/oLk+dxnyGOKjSCgY/rer3wHRpLp3MUZZxuCF5JP
+ b4veZ44qp3936NhMwhH4A==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:T3BTyPjNFPw=;LUE1WcvigR4sTUhCqnrdCDZBFZu
+ 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
+ UD7WNbSi92KVkNJEjywAHWp0R/KEOp7wekcQ==
 
-On Tue, Nov 24, 2026 at 12:15:46AM +0000, sashiko-bot@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 2 potential
-> issues to consider:
-> - [Medium] PCI/ACPI: platform_optin_force_iommu() ignores DmaProperty
->   devices
-> - [Medium] PCI: SR-IOV VFs do not inherit untrusted flag from
->   DmaProperty PF
-> --
-> 
-> commit 534ec8c0dc4ebcebaa88d905d9760f867ca5b38f
-> Author: Rajat Jain <rajatja@google.com>
-> 
-> PCI/ACPI: Support Microsoft's "DmaProperty"
-> 
-> This commit adds support for the Microsoft ACPI _DSD "DmaProperty" to mark
-> PCI devices as untrusted when the property is set to 1.
-> 
-> Link: [1] https://docs.microsoft.com/en-us/windows-hardware/drivers/pci/dsd-for-pcie-root-ports#identifying-internal-pcie-ports-accessible-to-users-and-requiring-dma-protection
-> Link: [2] https://docs.microsoft.com/en-us/windows/security/information-protection/kernel-dma-protection-for-thunderbolt
-> 
-> > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> > index 1150f2fbabf41..5971ffc2a375a 100644
-> > --- a/drivers/pci/pci-acpi.c
-> > +++ b/drivers/pci/pci-acpi.c
-> > @@ -1427,12 +1427,34 @@ static void pci_acpi_set_external_facing(struct pci_dev *dev)
-> >  		dev->external_facing = 1;
-> >  }
-> >  
-> > +static int pci_dev_has_dma_property(struct pci_dev *dev)
-> > +{
-> > +	struct acpi_device *adev;
-> > +	const union acpi_object *obj;
-> > +
-> > +	adev = ACPI_COMPANION(&dev->dev);
-> > +	if (!adev)
-> > +		return 0;
-> > +
-> > +	/*
-> > +	 * Property used by Microsoft Windows to enforce IOMMU DMA
-> > +	 * protection from any device, that the system may not fully trust;
-> > +	 * we'll honour it the same way.
-> > +	 */
-> > +	if (!acpi_dev_get_property(adev, "DmaProperty", ACPI_TYPE_INTEGER,
-> > +				   &obj) && obj->integer.value == 1)
-> > +		return 1;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> >  void pci_acpi_setup(struct device *dev, struct acpi_device *adev)
-> >  {
-> >  	struct pci_dev *pci_dev = to_pci_dev(dev);
-> >  
-> >  	pci_acpi_optimize_delay(pci_dev, adev->handle);
-> >  	pci_acpi_set_external_facing(pci_dev);
-> > +	pci_dev->untrusted |= pci_dev_has_dma_property(pci_dev);
-> 
-> [Severity: Medium]
-> Should platform_optin_force_iommu() also check for devices marked via
-> DmaProperty?
-> 
-> In drivers/iommu/intel/iommu.c, platform_optin_force_iommu() only checks
-> has_external_pci(), which tests pdev->external_facing:
-> 
-> drivers/iommu/intel/iommu.c:has_external_pci() {
-> 	...
-> 	for_each_pci_dev(pdev)
-> 		if (pdev->external_facing) {
-> 			pci_dev_put(pdev);
-> 			return true;
-> 		}
-> 	return false;
-> }
-> 
-> On systems with CONFIG_INTEL_IOMMU_DEFAULT_ON=n where firmware sets the
-> DMAR platform opt-in flag and marks internal ports or devices with
-> DmaProperty instead of ExternalFacingPort, has_external_pci() returns
-> false.  platform_optin_force_iommu() then returns early without enabling
-> DMAR_FORCE_ON, and intel_iommu_init() disables the IOMMU, leaving those
-> devices without DMA remapping protection.
+Am 24.11.26 um 16:45 schrieb Rafael J. Wysocki:
 
-Makes sense to me. As I understand, prior to this patch,
-platform_optin_force_iommu() was technically not buggy, since
-pdev->untrusted was only set for devices downstream of external-facing
-ports; whereas with this patch, internal (e.g. SoC-integrated) devices
-may also be marked as untrusted i.e. requiring DMA protection, thus
-platform_optin_force_iommu() should check pdev->untrusted along with
-checking pdev->external_facing.
+> Hi All,
+>
+> This is a series of assorted ACPI fan driver cleanup.
+>
+> Thanks!
 
-Baolu, do you agree?
+For the whole series:
 
-> [Severity: Medium]
-> Do SR-IOV Virtual Functions inherit pci_dev->untrusted when DmaProperty is
-> placed directly on an endpoint Physical Function?
-> 
-> When VFs are created via pci_iov_add_virtfn() -> pci_iov_scan_device() ->
-> pci_setup_device(), set_pcie_untrusted() checks pci_upstream_bridge(dev).
-> Because pci_upstream_bridge() resolves pci_physfn(dev) first and returns
-> the bridge upstream of the PF (or NULL on a root bus) rather than the PF
-> itself, and VFs do not share the PF's ACPI companion, virtfn->untrusted
-> remains 0.  IOMMU and DMA paths then treat the VFs of an untrusted PF as
-> trusted.
+Reviewed-by: Armin Wolf <W_Armin@gmx.de>
 
-Yeah, similarly agree. Looks like pci_iov_add_virtfn() is implicitly
-relying on an assumption that pdev->untrusted is *only* true for PFs
-downstream of external-facing ports, which happens to be the case
-without this patch, but is no longer the case with this patch.
-
-...Although, independently of this series, looks like
-set_pcie_untrusted() is completely buggy on non-x86 since v6.13, since
-it solely relies on arch_pci_dev_is_removable(). I've just reported that
-at https://lore.kernel.org/all/awXXSfrhLHK7TNbp@google.com/
