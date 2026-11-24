@@ -1,54 +1,99 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.210
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795552292;
-	b=h4EBGSCnJd3/ojlK+ziO5JWxtMgfFHGhTD7gyMtHr1cMzpW7vgKZ61N+hpU652yapRLO
-	 fTlzVG/UOp+cNEUDQdIMO7fzpwqoRDrM09B+b0K8NbjcD8T22yd35LPtw2AFMEYXTMByp
-	 ZQza/mhtSFcswc6COytuIElvvECVy9G2yULLBGY2et4YQc5Ex+mxfhgyEghqmVQ5JXEci
-	 V338e0T8X1hpaX++tkWY3LpbYJNSxfpwjb/aSfkLBsqpCYamtl3KJ7SpYtH9x9oPfKHhd
-	 87J5Fi7kMMcEUOubG8W+cdm05ZTzALzO0nNMKZYWOmi8mQ/NGlfqjXebc7x5TNp5U8w==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795552292;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=2PtkxOAKluWgSgDTPyboyHUsn6J2okExmVechF2fuoc=;
-	b=Qow8IBG/jkoEcsfdSGvbtXs/wnJl4owV3dzFyUpdrYoAFJiRGfnYuuGCBpKBNDZDrwf0
-	 32Gy+ujJd9zcElOXgvb3ec9uf08a+MwXL2GWs9ueSA3lxsPnRBS4PuXNGoT9cqXrQKd77
-	 0bo9HpaCGLFnXAOrLpISQ/SUUaO1M83rY4Kf42DqsrgGLItthk9gpaNvS6GJp5Om/1ged
-	 jwrBqNS4RJEJeP1P2iLmKu+mbjZ0eAWGC/cDcySCLwYOR4HbG9NcteIl9F3YpdajLA6s2
-	 vqxmMX+Q8Wh9JQp3m7ikkPobF2NotCjrkU+0QUpw4K3dIWKwah14452lzeClUBYL45Q==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=Sf1+yqUF;
-	arc=none smtp.remote-ip=95.215.58.210
-Received: from mta1.migadu.com (out-210.mta1.migadu.com [95.215.58.210])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.46
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795561814;
+	b=h6Wzq80uOlTm9MBSb+Dhk3jQQBFTQSxVp78j76VO0Sa2jPiFu78VxsgomszhKAj8gLL8
+	 673xHnrbCnWxLUGsitbxiNbg7PQbZ1ouPM75iyrhrfdmM/24lQbivhtM43HbD6GQGYZW3
+	 HqgwLhsBbL5RcdiKnckhRucXO3B4kQLsXwTlj8ab8VkTmi9BFhCSzXYl+UI7YLgkF6ngn
+	 +IDnddeZJXGNPn20qZhpxqr7RioF263rYG8ibippr8uLGhJ7uWbcsxLoH5QfBnSPEvx5M
+	 Vm9sFKk1drHbRcKZXVvTKLVAc9prRZRjmwSn140GJX5P8nh4IOQ9opNesQAFW0OQwkw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795561814;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type;
+	bh=hn0+1PqSwIkZe/gXF4MljP/J7Q+abXQ818LN43GM8lI=;
+	b=WKQ4P1rFKu2Ijk23tjJ6P1g2N2UcRAhUaO5pGvfCJS/JnyrX6Al0VAKZ/fqkgRepPWL8
+	 wOASYErkNEY/MAAStcbsrpQscax738WlGCz8qPAf/4NCQmnPCR4CjiCECxxWnjoF5/yoV
+	 AS6iozZsuccbtR8KOaSjEI16HFu5uhu1hqWIeug+6BSZz2ProvdZ7umUsaPyPiEEJutm3
+	 HOupplWemO11uc6OnG/P2qwL3Ww28AOQyPMLApNHym84vV6pd+oym+2ePLEKRZF/Kk0FI
+	 jgZp9f4p2nWFIH7DFz+h8qEDHH1U+UVUVQV1YKacunCeYmYYOzdQNvUuduchroZLfhg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=KqttAE0+;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.46
+Received: from mail-yx1-f46.google.com (mail-yx1-f46.google.com [74.125.224.46])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFD91606A321
-	for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 20:31:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CFD91606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C850D606A321
+	for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 23:10:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C850D606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=Sf1+yqUF
-X-Envelope-To: linux-acpi@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=2PtkxOAKluWgSgDTPyboyHUsn6J2okExmVechF2fuoc=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1795552288; v=1; x=1796157088;
- b=Sf1+yqUFfpFSLB48GiANbB3mtsfdl/9tX8jc8SB0EoO3mcPwJ9G111b8+CDdSK1i8NcjVDms
- R+ZsjLkNqPOGOUGg8VsOVcLmpbFOFXjFq7MD/or3fo/zPbf6ZKGm2ifDI2IcL78zjgfec5t/81c
- xVT9F2fOOONTF6zqw3tUVQuk=
-X-Envelope-To: linux-acpi@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id b0e58a19869e7ffa;
-	Tue, 24 Nov 2026 20:31:28 +0000
-X-Mizu-Trace-ID: b0e58a19869e7ffa
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <d1b177a9-5891-4c6e-b43f-3af674f804b0@linux.dev>
-Date: Tue, 24 Nov 2026 21:31:27 +0100
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=KqttAE0+
+Received: by mail-yx1-f46.google.com with SMTP id 956f58d0204a3-67990a45e02so5270615d50.3
+        for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 15:10:13 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1795561813; cv=none;
+        d=google.com; s=arc-20260327;
+        b=bOSGBBzhkngo1KvS8zNZLqn3qELa345vPBqBvYjX/+KY+qEKe4ucHAsJoECqk7NwA9
+         b4UE2yr3wGbSfBpzFfI5oehweNr1dpdR8XiGb4gjUJGUsORcbOZPBa/yIObOi9GPOOJN
+         jo3mFWdC+8RjrT57mNs4MZXFzOOLUQc+LSF7I+DXgdcq57W/Cnm+/Kh/aYp9+xtj/75h
+         Idh0YJ0y9a8vSFnfDRQ4T4oCobjDy2yDqiwrG2AL87HpQv/AevVZg6FFJNXq1Kp/nWgD
+         H4b6PXXc5itXc6PcRVk+Q9iWp04mLATRZsFWHp73HNMSn3PoeqIaqZqP0g0XZHa3XNHc
+         zMSA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=hn0+1PqSwIkZe/gXF4MljP/J7Q+abXQ818LN43GM8lI=;
+        fh=GCUqFoE3JR2eOr5O6zZrmfOt9ol/8DTYdKlXKhvaSl8=;
+        b=d100WB/lrHjrpwcE8wrCIEBlWUSYeR0dXZdAFu2p83ZSqUEbQO1oS0TP0UC2xwRhYf
+         VaF/fnfNs4FbNP12pW/OZKVeFsj/aXJ+jKY6hAKGnfTbOq1PdnnrsYdcRZIl9chH+GMj
+         cvXSZdSS/ygZl1GdNBi0wz9iNlO65XOUZpPavT/MaFAOSi72s6PXbvAcZlCs68/eBCQW
+         Kn6ZS/sk1cajWGeuvJe5rzqu2GrC2Ll3vHVXYNUfW5Ol+/TKDFLJsWSXjvDjpCxEBoTQ
+         V1NaNIvyA0I1KBBH+vcY/9cKP9jjPx4Dk1aKz50Qkfpcz5jDEt5m+d0sLscK+ULv8saA
+         0BKg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795561813; x=1796166613; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=hn0+1PqSwIkZe/gXF4MljP/J7Q+abXQ818LN43GM8lI=;
+        b=KqttAE0+RPgMGy4Ec6nastU4fvOf/z1FAjdKUOukGbEfSDr1fQxtw3U7bCgUbRiGO1
+         xo8l2th4c4sHFl6cU9hBW4yAer2w5B4qOCCMrM+wIlkVraqoq6n458thMkCBqjWGt/S4
+         +YWZrqQqKcMXOdEeVHCoOEICIn9DQNhLPQ/ugHKKEzHduRfEdUG7pGX0+KUQ2WDId0cf
+         1QOVMTHB1vYzRw978mWBleioSjGxnIhfdudhCNcUcEzoGMJ+xau/4aBmA+OSlDkTefW7
+         A4jzJibC0nnscLjg3wiR/DciLHZCu5dvuwPMvQcQpMIp5VphmT5/+Ij6pcb6sulG3HmA
+         DCqQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795561813; x=1796166613;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=hn0+1PqSwIkZe/gXF4MljP/J7Q+abXQ818LN43GM8lI=;
+        b=fCdH2NsRhakjeTl8s7aQYLy/Lpt4VoLu5Hvkmz5qpePIMXjetsukxD7xnYjYhDvzeM
+         se2MgJpRZ6/+Y01S5qe+eltY+WHDTxfnqBQBzqO+LAgDSMJi5X2xi0HxM+SgLP7TAagC
+         3X2KDppP6s+fEGx7CutIfp0wzQYwlsupsrcS9oqp9M0D5b1a2iSkxC31hJ0oEn6m01YB
+         x+uxgfMFtoqWNlHvHH/U70dson1nqufp+kTFNaSmNrQsK2TTdYBAUKeOzOv8Jn41zZo4
+         fN6SZnPl4wRQ8iJ2hYoKiat6cCQte5Lg7c6NpXf3zNf7ZGopaoOwtmxhJEVHJzI2T/jC
+         Aw9A==
+X-Forwarded-Encrypted: i=1; AL+hErFhx3yldxqyMl4JygngxgvCusdVWsA9a6ZfL1oXrH4v401K0ih4HzUXxik3LMcXhhVR3rYeY2fqvypj@vger.kernel.org
+X-Gm-Message-State: APuU4Z/TjUkh/F/dwLAsT0W3vrMwbbpo2Vau41BIiJRLlBxh9utLcgT9
+	AXlNtHESnkgrzoLbhvswyYF5DNGIoM2aGXxJEeGU5ezsvVd8U9l5KuhP/Mganp2E14l/tIXLp69
+	L7rGoxCwCZ19UbI8PRKEWA8QzH7TjV+5DVgEaWFs=
+X-Gm-Gg: AZFdTZdXatX1jiaputEQee1uF1z7U4IT6vpIRz75Uv0uFoo8wvmkxrBM0/Fe0dffqSj
+	pSB3AI8QnO6fdB3UmRnZMjcl21wUcF0S3fq9+Yme9F3pKrlVi8QVCwEb1O4XhVL8jC4TgZasQ46
+	iINHWBFbqMTtocfAdnnumPu5PEcsEj+yO+ALSwT8h8PBwwTiutlztmY6dPz2TsYEzlrDnYzLPxZ
+	t9Wt1PZ91jJIlmRg3Ik2Jw9jP/RObv0vCAyoOvXG0dz124ocPhNvMQ2XThn2deC7SFVwQLLmpC5
+	5/DIuhzYU4nC3s5OC5w1qoubOjGTSRBf59ljVzCKJUY+xKZaAw7l1Y8j+MnDBppYsDc5HwqCuBG
+	bKugjk29w1Qbu82eXMAWUwLvK4v19CFokFDg=
+X-Received: by 2002:a05:690e:1382:b0:67d:9d2b:91c7 with SMTP id
+ 956f58d0204a3-67df443cac9mr7933863d50.54.1795561812707; Tue, 24 Nov 2026
+ 15:10:12 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -58,130 +103,39 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
+References: <CAMnz_-Dgg2eCgZxcCaGuKPV=3-kCfg7ajd9w=vs2fGL-Cb6hvw@mail.gmail.com>
+ <f1b7d729-771a-4fba-89c0-996a8a168126@linux.dev> <ce46d69f-2a3e-45fe-abe2-f643f683d09f@gmx.de>
+In-Reply-To: <ce46d69f-2a3e-45fe-abe2-f643f683d09f@gmx.de>
+From: =?UTF-8?Q?Riccardo_Zangh=C3=AD?= <riccardo.z.dev@gmail.com>
+Date: Wed, 25 Nov 2026 00:10:01 +0100
+X-Gm-Features: Aa3M54rb6RWkm-PuZp35gli3zHV9Wd4GPfoXO2Q-4EKdCSZqJ0SYAzQEUszz2PU
+Message-ID: <CAMnz_-Dztuj3CRsxcVnfe2=OCB3tTJzK6Lu7-AKfkbuqn5N-UQ@mail.gmail.com>
 Subject: Re: [BUG] ASUS TUF Gaming A16 FA608UM: working backlight device
  differs between MUX modes
-To: Armin Wolf <W_Armin@gmx.de>, =?UTF-8?Q?Riccardo_Zangh=C3=AD?=
- <riccardo.z.dev@gmail.com>, platform-driver-x86@vger.kernel.org
-Cc: hansg@kernel.org, ilpo.jarvinen@linux.intel.com,
- "luke@ljones.dev" <luke@ljones.dev>, "ddadap@nvidia.com"
- <ddadap@nvidia.com>, linux-acpi@vger.kernel.org
-References: <CAMnz_-Dgg2eCgZxcCaGuKPV=3-kCfg7ajd9w=vs2fGL-Cb6hvw@mail.gmail.com>
- <f1b7d729-771a-4fba-89c0-996a8a168126@linux.dev>
- <ce46d69f-2a3e-45fe-abe2-f643f683d09f@gmx.de>
-Content-Language: en-US
-From: Denis Benato <denis.benato@linux.dev>
-In-Reply-To: <ce46d69f-2a3e-45fe-abe2-f643f683d09f@gmx.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Armin Wolf <W_Armin@gmx.de>
+Cc: Denis Benato <denis.benato@linux.dev>, platform-driver-x86@vger.kernel.org, 
+	hansg@kernel.org, ilpo.jarvinen@linux.intel.com, 
+	"luke@ljones.dev" <luke@ljones.dev>, "ddadap@nvidia.com" <ddadap@nvidia.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
+On Tue, 24 Nov 2026 at 21:17, Armin Wolf <W_Armin@gmx.de> wrote:
+> AFAIK Windows will automatically fall back to the ACPI backlight
+> interface if the driver does not provide a native backlight
+> interface itself, so this strategy differs a lot from the strategy
+> used in Linux. Can you share the output of "acpidump"?
 
-On 11/24/26 21:17, Armin Wolf wrote:
-> Am 24.11.26 um 19:48 schrieb Denis Benato:
->
->> On 11/24/26 00:27, Riccardo Zanghí wrote:
->>> Hello,
->>>
->>> On an ASUS TUF Gaming A16 (AMD iGPU + RTX 5060 Max-Q, MUX switch) no
->>> single kernel command line gives working brightness control in all
->>> graphics modes.
->>>
->>> Laptop: ASUS TUF Gaming A16 FA608UM_FA608UM
->>> BIOS: FA608UM.311
->>> Kernel: 7.3.5-2-cachyos
->>> NVIDIA: nvidia-open 620.73.04 (nvidia-drm modeset=Y)
->>> Distro: CachyOS, KDE Plasma (Wayland)
->>>
->>> asus-nb-wmi exposes gpu_mux_mode on this machine.
->>>
->>> Observed ("type" in parentheses where recorded):
->>>
->>> 1. Integrated and hybrid, no backlight parameters:
->>>     /sys/class/backlight contains only nvidia_wmi_ec_backlight
->>>     (firmware). Brightness control works.
->>>
->>> 2. dGPU (MUX), no backlight parameters:
->>>     Same single device (firmware, max 200). Writes are accepted but
->>>     the panel does not change. The kernel log contains:
->>>     "nvidia-modeset: ACPI reported no NVIDIA native backlight
->>>     available; attempting to use ACPI backlight."
->>>
->>> 3. dGPU with acpi_backlight=native:
->>>     Only nvidia_0 exists (raw, max 100), and it controls the panel.
->>>     The message above no longer appears in the kernel log. If
->>>     nvidia_wmi_ec_backlight.force=1 is added as well,
->>>     nvidia_wmi_ec_backlight (max 200) also appears, but only
->>>     nvidia_0 changes the panel.
->>>
->>> 4. Integrated with acpi_backlight=native:
->>>     Only amdgpu_bl1 exists. It accepts writes but the panel does not
->>>     change.
->>>
->>> So integrated and dGPU need opposite settings: the default works in
->>> integrated (and hybrid), while dGPU needs acpi_backlight=native, and
->>> each setting breaks the other mode. I have not tested hybrid with
->>> acpi_backlight=native. In dGPU mode the NVIDIA driver appears to ask
->>> ACPI for a native backlight, get "no", and fall back to a device that
->>> does not control the panel.
->>>
->>> Similar reports on other A16 models:
->>> https://github.com/OpenGamingCollective/asusctl/issues/118
->>> https://bugs.launchpad.net/ubuntu/+source/linux-hwe-6.14/+bug/2134615
->>>
->>> Would a MUX-aware backlight choice be acceptable here, or is a DMI
->>> quirk the expected route? I can test patches and provide dmesg or
->>> acpidump output if that helps.
->> Hi Riccardo,
->>
->> I have tried to check what the nvidia driver does, I am not sure but I think the
->> problem is that on kernel code does not return true on acpi_video_backlight_use_native()
->> and thus something else (that doesn't work) gets selected.
->>
->> Probably because the ACPI is returning something wrong or that the kernel
->> is not interpreting correctly: unsure.
->>
->> However this has little to do with the gpu switch as the switch itself, so IMHO
->> the best thing is to identify the correct people that maintain the code in
->> acpi_video_backlight_use_native and CC them.
->>
->> I am unsure if a DMI switch can solve the problem in both configurations,
->> and having a check to use acpi_backlight=native in dGPU mode will surely
->> break a lot of other laptops, maybe a combination of the two could work...
->>
->> But either way we need to hear them: I don't know enough on that to be
->> useful on solving this without causing more troubles than I would solve.
->
-> Hi,
->
+Hi Armin and Denis,
 
-I will add some more asus-specific context.
+Here are the acpidump outputs, one file per mode, taken from separate
+boots after switching with supergfxctl:
 
-The vast majority or ROG laptops (and some TUFs) have a dGPU switch and a
-MUX switch. The MUX decides what device is connected to the screen and is
-setup once at boot so a reboot is always needed to apply the setting.
+https://gist.github.com/Piadineitor09/062d3327731e5ec38fefcf5ae9064a26
 
-The dGPU switch can be implemented in many ways: there are laptops that
-apply it at reboot, while others can toggle it off while the GPU is fully off, in fact
-we have added a wmi method to check that too to asus-armoury.
+acpidump-dgpu.txt       (gpu_mux_mode = 0)
+acpidump-integrated.txt(integrated mode)
 
-Those two switch can (depending on the model) change what the ACPI does
-and what is exposed to the system.
+The two dumps are different (cmp reports a difference),
+so the ACPI tables do change with the mode.
 
-Hopefully this is useful to solve the issue, I think it's the most I can do at least
-for now.
-
-> if i understand correctly then the WMI interface is not supposed to act as the
-> central backlight interface for the integrated panel under Windows, instead a usermode
-> service likely listens for backlight changes and notifies the EC using said WMI
-> device.
->
-> AFAIK Windows will automatically fall back to the ACPI backlight interface if the
-> driver does not provide a native backlight interface itself, so this strategy differs
-> a lot from the strategy used in Linux. Can you share the output of "acpidump"?
->
-> Thanks,
-> Armin Wolf
->
->>> Thanks,
->>> Riccardo
->>>
+Thanks,
+Riccardo
