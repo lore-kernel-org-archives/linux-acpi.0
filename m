@@ -1,49 +1,90 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=115.124.30.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=65.109.113.108
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795485005;
-	b=qxFGaQY+RZZIzw5cDqVeC4Ll25lQ13yHQ/ufov9Cv273bKthP77GjLaCxX+XN8MZGi2P
-	 6wahulCJ0QpvLHpv3KP8/jCrbN6ti19SUdr90rSJ0OWLAZT9MQFkNTzFtlfjoCIT5RvcP
-	 T2C9So/7vsphA4+I9NeQGRcRMSOMni5YeXcS+1m/EoRCVAF3hythSJUaG3h493MXG83qG
-	 hN+5yU0JhskdFhMESqHIEDQ4ESUCkuOHBBp6RWR+ZKeLqJnf/CbiLsteMwYB6NoUYAIw5
-	 HnPVclt/EYPvb9f6cO9ie5RutPghJVMruJoHQ54/zKLfvMS2PkxHsxT/IJWs2zWBbaQ==
+	t=1795494309;
+	b=iDDBWr24g4BmpH3RPU8DeTguKzhQeKqccA56RWDtx2nf+XsI5i5OmoKrnOw/aeI4adeS
+	 25/EP9zx+pm9RU9c7y1aMrJY0wcK6sM49f4v0HSMNuPcpKx1PUR+X2omKcQI+OxyB22lD
+	 K3zUKqCm8SzcyPWVzbhuPmAtgfjjKwCKxNhMd5bZoqjna0RhFz1AJRfLVz4kb+sHsDh1n
+	 4ZSzrnvKkShHXn/L0LjVzFbGNCgfo9GCtafQ1vRJJpwdcOunzFMr8n1ZS05nQB9BNBHYM
+	 QMW4K9Tkf8dtjyLCxdENv8rd8lDAI92eHc6hTFqInRjdx3IVJC/s84HGP4VxFnIE0zw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795485005;
-	h=DMARC-Filter:DKIM-Signature:X-Alimail-AntiSpam:Received:Message-ID:
-	 Date:MIME-Version:User-Agent:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=hRoqKUZrnvqxYXEqKXPVR7lsEaN83gJGvmXY5a33JLw=;
-	b=4wqvhALIuTnQW8CBvXl8IPQl3zbg9pL8az/Nb9w15O3uUVDu3BA4if54iMyIe2kG9SV3
-	 YoQBIuNxIvANf4NJXgm38L2k+rkiLE7YeZw/Y4hQu9gFJlW1Ngn0orT/e6jr7w6BbVUvC
-	 xuNv56dAar3Xric0a0gjkL6NX0BEUek8mqMVUBaaASeozIpAVC/WiV8dFvPEI950K8AHJ
-	 jBHRjPVTV/bEQK2uxu0UrFFQg5gSqB2XgZ5JXT3WK9XSNWD5/70PpbE4OXuJVfGRIv6hp
-	 IpKqUQr6oB5aj6KD/hsTxae90NtGvCvjUJw3o2YblRYWO83eFG81Dha/oi6UdPQkcKw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795494309;
+	h=DMARC-Filter:Received:X-Virus-Scanned:Received:DKIM-Signature:
+	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To;
+	bh=eNWO3EpiPwmHnNO60cMIGuW+yDmktqgkx2JQzl/eU3g=;
+	b=rZm4kO8HepdpqY7kaalTapPoxi1jRhSsQNAkH02BCVg5VMS4wHt/afL6QRaVQr6BTcPU
+	 MFbt11bPrb2GMNTSFcmLKhVlEU2JYXO9kD10ZglbxzFG4mX4W56k/QE+sHAT5HoyZwnFU
+	 22B3mFVvAQuVYkbMiawVeRojwSzmN6o9Rd+LnebESzCiFkIH9YTC2RhXqakOWTfgW/Opi
+	 NU6ksqfZBQ1Jj4ouGENRz8NFUSYgF8upv9aJK/yC23h82IoaqD9KXwZ6nLw3jjh5r7DDr
+	 5X8C/uegFgwhN/7DL7qa2m50mWdJJS2umugtZMSNE5SadMn5pWNtD9ZArwjCp10cxvQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.alibaba.com;
-	spf=pass smtp.mailfrom=linux.alibaba.com;
-	dkim=pass header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=uCfATuv2;
-	arc=none smtp.remote-ip=115.124.30.124
-Received: from out30-124.freemail.mail.aliyun.com (out30-124.freemail.mail.aliyun.com [115.124.30.124])
+	dmarc=pass header.from=alien8.de;
+	spf=pass smtp.mailfrom=alien8.de;
+	dkim=pass header.d=alien8.de header.i=@alien8.de header.a=rsa-sha256 header.s=alien8 header.b=hA4T4ixD;
+	arc=none smtp.remote-ip=65.109.113.108
+Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7700B606A31E;
-	Tue, 24 Nov 2026 01:50:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7700B606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD985606A31E;
+	Tue, 24 Nov 2026 04:25:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BD985606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=uCfATuv2
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1795485000; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=hRoqKUZrnvqxYXEqKXPVR7lsEaN83gJGvmXY5a33JLw=;
-	b=uCfATuv2nA8tzCY1ovXG5Ch8U3LRVeqZCZ+/KzsgWVSGm0Go2mp3FmZfciz/JWwotsHOOnfJAhUfXdF0DFIRGn0CEzvGDn+Gc78Nx0/ozZrxtwTQLgTHmTlS6PIVhuwQANT4x/syQYihak9FfVnDdhUnbsIwL8Ugg3oPvpibIv4=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045098064;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=11;SR=0;TI=SMTPD_---0XFMo9EZ_1795484998;
-Received: from 30.246.162.150(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0XFMo9EZ_1795484998 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Tue, 24 Nov 2026 09:49:59 +0800
-Message-ID: <115ef051-31c1-4201-b60d-bfea9d413bd8@linux.alibaba.com>
-Date: Tue, 24 Nov 2026 09:49:58 +0800
+	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.a=rsa-sha256 header.s=alien8 header.b=hA4T4ixD
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 847A840E02CC;
+	Tue, 24 Nov 2026 04:25:06 +0000 (UTC)
+X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
+Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
+	header.d=alien8.de
+Received: from mail.alien8.de ([127.0.0.1])
+	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id xxH56HNX3bNB; Tue, 24 Nov 2026 04:25:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
+	t=1795494302; bh=eNWO3EpiPwmHnNO60cMIGuW+yDmktqgkx2JQzl/eU3g=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=hA4T4ixDuDgZ9yi2/PnIcEMObAR4VAR1hvQ5li4W49rSNbdwWKGkkZq89QtWRQt2p
+	 OVHb5TJT+V6xkJjC7ijoXORjF5bAIHWd28wAICKTtgNJD15UzMSEtIkKcHydqSsQAF
+	 6roG1vdAJC+2YILs4Q4xRMavbUMaC6BDAoVmDfg3+SWP7ZFqKLaRwv+j24CUQcmTd0
+	 u7ts6nv09wWUqePKgwK9gc9JWEtcNkC6MQFc9sR6p7mi5lJJil9ukXsD1O8nrfbmR0
+	 PHGyOdNTYbjwAgdSbssefbrqdaYHDqIbMPBYETtYceAl9JXPa42VAOzcvCbCzadFMU
+	 2y84rcNj88IxZsjj6sR0PmoDXGDWipXcpMyfCOUn5rsmElHmxs7/rGTBDhHfW4lVR+
+	 TRvP71Mu3jB7baCtSb4tpyMye/neeLq6/eOilNQuhG7s3aBhYpNhXfcWXpIOzMVVyI
+	 9eqpKS7fTk+fr87Yc0t122iYwIPoTvvOjwm87E9Fk+VUBbXW3PgQ3CbzbJ4g8Dlf0b
+	 eXzbZqcqZ+rX96uLpW0iN9bCN+DHSHvnsnvpCTLD7uEIn/GnMd7mbb7r6J6jwGMFz3
+	 R8MM4SoTRH9KLrzmP193gwA0OEX4P35wnmURI6Iaqm1SsC6AvetKA7ogBekQ92Pd57
+	 OKYC9Zur7wF3E1q9StArfqZg=
+Received: from stx.tnic (unknown [IPv6:2600:1700:38ca:c00::2b])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
+	(No client certificate requested)
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 7FC8040E02B4;
+	Tue, 24 Nov 2026 04:24:37 +0000 (UTC)
+Date: Mon, 23 Nov 2026 20:24:34 -0800
+From: Borislav Petkov <bp@alien8.de>
+To: Pierre Gondois <pierre.gondois@arm.com>
+Cc: linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@oss.qualcomm.com>,
+	James Morse <james.morse@arm.com>, Mark Brown <broonie@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Shuai Xue <xueshuai@linux.alibaba.com>,
+	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
+	Pawel Chmielewski <pawel.chmielewski@intel.com>,
+	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>,
+	Dave Jiang <dave.jiang@intel.com>, Breno Leitao <leitao@debian.org>,
+	"Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
+	Terry Bowman <terry.bowman@amd.com>, Dan Williams <djbw@kernel.org>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Morduan Zang <zhangdandan@uniontech.com>,
+	linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
+	acpica-devel@lists.linux.dev
+Subject: Re: [PATCH v4 00/12] CPER: Add Memory Error Section 2 support
+Message-ID: <20261124042434.GMawURgn0Uap26S6US@fat_crate.local>
+References: <20261113132600.3355836-1-pierre.gondois@arm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -53,82 +94,25 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] ACPI: APEI: GHES: Poll error sources at their poll
- interval
-To: me@ahmedabdelfattah.dev, "Rafael J. Wysocki" <rafael@kernel.org>,
- Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
- Hanjun Guo <guohanjun@huawei.com>, Mauro Carvalho Chehab
- <mchehab@kernel.org>, Len Brown <lenb@kernel.org>,
- Ying Huang <huang.ying.caritas@gmail.com>, Andi Kleen <ak@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261119-acpi-ghes-poll-interval-v1-1-6f45cc65fd62@ahmedabdelfattah.dev>
-From: Shuai Xue <xueshuai@linux.alibaba.com>
-In-Reply-To: <20261119-acpi-ghes-poll-interval-v1-1-6f45cc65fd62@ahmedabdelfattah.dev>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20261113132600.3355836-1-pierre.gondois@arm.com>
 
+On Fri, Nov 13, 2026 at 02:24:42PM +0100, Pierre Gondois wrote:
+> The support is mostly duplicated from Memory Error Section handling.
+> Other than differences coming from the content of  Memory Error
+> Section 1 and 2, differences in the support are:
 
+What in the h*ll is a Memory Error Section 2 record?
 
-On 11/20/26 2:36 AM, Ahmed Abdelfattah via B4 Relay wrote:
-> From: Ahmed Abdelfattah <me@ahmedabdelfattah.dev>
-> 
-> ghes_add_timer() passes an absolute time to round_jiffies_relative(),
-> which takes a delay:
-> 
-> 	expire = jiffies + msecs_to_jiffies(g->notify.poll_interval);
-> 	ghes->timer.expires = round_jiffies_relative(expire);
-> 
-> round_jiffies_relative(j) rounds jiffies + j to a whole second and
-> subtracts jiffies again, so what gets rounded here is 2 * jiffies plus
-> the interval, and the timer fires up to a second away from the Poll
-> Interval in the HEST. With a 1000 ms interval, on some boots the polls
-> come every 1.5 s on average, for seconds or for minutes, and the rest
-> of the time they are anywhere from 0.75 s to 1.95 s apart. A 250 ms
-> source settles at one poll a second.
-> 
-> Rounding the delay instead would still move every interval that is not
-> a whole number of seconds; a 250 ms source would still be polled once a
-> second. Drop the rounding and use the interval as it is.
-> 
-> Fixes: 81e88fdc432a ("ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI notification type support")
-> Signed-off-by: Ahmed Abdelfattah <me@ahmedabdelfattah.dev>
-> ---
-> I found this while timing a polled GHES in a QEMU guest, with a HEST
-> built for the test (one polled GHESv2) and given to the guest as an
-> extra ACPI table.
-> 
-> Tested on v7.4-rc3+ (4405c18c95d2) at HZ=300, tracing ghes_poll_func()
-> with a kprobe. With a 1000 ms Poll Interval and without the patch, the
-> intervals on three 10-minute boots ranged from 0.77 s to 1.95 s: one
-> boot averaged 1.5 s for its first two minutes, and the others
-> alternated between 280 and 320 jiffies, and between 240 and 360. With
-> the patch, every interval on three 3-minute boots was 304 jiffies
-> (1.013 s). With a 250 ms Poll Interval, the polls settled at about one
-> a second within the first minute without the patch; with it they come
-> every 80 jiffies (267 ms). The extra 4 and 5 jiffies are the timer
-> wheel's granularity at those timeouts.
-> ---
->   drivers/acpi/apei/ghes.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 5d888c82efea..92d54c6b209a 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -1276,7 +1276,7 @@ static void ghes_add_timer(struct ghes *ghes)
->   		return;
->   	}
->   	expire = jiffies + msecs_to_jiffies(g->notify.poll_interval);
-> -	ghes->timer.expires = round_jiffies_relative(expire);
-> +	ghes->timer.expires = expire;
->   	add_timer(&ghes->timer);
->   }
->   
+Your RFC doesn't explain it either:
 
-LGTM.
+https://lore.kernel.org/all/20260929074659.2587216-1-pierre.gondois@arm.com/#t
 
-Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
+so it must be something magical...
 
-Thanks.
-Shuai
+-- 
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
