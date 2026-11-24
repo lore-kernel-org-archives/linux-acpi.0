@@ -1,76 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=69.72.42.10
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795540861;
-	b=FIE8PXB32QXjeBPu3LmjC9aEhM/y4zWG+eLTCB7cj2axwCQY7TLefPR+/mLtfwpAloaV
-	 MUISPRywDyWL+Itq9WLM2LSNZE6FnhH56efMzIU5i4KROhTeVSRqUPJwuvfbwo3t56d7v
-	 R8VCrKuKFOflw2+JBq4MmkPC6vEqTcI3CA482JPlMzEM8mf5teLCKDqMxqHzX+27EuTXs
-	 m70rKSwcUGsfKS5drb2MJY1xzKwedw3BNkS/lz0gDibuuOuOmhp2fcO2MfucnUtbQiQs/
-	 vuf89ZDP/OVTmRKVVJ4H+6ezBBg1/2VtlUUj5tvdQhjair3pEndB8d72vBA1xsuwO+Q==
+	t=1795542470;
+	b=nmxOv6Z+ob69hIbVIKklc4ElXld41k7qeOZhQcfGXYYmQnyZSN0HfJSwPtivClmwW1fi
+	 uKUZniDYPMpuBH9O2XtmK7cAQPPP3Uo4u7j/pDb138T+YgZq+RhUF+zSvxMdYH/ZRJvHU
+	 kQRL40O5+tHjCL7jXWNW5gN0XthS8Pc2dEbgPJls0jQc8R5J7lygtInbUshYz8tZKavnK
+	 0ScYZrLAKxd8FNfULKbOYo2CeU+gocEXm8x1ZWCvX70oqoOMOPMh1NzQwHWWtw5Vqp3zG
+	 pKhDpKR75n15VbRdHhYUXJ//f4NFwXrOuVIE61yzOFcwak054Z+yGEjuvcsS5+Xrvug==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795540861;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To:Organization;
-	bh=YzT/FHTacvEkqMDxOm911dRdRUZtkBMctKhjGPx65o4=;
-	b=UBDxDdtZFemWvf6hnko9Bl800HfGj63uIHNLZz02BIL29g3Ihde0f6uvFeYtxJgecPaT
-	 /1X23jXwwU5G99RpgJGQ6D/CDv52M5UZAOZCoQjm3oY8KAv43QnqxAI57zPtHv5spuMKd
-	 JygiDE3wD+4GKpIM5rSoD85DIFxl4s+bhbhMfwAux9Vf5AAADt97mpP8Zb2VMzKB7B5dv
-	 EXgmqwCE82CF93H3xkGRRw1593csUrdlZ6M9R5OGURIJL+QBjZNgyLb7pK+cDj+4QifFb
-	 rVJ+ZfefOtkNl6RAD5uQ25C8Twhq2tqMGIrlgBzGAUl4Q+RblCoHJFrzvvBjc32lB3A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795542470;
+	h=DMARC-Filter:DKIM-Signature:X-Mailgun-Sid:Received:
+	 X-Mailgun-Sending-Ip:Sender:Received:X-Gm-Message-State:X-Received:
+	 MIME-Version:From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type;
+	bh=WR8QGD5bhxybtwKA83TYYiEEB/OOUPxVSpddEvqXgOk=;
+	b=aKBfw0309GCVBt0oE063UbWq1kUT6Rn/KEqv9LY5LtanW/0nFIL5QN6hcxRQhx2huEVW
+	 7q+LHK3IBXCBlZ7LQI5Bhwt5XIXIYakxyi5qINAE7+8GqW9hx9ogs98F7OkxP0d322ooY
+	 Ubw7TUVFZ3Buiu/cOSkL1ok05ngahrLHUe18yQF3afxdJe6IBWz9A/qTbtoc+NbMf2upC
+	 PVKB+xhKy69ulTwnqK+E1SoDju+RiotJXQSDPwxMKBMhRHtg86MNVhkfKyfkdW5YrQ19N
+	 rCLE9V6hk36HOFaICUKcsk999R9fFRs5gxQVvWVvx4MHtMbQwgbApkTVeZllG5EYGLA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=JPXjMgvg;
-	arc=none smtp.remote-ip=198.175.65.12
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=elijahmock.com;
+	spf=pass smtp.mailfrom=elijahmock.com;
+	dkim=pass header.d=elijahmock.com header.i=@elijahmock.com header.a=rsa-sha256 header.s=k1 header.b=ZJO2HtbO;
+	arc=none smtp.remote-ip=69.72.42.10
+Received: from v510.v51e342bd.use4.send.mailgun.net (v510.v51e342bd.use4.send.mailgun.net [69.72.42.10])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91720606A321;
-	Tue, 24 Nov 2026 17:21:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 91720606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id E1B77606A31E
+	for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 17:47:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E1B77606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=elijahmock.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=elijahmock.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=JPXjMgvg
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795540860; x=1827076860;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=ClGuJkPW2nCOJuiFwLsWaF4Yv62LEDZ4hVCpn6VlTPk=;
-  b=JPXjMgvgau86PgEF9SzhtfUKiD+emmIbKM5NSIVtMSHAzwfwNOyZ1t2b
-   E6qKhONAVvJOk7kBLfsKnrRCNX9bXRlG5afn0K9ExB/iPTpnmhm/gtse6
-   Rq1gDx6Ye182qRyW98v793HDUG1IBdk2gslQlnX3plzGYZH7q1YUQuuli
-   NM2hEpO9G7xD8gucBwVF8/y1ILGezDnbAP9ae+F0Yy7krfv41/VkP6u+O
-   5JWuGYXdKt9sTgbkauKtry6dAkIopA+31hFA4dIOFrEbJezEXzKGLTdxC
-   FBW7U4zQtCoev7G0RwbJc4qpw+iXkuzHBvmsFmoS7dla5t6qO0cc+yH5u
-   g==;
-X-CSE-ConnectionGUID: kNMgIxHWQPKnBKZ3xkKv1g==
-X-CSE-MsgGUID: gK2a6zm6Qz29uRHXz8jVLA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11976"; a="4286960"
-X-IronPort-AV: E=Sophos;i="6.27,231,1787036400"; 
-   d="scan'208";a="4286960"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2026 09:16:29 -0800
-X-CSE-ConnectionGUID: CJNIMLTFSQSaiIm3fK2kTQ==
-X-CSE-MsgGUID: wbKHx/rpS5ij1rpfygGZiA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,231,1787036400"; 
-   d="scan'208";a="11404453"
-Received: from hrotuna-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.245.125])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2026 09:16:14 -0800
-Date: Tue, 24 Nov 2026 19:16:11 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
-	Linux PM <linux-pm@vger.kernel.org>, Armin Wolf <w_armin@gmx.de>
-Subject: Re: [PATCH v1 2/5] ACPI: fan: Stop using driver_data pointer from
- struct acpi_device
-Message-ID: <awXGWwlZo0QIFvxA@ashevche-desk.local>
-References: <3985766.kQq0lBPeGt@rafael.j.wysocki>
- <6217460.MhkbZ0Pkbq@rafael.j.wysocki>
+	dkim=pass (1024-bit key, unprotected) header.d=elijahmock.com header.i=@elijahmock.com header.a=rsa-sha256 header.s=k1 header.b=ZJO2HtbO
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=elijahmock.com; q=dns/txt; s=k1; t=1795542468; x=1795549668;
+ h=Content-Type: Cc: To: To: Subject: Subject: Message-ID: Date: From: From: MIME-Version: Sender: Sender;
+ bh=WR8QGD5bhxybtwKA83TYYiEEB/OOUPxVSpddEvqXgOk=;
+ b=ZJO2HtbOnWzJBLL9/l5HSSXEdERuYcbBa5gAeoVWRGt/P/dpmR/2SQnpiknKA1hyTq57MuAvpOINdg8eeYRJWJhPgT3V7jzFpAw/M+nT2YburRO0XtBXxDtDK3qITJ2wY3mluTXnPxrVNqCmaaKY258QtxrampOBo0IemcZEcrc=
+X-Mailgun-Sid: WyJkMjhkYyIsImxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnIiwiMzdlMTdhYyJd
+Received: from mail-lj1-f182.google.com (mail-lj1-f182.google.com [209.85.208.182]) by
+ 89c784442a2c4c3643689298a4a7a185be77a10dfe81b7ea9bf477b149b5675d with SMTP id
+ 6b05cdc4a23a793d837429c6 (version=TLS1.3, cipher=TLS_AES_128_GCM_SHA256);
+ Tue, 24 Nov 2026 17:47:48 GMT
+X-Mailgun-Sending-Ip: 69.72.42.10
+Sender: elijah@elijahmock.com
+Received: by mail-lj1-f182.google.com with SMTP id 38308e7fff4ca-3ae0a5c1715so53294681fa.1
+        for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 09:47:48 -0800 (PST)
+X-Gm-Message-State: APuU4Z9t82AQGNYiheP1CBJoL03QITLBZeMJBaQVCK64i9g3ZcNW87EC
+	CJxJlEN2ZrVnrgyHhpc3AqWeN9ElxNhr5qf64rdlMdYqx1jWaK5tGtw8Ai20/2kankKgctwizwk
+	2OyOG5CzMdQdn7v1VivgupdG6PbEyuJ4=
+X-Received: by 2002:a2e:be87:0:b0:3ac:d116:1adb with SMTP id
+ 38308e7fff4ca-3ae7fb1e74dmr35117811fa.15.1795542467146; Tue, 24 Nov 2026
+ 09:47:47 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -80,75 +61,118 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6217460.MhkbZ0Pkbq@rafael.j.wysocki>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+From: Elijah Mock <elijah@elijahmock.com>
+Date: Tue, 24 Nov 2026 11:47:30 -0600
+X-Gmail-Original-Message-ID: <CAELUYsg63KtWSfKvyywEyeUsWrfYcuko6+WnGgi4DJ_-pRHZFw@mail.gmail.com>
+X-Gm-Features: Aa3M54oTf2ePHMrN23d7gHQseqxi9RB6Bk2hpfm6x-Z6QW3vNN5jQ6sdynvs5Cg
+Message-ID: <CAELUYsg63KtWSfKvyywEyeUsWrfYcuko6+WnGgi4DJ_-pRHZFw@mail.gmail.com>
+Subject: [PATCH] ACPI: button: Disable default lid wakeup on MSI MS-15FK
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Nov 24, 2026 at 04:47:12PM +0100, Rafael J. Wysocki wrote:
-> 
-> Instead of using the driver_data pointer under struct acpi_device,
-> make the ACPI fan driver use the driver data under the dev member of
-> struct acpi_device and clean it up properly on driver removal and on
-> probe failures.
-> 
-> While at it, unify the code ordering of acpi_fan_delete_attributes()
-> with the rollback path in acpi_fan_create_attributes().
+On the MSI Creator A16 AI+ A3HVFG (board MS-15FK), the system fails to
+enter s2idle hardware sleep due to a firmware quirk exposed in v7.0.
 
-...
+ACPI behavior of the device: LID0 (PNP0C0D) defines a _PRW package
+referencing GPE 0x03 with wake state S0 and no AML handler (_L03/_E03);
+the status bit for GPE 0x03 remains 1 regardless of the physical lid
+state. Lid open/close detection via the Embedded Controller (GPE 0x0A)
+functions correctly.
 
->  static ssize_t show_fine_grain_control(struct device *dev, struct device_attribute *attr, char *buf)
->  {
->  	struct acpi_device *acpi_dev = container_of(dev, struct acpi_device, dev);
-> -	struct acpi_fan *fan = acpi_driver_data(acpi_dev);
-> +	struct acpi_fan *fan = dev_get_drvdata(&acpi_dev->dev);
+Following commit 52d864019636 ("ACPI: button: Convert the driver to a
+platform one") and commit 57c31e6d620f ("ACPI: scan: Use
+acpi_setup_gpe_for_wake() for buttons"), GPE 0x03 is armed for wakeup
+during suspend, which immediately causes a spurious wakeup (regardless
+of whether the lid is open or closed) [1].
 
-I'm a bit lost. Is 'dev' parameter embedded into struct acpi_device
-('acpi_dev') and later we again come to it via dereferencing 'acpi_dev'?
+To prevent this issue, add a DMI quirk for board MS-15FK so that
+devm_acpi_button_init_wakeup() marks LID0 as wakeup-capable via
+device_set_wakeup_capable(dev, true) but does not enable wakeup by
+default with device_init_wakeup(dev, true); instead, the ED lid
+detection delivers necessary wakeup events. This fixes
+suspend-to-idle while preserving normal lid state reporting and
+preserving the lid wakeup event handler for user space.
 
-If so, why not use 'dev' directly?
+Fixes: 52d864019636 ("ACPI: button: Convert the driver to a platform one")
+Fixes: 57c31e6d620f ("ACPI: scan: Use acpi_setup_gpe_for_wake() for buttons")
+Closes: https://gitlab.freedesktop.org/drm/amd/-/work_items/5283 [1]
+Cc: stable@vger.kernel.org
+Signed-off-by: Elijah Mock <elijah@elijahmock.com>
+---
+Testing:
+- Tested on MSI Creator A16 AI+ A3HVFG (BIOS E15FKAMS.321, 09/17/2026)
+  on top of mainline (v7.4-rc4+)
+- Verified hardware sleep with lid open and lid closed, using amd-s2idle
+  test
+- Verified awake lid state reporting (/proc/acpi/button/lid/LID0/state)
 
->  	return sysfs_emit(buf, "%d\n", fan->fif.fine_grain_ctrl);
->  }
+Notes for reviewers:
+- I am supposing that this is a firmware quirk matching MS-15FK (largely
+  due to this issue not being widely reported) and not a generic ACPI
+  kernel issue
+- The Fixes: tags reference the commits that exposed this firmware
+  quirk; let me know if they are not appropriate
 
-...
+ drivers/acpi/button.c | 29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
->  void acpi_fan_delete_attributes(struct acpi_fan *fan)
->  {
->  	struct acpi_device *device = fan->adev;
-> -	int i;
->  
-> -	sysfs_remove_file(&device->dev.kobj, &fan->fst_speed.attr);
-> +	if (fan->acpi4) {
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 91a4e9698f7..c80164283d6 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -170,6 +170,23 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+  {}
+ };
 
-> +		int i;
->  
++static const struct dmi_system_id dmi_lid_no_wakeup_quirks[] = {
++ {
++ /*
++ * MSI Creator A16 AI+ A3HVFG (MS-15FK): LID0 declares a
++ * handlerless _PRW GPE (0x03) with S0 wake state whose status
++ * bit stays asserted regardless of lid state, aborting s2idle
++ * immediately when armed for wakeup.
++ */
++ .matches = {
++ DMI_MATCH(DMI_BOARD_VENDOR,
++  "Micro-Star International Co., Ltd."),
++ DMI_MATCH(DMI_BOARD_NAME, "MS-15FK"),
++ },
++ },
++ {}
++};
++
+ static int acpi_button_probe(struct platform_device *pdev);
+ static void acpi_button_remove(struct platform_device *pdev);
 
-While at it, ...
+@@ -570,9 +587,15 @@ static void acpi_button_wakeup_cleanup(void *data)
+  device_init_wakeup(data, false);
+ }
 
-> -	if (!fan->acpi4)
-> -		return;
-> +		for (i = 0; i < fan->fps_count; ++i)
+-static int devm_acpi_button_init_wakeup(struct device *dev)
++static int devm_acpi_button_init_wakeup(struct device *dev, u8 button_type)
+ {
+- device_init_wakeup(dev, true);
++ if (button_type == ACPI_BUTTON_TYPE_LID &&
++    dmi_first_match(dmi_lid_no_wakeup_quirks)) {
++ dev_info(dev, "Disabling default wakeup due to DMI quirk\n");
++ device_set_wakeup_capable(dev, true);
++ } else {
++ device_init_wakeup(dev, true);
++ }
+  return devm_add_action_or_reset(dev, acpi_button_wakeup_cleanup, dev);
+ }
 
-...seems the local form can be used
+@@ -747,7 +770,7 @@ static int acpi_button_probe(struct platform_device *pdev)
+  if (error)
+  return error;
 
-		for (int i = 0; i < fan->fps_count; ++i)
+- error = devm_acpi_button_init_wakeup(dev);
++ error = devm_acpi_button_init_wakeup(dev, button_type);
+  if (error)
+  return error;
 
-> +			sysfs_remove_file(&device->dev.kobj, &fan->fps[i].dev_attr.attr);
->  
-> -	for (i = 0; i < fan->fps_count; ++i)
-> -		sysfs_remove_file(&device->dev.kobj, &fan->fps[i].dev_attr.attr);
-> +		sysfs_remove_file(&device->dev.kobj, &fan->fine_grain_control.attr);
-> +		dev_set_drvdata(&device->dev, NULL);
-> +	}
->  
-> -	sysfs_remove_file(&device->dev.kobj, &fan->fine_grain_control.attr);
-> +	sysfs_remove_file(&device->dev.kobj, &fan->fst_speed.attr);
->  }
 
+base-commit: b6a9fa34ce4187cb69d3c588a4bbffc31ce5db8f
 -- 
-With Best Regards,
-Andy Shevchenko
-
-
+2.56.1
