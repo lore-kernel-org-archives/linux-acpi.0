@@ -1,62 +1,88 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=54.254.200.92
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.49
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795515552;
-	b=Lsz4/vFNUmEHVq2Y64cm2JH4jb7OgZs82E/5qEhZN2Xvumanl/e4D8sA9glj+ts+EpuA
-	 pz2JA8uieKPMaGoewu1a23sny1bxuXi37vio7wWbaQNKPL/fc793FXEWc7xgNJ35LUTdw
-	 uDuB/qQoJyFUKMa/ASTsEj5G7MH8AUcXITcWNlJz3pEsouWAob6+27h0hA3YFVa/jAnLQ
-	 IJrz7AxFVST93yqCVTGshkvQnUdM+65ZgpHGlVJI7N/DEotvcBpxabLe+GyXIPrrKNH1J
-	 rLN/YIP6cguRAN2d+xfdDYiVQiLhiXewWZ8PM/mNaxUjyBvUy/KROZ6fqtusIzGJR+Q==
+	t=1795516788;
+	b=2EpwRjdCjFeCexUqUTi1UjwUF4uwlxD1VtyuZjnucn3mvPEHFBQOIUf2vbFLXnvKQmuA
+	 fFAmodfApG4fxQT7g6+hMJY97e4m+01+2fk+Q95Jsb2zE7uHsqzTdRmQeP8GlmZkpealt
+	 GwcOnHq+/w0WWMUa0FUAxrf1lcE2hE38p0aJSf1vC/M1CpLjv3V3cpTOcaP9/Su/F7WIj
+	 oqUC7JQfo+KlepTfpygczLFqvICmEce76zVOCae97t704ejcNuubx5YVRjCAXRRHolR85
+	 ZWfJgh/rbUd92tACRMx0Tx2ti4dPeF1JiMd2QebGIEtRxOQolTW9rlNYRW2eyLhgpQg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795515552;
-	h=DMARC-Filter:DKIM-Signature:EX-QQ-RecipientCnt:X-QQ-GoodBg:
-	 X-BAN-DOWNLOAD:X-BAN-SHARE:X-QQ-SSF:X-QQ-FEAT:X-QQ-BUSINESS-ORIGIN:
-	 X-QQ-Originating-IP:X-Originating-IP:X-QQ-STYLE:X-QQ-mid:From:To:Cc:
-	 Subject:Mime-Version:Content-Type:Content-Transfer-Encoding:Date:
-	 X-Priority:Message-ID:X-QQ-MIME:X-Mailer:X-QQ-Mailer:X-BIZMAIL-ID:
-	 X-Address-Ticket:X-QQ-SENDSIZE:Received:Feedback-ID:X-QQ-XMAILINFO:
-	 X-QQ-XMRINFO:X-QQ-RECHKSPAM;
-	bh=BamssN9WTBctTCc+ML35GfBHII2/mMm7UQhWi0uZH/Q=;
-	b=rXc1GQHimLsRmKUPOffmpXkN8yZ/1+Jj1QrLUjNaDuN3MasY7+Z5fnqSMooOduhYI24o
-	 HzFkGoiih8p5RhiVAATfZ/hpRTbx1DFe5vD1x2ypo/Jnhi8eQmdpw9VMcBgWJ5I9aksNd
-	 hHHAhwhQLTGNxMC7b40HMevVue7aifX9J2A7NMLHO5kOcElQQlqK67/WN0tdBKR2hOVHe
-	 YUHPZtpGXM7wBTgePRpSfpzNXSNKAcpdppj7p/NHn2By7D92HC0aVq4sl2v1bmNFdC1or
-	 kc4EJFnyQjKpFD5ad3NecU33p4x9sCfJSPwLUwYwiK6QigAiP0yutt1oRsYFXs8fkEw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795516788;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:References:
+	 Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=i67A04/jloiIm4Idm3ymNHqESyF+RQsVbnS4UKmnxA8=;
+	b=ahzp0XJjfEFw2bNqN6Rtb5QgHH3Yc+lFQ7ezt7/NsnvitRbV/MnDxqqdJuOq9cT20d8q
+	 N44AYjxITnBB2YOwdJkVpvq9gpB4EGr/9QbALrFbcxUBDIcPX8WjMJ150/r22e7DDfOgx
+	 ffMPbAN+Rz5rKdn9xv7A2inM0JkWluD7sJQF5OtmG3vvGducCBkkW34GP9xsD7ASHIswv
+	 yShmZb6ACV1zHRpD53QGAF2IYEt+5slryOygveZiwU7fzfx8S80uTVBNgx2gqI3Z0X7ak
+	 wUkLirogqGoqG/HxOEgJmJcfTsWnluVy+6YtM+z9lSrqaDuJTVdHGsV/QllBJX2/OMw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=mails.ccnu.edu.cn;
-	spf=pass smtp.mailfrom=mails.ccnu.edu.cn;
-	dkim=pass header.d=mails.ccnu.edu.cn header.i=@mails.ccnu.edu.cn header.a=rsa-sha256 header.s=dabk2403 header.b=R8+qiTUb;
-	arc=none smtp.remote-ip=54.254.200.92
-Received: from smtpbgsg1.qq.com (smtpbgsg1.qq.com [54.254.200.92])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=suse.com;
+	spf=pass smtp.mailfrom=suse.com;
+	dkim=pass header.d=suse.com header.i=@suse.com header.a=rsa-sha256 header.s=google header.b=KjiX7YWe;
+	arc=none smtp.remote-ip=209.85.128.49
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5F23606A332
-	for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 10:19:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E5F23606A332
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mails.ccnu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.ccnu.edu.cn
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 301C3606A331
+	for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 10:39:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 301C3606A331
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=mails.ccnu.edu.cn header.i=@mails.ccnu.edu.cn header.a=rsa-sha256 header.s=dabk2403 header.b=R8+qiTUb
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mails.ccnu.edu.cn;
-	s=dabk2403; t=1795515526;
-	bh=BamssN9WTBctTCc+ML35GfBHII2/mMm7UQhWi0uZH/Q=;
-	h=From:To:Subject:Mime-Version:Date:Message-ID;
-	b=R8+qiTUbo+lfoACA8pUmXhFp/uEGxfmI7TQRp9umCYOtsBY1uUvExJQK74EEOFs/q
-	 Gu7gZagC88AurRodZ4AFdWpmgZA9jrIuq2yRu99haV0wvco+CyItTjydU+MmOnzgO3
-	 lqgoGaptmBBsMFYOd5jedz5Dk9yTiRM/B3de1JJM=
-EX-QQ-RecipientCnt: 3
-X-QQ-GoodBg: 2
-X-BAN-DOWNLOAD: 1
-X-BAN-SHARE: 1
-X-QQ-SSF: 0040000000000020
-X-QQ-FEAT: D4aqtcRDiqRcMYJqMribwNe7Sq6XkWjGXFnSrAw/+Mw=
-X-QQ-BUSINESS-ORIGIN: 2
-X-QQ-Originating-IP: jaQL4TpJ7S+scmsEKaRQ62KCKJNdrMTwV8oWNtXitl8=
-X-QQ-STYLE: 
-X-QQ-mid: lv4gz3a-0t1795515522td107faee
-From: "=?utf-8?B?6YeR5bq3?=" <jin2371488344@mails.ccnu.edu.cn>
-To: "=?utf-8?B?bGludXgtYWNwaQ==?=" <linux-acpi@vger.kernel.org>
-Cc: "=?utf-8?B?dG9ueS5sdWNr?=" <tony.luck@intel.com>, "=?utf-8?B?YnA=?=" <bp@alien8.de>
-Subject: GHES/CPER admission ordering in confidential VMs - research note before submission
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.a=rsa-sha256 header.s=google header.b=KjiX7YWe
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-4a3517554f7so39789375e9.2
+        for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 02:39:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1795516786; x=1796121586; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=i67A04/jloiIm4Idm3ymNHqESyF+RQsVbnS4UKmnxA8=;
+        b=KjiX7YWeSkA9Dw0WA5xjWaOqnyEHCedD00sUzMhE3sKEAvQ2TPIHmIyS+enWPn9hqU
+         UHnNtz+vsI9HdnLLJLRNEHpW3n0qDPjDGGb+MMmUEkY4+DtknEToZAEEAwd6ErlDRM4U
+         sl6ks9V8P+KgBQBXge6XtIwqjU1IX32GeqDZpfsQ5053CJLA98ICyRMFUcjrF7GwSx6y
+         mLBhDMnek6X1+TiwUBOkVQB80sS1Z2oue9zDTiR4H+wlMmpVb+6EJ+EZoBBfGsOtxa1G
+         85CHt1w3B0RFKCYDolOV20zywTKINPHyMkeAAvRZwyufXjasNY7vVq1oJTMaEgpAJPJ9
+         588Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795516786; x=1796121586;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=i67A04/jloiIm4Idm3ymNHqESyF+RQsVbnS4UKmnxA8=;
+        b=zDUc4GyWmQVyZZ5smT5Dq4xjcgmiW5MNr5Iahl6iycE8N6jUYjiBsrtipeyjqjwFZd
+         CzMuDlTCmdxyNBXxg0xOhaDOry8ib+I8GHt79qiduIQGiOSD/pxKtSAH95r1+fEja/+w
+         LoKt2B/UXONDhWWcFN/ckiswo7FWTpArrscj9rogHckE82Y7+Tjnp8BjytyACidmwGwb
+         /X3ZsDpsZUhuw3spb10v9XbOYxkmZN5cqtku2UNlYEzgtWGWOCQJEWnDAvaqB5Z0fjhE
+         Ptl0aLpYYpQd2lKeCjVdUyoIfOI1ajgB6Sqik4jrs1P9L6s116N9E81V7TgNEtA4acmG
+         phYg==
+X-Forwarded-Encrypted: i=1; AL+hErHb7pLQGn6CxWhvGfiAYZZsi6YTWXHtzRh6K5KeAt2VS2HBKkPXLjqiB/JGYHdpg1iDE2qNLiwhCwhD@vger.kernel.org
+X-Gm-Message-State: APuU4Z9l6HPzxxRme9IiNRjfjxzJb5BPZeGLX3JaUwe4MALnAiKEDLQ1
+	tP1tjZXWNwu3g5WT659bPiNmar4/fpD6uMb1qfDCJzpgw0rP6LA+UcfMSRjQE2vFxzo=
+X-Gm-Gg: AZFdTZcS9XuegoACFSI2JIi0lyfKpXWd1mn0sdditGgWkUP4bE5xohJxp3W9QRU2vW7
+	mAd91IZRfelkm089ZnFxOfvUbI9N8eeKXLgDxsYjSgRU078vdn08mzgO+kUvxcyBR6i4PK0UGSl
+	gbUNIYFPOX9i27CvNu9eVM6p5eOxM0P2bteDTfpr5kbfWk0SsJFy5/yf7F3wg1EdVvlXJfyb/pE
+	Y7wVRQuhs1SVZIwZ+1p4MHfoNHI4tqDDBvgngGoLkSGhAIida0FmXpXlV0vZgx3OwWwfmrhgQkD
+	r3bR3Sja/dJfgxa2HOTzXAnvZJ3+MStvTsHOSmBuU1tMHsZeEYjPCbG2BTV0QsD1PbuPCLRQU1S
+	JeAwjiBapmi1zfTtnEzrjxnp/LSeVFcYEbXL9fabdHnlgAFN0B6/e/MTOiAlniEaMWAkMSAPdRG
+	fQxKtFzkamSAhlVQJOC3sa8SL9Bnayb9IRHDT/mBmEMVL3xTtpTbHlAWWIczBOFt5LtDxYi113v
+	SOacwCnDmXXPWnGF8C0YwkR7r6zjh5GQ4q3mOCXgrBI7AaX6sw3VM3fM1607+c6uQ0scV6Buf7A
+	ssXqoIpkoikxdkzsqodgs5nt7otMs43TsaygR4AZBuiczpVrms3WGVk/ooSVsFRXcbBi
+X-Received: by 2002:a05:600c:64c8:b0:4bb:6848:d433 with SMTP id 5b1f17b1804b1-4bb8881d141mr281064655e9.26.1795516786433;
+        Tue, 24 Nov 2026 02:39:46 -0800 (PST)
+Received: from ?IPV6:2001:a61:132b:a401:6cb8:7c28:11e1:499? ([2001:a61:132b:a401:6cb8:7c28:11e1:499])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb8538b2c5sm425218335e9.5.2026.11.24.02.39.43
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 24 Nov 2026 02:39:46 -0800 (PST)
+Message-ID: <65749362-927a-492d-8bff-573c277fe456@suse.com>
+Date: Tue, 24 Nov 2026 11:39:40 +0100
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -65,107 +91,68 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Date: Tue, 24 Nov 2026 18:18:42 +0800
-X-Priority: 3
-Message-ID: <tencent_709C91C3048D70ED0C1F505A@qq.com>
-X-QQ-MIME: TCMime 1.0 by Tencent
-X-Mailer: QQMail 2.x
-X-QQ-Mailer: QQMail 2.x
-X-BIZMAIL-ID: 3539056520258496067
-X-Address-Ticket:version=;type=;ticket_id=;id_list=;display_name=;session_id=;
-X-QQ-SENDSIZE: 520
-Received: from qq.com (unknown [127.0.0.1])
-	by smtp.qq.com (ESMTP) with SMTP
-	id ; Tue, 24 Nov 2026 18:18:43 +0800 (CST)
-Feedback-ID: lv:mails.ccnu.edu.cn:qybglogicsvrgz:qybglogicsvrgz3a-1
-X-QQ-XMAILINFO: Me3hdGK5nWP4qZRHWwx3/ilqTI3lmn7pP7n/iOgvtpLquhkNlAIViMWA
-	zCLEBBOyYQKqKfNOtSM34rkAA0gryBCnkqzzLWJCqY0yPoCo3vDr2/dKEw2GeXl+QVi9/a4
-	joySMNa79lIVmR/Np/q5zDzSlJaItPBxh8iXRO7v5YvZHWoP+8AslF4KVp0BMq/Lis2daVB
-	0awNijXXgJJfblTGEfw9+BpmX5e4YoH/1pENWn7dkgeJFw2+CPSPklwR2UAC+ShjRCev5Y+
-	sST0a1BZK7/zawO5e6nLXEETY6CQe4Yw42NxEYLr6S7fjUUM7DZfWhjW3EYqRhJ3Z5cJLdP
-	TVGUe0frFuLWE5ouq2evcMpGsK2oc4X2ZTqVtPu00taWcVydyocxu8HtnAW1C/wYM+/cgnf
-	ZjtruZXReM+c4SEf5GakoVl5KYjijS3pF5eCr3g19iegTOIW4eqgRR6Zhmbnbg3OybOr0A3
-	WuCyIuv3/VWgiUdUBZ/zDfL+5kYB7c6/kaPpGiYN/WWPKn9bBvhvinjmucmwJmhMK7bhhss
-	h99uMYdmKoksn8nxStId5Z/a2b8uDJ0WYUze6paiVYWlAFYiuN+lJusAwbBFWBd70CwtvS/
-	vMCQHnhGchIAIcOYnDFPfODVfFocEWEdSe96HAbQ8Ca2mPBb6r7CRDMAKliVVdNvdY4Fokb
-	KTH+Vr5lDCOPQ0L8gXl3glZ8XDpjM8j7xIKZ7VL+NDUzI5mRCkB7G/SBxDSejAsX+OediUe
-	dpgm9A2l/fu3BR+wI+ZnmL3D8T9/F3RXC7EdwQLEl28IrR3ROeLXica+Ycifdjv8+2PorfS
-	uJKiPXjbHv1OlUoWb+cHur7DFBSNZVlfOfU3FYdCY9ZyooDFkVYYKgzfNkd1K4V5YHnLmG0
-	svDuqufvpA9/by6VtH+9FvhmI7+RFSNGSabGbNE4j1ZwMj6WqQoqFdyIPnkOl1UiMoZyEJy
-	s5OEAZCzLY4xTklKdxO+HWpHgDoQEFFwjRA0kbwxiZ+AUBt04OhE4SMXLXryCVRTUYhb15G
-	IX8q2kSYOMaTJEuJcew+/DtvDUHH4=
-X-QQ-XMRINFO: Nq+8W0+stu50tPAe92KXseR0ZZmBTk3gLg==
-X-QQ-RECHKSPAM: 0
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 02/33] Bluetooth: btusb: Fix MediaTek ISO claim locking
+To: Leon Romanovsky <leon@kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>,
+ Dmitry Torokhov <dmitry.torokhov@gmail.com>, Andrew Lunn <andrew@lunn.ch>,
+ Heiner Kallweit <hkallweit1@gmail.com>, Russell King
+ <linux@armlinux.org.uk>, "David S. Miller" <davem@davemloft.net>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Johannes Berg <johannes@sipsolutions.net>, Jonathan Corbet <corbet@lwn.net>,
+ Shuah Khan <skhan@linuxfoundation.org>, Randy Dunlap
+ <rdunlap@infradead.org>, Bjorn Helgaas <bhelgaas@google.com>,
+ "Joerg Roedel (AMD)" <joro@8bytes.org>,
+ Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
+ Vasant Hegde <vasant.hegde@amd.com>, Will Deacon <will@kernel.org>,
+ Robin Murphy <robin.murphy@arm.com>, David Woodhouse <dwmw2@infradead.org>,
+ Lu Baolu <baolu.lu@linux.intel.com>, Johan Hovold <johan@kernel.org>,
+ Eric Dumazet <edumazet@kernel.org>, Marcel Holtmann <marcel@holtmann.org>,
+ Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
+ Nipun Gupta <nipun.gupta@amd.com>, Nikhil Agarwal <nikhil.agarwal@amd.com>,
+ Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
+ Chris Lu <chris.lu@mediatek.com>, Mans Rullgard <mans@mansr.com>,
+ Alan Stern <stern@rowland.harvard.edu>, Jaroslav Kysela <perex@perex.cz>,
+ Takashi Iwai <tiwai@suse.com>, Andrew Morton <akpm@linux-foundation.org>,
+ Cornelia Huck <cornelia.huck@de.ibm.com>, Andrew Morton <akpm@osdl.org>,
+ Jeff Garzik <jeff@garzik.org>, "Rafael J. Wysocki"
+ <rafael.j.wysocki@intel.com>, Bart Van Assche <bvanassche@acm.org>,
+ Alexander Duyck <alexander.h.duyck@linux.intel.com>,
+ Dan Williams <djbw@kernel.org>
+Cc: linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
+ linux-input@vger.kernel.org, netdev@vger.kernel.org,
+ linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org,
+ linux-bluetooth@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, iommu@lists.linux.dev,
+ linux-coco@lists.linux.dev, Alexey Kardashevskiy <aik@amd.com>,
+ Luiz Augusto von Dentz <luiz.von.dentz@intel.com>,
+ Greg Kroah-Hartman <gregkh@suse.de>, linux-sound@vger.kernel.org,
+ Jason Gunthorpe <jgg@ziepe.ca>
+References: <20261124-device-trust-core-v4-0-037eb0d17b1f@nvidia.com>
+ <20261124-device-trust-core-v4-2-037eb0d17b1f@nvidia.com>
+Content-Language: en-US
+From: Oliver Neukum <oneukum@suse.com>
+In-Reply-To: <20261124-device-trust-core-v4-2-037eb0d17b1f@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-SGVsbG8sDQoNCkkgYW0gcHJlcGFyaW5nIGEgcGFwZXIgZm9yIHRoZSBKb3VybmFsIG9mIENv
-bXB1dGVyIFNlY3VyaXR5LCBwcm92aXNpb25hbGx5DQp0aXRsZWQgIkZvcmdlZEZhdWx0OiBB
-ZG1pc3Npb24gQ29udHJvbCBmb3IgSG9zdC1BdXRob3JlZCBIYXJkd2FyZS1FcnJvcg0KVGVz
-dGltb255IGluIENvbmZpZGVudGlhbCBWTXMiLiBJdCBpcyBub3Qgc3VibWl0dGVkIHlldC4g
-SSBhbSB3cml0aW5nDQpiZWZvcmUgc3VibWlzc2lvbiBzbyB0aGF0IHRoZSBrZXJuZWwgc2lk
-ZSBjYW4gYmUgcmV2aWV3ZWQgaW5kZXBlbmRlbnRseSBvZg0KdGhlIHBhcGVyLiBJIGFtIG5v
-dCByZXBvcnRpbmcgYSBDVkUgYW5kIEkgYW0gbm90IHB1Ymxpc2hpbmcgYW4gZXhwbG9pdC4N
-Cg0KV2hhdCBJIG9ic2VydmVkLiBPbiBMaW51eCA1LjE1LCA2LjgsIGFuZCA3LjMtcmM3LCB0
-aGUgR0hFUyBtZW1vcnktZmFpbHVyZQ0KcGF0aCByZWNvcmRzIHRoZSBlcnJvciBpbiB0aGUg
-Z3Vlc3QncyBNQ0UvRURBQyBoaXN0b3J5IGJlZm9yZQ0KbWVtb3J5X2ZhaWx1cmUoKSBydW5z
-IGFuZCBiZWZvcmUgYW55IHBhZ2UgYWN0aW9uIChyZXRpcmVtZW50IG9yDQpzb2Z0LW9mZmxp
-bmUpIGlzIHF1ZXVlZC4gQSBDUEVSIHRoYXQgcGFzc2VzIHRoZSBzdHJ1Y3R1cmFsIGFuZCBk
-ZWNsYXJlZA0KY2hlY2tzIGlzIHRoZXJlZm9yZSBlbnRlcmVkIGFzIGhhcmR3YXJlIGhpc3Rv
-cnkgZXZlbiBpZiB0aGUgcGFnZSBhY3Rpb24gaXMNCnN1YnNlcXVlbnRseSBibG9ja2VkLiBJ
-IHRyZWF0IHRoaXMgYXMgYW4gb3JkZXJpbmcgYW5kIGFkbWlzc2lvbiBwcm9ibGVtIGF0DQp0
-aGUgR0hFUyBlbnRyeSwgbm90IGFzIGEgQ1BFUiBwYXJzZXIgYnVnLg0KDQpPbmUgcXVhbGlm
-aWNhdGlvbiBkZWNpZGVzIHdoZXRoZXIgdGhpcyByZXByb2R1Y2VzLiBJbiBhIFREWCBndWVz
-dCB0aGUgR0hFUw0Kc3RhdHVzIGJsb2NrIGlzIG1hcHBlZCBwcml2YXRlIGJ5IGRlZmF1bHQs
-IHNvIGEgc3RvY2sgZ3Vlc3QgcmVhZHMgbm90aGluZw0KdGhlIGhvc3Qgd3JpdGVzOiBvbiB0
-d28gcmVudGVkIGJhcmUtbWV0YWwgVERYIGhvc3RzLCAwIG9mIDUgc3RvY2sgYm9vdHMNCnJl
-YWQgYSByZWNvcmQuIFRoZSBwYXRoIGFib3ZlIGlzIHJlYWNoYWJsZSB3aGVuIHRoZSB0ZW5h
-bnQgbWFwcyB0aGUgYmxvY2sNCnNoYXJlZCwgd2hpY2ggaXMgaG93IGZpcm13YXJlLWZpcnN0
-IFJBUyBpcyBjb25maWd1cmVkOyB3aXRoIHRoYXQgb25lDQpndWVzdC1zaWRlIGxpbmUsIGV2
-ZXJ5IGJvb3QgdGhhdCBvZmZlcmVkIHRoZSByZWNvcmQgY29uc3VtZWQgaXQgKDMvMyBhbmQN
-CjQvNCksIGxlYXZpbmcgYW4gTUNFL0VEQUMgZW50cnksIGFuZCB0aGUgcmVjb3ZlcmFibGUg
-cmVjb3JkIHRoYXQgbmFtZWQgYQ0KdmljdGltIHRlcm1pbmF0ZWQgaXQgb24gaXRzIG5leHQg
-YWNjZXNzICgxLzEgb24gZWFjaCBob3N0KSB3aGlsZSB0aGUgb3RoZXINCmZpdmUgcHJvY2Vz
-c2VzIGNvbnRpbnVlZC4gT24gU0VWLVNOUCB0aGUgc2FtZSBkZWxpdmVyeSBpcyBhIHNvdXJj
-ZQ0KYXJndW1lbnQsIG5vdCBhIG1lYXN1cmVtZW50OiBpdCBob2xkcyBvbmx5IGlmIHRoZSBn
-dWVzdCBzaGFyZXMgdGhlIGJsb2NrDQphbmQgbm8gcGFyYXZpc29yIGF1dGhlbnRpY2F0ZXMg
-b3IgZmlsdGVycyB0aGUgcmVjb3JkLiBUaGUgdHdvIGNvbW1lcmNpYWwNCmluc3RhbmNlcyBJ
-IGluc3BlY3RlZCByZWFkLW9ubHkgKG9uZSBURFgsIG9uZSBTTlAsIG9uZSByZWdpb24gZWFj
-aCkgaGFkIG5vDQpIRVNUIGF0IGFsbC4gU28gdGhpcyBpcyBhIGxhdGVudCBvcmRlcmluZyBh
-bmQgdHJ1c3QtYm91bmRhcnkgaXNzdWUsIG5vdCBhDQpsaXZlIGV4cGxvaXQgYWdhaW5zdCBh
-biB1bm1vZGlmaWVkIHNoaXBwaW5nIFZNLg0KDQpXaHkgY29udGVudCBjaGVja3MgZG8gbm90
-IGNsb3NlIGl0LiBJZiB0aGUgaG9zdCBjb3BpZXMgYSBnZW51aW5lIHJlY29yZA0KYnl0ZSBm
-b3IgYnl0ZSwgbm8gZGVjaXNpb24gdGhhdCByZWFkcyBvbmx5IHRoZSByZWNvcmQgYW5kIHB1
-YmxpYyBjb25zdGFudHMNCmNhbiBzZXBhcmF0ZSB0aGUgY29weSBmcm9tIHRoZSBvcmlnaW5h
-bC4gSSB1c2UgdGhhdCBhcyBhIGJvdW5kIG9uDQpjb250ZW50LW9ubHkgZmlsdGVycywgbm90
-IGFzIGFuIGV4cGxvaXQgcmVjaXBlLg0KDQpXaGF0IEkgaW1wbGVtZW50ZWQgYW5kIG1lYXN1
-cmVkLiBBIGZhaWwtY2xvc2VkIGFkbWlzc2lvbiBnYXRlIGF0IHRoZSBHSEVTDQplbnRyeSwg
-Y292ZXJpbmcgYm90aCB0aGUgcG9sbCBwYXRoIGFuZCB0aGUgTk1JIHBhdGgsIHdpdGggcmVm
-dXNlZCByZWNvcmRzDQpnb2luZyB0byBhIGNsZWFybHkgbWFya2VkIHJhdy1vYnNlcnZhdGlv
-biBsb2cgaW5zdGVhZCBvZiB0cnVzdGVkIHN0YXRlLiBJDQptZWFzdXJlZCBpdCBvbiBRRU1V
-L0tWTS4gT24gYSBtb2RpZmllZCBURFggdHJlZSBJIGNvbXBpbGVkIGFuZA0KYm9vdC1tZWFz
-dXJlZCBpdCBidXQgZGlkIG5vdCBydW4gaXQgZW5kIHRvIGVuZC4gSSBkaWQgbm90IG1lYXN1
-cmUgZ2VudWluZQ0KRUNDIGV2ZW50cywgYW5kIEkgZG8gbm90IGNsYWltIHByb2R1Y3Rpb24g
-YXZhaWxhYmlsaXR5Lg0KDQpXaGF0IEkgd291bGQgbGlrZSB0byBhc2suDQoNCjEuIElzIGEg
-cXVhcmFudGluZSBvciBkZW55IG9wdGlvbiBhdCB0aGUgR0hFUyBlbnRyeSBhY2NlcHRhYmxl
-IHVwc3RyZWFtLA0KICAgZ2l2ZW4gdGhhdCBpdCBhbHNvIHJlZnVzZXMgZ2VudWluZSBmaXJt
-d2FyZS1maXJzdCByZXBvcnRzIG9uIHRoZSBzYW1lDQogICBjaGFubmVsPw0KMi4gU2hvdWxk
-IHRoZSBOTUkgcGF0aCBzaGFyZSB0aGUgc2FtZSBnYXRlLCBvciBpcyB0aGVyZSBhIHJlYXNv
-biB0byBrZWVwDQogICB0aGUgdHdvIGVudHJ5IGZhbWlsaWVzIHNlcGFyYXRlPw0KMy4gSXMg
-dGhlcmUgYW4gaW4tYm91bmRhcnkgcHJvZHVjZXIgZGVzaWduIHRoZSBtYWludGFpbmVycyB3
-b3VsZCBjb25zaWRlcg0KICAgdHJ1c3R3b3J0aHkgZm9yIGEgcG9zaXRpdmUgYWNjZXB0YW5j
-ZSBwb2xpY3k/IFdpdGggbm8gc3VjaCBwcm9kdWNlciwgdGhlDQogICBvbmx5IHNvdW5kIHBv
-bGljeSBJIGNhbiBydW4gaXMgZGVueS1hbGwsIGFuZCB0aGF0IGlzIGEgY29tcGxldGVuZXNz
-IGNvc3QNCiAgIEkgZG8gbm90IHdhbnQgdG8gaGlkZS4NCg0KU3RhdHVzLiBJIGhhdmUgbm8g
-Zml4ZWQgZGF0ZSBmb3IgdGhlIHByZXByaW50IG9yIGZvciB0aGUgam91cm5hbA0Kc3VibWlz
-c2lvbi4gSSB3aWxsIHNlbmQgdGhlIGFyWGl2IElEIGJlZm9yZSB0aGUgcHJlcHJpbnQgZ29l
-cyBwdWJsaWM7IGlmDQp5b3Ugd291bGQgbGlrZSB0byBzZWUgdGhlIHJlbGV2YW50IHNlY3Rp
-b25zIGZpcnN0LCBvciB3YW50IG1vcmUgdGltZSwgdGVsbA0KbWUgYW5kIEkgd2lsbCBhcnJh
-bmdlIGl0LiBUaGUgcGF0Y2ggYW5kIHRoZSBtZWFzdXJlbWVudCBzY3JpcHRzIGFyZQ0KYXZh
-aWxhYmxlIG9uIHJlcXVlc3Q7IEkgaGF2ZSBub3QgYXR0YWNoZWQgdGhlbS4NCg0KU2luY2Vy
-ZWx5LA0KS2FuZyBKaW4NCldvbGxvbmdvbmcgSm9pbnQgSW5zdGl0dXRlLCBDZW50cmFsIENo
-aW5hIE5vcm1hbCBVbml2ZXJzaXR5KENDTlUpDQpqaW4yMzcxNDg4MzQ0QG1haWxzLmNjbnUu
-ZWR1LmNu
 
+
+On 24.11.26 10:43, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@nvidia.com>
+> 
+> MediaTek ISO claims are performed from HCI setup work outside USB probe.
+> Locking only the interface does not protect the claim against teardown
+> of the parent device. Unconditionally waiting for the parent lock can
+> deadlock with disconnect while it drains the setup work.
+Hi,
+
+your patch raises a question. Can usb_claim_interface() ever be
+used safely outside probe() without this kind of locking?
+If the answer to that is negative, should the locking be integrated into
+usbcore?
+
+	Regards
+		Oliver
