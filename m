@@ -1,111 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=54.254.200.92
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795513598;
-	b=2E3w3IBEjG722krziI0oShYME7kBaJ+IP6R8EV/aZtubCZSeZBuii9KzN2p7nPSg08Qu
-	 rzjjs15Cd3EKrSBOOQrQCQCHpZQJyaD369i3xgUdVMo8+naN/uCmqFh+tChun6AJgfy1p
-	 0lRa47lKKkMjZmsoXH/HIlEoSDbJgvBo33ri59sFBvX+31lNMdAZG0f4lLbz7gL9K1BoF
-	 FKA5Mrnnyf3HPmkGnp2DS7NNPVZsO2R6GrnQhj8VYFJ+Vg0238Hmv2kZ783zCAdprN1iE
-	 yXZs6clu97TlFI1lAQto+qfb3S58jf68+I3DVCBc6LOHCf6Lzcab9ddRXrV2mW1+55Q==
+	t=1795515552;
+	b=Lsz4/vFNUmEHVq2Y64cm2JH4jb7OgZs82E/5qEhZN2Xvumanl/e4D8sA9glj+ts+EpuA
+	 pz2JA8uieKPMaGoewu1a23sny1bxuXi37vio7wWbaQNKPL/fc793FXEWc7xgNJ35LUTdw
+	 uDuB/qQoJyFUKMa/ASTsEj5G7MH8AUcXITcWNlJz3pEsouWAob6+27h0hA3YFVa/jAnLQ
+	 IJrz7AxFVST93yqCVTGshkvQnUdM+65ZgpHGlVJI7N/DEotvcBpxabLe+GyXIPrrKNH1J
+	 rLN/YIP6cguRAN2d+xfdDYiVQiLhiXewWZ8PM/mNaxUjyBvUy/KROZ6fqtusIzGJR+Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795513598;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
-	 Content-Transfer-Encoding;
-	bh=5VqkE0VpGyyIhB+nhv1WiMIPqzUR1jVg0fCyvEoMlKM=;
-	b=m15z2uVGSAQ0gIBsUHBoshti6giBR8XLHND3+M1ezPKrqkEkZhelFJfwNrPGhZT+vS9R
-	 uXbE7XeOQYqu+HD3BvyAciSa3oIj/0GVMMHbTJO1ThnuFiTG3vjzfvFKI2yh4c9t7gpeQ
-	 Ym72cRfWkinBA/IxQPCoBxukEcriMsNqIXUIxminciFXY5dx+XGYsZjVljfEeIqHvByno
-	 jykzfdzczL6Fyjf/jefsTKDB/niR3G+1ga6oaDiTlZkSf1pqdJAIxaVTQbTnKsQv2LlBM
-	 EWGuDNPeWeeDFgsgnPZb/juhZgBElbDYLXrBBEW0QmR3Vc+82yDmnTDRJkPqAp1Ij0Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795515552;
+	h=DMARC-Filter:DKIM-Signature:EX-QQ-RecipientCnt:X-QQ-GoodBg:
+	 X-BAN-DOWNLOAD:X-BAN-SHARE:X-QQ-SSF:X-QQ-FEAT:X-QQ-BUSINESS-ORIGIN:
+	 X-QQ-Originating-IP:X-Originating-IP:X-QQ-STYLE:X-QQ-mid:From:To:Cc:
+	 Subject:Mime-Version:Content-Type:Content-Transfer-Encoding:Date:
+	 X-Priority:Message-ID:X-QQ-MIME:X-Mailer:X-QQ-Mailer:X-BIZMAIL-ID:
+	 X-Address-Ticket:X-QQ-SENDSIZE:Received:Feedback-ID:X-QQ-XMAILINFO:
+	 X-QQ-XMRINFO:X-QQ-RECHKSPAM;
+	bh=BamssN9WTBctTCc+ML35GfBHII2/mMm7UQhWi0uZH/Q=;
+	b=rXc1GQHimLsRmKUPOffmpXkN8yZ/1+Jj1QrLUjNaDuN3MasY7+Z5fnqSMooOduhYI24o
+	 HzFkGoiih8p5RhiVAATfZ/hpRTbx1DFe5vD1x2ypo/Jnhi8eQmdpw9VMcBgWJ5I9aksNd
+	 hHHAhwhQLTGNxMC7b40HMevVue7aifX9J2A7NMLHO5kOcElQQlqK67/WN0tdBKR2hOVHe
+	 YUHPZtpGXM7wBTgePRpSfpzNXSNKAcpdppj7p/NHn2By7D92HC0aVq4sl2v1bmNFdC1or
+	 kc4EJFnyQjKpFD5ad3NecU33p4x9sCfJSPwLUwYwiK6QigAiP0yutt1oRsYFXs8fkEw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Vaj6VuPX;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=mails.ccnu.edu.cn;
+	spf=pass smtp.mailfrom=mails.ccnu.edu.cn;
+	dkim=pass header.d=mails.ccnu.edu.cn header.i=@mails.ccnu.edu.cn header.a=rsa-sha256 header.s=dabk2403 header.b=R8+qiTUb;
+	arc=none smtp.remote-ip=54.254.200.92
+Received: from smtpbgsg1.qq.com (smtpbgsg1.qq.com [54.254.200.92])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4E8F606CC23;
-	Tue, 24 Nov 2026 09:46:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5F23606A332
+	for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2026 10:19:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E5F23606A332
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mails.ccnu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.ccnu.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Vaj6VuPX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B28C1F000C4;
-	Tue, 24 Nov 2026 09:46:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795513597;
-	bh=5VqkE0VpGyyIhB+nhv1WiMIPqzUR1jVg0fCyvEoMlKM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Vaj6VuPXFICAhTrbXRScJXlOnk1nbebiZHJ819vMfiPCTTgD19fO3/d8iCRfvTHBW
-	 X0I29LSCUZRvB/TZRXAjLyISNBI6QPoaOvb8QCzqd41HPfd5IY6l8utB0NQxJvcKP7
-	 k/JKciXNoiJQf5W5kn6cCxdka7rVQsEtl1/doccjKwtOKNwCrzaAYvUl7WTB4hw/JH
-	 ZPRjHwDJT3diDEoIxqZx3Mj1d4rY77EUrmp0DO+s+MFarJNPhW4YpUYMhMpVFc7dos
-	 vLVjOR/njoIKQt1Uo7CPta//5OhpK19uJlFKQNVk3n4VpLIHTEhkGHgNGGP53L7U63
-	 F35QqNLjXWeLg==
-From: Leon Romanovsky <leon@kernel.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Heiner Kallweit <hkallweit1@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
-	Vasant Hegde <vasant.hegde@amd.com>,
-	Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Lu Baolu <baolu.lu@linux.intel.com>,
-	Johan Hovold <johan@kernel.org>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-	Nipun Gupta <nipun.gupta@amd.com>,
-	Nikhil Agarwal <nikhil.agarwal@amd.com>,
-	Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>,
-	Chris Lu <chris.lu@mediatek.com>,
-	Mans Rullgard <mans@mansr.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Cornelia Huck <cornelia.huck@de.ibm.com>,
-	Andrew Morton <akpm@osdl.org>,
-	Jeff Garzik <jeff@garzik.org>,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	Bart Van Assche <bvanassche@acm.org>,
-	Alexander Duyck <alexander.h.duyck@linux.intel.com>,
-	Dan Williams <djbw@kernel.org>
-Cc: linux-kernel@vger.kernel.org,
-	driver-core@lists.linux.dev,
-	linux-input@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org,
-	linux-usb@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	iommu@lists.linux.dev,
-	linux-coco@lists.linux.dev,
-	Alexey Kardashevskiy <aik@amd.com>,
-	Luiz Augusto von Dentz <luiz.von.dentz@intel.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	linux-sound@vger.kernel.org,
-	Jason Gunthorpe <jgg@ziepe.ca>
-Subject: [PATCH v4 29/33] iommu: Use device trust for DMA restrictions
-Date: Tue, 24 Nov 2026 11:44:00 +0200
-Message-ID: <20261124-device-trust-core-v4-29-037eb0d17b1f@nvidia.com>
-X-Mailer: git-send-email 2.56.1
-In-Reply-To: <20261124-device-trust-core-v4-0-037eb0d17b1f@nvidia.com>
-References: <20261124-device-trust-core-v4-0-037eb0d17b1f@nvidia.com>
+	dkim=pass (1024-bit key, unprotected) header.d=mails.ccnu.edu.cn header.i=@mails.ccnu.edu.cn header.a=rsa-sha256 header.s=dabk2403 header.b=R8+qiTUb
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mails.ccnu.edu.cn;
+	s=dabk2403; t=1795515526;
+	bh=BamssN9WTBctTCc+ML35GfBHII2/mMm7UQhWi0uZH/Q=;
+	h=From:To:Subject:Mime-Version:Date:Message-ID;
+	b=R8+qiTUbo+lfoACA8pUmXhFp/uEGxfmI7TQRp9umCYOtsBY1uUvExJQK74EEOFs/q
+	 Gu7gZagC88AurRodZ4AFdWpmgZA9jrIuq2yRu99haV0wvco+CyItTjydU+MmOnzgO3
+	 lqgoGaptmBBsMFYOd5jedz5Dk9yTiRM/B3de1JJM=
+EX-QQ-RecipientCnt: 3
+X-QQ-GoodBg: 2
+X-BAN-DOWNLOAD: 1
+X-BAN-SHARE: 1
+X-QQ-SSF: 0040000000000020
+X-QQ-FEAT: D4aqtcRDiqRcMYJqMribwNe7Sq6XkWjGXFnSrAw/+Mw=
+X-QQ-BUSINESS-ORIGIN: 2
+X-QQ-Originating-IP: jaQL4TpJ7S+scmsEKaRQ62KCKJNdrMTwV8oWNtXitl8=
+X-QQ-STYLE: 
+X-QQ-mid: lv4gz3a-0t1795515522td107faee
+From: "=?utf-8?B?6YeR5bq3?=" <jin2371488344@mails.ccnu.edu.cn>
+To: "=?utf-8?B?bGludXgtYWNwaQ==?=" <linux-acpi@vger.kernel.org>
+Cc: "=?utf-8?B?dG9ueS5sdWNr?=" <tony.luck@intel.com>, "=?utf-8?B?YnA=?=" <bp@alien8.de>
+Subject: GHES/CPER admission ordering in confidential VMs - research note before submission
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -114,222 +65,107 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.15-dev-18f8f
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Date: Tue, 24 Nov 2026 18:18:42 +0800
+X-Priority: 3
+Message-ID: <tencent_709C91C3048D70ED0C1F505A@qq.com>
+X-QQ-MIME: TCMime 1.0 by Tencent
+X-Mailer: QQMail 2.x
+X-QQ-Mailer: QQMail 2.x
+X-BIZMAIL-ID: 3539056520258496067
+X-Address-Ticket:version=;type=;ticket_id=;id_list=;display_name=;session_id=;
+X-QQ-SENDSIZE: 520
+Received: from qq.com (unknown [127.0.0.1])
+	by smtp.qq.com (ESMTP) with SMTP
+	id ; Tue, 24 Nov 2026 18:18:43 +0800 (CST)
+Feedback-ID: lv:mails.ccnu.edu.cn:qybglogicsvrgz:qybglogicsvrgz3a-1
+X-QQ-XMAILINFO: Me3hdGK5nWP4qZRHWwx3/ilqTI3lmn7pP7n/iOgvtpLquhkNlAIViMWA
+	zCLEBBOyYQKqKfNOtSM34rkAA0gryBCnkqzzLWJCqY0yPoCo3vDr2/dKEw2GeXl+QVi9/a4
+	joySMNa79lIVmR/Np/q5zDzSlJaItPBxh8iXRO7v5YvZHWoP+8AslF4KVp0BMq/Lis2daVB
+	0awNijXXgJJfblTGEfw9+BpmX5e4YoH/1pENWn7dkgeJFw2+CPSPklwR2UAC+ShjRCev5Y+
+	sST0a1BZK7/zawO5e6nLXEETY6CQe4Yw42NxEYLr6S7fjUUM7DZfWhjW3EYqRhJ3Z5cJLdP
+	TVGUe0frFuLWE5ouq2evcMpGsK2oc4X2ZTqVtPu00taWcVydyocxu8HtnAW1C/wYM+/cgnf
+	ZjtruZXReM+c4SEf5GakoVl5KYjijS3pF5eCr3g19iegTOIW4eqgRR6Zhmbnbg3OybOr0A3
+	WuCyIuv3/VWgiUdUBZ/zDfL+5kYB7c6/kaPpGiYN/WWPKn9bBvhvinjmucmwJmhMK7bhhss
+	h99uMYdmKoksn8nxStId5Z/a2b8uDJ0WYUze6paiVYWlAFYiuN+lJusAwbBFWBd70CwtvS/
+	vMCQHnhGchIAIcOYnDFPfODVfFocEWEdSe96HAbQ8Ca2mPBb6r7CRDMAKliVVdNvdY4Fokb
+	KTH+Vr5lDCOPQ0L8gXl3glZ8XDpjM8j7xIKZ7VL+NDUzI5mRCkB7G/SBxDSejAsX+OediUe
+	dpgm9A2l/fu3BR+wI+ZnmL3D8T9/F3RXC7EdwQLEl28IrR3ROeLXica+Ycifdjv8+2PorfS
+	uJKiPXjbHv1OlUoWb+cHur7DFBSNZVlfOfU3FYdCY9ZyooDFkVYYKgzfNkd1K4V5YHnLmG0
+	svDuqufvpA9/by6VtH+9FvhmI7+RFSNGSabGbNE4j1ZwMj6WqQoqFdyIPnkOl1UiMoZyEJy
+	s5OEAZCzLY4xTklKdxO+HWpHgDoQEFFwjRA0kbwxiZ+AUBt04OhE4SMXLXryCVRTUYhb15G
+	IX8q2kSYOMaTJEuJcew+/DtvDUHH4=
+X-QQ-XMRINFO: Nq+8W0+stu50tPAe92KXseR0ZZmBTk3gLg==
+X-QQ-RECHKSPAM: 0
 
-From: Leon Romanovsky <leonro@nvidia.com>
-
-PCI-specific untrusted checks exclude devices classified as adversaries
-through generic policy. Their DMA protections should depend on the selected
-trust policy rather than the source of that classification.
-
-Use policy for early domain selection and active trust for DMA bouncing.
-This removes the remaining need for PCI's duplicate untrusted flag.
-Changes to IOMMU domains after authorization remain separate work.
-
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- .../driver-api/driver-model/device-trust.rst         | 20 ++++++++++++++++++++
- drivers/iommu/amd/iommu.c                            |  3 +--
- drivers/iommu/dma-iommu.c                            | 14 +++++---------
- drivers/iommu/intel/iommu.c                          | 14 +++++---------
- drivers/iommu/iommu.c                                |  9 +++++----
- drivers/pci/probe.c                                  |  1 -
- include/linux/pci.h                                  |  8 --------
- 7 files changed, 36 insertions(+), 33 deletions(-)
-
-diff --git a/Documentation/driver-api/driver-model/device-trust.rst b/Documentation/driver-api/driver-model/device-trust.rst
-index 3c6babdba80e9..2c31d887a0cb0 100644
---- a/Documentation/driver-api/driver-model/device-trust.rst
-+++ b/Documentation/driver-api/driver-model/device-trust.rst
-@@ -255,6 +255,26 @@ fixed; it cannot fall back to unrestricted.
- Drivers that manage DMA themselves must provide their own containment.
- Drivers that do not use DMA need no domain.
- 
-+PCI classification
-+==================
-+
-+PCI selects adversarial as the initial policy for devices that the
-+platform reports as removable through external-facing ports, and for
-+devices below a bridge with adversarial policy. IOMMU domain selection,
-+ATS, and ACS Translation Blocking follow the policy at discovery; DMA
-+bouncing follows the active level. Without device trust boot options this
-+classification cannot change, so PCI devices keep the restrictions they
-+had before device trust.
-+
-+Boot options are an explicit opt-in to replace it. A global value other
-+than default and a device rule replace the classification at discovery.
-+Global blocked and adversarial therefore restrict every PCI device, and
-+authorization does not revisit those discovery-time decisions. PCI has no
-+``trust_resolve`` callback, so a device rule of default resolves to
-+unrestricted. Devices below a bridge inherit adversarial policy only while
-+the bridge's policy is adversarial. A matching driver rule applies when
-+the driver binds and changes only DMA bouncing.
-+
- Initrd attestation sequence
- ===========================
- 
-diff --git a/drivers/iommu/amd/iommu.c b/drivers/iommu/amd/iommu.c
-index 960e1dc05ec69..e358bbb1f2baa 100644
---- a/drivers/iommu/amd/iommu.c
-+++ b/drivers/iommu/amd/iommu.c
-@@ -3401,8 +3401,7 @@ static int amd_iommu_def_domain_type(struct device *dev)
- 	if (!dev_is_pci(dev))
- 		return 0;
- 
--	/* Always use DMA domain for untrusted device */
--	if (to_pci_dev(dev)->untrusted)
-+	if (pci_dev_default_is_restricted(to_pci_dev(dev)))
- 		return IOMMU_DOMAIN_DMA;
- 
- 	/* Apply device specific quirks */
-diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index 78742aeba932d..a48fb511bfe6f 100644
---- a/drivers/iommu/dma-iommu.c
-+++ b/drivers/iommu/dma-iommu.c
-@@ -589,16 +589,11 @@ static int iova_reserve_iommu_regions(struct device *dev,
- 	return ret;
- }
- 
--static bool dev_is_untrusted(struct device *dev)
--{
--	return dev_is_pci(dev) && to_pci_dev(dev)->untrusted;
--}
--
- static bool dev_use_swiotlb(struct device *dev, size_t size,
- 			    enum dma_data_direction dir)
- {
- 	return IS_ENABLED(CONFIG_SWIOTLB) &&
--		(dev_is_untrusted(dev) ||
-+		(device_is_adversarial(dev) ||
- 		 dma_kmalloc_needs_bounce(dev, size, dir));
- }
- 
-@@ -611,7 +606,7 @@ static bool dev_use_sg_swiotlb(struct device *dev, struct scatterlist *sg,
- 	if (!IS_ENABLED(CONFIG_SWIOTLB))
- 		return false;
- 
--	if (dev_is_untrusted(dev))
-+	if (device_is_adversarial(dev))
- 		return true;
- 
- 	/*
-@@ -1189,7 +1184,8 @@ static phys_addr_t iommu_dma_map_swiotlb(struct device *dev, phys_addr_t phys,
- 	 * swiotlb_tbl_map_single() has initialized the bounce buffer proper to
- 	 * the contents of the original memory buffer.
- 	 */
--	if (phys != (phys_addr_t)DMA_MAPPING_ERROR && dev_is_untrusted(dev)) {
-+	if (phys != (phys_addr_t)DMA_MAPPING_ERROR &&
-+	    device_is_adversarial(dev)) {
- 		size_t start, virt = (size_t)phys_to_virt(phys);
- 
- 		/* Pre-padding */
-@@ -1790,7 +1786,7 @@ size_t iommu_dma_max_opt_mapping_size(void)
- 
- size_t iommu_dma_max_mapping_size(struct device *dev)
- {
--	if (dev_is_untrusted(dev))
-+	if (device_is_adversarial(dev))
- 		return swiotlb_max_mapping_size(dev);
- 
- 	return SIZE_MAX;
-diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
-index 5a2e705a2f2e0..0202b491f222e 100644
---- a/drivers/iommu/intel/iommu.c
-+++ b/drivers/iommu/intel/iommu.c
-@@ -2624,8 +2624,8 @@ static void __init platform_optin_force_iommu(void)
- 		return;
- 
- 	/*
--	 * If Intel-IOMMU is disabled by default, we will apply identity
--	 * map for all devices except those marked as being untrusted.
-+	 * If Intel-IOMMU is disabled by default, an external device could
-+	 * otherwise receive an identity map despite its adversarial policy.
- 	 */
- 	if (dmar_policy_off()) {
- 		pr_info("Intel-IOMMU force enabled due to platform opt in\n");
-@@ -3629,16 +3629,12 @@ static bool intel_iommu_is_attach_deferred(struct device *dev)
- 	return translation_pre_enabled(info->iommu) && !info->domain;
- }
- 
--/*
-- * Check that the device does not live on an external facing PCI port that is
-- * marked as untrusted. Such devices should not be able to apply quirks and
-- * thus not be able to bypass the IOMMU restrictions.
-- */
-+/* Bypass quirks must not prevent later adversarial operation. */
- static bool risky_device(struct pci_dev *pdev)
- {
--	if (pdev->untrusted) {
-+	if (pci_dev_default_is_restricted(pdev)) {
- 		pci_info(pdev,
--			 "Skipping IOMMU quirk for dev [%04X:%04X] on untrusted PCI link\n",
-+			 "Skipping IOMMU quirk due to trust policy [%04X:%04X]\n",
- 			 pdev->vendor, pdev->device);
- 		pci_info(pdev, "Please check with your BIOS/Platform vendor about this\n");
- 		return true;
-diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-index b486b8bbd1fcd..891b0cd2dad02 100644
---- a/drivers/iommu/iommu.c
-+++ b/drivers/iommu/iommu.c
-@@ -1901,10 +1901,11 @@ static int iommu_get_default_domain_type(struct iommu_group *group,
- 		driver_type = iommu_get_def_domain_type(group, gdev->dev,
- 							driver_type);
- 
--		if (dev_is_pci(gdev->dev) && to_pci_dev(gdev->dev)->untrusted) {
-+		if (dev_is_pci(gdev->dev) &&
-+		    pci_dev_default_is_restricted(to_pci_dev(gdev->dev))) {
- 			/*
--			 * No ARM32 using systems will set untrusted, it cannot
--			 * work.
-+			 * No ARM32 using systems select a restricted trust
-+			 * policy; it cannot work.
- 			 */
- 			if (WARN_ON(IS_ENABLED(CONFIG_ARM_DMA_USE_IOMMU)))
- 				return -1;
-@@ -1928,7 +1929,7 @@ static int iommu_get_default_domain_type(struct iommu_group *group,
- 		if (driver_type && driver_type != IOMMU_DOMAIN_DMA) {
- 			dev_err_ratelimited(
- 				untrusted,
--				"Device is not trusted, but driver is overriding group %u to %s, refusing to probe.\n",
-+				"Device trust policy restricts DMA, but driver is overriding group %u to %s, refusing to probe.\n",
- 				group->id, iommu_domain_type_str(driver_type));
- 			return -1;
- 		}
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 606ab8a3aa8ed..d890049823a6e 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -2080,7 +2080,6 @@ int pci_setup_device(struct pci_dev *dev)
- 	set_pcie_cxl(dev);
- 
- 	pci_set_default_trust_policy(dev);
--	dev->untrusted = device_policy_is_adversarial(&dev->dev);
- 	device_trust_init(&dev->dev);
- 
- 	/* "Unknown power state" */
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 5da9f7fabf1e5..25a54b25775d4 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -490,14 +490,6 @@ struct pci_dev {
- 	unsigned int	shpc_managed:1;		/* SHPC owned by shpchp */
- 	unsigned int	is_thunderbolt:1;	/* Thunderbolt controller */
- 	unsigned int	is_cxl:1;               /* Compute Express Link (CXL) */
--	/*
--	 * Devices marked being untrusted are the ones that can potentially
--	 * execute DMA attacks and similar. They are typically connected
--	 * through external ports such as Thunderbolt but not limited to
--	 * that. When an IOMMU is enabled they should be getting full
--	 * mappings to make sure they cannot access arbitrary memory.
--	 */
--	unsigned int	untrusted:1;
- 	/*
- 	 * Info from the platform, e.g., ACPI or device tree, may mark a
- 	 * device as "external-facing".  An external-facing device is
-
--- 
-2.56.1
+SGVsbG8sDQoNCkkgYW0gcHJlcGFyaW5nIGEgcGFwZXIgZm9yIHRoZSBKb3VybmFsIG9mIENv
+bXB1dGVyIFNlY3VyaXR5LCBwcm92aXNpb25hbGx5DQp0aXRsZWQgIkZvcmdlZEZhdWx0OiBB
+ZG1pc3Npb24gQ29udHJvbCBmb3IgSG9zdC1BdXRob3JlZCBIYXJkd2FyZS1FcnJvcg0KVGVz
+dGltb255IGluIENvbmZpZGVudGlhbCBWTXMiLiBJdCBpcyBub3Qgc3VibWl0dGVkIHlldC4g
+SSBhbSB3cml0aW5nDQpiZWZvcmUgc3VibWlzc2lvbiBzbyB0aGF0IHRoZSBrZXJuZWwgc2lk
+ZSBjYW4gYmUgcmV2aWV3ZWQgaW5kZXBlbmRlbnRseSBvZg0KdGhlIHBhcGVyLiBJIGFtIG5v
+dCByZXBvcnRpbmcgYSBDVkUgYW5kIEkgYW0gbm90IHB1Ymxpc2hpbmcgYW4gZXhwbG9pdC4N
+Cg0KV2hhdCBJIG9ic2VydmVkLiBPbiBMaW51eCA1LjE1LCA2LjgsIGFuZCA3LjMtcmM3LCB0
+aGUgR0hFUyBtZW1vcnktZmFpbHVyZQ0KcGF0aCByZWNvcmRzIHRoZSBlcnJvciBpbiB0aGUg
+Z3Vlc3QncyBNQ0UvRURBQyBoaXN0b3J5IGJlZm9yZQ0KbWVtb3J5X2ZhaWx1cmUoKSBydW5z
+IGFuZCBiZWZvcmUgYW55IHBhZ2UgYWN0aW9uIChyZXRpcmVtZW50IG9yDQpzb2Z0LW9mZmxp
+bmUpIGlzIHF1ZXVlZC4gQSBDUEVSIHRoYXQgcGFzc2VzIHRoZSBzdHJ1Y3R1cmFsIGFuZCBk
+ZWNsYXJlZA0KY2hlY2tzIGlzIHRoZXJlZm9yZSBlbnRlcmVkIGFzIGhhcmR3YXJlIGhpc3Rv
+cnkgZXZlbiBpZiB0aGUgcGFnZSBhY3Rpb24gaXMNCnN1YnNlcXVlbnRseSBibG9ja2VkLiBJ
+IHRyZWF0IHRoaXMgYXMgYW4gb3JkZXJpbmcgYW5kIGFkbWlzc2lvbiBwcm9ibGVtIGF0DQp0
+aGUgR0hFUyBlbnRyeSwgbm90IGFzIGEgQ1BFUiBwYXJzZXIgYnVnLg0KDQpPbmUgcXVhbGlm
+aWNhdGlvbiBkZWNpZGVzIHdoZXRoZXIgdGhpcyByZXByb2R1Y2VzLiBJbiBhIFREWCBndWVz
+dCB0aGUgR0hFUw0Kc3RhdHVzIGJsb2NrIGlzIG1hcHBlZCBwcml2YXRlIGJ5IGRlZmF1bHQs
+IHNvIGEgc3RvY2sgZ3Vlc3QgcmVhZHMgbm90aGluZw0KdGhlIGhvc3Qgd3JpdGVzOiBvbiB0
+d28gcmVudGVkIGJhcmUtbWV0YWwgVERYIGhvc3RzLCAwIG9mIDUgc3RvY2sgYm9vdHMNCnJl
+YWQgYSByZWNvcmQuIFRoZSBwYXRoIGFib3ZlIGlzIHJlYWNoYWJsZSB3aGVuIHRoZSB0ZW5h
+bnQgbWFwcyB0aGUgYmxvY2sNCnNoYXJlZCwgd2hpY2ggaXMgaG93IGZpcm13YXJlLWZpcnN0
+IFJBUyBpcyBjb25maWd1cmVkOyB3aXRoIHRoYXQgb25lDQpndWVzdC1zaWRlIGxpbmUsIGV2
+ZXJ5IGJvb3QgdGhhdCBvZmZlcmVkIHRoZSByZWNvcmQgY29uc3VtZWQgaXQgKDMvMyBhbmQN
+CjQvNCksIGxlYXZpbmcgYW4gTUNFL0VEQUMgZW50cnksIGFuZCB0aGUgcmVjb3ZlcmFibGUg
+cmVjb3JkIHRoYXQgbmFtZWQgYQ0KdmljdGltIHRlcm1pbmF0ZWQgaXQgb24gaXRzIG5leHQg
+YWNjZXNzICgxLzEgb24gZWFjaCBob3N0KSB3aGlsZSB0aGUgb3RoZXINCmZpdmUgcHJvY2Vz
+c2VzIGNvbnRpbnVlZC4gT24gU0VWLVNOUCB0aGUgc2FtZSBkZWxpdmVyeSBpcyBhIHNvdXJj
+ZQ0KYXJndW1lbnQsIG5vdCBhIG1lYXN1cmVtZW50OiBpdCBob2xkcyBvbmx5IGlmIHRoZSBn
+dWVzdCBzaGFyZXMgdGhlIGJsb2NrDQphbmQgbm8gcGFyYXZpc29yIGF1dGhlbnRpY2F0ZXMg
+b3IgZmlsdGVycyB0aGUgcmVjb3JkLiBUaGUgdHdvIGNvbW1lcmNpYWwNCmluc3RhbmNlcyBJ
+IGluc3BlY3RlZCByZWFkLW9ubHkgKG9uZSBURFgsIG9uZSBTTlAsIG9uZSByZWdpb24gZWFj
+aCkgaGFkIG5vDQpIRVNUIGF0IGFsbC4gU28gdGhpcyBpcyBhIGxhdGVudCBvcmRlcmluZyBh
+bmQgdHJ1c3QtYm91bmRhcnkgaXNzdWUsIG5vdCBhDQpsaXZlIGV4cGxvaXQgYWdhaW5zdCBh
+biB1bm1vZGlmaWVkIHNoaXBwaW5nIFZNLg0KDQpXaHkgY29udGVudCBjaGVja3MgZG8gbm90
+IGNsb3NlIGl0LiBJZiB0aGUgaG9zdCBjb3BpZXMgYSBnZW51aW5lIHJlY29yZA0KYnl0ZSBm
+b3IgYnl0ZSwgbm8gZGVjaXNpb24gdGhhdCByZWFkcyBvbmx5IHRoZSByZWNvcmQgYW5kIHB1
+YmxpYyBjb25zdGFudHMNCmNhbiBzZXBhcmF0ZSB0aGUgY29weSBmcm9tIHRoZSBvcmlnaW5h
+bC4gSSB1c2UgdGhhdCBhcyBhIGJvdW5kIG9uDQpjb250ZW50LW9ubHkgZmlsdGVycywgbm90
+IGFzIGFuIGV4cGxvaXQgcmVjaXBlLg0KDQpXaGF0IEkgaW1wbGVtZW50ZWQgYW5kIG1lYXN1
+cmVkLiBBIGZhaWwtY2xvc2VkIGFkbWlzc2lvbiBnYXRlIGF0IHRoZSBHSEVTDQplbnRyeSwg
+Y292ZXJpbmcgYm90aCB0aGUgcG9sbCBwYXRoIGFuZCB0aGUgTk1JIHBhdGgsIHdpdGggcmVm
+dXNlZCByZWNvcmRzDQpnb2luZyB0byBhIGNsZWFybHkgbWFya2VkIHJhdy1vYnNlcnZhdGlv
+biBsb2cgaW5zdGVhZCBvZiB0cnVzdGVkIHN0YXRlLiBJDQptZWFzdXJlZCBpdCBvbiBRRU1V
+L0tWTS4gT24gYSBtb2RpZmllZCBURFggdHJlZSBJIGNvbXBpbGVkIGFuZA0KYm9vdC1tZWFz
+dXJlZCBpdCBidXQgZGlkIG5vdCBydW4gaXQgZW5kIHRvIGVuZC4gSSBkaWQgbm90IG1lYXN1
+cmUgZ2VudWluZQ0KRUNDIGV2ZW50cywgYW5kIEkgZG8gbm90IGNsYWltIHByb2R1Y3Rpb24g
+YXZhaWxhYmlsaXR5Lg0KDQpXaGF0IEkgd291bGQgbGlrZSB0byBhc2suDQoNCjEuIElzIGEg
+cXVhcmFudGluZSBvciBkZW55IG9wdGlvbiBhdCB0aGUgR0hFUyBlbnRyeSBhY2NlcHRhYmxl
+IHVwc3RyZWFtLA0KICAgZ2l2ZW4gdGhhdCBpdCBhbHNvIHJlZnVzZXMgZ2VudWluZSBmaXJt
+d2FyZS1maXJzdCByZXBvcnRzIG9uIHRoZSBzYW1lDQogICBjaGFubmVsPw0KMi4gU2hvdWxk
+IHRoZSBOTUkgcGF0aCBzaGFyZSB0aGUgc2FtZSBnYXRlLCBvciBpcyB0aGVyZSBhIHJlYXNv
+biB0byBrZWVwDQogICB0aGUgdHdvIGVudHJ5IGZhbWlsaWVzIHNlcGFyYXRlPw0KMy4gSXMg
+dGhlcmUgYW4gaW4tYm91bmRhcnkgcHJvZHVjZXIgZGVzaWduIHRoZSBtYWludGFpbmVycyB3
+b3VsZCBjb25zaWRlcg0KICAgdHJ1c3R3b3J0aHkgZm9yIGEgcG9zaXRpdmUgYWNjZXB0YW5j
+ZSBwb2xpY3k/IFdpdGggbm8gc3VjaCBwcm9kdWNlciwgdGhlDQogICBvbmx5IHNvdW5kIHBv
+bGljeSBJIGNhbiBydW4gaXMgZGVueS1hbGwsIGFuZCB0aGF0IGlzIGEgY29tcGxldGVuZXNz
+IGNvc3QNCiAgIEkgZG8gbm90IHdhbnQgdG8gaGlkZS4NCg0KU3RhdHVzLiBJIGhhdmUgbm8g
+Zml4ZWQgZGF0ZSBmb3IgdGhlIHByZXByaW50IG9yIGZvciB0aGUgam91cm5hbA0Kc3VibWlz
+c2lvbi4gSSB3aWxsIHNlbmQgdGhlIGFyWGl2IElEIGJlZm9yZSB0aGUgcHJlcHJpbnQgZ29l
+cyBwdWJsaWM7IGlmDQp5b3Ugd291bGQgbGlrZSB0byBzZWUgdGhlIHJlbGV2YW50IHNlY3Rp
+b25zIGZpcnN0LCBvciB3YW50IG1vcmUgdGltZSwgdGVsbA0KbWUgYW5kIEkgd2lsbCBhcnJh
+bmdlIGl0LiBUaGUgcGF0Y2ggYW5kIHRoZSBtZWFzdXJlbWVudCBzY3JpcHRzIGFyZQ0KYXZh
+aWxhYmxlIG9uIHJlcXVlc3Q7IEkgaGF2ZSBub3QgYXR0YWNoZWQgdGhlbS4NCg0KU2luY2Vy
+ZWx5LA0KS2FuZyBKaW4NCldvbGxvbmdvbmcgSm9pbnQgSW5zdGl0dXRlLCBDZW50cmFsIENo
+aW5hIE5vcm1hbCBVbml2ZXJzaXR5KENDTlUpDQpqaW4yMzcxNDg4MzQ0QG1haWxzLmNjbnUu
+ZWR1LmNu
 
