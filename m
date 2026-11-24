@@ -1,102 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=65.109.113.108
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=220.197.31.2
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795496492;
-	b=VWbMO5FTjd3XcKEB1r6JfgXaYEAGBzJvZwb/LBM5EWJSnXJIaTflt6VAU8I/4OI0++9n
-	 zNH+kfrozOrufK9wHZc7pxsw6S7yuo4c1HhoHDCpnfpmtM7zLvMKrEHV1P5RFsqjqwXkd
-	 lmFKL56bFmRe4t3MboDWZ+R56wJZbOM5rr6Y4gyMPWYijiyEa3Tickodo+p3gqElHJF5x
-	 qlTYkWQvCBJngkpx/BOQa2FdEpmnVw1W065VjkCncQKtUXKQ0c3kxh30vtCQVr9IcvVql
-	 ABCCu0PIvteTW84Nngqs8q9M07nYSaI0aSgUo2a4gt2G8S7OdWoHczFa0H59cgsIGhQ==
+	t=1795503717;
+	b=DqZt0rGiiLVGcMXjoqWzfMRia/O88AKWlFFnln/VtBwl8daaRLdJ81zFxmm4dPI15/iB
+	 UOMY6ljV8C47GGHzYDiZA++ozfWFvcQXrtETGc0+DRzxet1pEl1XkLl3rboeMSMU3zcRy
+	 Tfo/8ZRQxwTHHFI3mtCy3+0zB784gskTpqpf1wWRyeGdeDDmd9sDMyJlssK+HL2lPxsYr
+	 UZM7/Xq61cBIhwlrAYUldPVhN12iSssilCEbiTWEDxQd8Z/N6su7Tc7p7YBK2ShGHe48/
+	 wKiVsPXWpVnf2QUR9JlkzEyzJon8MG0oAfPm5h1kYxP2ZUeA9Qs6LEXZA0jtCYteh2Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795496492;
-	h=DMARC-Filter:Received:X-Virus-Scanned:Received:DKIM-Signature:
-	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=XM+P0UUh8M7+zT3EmoQUfy6DuwH+/xR6iA2fTPRkpYo=;
-	b=gwCWRWAxHXiwTRrX9ymIJspFjjSc8jNB6K0OGYLdTZzVq9c7i+Sy2KaeJQyyVkpJeES4
-	 IwbeGCWzqgP0vQFKfPPJnjWzfZQyTEYtwDo/bma4n/b8dTecyushneSXI4GjMmn1Nwk6R
-	 BRQT51pY/Vvc7EOzIn7HK/y+FhCEZXr3PF7fQZYGPP8z1m+VEMc26Mfr8h0nK0jTU45iG
-	 Ooav1FOyy6Casl1zUrT/FaOCKEWk6P3j6uRnSfc9ClOyT1cUjCjEXEQQyJofMRX9BFj6t
-	 dqieaOq1ZBrD1aPgPYfPM6vpUxPmmUFfaP+ksVcSbwN99VOp7ifYtLGL+w6N8Xbghyg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795503717;
+	h=DMARC-Filter:DKIM-Signature:From:Sender:To:Cc:Subject:Date:
+	 Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-CM-TRANSID:X-Coremail-Antispam:X-CM-SenderInfo;
+	bh=sMHhlHivCsvaI5Tye/V+edIU2Y7AqQDg3C4kFXYUjZs=;
+	b=4kgikTcd16hzQCvXLyrlZZN7jQNzVAdZf+8K8XYrenWv6j325SIy2dnfYPwmKod/0sPJ
+	 mYtmBghM/142mpijiksKYTMzDg/k55g4SiPaG2qd9jvyl0F/4E4YYu14971TTkrN64MZb
+	 y2cOXK8RYfdbdPArp3/HSapij7wl+rbYTsbQ6m67EB8Mlhe/NTQK8Emo3KQthVY+7fvYT
+	 3tohVd1NIhxUp6pMeppStb+X40aaPn6KlrPlKLI8t9KZU7ptpzwBTRVlO63fJsh+JpCtt
+	 ZTmDc2rYYhKOgeY8i/hCpwNsM/1AuosFcYBXVf2Qxwn8ca5VgsWyUnWPX0nzc7AhnwA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=alien8.de;
-	spf=pass smtp.mailfrom=alien8.de;
-	dkim=pass header.d=alien8.de header.i=@alien8.de header.a=rsa-sha256 header.s=alien8 header.b=XoN6dl4w;
-	arc=none smtp.remote-ip=65.109.113.108
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+	dmarc=none header.from=kylinos.cn;
+	spf=pass smtp.mailfrom=163.com;
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=ezt+EYJ9;
+	arc=none smtp.remote-ip=220.197.31.2
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.2])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40A7A606A322;
-	Tue, 24 Nov 2026 05:01:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 40A7A606A322
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 848E0606A31E;
+	Tue, 24 Nov 2026 07:01:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 848E0606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.a=rsa-sha256 header.s=alien8 header.b=XoN6dl4w
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id A5CE440E02A9;
-	Tue, 24 Nov 2026 05:01:28 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
-	header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id 6vKUTZogjik0; Tue, 24 Nov 2026 05:01:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1795496485; bh=XM+P0UUh8M7+zT3EmoQUfy6DuwH+/xR6iA2fTPRkpYo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=XoN6dl4w0hO8vS82WF2sVspVH2Ft2yCybHFMhRmD+El3S2igLXKpsYPHgCoUVcvmb
-	 Oz8oGr8HDNWwBeOzl8rrUhUvaApVM9oPECC7d/9Ju/qibMK8Vo9T2dhtQWb95atjRZ
-	 MPFM0BOsEaCCUjHB/s3oXpSVfkL0TSDZNVttkSIEVv2GKzR8SzLlMQ+RW/hewfU6W5
-	 4Lxi7W6xN7fGfE33HLqD7S4d8vlc086is0sSBgTYcxlqpt4HVRdDWog3K8Mzi/W1Xf
-	 UlKcVU9nRdy1tP9J3ON3tF/jnhKp2rFe62GH+8QqxhjC/dt63NbTVdeMLdHCUzfE6+
-	 4AW7xbzjs7BZ1/+frP7bdFDkV52jvKF89A1KzaaLrpf0KbI9gVgkmGgQFkJjYVMo44
-	 DvW/KaEZpAIIQXozkEuWEeDMy4WXvEsMy75lE8aVlUbMF5MxC29dzQ5NVno2nDYq4+
-	 /foqT78Nar8WxvBxBRCsqHunGBN57QcfZswYl5yajf99gaCsX76l9xMNxDemElB4Cj
-	 tcBle8899/aszxRJRuMvOp/ZfdSf3iNFzLRp+u047z7oLqR3blWLgzairNs1uj+r7Y
-	 fjrtn9W6rytSEvHwabaQDXRpMAVcvSbpuc7IdEoHaYy3hSX82+tUZS2V6/Pbnayk03
-	 Gd+BMPN4fLEPETqdC9IO9FsE=
-Received: from stx.tnic (unknown [IPv6:2600:1700:38ca:c00::2b])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
-	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 2EB5340E0240;
-	Tue, 24 Nov 2026 05:00:48 +0000 (UTC)
-Date: Mon, 23 Nov 2026 21:00:45 -0800
-From: Borislav Petkov <bp@alien8.de>
-To: Pierre Gondois <pierre.gondois@arm.com>
-Cc: linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@oss.qualcomm.com>,
-	James Morse <james.morse@arm.com>, Mark Brown <broonie@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
-	Oliver O'Halloran <oohall@gmail.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>,
-	Yazen Ghannam <yazen.ghannam@amd.com>,
-	Avadhut Naik <avadhut.naik@amd.com>,
-	Qiuxu Zhuo <qiuxu.zhuo@intel.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	"Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Kai-Heng Feng <kaihengf@nvidia.com>,
-	Breno Leitao <leitao@debian.org>,
-	Terry Bowman <terry.bowman@amd.com>, Dan Williams <djbw@kernel.org>,
-	linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org,
-	acpica-devel@lists.linux.dev
-Subject: Re: [PATCH v1 09/19] ACPI: extlog: Report errors independently of
- RAS consumers
-Message-ID: <20261124050045.GOawUZ_S5imwUOyh8B@fat_crate.local>
-References: <20261117111444.4185512-1-pierre.gondois@arm.com>
- <20261117111444.4185512-10-pierre.gondois@arm.com>
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=ezt+EYJ9
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version:
+	Content-Type; bh=sMHhlHivCsvaI5Tye/V+edIU2Y7AqQDg3C4kFXYUjZs=;
+	b=ezt+EYJ92CeScGAqDdI38a4YsXnM3nURGoFPei13p0Pi0eFtjTCF6hPm0qhtYU
+	Vy4GhXS0mPYK/CM0v61kB97jzdl/CWbCbjnuq3ZmxZk+5K8jtq7Ex3t1buUVmbvd
+	5BWMic2St032wUgzoZlwk9Dmb4wYSuyJz0fD/vQZ1bYvo=
+From: Yongxin Yang <yangyongxin@kylinos.cn>
+Sender: yang_yongxin123@163.com
+To: Dave Jiang <dave.jiang@intel.com>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Jonathan Cameron <jic23@kernel.org>, Davidlohr Bueso <dave@stgolabs.net>,
+ Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <djbw@kernel.org>
+Cc: Rafael J. Wysocki <rafael@kernel.org>, Tony Luck <tony.luck@intel.com>,
+ Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>,
+ Mauro Carvalho Chehab <mchehab@kernel.org>,
+ Shuai Xue <xueshuai@linux.alibaba.com>, Ira Weiny <iweiny@kernel.org>,
+ Li Ming <ming.li@zohomail.com>, Len Brown <lenb@kernel.org>,
+ linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [PATCH v8] cxl/core: Create EINJ debugfs files when EINJ is initialized
+Date: Tue, 24 Nov 2026 15:00:17 +0800
+Message-ID: <179550361711.991197.13876815308672111616@kylinos.cn>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -106,75 +64,294 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20261117111444.4185512-10-pierre.gondois@arm.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wD3P40WNgVrd1I8Jg--.36837S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW3JrWkJFy3ZrWxCFWftw48tFb_yoWfZr4fpa
+	1UCr95Aw48Aay2kr13AryDXa4rtr4vgasrCr98W34akF4UCrs8GF1kJa4j9a4DWFW5J340
+	v3Z8tF1UCw4UAr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jeMKZUUUUU=
+X-CM-SenderInfo: 51dqwsp1rqw5tlqrjji6rwjhhfrp/xtbDABeuTGsFNhePTwAA36
 
-On Tue, Nov 17, 2026 at 12:10:19PM +0100, Pierre Gondois wrote:
-> The RAS consumer check removes:
-> - trace events when no daemon is registered
-> - CPER console report when one is registered
-> This ties tracing, PCIe recovery and CXL protocol delivery to daemon
-> registration, and can hide a fatal record when userspace cannot process
-> its trace event before a reset.
-> 
-> Remove the RAS consumer registration condition and:
-> - always emit trace events
-> - print the CPER record only for CPER_SEV_FATAL
-> 
-> [1] additionally suggested to have a cmdline parameter to dynamically
-> update the above policy. Keep a simple hard coded policy for now.
-> 
-> [1]
-> https://lore.kernel.org/lkml/20240521183913.GGZkzqUSN1hdE-_OEY@fat_crate.local/
-> 
-> Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
-> ---
->  drivers/acpi/acpi_extlog.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-> index e09ea571c32f5..16a16b12d8ccf 100644
-> --- a/drivers/acpi/acpi_extlog.c
-> +++ b/drivers/acpi/acpi_extlog.c
-> @@ -208,10 +208,9 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
->  	if (cper_estatus_len(tmp) > ELOG_ENTRY_LEN || cper_estatus_check(tmp))
->  		return NOTIFY_DONE;
->  
-> -	if (!ras_userspace_consumers()) {
-> +	/* Print fatal records regardless of RAS consumer registration. */
-> +	if (tmp->error_severity == CPER_SEV_FATAL)
->  		print_extlog_rcd(NULL, tmp, cpu);
-> -		goto out;
-> -	}
+einj_types under /sys/kernel/debug/cxl/ and the per-port einj_inject files
+are how ndctl learns that CXL protocol error injection is available, so
+they must exist where it works and stay absent where it does not.
 
-So after rereading that link, we had this conversation back then about
-reorganizing and reworking RAS error reporting and Dan (may he rest in peace)
-wanted to unify and dump all the old cruft - especially since
-ras_userspace_consumers() is not really used anymore. Apparently.
+With cxl_core built in, cxl_core_init() runs at subsys_initcall and
+einj_init() at device_initcall, so the is_initialized() check there
+always reads false and einj_types is never created.  Register
+cxl_einj_debugfs_setup() with einj_cxl_register_ready_cb(); EINJ invokes
+it from einj_cxl_notify_ready() once it is up, which creates einj_types
+and the dport directories skipped before that point.  The three helpers
+check einj_cxl_is_initialized() and return -ENODEV until then.
 
-But what else uses it?
+Test on a host with an EINJ table.  With CONFIG_CXL_BUS=y and
+CONFIG_ACPI_APEI_EINJ=y (CONFIG_ACPI_APEI_EINJ_CXL defaults to y),
+einj_types and the dport directories are missing before the change and
+appear after it, and writing a type from einj_types to a port's
+einj_inject reaches the dport path.  With both set to m, cxl_core depends
+on einj, so einj comes up first and the files appear when cxl_core loads.
+On a host without an EINJ table neither file appears.
 
-This is something other luserspace probably relies on and we should probably
-do our due diligence and slowly deprecate it with a warning splat but not just
-whack it unceremoniously.
+Link: https://lore.kernel.org/all/20261104061256.1449275-1-yangyongxin@kylinos.cn/
+Fixes: 8039804cfa73 ("cxl/core: Add CXL EINJ debugfs files")
+Signed-off-by: Yongxin Yang <yangyongxin@kylinos.cn>
+---
+ drivers/acpi/apei/apei-internal.h |  7 ++++
+ drivers/acpi/apei/einj-core.c     |  4 +-
+ drivers/acpi/apei/einj-cxl.c      | 38 +++++++++++++++++
+ drivers/cxl/core/port.c           | 70 ++++++++++++++++++++++++++++---
+ include/cxl/einj.h                |  3 ++
+ 5 files changed, 115 insertions(+), 7 deletions(-)
 
-And what I'm missing in all that effort is the big picture. What are you even
-trying to achieve here, what's the point of all that gymnastics?
+diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
+index 77c10a7a7a9f..5fb28cb4c7aa 100644
+--- a/drivers/acpi/apei/apei-internal.h
++++ b/drivers/acpi/apei/apei-internal.h
+@@ -137,6 +137,13 @@ int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2, u64 param3,
+ int einj_cxl_rch_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+ 			      u64 param3, u64 param4);
+ bool einj_is_cxl_error_type(u64 type);
++
++/* Notified from einj_init() once the CXL side may set up its debugfs */
++#if IS_ENABLED(CONFIG_ACPI_APEI_EINJ_CXL)
++void einj_cxl_notify_ready(void);
++#else
++static inline void einj_cxl_notify_ready(void) { }
++#endif
+ int einj_validate_error_type(u64 type);
+ 
+ #ifndef ACPI_EINJ_CXL_CACHE_CORRECTABLE
+diff --git a/drivers/acpi/apei/einj-core.c b/drivers/acpi/apei/einj-core.c
+index 1f3fa2278584..a3e7185f1e5a 100644
+--- a/drivers/acpi/apei/einj-core.c
++++ b/drivers/acpi/apei/einj-core.c
+@@ -1187,8 +1187,10 @@ static int __init einj_init(void)
+ 
+ 	einj_dev = faux_device_create("acpi-einj", NULL, &einj_device_ops);
+ 
+-	if (einj_dev)
++	if (einj_dev) {
+ 		einj_initialized = true;
++		einj_cxl_notify_ready();
++	}
+ 
+ 	return 0;
+ }
+diff --git a/drivers/acpi/apei/einj-cxl.c b/drivers/acpi/apei/einj-cxl.c
+index e70a416ec925..93003fe4527e 100644
+--- a/drivers/acpi/apei/einj-cxl.c
++++ b/drivers/acpi/apei/einj-cxl.c
+@@ -30,6 +30,9 @@ int einj_cxl_available_error_type_show(struct seq_file *m, void *v)
+ 	int cxl_err, rc;
+ 	u32 available_error_type = 0;
+ 
++	if (!einj_cxl_is_initialized())
++		return -ENODEV;
++
+ 	rc = einj_get_available_error_type(&available_error_type, ACPI_EINJ_GET_ERROR_TYPE);
+ 	if (rc)
+ 		return rc;
+@@ -72,6 +75,9 @@ int einj_cxl_inject_rch_error(u64 rcrb, u64 type)
+ {
+ 	int rc;
+ 
++	if (!einj_cxl_is_initialized())
++		return -ENODEV;
++
+ 	/* Only CXL error types can be specified */
+ 	if (!einj_is_cxl_error_type(type))
+ 		return -EINVAL;
+@@ -90,6 +96,9 @@ int einj_cxl_inject_error(struct pci_dev *dport, u64 type)
+ 	u64 param4 = 0;
+ 	int rc;
+ 
++	if (!einj_cxl_is_initialized())
++		return -ENODEV;
++
+ 	/* Only CXL error types can be specified */
+ 	if (!einj_is_cxl_error_type(type))
+ 		return -EINVAL;
+@@ -111,3 +120,32 @@ bool einj_cxl_is_initialized(void)
+ 	return einj_initialized;
+ }
+ EXPORT_SYMBOL_NS_GPL(einj_cxl_is_initialized, "CXL");
++
++static void (*einj_cxl_ready_cb)(void);
++
++/**
++ * einj_cxl_register_ready_cb - run a callback once EINJ is initialized
++ * @cb: callback to invoke, or NULL to cancel a pending registration
++ *
++ * cxl_core cannot tell at init time whether EINJ will come up.  If EINJ is
++ * already initialized, @cb runs immediately.
++ */
++void einj_cxl_register_ready_cb(void (*cb)(void))
++{
++	if (cb && einj_cxl_is_initialized()) {
++		cb();
++		return;
++	}
++
++	einj_cxl_ready_cb = cb;
++}
++EXPORT_SYMBOL_NS_GPL(einj_cxl_register_ready_cb, "CXL");
++
++void einj_cxl_notify_ready(void)
++{
++	void (*cb)(void) = einj_cxl_ready_cb;
++
++	einj_cxl_ready_cb = NULL;
++	if (cb)
++		cb();
++}
+diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+index 625e4aa427db..4f6137651ca4 100644
+--- a/drivers/cxl/core/port.c
++++ b/drivers/cxl/core/port.c
+@@ -802,6 +802,8 @@ static int cxl_dport_setup_regs(struct device *host, struct cxl_dport *dport,
+ 
+ DEFINE_SHOW_ATTRIBUTE(einj_cxl_available_error_type);
+ 
++static struct dentry *cxl_debugfs;
++
+ static int cxl_einj_inject(void *data, u64 type)
+ {
+ 	struct cxl_dport *dport = data;
+@@ -822,6 +824,17 @@ static void cxl_debugfs_create_dport_dir(struct cxl_dport *dport)
+ 	if (!einj_cxl_is_initialized())
+ 		return;
+ 
++	/*
++	 * Skip dports that already got a directory when they came up.  The
++	 * lookup returns an ERR_PTR when CONFIG_DEBUG_FS is off, so it must
++	 * not be handed to dput() unchecked.
++	 */
++	dir = debugfs_lookup(dev_name(dport->dport_dev), cxl_debugfs);
++	if (!IS_ERR_OR_NULL(dir)) {
++		dput(dir);
++		return;
++	}
++
+ 	/*
+ 	 * Protocol error injection is only available for CXL 2.0+ root ports
+ 	 * and CXL 1.1 downstream ports
+@@ -836,6 +849,54 @@ static void cxl_debugfs_create_dport_dir(struct cxl_dport *dport)
+ 			    &cxl_einj_inject_fops);
+ }
+ 
++static struct dentry *einj_types_dentry;
++
++/*
++ * einj_types cannot be created from cxl_core_init(): EINJ is not up yet at
++ * that point, so create it once EINJ reports it is initialized.
++ */
++static void cxl_einj_debugfs_add_types(void)
++{
++	if (einj_types_dentry)
++		return;
++
++	if (!einj_cxl_is_initialized())
++		return;
++
++	einj_types_dentry = debugfs_create_file("einj_types", 0400, cxl_debugfs,
++						NULL,
++						&einj_cxl_available_error_type_fops);
++}
++
++static int cxl_einj_debugfs_create_dport_dirs(struct device *dev, void *data)
++{
++	struct cxl_dport *dport;
++	struct cxl_port *port;
++	unsigned long index;
++
++	if (!is_cxl_port(dev))
++		return 0;
++
++	port = to_cxl_port(dev);
++
++	guard(device)(dev);
++	xa_for_each(&port->dports, index, dport)
++		cxl_debugfs_create_dport_dir(dport);
++
++	return 0;
++}
++
++/*
++ * Called from einj_cxl_notify_ready(), or directly from
++ * einj_cxl_register_ready_cb() when EINJ is already up.
++ */
++static void cxl_einj_debugfs_setup(void)
++{
++	cxl_einj_debugfs_add_types();
++	bus_for_each_dev(&cxl_bus_type, NULL, NULL,
++			 cxl_einj_debugfs_create_dport_dirs);
++}
++
+ static int cxl_port_add(struct cxl_port *port,
+ 			resource_size_t component_reg_phys,
+ 			struct cxl_dport *parent_dport)
+@@ -2501,8 +2562,6 @@ const struct bus_type cxl_bus_type = {
+ };
+ EXPORT_SYMBOL_NS_GPL(cxl_bus_type, "CXL");
+ 
+-static struct dentry *cxl_debugfs;
+-
+ struct dentry *cxl_debugfs_create_dir(const char *dir)
+ {
+ 	return debugfs_create_dir(dir, cxl_debugfs);
+@@ -2515,10 +2574,6 @@ static __init int cxl_core_init(void)
+ 
+ 	cxl_debugfs = debugfs_create_dir("cxl", NULL);
+ 
+-	if (einj_cxl_is_initialized())
+-		debugfs_create_file("einj_types", 0400, cxl_debugfs, NULL,
+-				    &einj_cxl_available_error_type_fops);
+-
+ 	cxl_mbox_init();
+ 
+ 	rc = cxl_memdev_init();
+@@ -2541,6 +2596,8 @@ static __init int cxl_core_init(void)
+ 
+ 	cxl_ras_init();
+ 
++	einj_cxl_register_ready_cb(cxl_einj_debugfs_setup);
++
+ 	return 0;
+ 
+ err_region:
+@@ -2554,6 +2611,7 @@ static __init int cxl_core_init(void)
+ 
+ static void cxl_core_exit(void)
+ {
++	einj_cxl_register_ready_cb(NULL);
+ 	cxl_ras_exit();
+ 	cxl_region_exit();
+ 	bus_unregister(&cxl_bus_type);
+diff --git a/include/cxl/einj.h b/include/cxl/einj.h
+index 624ff6ff41f9..af2af62c8eaa 100644
+--- a/include/cxl/einj.h
++++ b/include/cxl/einj.h
+@@ -21,6 +21,7 @@ int einj_cxl_available_error_type_show(struct seq_file *m, void *v);
+ int einj_cxl_inject_error(struct pci_dev *dport_dev, u64 type);
+ int einj_cxl_inject_rch_error(u64 rcrb, u64 type);
+ bool einj_cxl_is_initialized(void);
++void einj_cxl_register_ready_cb(void (*cb)(void));
+ #else /* !IS_ENABLED(CONFIG_ACPI_APEI_EINJ_CXL) */
+ static inline int einj_cxl_available_error_type_show(struct seq_file *m,
+ 						     void *v)
+@@ -39,6 +40,8 @@ static inline int einj_cxl_inject_rch_error(u64 rcrb, u64 type)
+ }
+ 
+ static inline bool einj_cxl_is_initialized(void) { return false; }
++
++static inline void einj_cxl_register_ready_cb(void (*cb)(void)) { }
+ #endif /* CONFIG_ACPI_APEI_EINJ_CXL */
+ 
+ #endif /* EINJ_CXL_H */
 
-Unify GHES and acpi_extlog? That's it?
-
-I'm sure there's much more to it than just a plain unification. 
-
-Probably CXL-something is going to use this too eventually?
-
-But I should not be guessing - I should be reading about the big picture
-somewhere. No?
-
-Thx.
-
+base-commit: bc35965f6940a9bf834d54187b6088b8eb09206d
 -- 
-Regards/Gruss,
-    Boris.
+2.25.1
 
-https://people.kernel.org/tglx/notes-about-netiquette
+
