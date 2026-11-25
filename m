@@ -1,55 +1,68 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795625159;
-	b=UYWfhf+h9qib2X+P7YFhTkGjGAixcWb/3G0Bs1CzOSaJ2k1DOTWuH/dLXACsclbcAFXt
-	 IvFtYudvCBabDatt1c1c5I0aLtsyra7JahOgZql/piBtCeXx6h1Pk3Xx14niyCVunL8fj
-	 dgN7zog7pOgkuIW6Gw8m+6hxboIizXJHJ3dri8vAglgD106a9lZPNlksr5GfLqY22yawe
-	 2m4eONofr7rSy2xOlNR3zrRvyrJq8SxREQ76VieYHVyAe2S1Fq1ZSzkIdvYCLfBSuMFM5
-	 GVnbs35DvYM7VZLNNMk1KTOCKz+3SLhM3NiD4NdcGLc2G9JXlgXXj4wfFtQKxczVHSg==
+	t=1795625229;
+	b=bc9yUoqwcgqw02qIc7gUlmqdbBWbwm+paWu/+y22W3Y7kG0AEiEx/fsN8rJ+VBSfs34H
+	 FsjZgOdONFDUIDo3YmRB9b3edRHdv0Q0PmVKFla0ZBNOyORZ369bcY6BcbjGNM4u3+7kb
+	 c0p2EcNisGje6uXNXU7rR6Tur7bvg5ksq5uhsl7oo5NGMzilbArjCF9In1ZK7mZ//0LWy
+	 RpJBFrkRRKtmZUOT36/jWcsTfvBDlhFwR/8kFQE41yOOUZZm5/dmbH/Pzhp44pdKdLVFW
+	 ywQL/7FY1IcIAU4z/eE8YFAk+cIEfM7PByPpzg2DZ7v0U9W0GHqeK3nIU8nByn4DATQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795625159;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=7Ofy+nGZGG5GjSQ/p9hjatkioBWd7QndibG1/NjdTig=;
-	b=cIHchgicYNQFofbAQ1wYkJRJ+tpRR/9Orw88it0H7BX7tkglaOj/GpLVssm1INM3ziCq
-	 mIrrZQm+EoZDniCjPGNAnyY6Cl4V1IklX2UtdSSGF3uLoQfmdMBkg/XMsDDZ35b7d6mlY
-	 fnWl4smcIei3Knw6WgEate/0ZjHTNgo64mFTiJbot+HNWNp76YU0FpEvd8o8IZn4obd4A
-	 vnBzxTfLmGJjWWvGyG+UsN4db9vpsmv5SdNjd7fWUTY9gDgsX/zcpF4vF7as4LnVme+oM
-	 k/szMsgzCu7ISSmH1wQPtb2ZHjpYkcavgr3imziZn+jupMLB8qu+gQJCdEyu45YOG0A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795625229;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=2soaXjuh6WRTXowbhNMNIHhfnZfKrjV28fZXYvBHPj4=;
+	b=piIoa7oaOynBnFdm2swyCkN1hOnhd7gvELHYbo84rxMm2yhFxtl48krV0GevCemRsC0u
+	 CvOKcrJt6qcP582T8kwNaomfG6pIELP0MX2UjsRcoA4E6xnD0eOdh18d+VxwNNzK3Cuen
+	 Nhsz3RL56hS6hyeo7jbwCbLfaoBqNOropWq+ROJBEbiMkpAM39ALYoJ+WI+QCIV++o9A7
+	 aZmrpMeOKXiObGME511U6RO63bLBtvC6DX3n05iNj8TVx9p8uiJVzKttM1Q+nmGnKbMGi
+	 ibih5Thzd/CyrITy4yGUtLmZopLIfVfuEYyzrn9e6SFdEn1cA1RDsWAPZiANVPi4Kvg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FnbISpxn;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hogNfQ+F;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1C51606A329
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2026 16:45:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77379606A31E;
+	Wed, 25 Nov 2026 16:47:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FnbISpxn
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 578061F000C0
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2026 16:45:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hogNfQ+F
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 304AC1F000D3;
+	Wed, 25 Nov 2026 16:47:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795625158;
-	bh=7Ofy+nGZGG5GjSQ/p9hjatkioBWd7QndibG1/NjdTig=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=FnbISpxnsBf8m0U3xd/OLVl7vxIJAa+9YONUmKpGpEnWKMf08r9xzEpHz/jgp+Wy3
-	 hYR8DcSI4C7QgnHZRVTeRA9aG7YpFTOQgXH1pXIwyOSyFwFK5C767S+VcEkIW08ND0
-	 47idpSLK+NeC5zqL5mCSMA7g14tj2hVsBJfvpe1ltsneuxkdau490DpgLtvhx013XE
-	 kDhjEtwauDJ/g0dIqATs0tWCLtpR9E1aj1ZNY7PA0IRgazQTx/XDU4o7GDyyC3KGuq
-	 um/ULeytSQIBUQwk/zXNaYoYOZde63xfl2rgQuHFI6SBJTnyoUMa/R6dphUCShnUWs
-	 nTnEf1w8hLE0A==
-Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5c14470729eso5568028e87.2
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2026 08:45:58 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErHvhNgY5Hjee4PNa/Fp+RK/TWF94t/+TeItj2hEUMgjY7uBn+UpurTc4cSGVwUP7KPoM7XCmbvvp8A3@vger.kernel.org
-X-Gm-Message-State: APuU4Z+TQfTOQbKz4Ce/vi0WFgU1PifD/r6kGADiixHUxfUOBCKBGTCg
-	t2GIYzgDR3xyrDaM08/AImfuT5I+LJdJ8eCVuP9NHrV8FMN0TwGTmSDaYovkkMzn7MJrL1fiZEF
-	/biFxTTooPtEvGitSSjVfnlyU1n7l+Pw=
-X-Received: by 2002:a05:6512:401c:b0:5c1:ad4b:4be7 with SMTP id
- 2adb3069b0e04-5c1bc7d00aamr5425949e87.20.1795625156701; Wed, 25 Nov 2026
- 08:45:56 -0800 (PST)
+	s=k20260515; t=1795625229;
+	bh=2soaXjuh6WRTXowbhNMNIHhfnZfKrjV28fZXYvBHPj4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=hogNfQ+F+Y4E2RslqNtzTCLa+aPXk9fgHufUng+80Kqyh61plChu/GSQXSpLCoux6
+	 LK/tUBibRHPDslb/35oQkMMiLrJYZXd42lc25Hxnscz1JofWCzPpclgnQuxc3IkhbD
+	 FfCaQnqRhwzBbOeVJeOz3vqzYPNpU8P6FBeR6rpzppKHLbbdcL8QJCanlVZmc7XvYr
+	 eqOBO6FwPjchWi1edSyv37dKhRIfheADUxa1+F6MPMQ6X1kWt40dbq5dq7/rn9bQB9
+	 fEx/TGsl/3gT6z/fEHYZAoSKPLy+IiMxfc/53pdYzWsr3GvXvXwYUlv/26fOljb2HZ
+	 9Rlpjb+5FPyRQ==
+Date: Wed, 25 Nov 2026 17:47:00 +0100
+From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org, 
+	Krzysztof Kozlowski <krzk@kernel.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, 
+	Andy Shevchenko <andy@kernel.org>, Daniel Scally <djrscally@gmail.com>, 
+	Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Hans Verkuil <hverkuil-cisco@xs4all.nl>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>, Kees Cook <kees@kernel.org>, 
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Len Brown <lenb@kernel.org>, 
+	Linus Torvalds <torvalds@linux-foundation.org>, Linus Walleij <linusw@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Rob Herring <robh@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Saravana Kannan <saravanak@kernel.org>, Steven Rostedt <rostedt@goodmis.org>, 
+	Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: Re: [PATCH v6 04/19] device property: Fix fwnode_name_eq() for empty
+ node names
+Message-ID: <awcQVdF5A8ZrbbeC@devuan>
+References: <cover.1794667407.git.alx@kernel.org>
+ <7fc1321995f1aec9d7b92c6a89047cc9fb28c52a.1794667407.git.alx@kernel.org>
+ <nat4ilqmzzpuyrjbuahl367ip22tfnmjorydlppuwqiscxaujo@kf63j4lb3flk>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,258 +72,119 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
-In-Reply-To: <cover.1795194329.git.maciej.wieczor-retman@intel.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 25 Nov 2026 17:45:42 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0hUQBr0k3GNqf2t118nRZnBS_Chw4NJXA+j501Bf=AEGQ@mail.gmail.com>
-X-Gm-Features: Aa3M54qST7obZ3zrfYaLQiJELeljnYeJDcQKh7-DXwYZlMnrrNHk2B9oFBxFD3s
-Message-ID: <CAJZ5v0hUQBr0k3GNqf2t118nRZnBS_Chw4NJXA+j501Bf=AEGQ@mail.gmail.com>
-Subject: Re: [PATCH v2 00/42] ACPICA: ACPICA 20260930 with follow-up fixes
-To: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Cc: catalin.marinas@arm.com, pawel.chmielewski@intel.com, 
-	kyle.d.pelton@intel.com, lenb@kernel.org, guohanjun@huawei.com, 
-	maobibo@loongson.cn, lpieralisi@kernel.org, will@kernel.org, 
-	sudeep.holla@kernel.org, erik.kaneda@intel.com, rafael@kernel.org, 
-	robert.moore@intel.com, void0red@gmail.com, superm1@kernel.org, 
-	chenhuacai@kernel.org, acpica-devel@lists.linux.dev, 
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, loongarch@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="pgohlg3lnyvn34uw"
+Content-Disposition: inline
+In-Reply-To: <nat4ilqmzzpuyrjbuahl367ip22tfnmjorydlppuwqiscxaujo@kf63j4lb3flk>
+
+
+--pgohlg3lnyvn34uw
+Content-Type: text/plain; protected-headers=v1; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
+From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Alejandro Colomar <alx@kernel.org>, linux-hardening@vger.kernel.org, 
+	Krzysztof Kozlowski <krzk@kernel.org>, "Maciej W. Rozycki" <macro@orcam.me.uk>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Andreas Schwab <schwab@linux-m68k.org>, 
+	Andy Shevchenko <andy@kernel.org>, Daniel Scally <djrscally@gmail.com>, 
+	Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Hans Verkuil <hverkuil-cisco@xs4all.nl>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Joe Perches <joe@perches.com>, Johan Hovold <johan@kernel.org>, Kees Cook <kees@kernel.org>, 
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Len Brown <lenb@kernel.org>, 
+	Linus Torvalds <torvalds@linux-foundation.org>, Linus Walleij <linusw@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Rob Herring <robh@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Saravana Kannan <saravanak@kernel.org>, Steven Rostedt <rostedt@goodmis.org>, 
+	Tom Zanussi <zanussi@kernel.org>, linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: Re: [PATCH v6 04/19] device property: Fix fwnode_name_eq() for empty
+ node names
+Message-ID: <awcQVdF5A8ZrbbeC@devuan>
+References: <cover.1794667407.git.alx@kernel.org>
+ <7fc1321995f1aec9d7b92c6a89047cc9fb28c52a.1794667407.git.alx@kernel.org>
+ <nat4ilqmzzpuyrjbuahl367ip22tfnmjorydlppuwqiscxaujo@kf63j4lb3flk>
+MIME-Version: 1.0
+In-Reply-To: <nat4ilqmzzpuyrjbuahl367ip22tfnmjorydlppuwqiscxaujo@kf63j4lb3flk>
 
-On Fri, Nov 20, 2026 at 6:18=E2=80=AFPM Maciej Wieczor-Retman
-<maciej.wieczor-retman@intel.com> wrote:
->
-> The following patches are ported from upstream ACPICA and contain the 202=
-60930
-> release and some follow up fixes (so generally everything after the 20260=
-408
-> release). Only source files relevant to the Linux kernel are being ported=
-.
->
-> Changes since v1:
-> v1 [1] contained only commits between the 20260408 and 20260930 releases.
-> However sashiko.dev [2] raised some issues that needed to be either appli=
-ed or
-> rejected. Most issues were valid and were resolved in patches that follow=
- the
-> 20260930 release. Things that were rejected were the whole patch [3] due =
-to not
-> being a full solution to a very unlikely, debug only problem. Also the sa=
-shiko
-> comment related to ACPI_GPE_AUTO_ENABLED in patch [4] wasn't applied due =
-to
-> not being realistically possible to happen and consequences were only an =
-odd
-> looking log entry.
->
-> There are non-ACPICA changes related to constants/variable name changes
-> in these patches:
-> - ACPICA: actbl2: MPAM: adapt to MPAM ACPI spec v3.1
-> - ACPICA: acpica: Fix typo in the IOVT_IOMMU table definitions
->
-> The base for this patches is upstream kernel v7.4-rc3 and it consists of
-> the following material:
->
-> Andre Przywara (1):
->       ACPICA: actbl2: MPAM: adapt to MPAM ACPI spec v3.1
->
-> Colin Ian King (2):
->       ACPICA: components: Fix typo "Supress" -> "Suppress"
->       ACPICA: components: Fix typo: "numer" -> "number"
->
-> Dave Jiang (2):
->       ACPICA: CEDT: RDPAS: Add missing reserved field in RDPAS structure
->       ACPICA: CEDT: RDPAS: Fix incorrect field positions for RDPAS
->
-> Hanjun Guo (1):
->       ACPICA: add UBRT (UnifiedBus Root Table) definitions
->
-> Himanshu Chauhan (1):
->       ACPICA: Introduce a new HEST notification type for RISC-V SSE event=
-s
->
-> Iurii Trukhin (1):
->       ACPICA: parser: Fix parse tree memory leak on AML execution error u=
-nwind
->
-> Leonard Lausen (1):
->       ACPICA: Executer: Resolve package index references used as integer =
-operands
->
-> Maciej Strozek (1):
->       ACPICA: Utilities: Fix for AcpiUtVerifyChecksum warning display
->
-> Maciej Wieczor-Retman (17):
->       ACPICA: executer: Fix NULL pointer dereference in AcpiExStoreObject=
-ToIndex()
->       ACPICA: compiler: Add _Ixx GPE object
->       ACPICA: namespace: Fix possible underflow and NULL pointer derefere=
-nce
->       ACPICA: iASL: Fix the truncated count of external control methods
->       ACPICA: release: Update version to 20260930
->       ACPICA: events: Add missing event mutex to AcpiEvClearGpeDispatchBy=
-Owner()
->       ACPICA: events: Remove redundant code
->       ACPICA: events: Fix AcpiEvClearGpeDispatchByOwner handler type proc=
-essing
->       ACPICA: events: Fix GPE cleanup return after changing program state
->       ACPICA: events: Handle GPEs' Notify dispatch type
->       ACPICA: tables: Fix wrong table unload and notify call order
->       ACPICA: tables: Fix global table read missing mutex
->       ACPICA: executer: Fix copying PCC source buffer data
->       ACPICA: dispatcher: Fix zero size non-NULL PCC buffer pointer
->       ACPICA: utilities: Clear NextObject so the outer loop doesn't read =
-it
->       ACPICA: namespace: Fix memory leak around compiler alias flag
->       ACPICA: acpica: Fix typo in the IOVT_IOMMU table definitions
->
-> Mario Limonciello (AMD) (1):
->       ACPICA: Add ACPI_MSG_DEBUG to set KERN_DEBUG for debug output
->
-> Pawel Chmielewski (3):
->       ACPICA: ACPI 6.5 Add support for the MISC table
->       ACPICA: iASL: Complete KEYP support
->       ACPICA: tables: Fix table buffer leak when Load fails verification
->
-> Rong Zhang (1):
->       ACPICA: parser: Set AML length for bytelist
->
-> Vidya Sagar (1):
->       ACPICA: IORT: Add Root Complex PASID Flags field
->
-> ikaros (8):
->       ACPICA: Events: Clear GPE dispatch by owner during table unload
->       ACPICA: executer: Add bounds checking for PCC field read access
->       ACPICA: Validate 4-char field names before namespace lookup
->       ACPICA: Improve error handling in table loading process
->       ACPICA: executer: Add bounds checking for PCC field write access
->       ACPICA: tables: Fix heap-buffer-overflow in AcpiTbFindTable
->       ACPICA: Fix object reference update to skip non-local notify types
->       ACPICA: namespace: Recognize alias node types in detach
->
-> purofle (1):
->       ACPICA: fix: build error with gcc 16: unused-but-set-variable
->
-> [1] https://lore.kernel.org/all/20261020141051.2194123-1-pawel.chmielewsk=
-i@intel.com/
-> [2] https://sashiko.dev/#/patchset/20261020141051.2194123-1-pawel.chmiele=
-wski%40intel.com
-> [3] https://sashiko.dev/#/message/20261020141051.2194123-9-pawel.chmielew=
-ski%40intel.com
-> [4] https://sashiko.dev/#/patchset/20261020141051.2194123-1-pawel.chmiele=
-wski%40intel.com?part=3D7
->
-> Andre Przywara (1):
->   ACPICA: actbl2: MPAM: adapt to MPAM ACPI spec v3.1
->
-> Colin Ian King (2):
->   ACPICA: components: Fix typo "Supress" -> "Suppress"
->   ACPICA: components: Fix typo: "numer" -> "number"
->
-> Dave Jiang (2):
->   ACPICA: CEDT: RDPAS: Add missing reserved field in RDPAS structure
->   ACPICA: CEDT: RDPAS: Fix incorrect field positions for RDPAS
->
-> Hanjun Guo (1):
->   ACPICA: add UBRT (UnifiedBus Root Table) definitions
->
-> Himanshu Chauhan (1):
->   ACPICA: Introduce a new HEST notification type for RISC-V SSE events
->
-> Iurii Trukhin (1):
->   ACPICA: parser: Fix parse tree memory leak on AML execution error
->     unwind
->
-> Leonard Lausen (1):
->   ACPICA: Executer: Resolve package index references used as integer
->     operands
->
-> Maciej Strozek (1):
->   ACPICA: Utilities: Fix for AcpiUtVerifyChecksum warning display
->
-> Maciej Wieczor-Retman (17):
->   ACPICA: executer: Fix NULL pointer dereference in
->     AcpiExStoreObjectToIndex()
->   ACPICA: compiler: Add _Ixx GPE object
->   ACPICA: namespace: Fix possible underflow and NULL pointer dereference
->   ACPICA: iASL: Fix the truncated count of external control methods
->   ACPICA: release: Update version to 20260930
->   ACPICA: events: Add missing event mutex to
->     AcpiEvClearGpeDispatchByOwner()
->   ACPICA: events: Remove redundant code
->   ACPICA: events: Fix AcpiEvClearGpeDispatchByOwner handler type
->     processing
->   ACPICA: events: Fix GPE cleanup return after changing program state
->   ACPICA: events: Handle GPEs' Notify dispatch type
->   ACPICA: tables: Fix wrong table unload and notify call order
->   ACPICA: tables: Fix global table read missing mutex
->   ACPICA: executer: Fix copying PCC source buffer data
->   ACPICA: dispatcher: Fix zero size non-NULL PCC buffer pointer
->   ACPICA: utilities: Clear NextObject so the outer loop doesn't read it
->   ACPICA: namespace: Fix memory leak around compiler alias flag
->   ACPICA: acpica: Fix typo in the IOVT_IOMMU table definitions
->
-> Mario Limonciello (AMD) (1):
->   ACPICA: Add ACPI_MSG_DEBUG to set KERN_DEBUG for debug output
->
-> Pawel Chmielewski (3):
->   ACPICA: ACPI 6.5 Add support for the MISC table
->   ACPICA: iASL: Complete KEYP support
->   ACPICA: tables: Fix table buffer leak when Load fails verification
->
-> Rong Zhang (1):
->   ACPICA: parser: Set AML length for bytelist
->
-> Vidya Sagar (1):
->   ACPICA: IORT: Add Root Complex PASID Flags field
->
-> ikaros (8):
->   ACPICA: Events: Clear GPE dispatch by owner during table unload
->   ACPICA: executer: Add bounds checking for PCC field read access
->   ACPICA: Validate 4-char field names before namespace lookup
->   ACPICA: Improve error handling in table loading process
->   ACPICA: executer: Add bounds checking for PCC field write access
->   ACPICA: tables: Fix heap-buffer-overflow in AcpiTbFindTable
->   ACPICA: Fix object reference update to skip non-local notify types
->   ACPICA: namespace: Recognize alias node types in detach
->
-> purofle (1):
->   ACPICA: fix: build error with gcc 16: unused-but-set-variable
->
->  drivers/acpi/acpica/acevents.h  |   4 +
->  drivers/acpi/acpica/acglobal.h  |   2 +-
->  drivers/acpi/acpica/acpredef.h  |   1 +
->  drivers/acpi/acpica/acutils.h   |   3 +
->  drivers/acpi/acpica/dsfield.c   |  24 +++
->  drivers/acpi/acpica/evgpe.c     | 355 ++++++++++++++++++++++++++++++++
->  drivers/acpi/acpica/exconfig.c  |   3 +-
->  drivers/acpi/acpica/exconvrt.c  |   4 +-
->  drivers/acpi/acpica/exfield.c   | 105 +++++++---
->  drivers/acpi/acpica/exresop.c   |  26 +++
->  drivers/acpi/acpica/exstore.c   |  20 +-
->  drivers/acpi/acpica/extrace.c   |   2 +-
->  drivers/acpi/acpica/nsaccess.c  |   2 +-
->  drivers/acpi/acpica/nsobject.c  |   7 +-
->  drivers/acpi/acpica/nsxfname.c  |   8 +
->  drivers/acpi/acpica/psargs.c    |   8 +-
->  drivers/acpi/acpica/psloop.c    |   5 +-
->  drivers/acpi/acpica/psobject.c  |   1 -
->  drivers/acpi/acpica/psparse.c   |  16 +-
->  drivers/acpi/acpica/tbdata.c    |  32 ++-
->  drivers/acpi/acpica/tbfind.c    |  16 +-
->  drivers/acpi/acpica/utcksum.c   |   3 +-
->  drivers/acpi/acpica/utdebug.c   |   9 +-
->  drivers/acpi/acpica/utdelete.c  |   5 +
->  drivers/acpi/arm64/mpam.c       |   6 +-
->  drivers/acpi/loongarch/iovt.c   |   6 +-
->  include/acpi/acpixf.h           |   2 +-
->  include/acpi/actbl1.h           |   6 +-
->  include/acpi/actbl2.h           | 200 +++++++++++++++++-
->  include/acpi/platform/aclinux.h |   1 +
->  30 files changed, 811 insertions(+), 71 deletions(-)
->
-> --
+Hi Bartosz,
 
-Whole series applied as 7.5 material, thanks!
+> Date: 2026-11-25 17:10:35+0100
+> From: Bartosz Golaszewski <brgl@kernel.org>
+>
+> On Sat, Nov 14, 2026 at 04:22:16PM +0100, Alejandro Colomar wrote:
+> > str_has_prefix() returns the prefix length on match and 0 on mismatch,
+> > so the mistmatch case can't be told from "empty prefix matched an empty
+> > string".
+> >=20
+> > For instance: the OF root node's name as returned by
+> > fwnode_get_name() is "" and will return 0 for any name matched against
+> > it and since len is 0 too, fwnode_name_eq() will return true.
+> >=20
+> > Let's use strprefix() instead, which also makes this function simpler.
+> >=20
+> > Fixes: a9c8c738066b7 ("device property: Add fwnode_name_eq()")
+> > Closes: https://lore.kernel.org/linux-hardening/20261104-fwnode-for-eac=
+h-prop-v1-1-6e28fe1c72c4@oss.qualcomm.com/
+> > Reported-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> > Signed-off-by: Alejandro Colomar <alx@kernel.org>
+> > ---
+>=20
+> Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> Tested-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+>=20
+> This series has grown substantially since v1. My GPIO series[1] depends on
+> fwnode_name_eq() working correctly so I would really appreciate it if we
+> could queue the bits and pieces fixing fwnode_name_eq() separately and so=
+oner
+> rather than later (it should also be backported to stable).
+
+I agree.  The const-preserving macro can be left for later.  And the
+global replacements can also be left for later (Andy asked to see them,
+but didn't require that we have them in the same patch set, so we can
+now remove them from this patch set).
+
+And strsuffix() is only for symmetry, but can also be left for later.
+Same with streq(3).
+
+I'll send a small revised patch set that is minimal for this fix.
+
+Thanks!
+
+
+Have a lovely day!
+Alex
+
+>=20
+> Thanks
+> Bartosz
+>=20
+> [1] https://lore.kernel.org/all/20261120-fwnode-for-each-prop-v3-0-808e30=
+4dc73e@oss.qualcomm.com/
+>=20
+
+--=20
+<https://www.alejandro-colomar.es>
+
+--pgohlg3lnyvn34uw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmsHEP4ACgkQ64mZXMKQ
+wqm4Ww//RWo5b1PWZXxaXDJWbLwrZWPs81SQr8o7iw3WZRt+45HdbIfKHPubIlWF
+LPU7zcEQ2VffBb/ifYDwuxbPuFpfX8/W6i/PiPh2DSKnxnOB5OmFj3qzCL2wjLl4
+/Y95eCc0sWU9fN2V8IE3qo3p5RWn2uPdzeO1mOKw2LQ0QOF06M8cYuW8aLUi0svy
+LpkSuPhBd0M5hQhMyVVLBy5mn783osV62jcHHlaxGoO/s67RJq4RBP574xghxJHr
+dTgu7eUcKx58W6QKGiVdQo7pKLo+1GzQkpBk77qQYNbUiEwPPJXCfyMvcyp0B4Q3
+3GwEe2LKayXym/8eiBIy1GZRHQoqpKqsxzdJiyFWuGiBkeRWVOI8LhJB/WbeAeZ7
+T1IboelZnHAFQsiH74rx9TDGH1a6aQEI8yFwV7tpODQ1PwT9uA0xNG+7Q7RPkKS9
+rqauqhT1k0wodX8qaisDB4UKMWYmKO2SXArW3ihN6tZSz9cy7lOovhuIzYt5JXR9
+i9VwgNq23/9pKcvFWgrjO/M+BUNu6ck8IiimI98xFAMSkCJvNgHE5MC9vF8vmVCq
+O+rcZENNhcfdbQqaZdfL+CLJPd5F+lNG8PM+jYSuuJD/RK4WgOXuXgDpAw2/BKDJ
+Qp+6+pD+4jMQ2zZKxQUwoAsBzspMdwYUb6UpL7MnSsg76iOEGFc=
+=/wuZ
+-----END PGP SIGNATURE-----
+
+--pgohlg3lnyvn34uw--
