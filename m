@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795638142;
-	b=Erkk16QIYhdTrMY23zij3Wj8/4Tgngkw95GYFNkZmPO+Bk+B6eOoui3F7AZcUB9LoDRn
-	 5UrXpqGlGtx3gIGfjzIfrKH8o5jWIii8FEkySrBB/DFj8GHOjvGg37NEJUIEcSAFCyRAK
-	 /v1paj+cpmfxPbeS8WkFYLQV2op+T2JivsYMZgbuEuxeLvp72o8pajZ1t/57v0sX/5Q9E
-	 9a7ewN7szjKM+6dzNpKcJ4zYUVnqxinzET9JZkAxfF97ZJ2nqOMe9ygTbAB4gfo6jvS4h
-	 epBNwtmgq8Fb0ki9LuZ34ju1o0/057Oi7XmKySOAsjhA8ddehBL06jkLxdzZZZ1hJpg==
+	t=1795638912;
+	b=xpdqBRecp+OI9Kup0UCQVsmneWDeAiT3YKxv3DZXsFjbFa12UDDdYcYxBwNWd7+EWjMk
+	 RTEf09y7uizD5sRXWCpMt1zGlXa0v1/W18I52/OdbaMwIsWlROq/cD32wgtXshwgwabmN
+	 aBWeOE1juHHGv+VUSM0I1N9SI2lSXVhEoW8vQHoF4848bR0miANTV7mTo1tcLPUxBGs9D
+	 0JsaefS16KWno3qFQrv1HD21vDcR0taoXgJINoXUgmowGJlH4BEilhuj9WJJL8ylQJzOd
+	 f9WcCHlXhQubseNq1s5RTjjPL4bS9ob8j7hosR135RckZhu0tKilQsR1mk/E/7UNbbg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795638142;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795638912;
 	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
 	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
 	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=XbsPsHDNDZOT3PrL7mmyfMbGA3Nrea04DVo4jF3fclY=;
-	b=cq6aeATleQxdf8q0/5KB0kGPMKwNsqDQCD78+nasEJuRzVT/nk6ng6NVhOd1l7Q5LuYD
-	 mv7E7WrpvOalAJDX5ffv5ZWLoFpWT5PodKEnf0/u9aIkjpltO3FG8X3mTT3ol6FVor+36
-	 AVKWlffEOq8RoV0/txNnuVAB2IxZ8ZraN18JbUukEzp5aoO+dz8KbRmfrj5CacByIx/sQ
-	 irSrHpqGvOwFtjoUyOFDCeTwq9Ua9Gsu1bvpJGElVhblSFgJGbYTvl3cCEZpBuA9Uclnz
-	 +2+PckC6k4BLwiZwiYJNS/BwFrIzladDHetNEeF0fqxEN2S/sGRbzyGOY2mVQJqiOKA==
+	bh=p5acCxDxlSUFFS4vMmVVTs7/iECoKuFpu+gwcLgjPm4=;
+	b=ToGnK+a5thCjlqFXqTq/yyR46A6g8wgOBC+olqMtxSsNLtKn9JmmctkWodP83279dpuq
+	 RruBNqRvjEZLTWjxp8+0r7KUJSc6y3Y2ByQxQqL54WDLvJxFfZqzYHVLGHcmR6kE5uW+D
+	 L/l0I3BMgqlRkm7jJ3bAea6Xaq/+8DELTooOTnBg7NffFOklfts6UK5xYslCrvIbpFICe
+	 6957g2B0ll2XM/PTejchsyz8clCVAsM5TPL8SSFMDWrFnMyTuc/36GS/J0SpS3UQCJe/l
+	 H2Or9GSM8QnLZLfl/TyilyI42XOPtkM1lten8a7YKtHPoeoPFJE7qr8AyAWUE5CkS9A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="VMgR/par";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Wrbk76mx;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EB74606A31E
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2026 20:22:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87FDC606A31E
+	for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2026 20:35:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VMgR/par
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 890FC1F000D2
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2026 20:22:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Wrbk76mx
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AD361F000C0
+	for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2026 20:35:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795638141;
-	bh=XbsPsHDNDZOT3PrL7mmyfMbGA3Nrea04DVo4jF3fclY=;
+	s=k20260515; t=1795638912;
+	bh=p5acCxDxlSUFFS4vMmVVTs7/iECoKuFpu+gwcLgjPm4=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=VMgR/pardZc5QfYRxFlN06UjN6Ffnq5R7/EFeYbVxQMePpLqUW4AD2LdWAcpm1QIK
-	 moWBTdRs5Rjspj82/ZIn1SliMw/+QkNMxkFWoXRHPBRu+ZYKaiomksQc+oNHTMZDIM
-	 95+Q3WI0A0uGX0q8REwxZO0zP9L7KH/NrNDO0PlAHImaFjTMr7mZ57a7tf5Q2DAo4W
-	 IXHTxnF2BIknLwUmiejcTsDFn1n3/1BjzBk2w9aKROgAR+Q96SbTi6b59vVBqxeJXm
-	 KhHTOhcyZelaMhII/rfJPReeTpVV2qm/4jfRO6hJP3Y1ZheLj4buQLN1j2yMnGsLUr
-	 dQHUJxVycD3kw==
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5c07c7306e1so5499172e87.1
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2026 12:22:21 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErGHvo+NJhGTmbCqH2fJIz9iHF9g/bo+0zGZEiV3sbCXzB4T00Jc1wUVKOKKhIHEjlGJPc7PjszwHrs8@vger.kernel.org
-X-Gm-Message-State: APuU4Z8hvsyaasqbIE+0kDYeRpCEfKuYbrBMDZw5k6sih97jVNw5EWQj
-	/CW7ZCQm66cZwx1gKDAXqEsMVGXklo1KZ3k0qP+tz8RuO4ZYfMDpGaptb35kK/IW4YmvedWdWJI
-	UaqLAHYpWpzCtG5AydxE6412W7vCPilg=
-X-Received: by 2002:a05:6512:3187:b0:5c1:9752:4a4a with SMTP id
- 2adb3069b0e04-5c1bc85a157mr5079056e87.65.1795638139884; Wed, 25 Nov 2026
- 12:22:19 -0800 (PST)
+	b=Wrbk76mxflc0K88uE6XtEmrlv9oHc3/FmkPnBCfYQgt+M6iwsL2Soa9oekQqabSfr
+	 gowHhgEOIhS+zq36Q1/Jin4DQOpetWn0J2Svv7fPsq3LjkL1dGPaC0UfRy+hdgM6If
+	 o1F5KdZ6B14bHDevVoAiBPRIYm77gVcGK/ii3SNNHr+zGzxkTUVDdS2beoUdLMdu9d
+	 Z8KlUbyLFbZSb/I1f1zqoOexLmgZl97/r26rV/ZzBVwDENZwgE9MpWS1USC4hQWYwH
+	 Uj54MMSKbJaf/qDIlMgqdh8UIuEFKC4ELqLdom9WCW/0XwYv+3ENKfNWx6J3JZfWaT
+	 5yT7De4ZeKTUQ==
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-3adfed9a887so57234811fa.3
+        for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2026 12:35:12 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErGfSEWxQl+XCmoltLAj0rWducd0B1FREGRMyirBJOFZ2C4il4Z6qOpodAvZfQtcBJbIdtCMlDHTIn2K@vger.kernel.org
+X-Gm-Message-State: APuU4Z/osFk0OBhb9TTznAMBc+zIismEDBWqacKIhqsO/EBlDuGYI6Vo
+	YvV9cZgTftLeR6zoZNKzy/Wr9nXAsJi32AfugTXb7KjnHAdS9zFlrks5JD/Wdxn/6gH3g4DF0zR
+	IcRunWLr40/WtLnc1xgdKuNtCXfkyQqk=
+X-Received: by 2002:a05:6512:3a81:b0:5bf:b27e:3fac with SMTP id
+ 2adb3069b0e04-5c1bc822487mr6615065e87.57.1795638910594; Wed, 25 Nov 2026
+ 12:35:10 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,220 +59,70 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261120161020.297735-1-paul.cercueil@bootlin.com> <20261120161020.297735-2-paul.cercueil@bootlin.com>
-In-Reply-To: <20261120161020.297735-2-paul.cercueil@bootlin.com>
+References: <2859850.mvXUDI8C0e@rafael.j.wysocki> <1976174.tdWV9SEqCh@rafael.j.wysocki>
+ <awcYhE0hvgBQMT6_@ashevche-desk.local>
+In-Reply-To: <awcYhE0hvgBQMT6_@ashevche-desk.local>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 25 Nov 2026 21:22:07 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0jeJSx3C8hdU8iAtje-NGNz4DdaVGhE_T3WpVrODuwemg@mail.gmail.com>
-X-Gm-Features: Aa3M54qJVQowL3VP6DW9qrB5yt2UPfz-jyeLrSfectOaAsSDv7t8m2R8M7yuJ5Q
-Message-ID: <CAJZ5v0jeJSx3C8hdU8iAtje-NGNz4DdaVGhE_T3WpVrODuwemg@mail.gmail.com>
-Subject: Re: [PATCH v5 1/1] ACPI: platform: Add basic support for ACPI 6.5
- fixed clock resources
-To: Paul Cercueil <paul.cercueil@bootlin.com>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Date: Wed, 25 Nov 2026 21:34:58 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0g1S2EppsW+Co_VD1Rbmv1bAsVDNmQ3a58H_exUFjuyXg@mail.gmail.com>
+X-Gm-Features: Aa3M54pRFlc3O3GoOZgNptt89xZDZbUNFHK_jAQXyN3VbCzeL3td5jRczMyeN8g
+Message-ID: <CAJZ5v0g1S2EppsW+Co_VD1Rbmv1bAsVDNmQ3a58H_exUFjuyXg@mail.gmail.com>
+Subject: Re: [PATCH v2 1/5] ACPI: fan: Pass struct acpi_fan pointers to functions
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
+	Linux PM <linux-pm@vger.kernel.org>, Armin Wolf <w_armin@gmx.de>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 20, 2026 at 5:10=E2=80=AFPM Paul Cercueil <paul.cercueil@bootli=
-n.com> wrote:
+On Wed, Nov 25, 2026 at 8:29=E2=80=AFPM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 >
-> ACPI 6.5 introduced a clock input resource descriptor, which allows to
-> specify in the ACPI tables what clocks are connected to a given device.
+> On Wed, Nov 25, 2026 at 03:07:24PM +0100, Rafael J. Wysocki wrote:
+> >
+> > Pass a struct acpi_fan pointer as an argument to several functions in
+> > the ACPI fan driver either instead of or in addition to a struct
+> > acpi_device or a struct device pointer.
+> >
+> > This allows acpi_driver_data() usage to be reduced and some other
+> > simplifications to be made.
+> >
+> > No intentional functional impact.
 >
-> This patch adds support for the most basic clock resource, which is the
-> one that represents a fixed clock. The new code will then create a
-> clk_hw for each fixed clock resource, which is then made available to
-> the device drivers, that can obtain it through a regular call to
-> clk_get(NULL).
+> ...
 >
-> Signed-off-by: Paul Cercueil <paul.cercueil@bootlin.com>
-> ---
+> > -static int acpi_fan_get_fps(struct device *dev, struct acpi_device *de=
+vice)
+> > +static int acpi_fan_get_fps(struct acpi_fan *fan, struct device *dev,
+> > +                         struct acpi_device *device)
 >
-> v5: Register fixed clock as "<ACPI_ID>-clkX" because we need a
->     system-wide identifier there, and we don't have the 16-characters
->     limit there.
->     Register the first clock to clkdev without a name, so that
->     clk_get(NULL) will obtain it.
->     Register every other clock for that ACPI device with a "acpi-clkX"
->     name.
+> Hmm... Can't we derive 'device' from 'fan' as you done elsewhere?
+
+It can be done, but it's rather cosmetic IMV.
+
+It's just a matter of whether or not dereferencing "fan" is better
+than passing one more arg.  Anyway, this change can be made
+separately.
+
+> ...
 >
-> v4: Change clock names to "acpi-clkX", because ACPI devices names can be
->     up to 17 characters long, and our clock name must be 16 characters
->     max.
+> > -static int acpi_fan_dsm_init(struct device *dev)
+> > +static int acpi_fan_dsm_init(struct acpi_fan *fan, struct device *dev)
+> >  {
 >
-> v3: No change
+> Now 'dev' is used solely for dev_info() call AFAICS. Hence when you move =
+to
+> acpi_handle_info() this parameter can be killed I assume.
+
+However, I'm not sure if using acpi_handle_info() would be better.
+After all, the platform device is the one using MSFT extensions.
+
+> >       union acpi_object dummy =3D {
+> >               .package =3D {
 >
-> v2:
-> - Use the calculated clock name in devm_clk_hw_register_fixed_rate()
->   instead of the device name
-> - Make sure clkres->scale is <=3D 2. The field is 2 bits but the value
->   clkres->scale =3D=3D 3 is not defined in the spec.
-> - Compute the fraction numerator using 64-bit math, to make sure it
->   won't overflow on 32-bit systems.
-> - Initialize clocks only when the device_type matches
->   ACPI_BUS_TYPE_DEVICE.
-> - Use a shorter name for clocks as the hard limit is 16 characters
->   including the terminator.
-> ---
->  drivers/acpi/acpi_platform.c | 75 ++++++++++++++++++++++++++++++++++++
->  1 file changed, 75 insertions(+)
+> >                       .elements =3D NULL,
+> >               },
+> >       };
+> > -     struct acpi_fan *fan =3D dev_get_drvdata(dev);
+> >       acpi_handle fan_handle =3D fan->adev->handle;
 >
-> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> index 80ea7121744d..b4f2ccf3e51f 100644
-> --- a/drivers/acpi/acpi_platform.c
-> +++ b/drivers/acpi/acpi_platform.c
-> @@ -10,17 +10,27 @@
->
->  #include <linux/acpi.h>
->  #include <linux/bits.h>
-> +#include <linux/clk-provider.h>
-> +#include <linux/clkdev.h>
->  #include <linux/device.h>
->  #include <linux/err.h>
->  #include <linux/ioport.h>
-> +#include <linux/kconfig.h>
->  #include <linux/kernel.h>
-> +#include <linux/list.h>
->  #include <linux/module.h>
->  #include <linux/dma-mapping.h>
->  #include <linux/pci.h>
->  #include <linux/platform_device.h>
-> +#include <linux/units.h>
->
->  #include "internal.h"
->
-> +struct acpi_clk_data {
-> +       struct device *dev;
-> +       unsigned int idx;
-> +};
-> +
->  /* Exclude devices that have no _CRS resources provided */
->  #define ACPI_ALLOW_WO_RESOURCES                BIT(0)
->
-> @@ -130,6 +140,68 @@ static unsigned int acpi_platform_resource_count(str=
-uct acpi_resource *ares, voi
->         return AE_CTRL_TERMINATE;
->  }
-
-First off, will clocks only be needed for platform devices?  If not,
-acpi_add_fixed_clock() should be defined in drivers/acpi/resource.c.
-
-> +static int acpi_add_fixed_clock(struct acpi_resource *res, void *d)
-> +{
-> +       static const unsigned long clk_scale[] =3D { 1, HZ_PER_KHZ, HZ_PE=
-R_MHZ };
-> +       struct acpi_resource_clock_input *clkres;
-> +       struct acpi_clk_data *data =3D d;
-> +       struct device *dev =3D data->dev;
-> +       const char *name =3D NULL;
-> +       struct clk_hw *clk;
-> +       unsigned long rate;
-> +       unsigned int idx;
-> +       char buf[64];
-> +       int err;
-> +
-> +       if (res->type =3D=3D ACPI_RESOURCE_TYPE_CLOCK_INPUT) {
-
-Maybe
-
-if (res->type !=3D ACPI_RESOURCE_TYPE_CLOCK_INPUT)
-        return 1;
-
-> +               clkres =3D &res->data.clock_input;
-> +
-> +               if (clkres->mode) {
-> +                       dev_warn(dev, "Only fixed rate clocks supported f=
-or now.\n");
-
-_warn() is likely overkill here and it would be better to print this
-relative to an ACPI handle, so use acpi_handle_info().
-
-> +                       return 1; /* keep going */
-> +               }
-> +
-> +               if (clkres->frequency_divisor =3D=3D 0 || clkres->scale >=
- 2)
-> +                       return -EINVAL;
-
-This is firmware providing bad data, so not -EINVAL.
-
-> +
-> +               rate =3D DIV_ROUND_UP_ULL((u64)clkres->frequency_numerato=
-r * clk_scale[clkres->scale],
-> +                                       clkres->frequency_divisor);
-> +
-> +               idx =3D data->idx++;
-> +
-> +               /* When registering a clk_hw the name must be unique acro=
-ss all devs */
-> +               snprintf(buf, sizeof(buf), "%s-clk%u", dev_name(dev), idx=
-);
-> +
-> +               clk =3D devm_clk_hw_register_fixed_rate(dev, buf, NULL, 0=
-, rate);
-
-Why devm_?  This is called at the device creation time, not in probe,
-so how/when is clk going to be unregistered?
-
-Also, devm_ doesn't work with struct acpi_device which are never
-probed and drivers are never removed from them.
-
-> +               if (IS_ERR(clk))
-> +                       return PTR_ERR(clk);
-> +
-> +               if (idx > 0) {
-> +                       /* When registering a clkdev the name must be <=
-=3D 16 characters */
-> +                       snprintf(buf, sizeof(buf), "acpi-clk%u", idx);
-> +                       name =3D buf;
-> +               }
-> +
-> +               err =3D devm_clk_hw_register_clkdev(dev, clk, name, dev_n=
-ame(dev));
-
-Same thing about devm_.
-
-> +               if (err)
-> +                       return err;
-> +       }
-> +
-> +       return 1;
-> +}
-> +
-> +static void acpi_platform_init_clocks(struct acpi_device *adev)
-> +{
-> +       struct device *dev =3D &adev->dev;
-
-Note that &adev->dev is not a real device.  It is a "firmware node",
-quite like a DT one, but I guess it may be used for registering
-clocks.
-
-How is a platform device driver going to use those clocks though?
-
-> +       struct acpi_clk_data data =3D { .dev =3D dev };
-> +       LIST_HEAD(list);
-> +       int ret;
-> +
-> +       ret =3D acpi_dev_get_resources(adev, &list, acpi_add_fixed_clock,=
- &data);
-> +       if (ret < 0)
-> +               dev_err(dev, "Failed to add clock resources: %d\n", ret);
-> +}
-> +
->  /**
->   * acpi_create_platform_device - Create platform device for ACPI device =
-node
->   * @adev: ACPI device node to create a platform device for.
-> @@ -196,6 +268,9 @@ struct platform_device *acpi_create_platform_device(s=
-truct acpi_device *adev,
->                         }
->                         acpi_dev_free_resource_list(&resource_list);
->                 }
-> +
-> +               if (IS_ENABLED(CONFIG_COMMON_CLK))
-> +                       acpi_platform_init_clocks(adev);
->         }
->
->         memset(&pdevinfo, 0, sizeof(pdevinfo));
 > --
