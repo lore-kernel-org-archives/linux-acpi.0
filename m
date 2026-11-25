@@ -1,77 +1,153 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.227.15.15
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795644587;
-	b=Pj4ARyXyhaj4Nzsw7h1wHuUn6umCNd/86RiDLTq9deeSMm8exeV/kS14oAz9JCRwrilv
-	 oaNhmHmsw4ezim4Gj/UWZxhcKBG+Cg0gxJvKrcn+oYGidRVERL3GTUaSyDBxsR9X4YnXW
-	 lcTvW+kKGhaUAcARbLCdcTeSvghOhJF0OTNxGcAdxLUp1D7b6+TNIz9r9e6Gngf0JfTEy
-	 45aLq6OHEMAWVFZFxlKDo7skrwpLBPlinOVGemnB2en98Wd0U15+7QdmL0Yfr/rhTES95
-	 KJuRd1LSQpvAQ2qgKaIIEPzzSYBsOu+0vVd4VJ6zJG5l799MH16TIcHgrJWaIGNnh7Q==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795644587;
-	h=DMARC-Filter:DKIM2-Signature:Message-Instance:DKIM-Signature:
-	 X-UI-Sender-Class:Received:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-Provags-ID:X-Spam-Flag:
-	 UI-OutboundReport;
-	bh=69QiPt4URb262iAt238uz6YUHqN8J08GOomWHPYAIco=;
-	b=2OW3GyovNkWG24v6heUoco5S/3KniP0jsX89qY+P7z+kaUhPV/J7ks+AGw1q1B7/OfNc
-	 TSdPdPZKgh4rZhOk8g8VSmKDJmMVTe7EwA1joZ57gYx7JR/wbXmbuPe7lrzgXXCFqTdhe
-	 ksAmgiCzxlZMKvOIPB3CrYN/71LRy/obMCpZtKOMM0CbtSIfdTuD5o6j7JiA22BkqUFiU
-	 GyASYwi2Xq0F8hIruSCvDY0wcce7uDuDJudLpu8W5zpGam5BORfITXpebFNVlkuHWVq5G
-	 WWvxWTi/DD7d/6wZ9qQoMVZBKaYMme+rmSU6k8IiV89HcLt+2IH5BVGePaG0kOE52BA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmx.de;
-	spf=pass smtp.mailfrom=gmx.de;
-	dkim=pass header.d=gmx.de header.i=w_armin@gmx.de header.a=rsa-sha256 header.s=s31663417 header.b=FZMtpI3A;
-	arc=none smtp.remote-ip=212.227.15.15
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.15])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.51
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795644864;
+	b=RadSJouaXSJulhI94PVP/w/km6QI1A+TBSv8xXXS9GJAxfQ5GTf/xapbxRDu4T7xjwfA
+	 KjRBKCHsJjJo7Y+AcU6wWZB3q7KjRqRaVwEIX+yCoOKSV4tyR2s2IthBelt6WcKc+ZWrV
+	 t2rw/oq8uzQS85ZaGSLs2im2ZaDLGXDhsuHv7G4On10LWcIFZwbdB31GXPsbI6VaYSyet
+	 +h3E/jgOxdeVd13ZNjKq9R++U2Dafh0Lr1ARijhywlmG2CVEj4DIEGlFbZBmmOPuoxvC4
+	 27LZuR/Tv/gmAo7DsxrCgkF0lIGl8PM/ByZ+nqgw5pbB3GQGU1PtDXzbEiW2xnhIlBw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795644864;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:CC:Subject:
+	 Thread-Topic:Thread-Index:Date:Message-ID:References:In-Reply-To:
+	 Accept-Language:Content-Language:X-MS-Has-Attach:X-MS-TNEF-Correlator:
+	 msip_labels:x-ms-publictraffictype:x-ms-traffictypediagnostic:
+	 x-ms-office365-filtering-correlation-id:x-ms-exchange-senderadcheck:
+	 x-ms-exchange-antispam-relay:x-microsoft-antispam:
+	 x-microsoft-antispam-message-info:x-forefront-antispam-report:
+	 x-ms-exchange-antispam-messagedata-chunkcount:
+	 x-ms-exchange-antispam-messagedata-0:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-AuthAs:X-MS-Exchange-CrossTenant-AuthSource:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-originalarrivaltime:
+	 X-MS-Exchange-CrossTenant-fromentityheader:
+	 X-MS-Exchange-CrossTenant-id:X-MS-Exchange-CrossTenant-mailboxtype:
+	 X-MS-Exchange-CrossTenant-userprincipalname:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=Jq4L4JnbQgSr7tfyUK6cd+5rNPE2T5kANARBvFM1YX0=;
+	b=x7/cEhLq5xM1fF6PKeSozoB9ie4zMF++OwgEejk55KOPB0MHQntvh8vJvcewwgmPejkG
+	 kLYSssqhsFxF8pLh72wrb8W+ZEm9906jzntu2xekqnmt1JfPkdFW+ct8BKpW/zn316kNQ
+	 HWklsLzHimsGSQJICHPdvX1VxNwRBBypGINDyxoGZj6o5ZnbLyw+02bwNqmNf+BpkuLYO
+	 KAly7bsw/7jiR1FM1zkmfuwBS58eQ9MetXdzJEqi8fWMYy3qcPX2Wb8jPjMjvyR3d3V00
+	 orzKBbqKPHNkx1fpMP/kOOVC5e21JllE+W1Ffmj2Q1INnBRoFWasBjvOu/zcXtIuTiQ==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=V+efI8wh;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.51
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010051.outbound.protection.outlook.com [40.93.198.51])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC1D4606A31E
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2026 22:09:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AC1D4606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 782CD606A31E;
+	Wed, 25 Nov 2026 22:14:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 782CD606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.a=rsa-sha256 header.s=s31663417 header.b=FZMtpI3A
-DKIM2-Signature:  i=1; m=1; t=1795644584;
- mf=PFdfQXJtaW5AZ214LmRlPg==;
- rt=PGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnPg==;
- d=gmx.de;
- s=s31663417:rsa-sha256:VzPSFIbwSx/wC/XiMQSNLW0Q4gTe
-   OR1U0GEhJjm/d4ZjPN5pxfGnXzxqa5Qf2MeDeBIIDOBuWz/C/2n2jgdbDDhARImqnZqf3NrZZmD
-   rmTCDiUae0CjuMR3F1hdUm/t0UBGfTaKxzWlZxuBF/KLgurDySPVoXi8UDoj5DO4yy5Qio3PisS
-   YQNGdeham9uzF2uUT4vz7ai2TrCadCirlAURvMzOdYyFXN6GidGLwGCBxvEKw2FVBIaEXri9J6R
-   AWN6nKZp12jV+wmkXHMxV3NNoccgkIApOLsjFQ4fQWPQVN8f1L5WmH+SuQhSBcAAfpogkFDX2gF
-   GkAHxDkZtlwxOA==;
-Message-Instance:  m=1;
- h=sha256:
-   3nh4NH1aO5aqtpTtQSQ2AgKZP8qjhiPQ591HlnBoCrY=:
-   NWqmuIH5aoqvwrLBP/cPwHpby+lVWj7YyfWWpqfAi9o=,
-  sha512:
-   bGVaTc2/qdfnITP1LO5u+YWX5DyYrIuUrnFUWf6RaU6oBvj0TYofFbNXdy1AyJHR2ZwgWArSDi3O8JsKjM6VJA==:
-   lcKw88MtHHCaw3heGixFUzqOia5aNanzfWVkguw0JIT5N47g96lCQ6Yjlx3aOhm+2qGZ6flUcSiOqyFvwH6Cfg==;
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1795644584; x=1796249384; i=w_armin@gmx.de;
-	bh=69QiPt4URb262iAt238uz6YUHqN8J08GOomWHPYAIco=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
-	 References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:cc:content-transfer-encoding:
-	 content-type:date:from:message-id:mime-version:reply-to:subject:
-	 to;
-	b=FZMtpI3AprbL0V/csTiXyjaBiVobOuVzmiNtibI/IhEy7ZYt4mIjO8ASFnh0v24Z
-	 7EIm7D2SsldlyhPJ90sjIlsBfh9n/+DBmlPTs9I323N7abvSZynxm2K1Ye11rr+JO
-	 TZ6FY/68obj5QVCz+XINV/Sm5Y9MimFX8vy2DYfufY7BEmJUiIHxyi1Krp+UZXNy3
-	 eEzWrvHRPQ61o36HLXRnv/ZgOCmG1TC63Fg1T8hnjrt1H+MpVT1za2q+GfWJ0Q+Ko
-	 KkFsrkv+/SG648VOZtdc3/lo+mNuRY0fJbPh9Wj0UJl7tpRWRgOSvHrAXB9hajAkH
-	 4A2S73XwyudTb4/nUA==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from client.hidden.invalid by mail.gmx.net (mrgmx004
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1MSKuA-1xytc02PKy-00QO3O; Wed, 25
- Nov 2026 23:09:44 +0100
-Message-ID: <a632ca1f-d67c-410e-9905-fb83433d9069@gmx.de>
-Date: Wed, 25 Nov 2026 23:09:42 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=V+efI8wh
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=MBYi7oKcGOIfaxFMVTmfiVcN5+cQ1+LGrNr5J4lFSNxaKXYYKjHeuMOvanTU3GIFjXVoLVhpcQOodAyIbvBJXUWfseh+CcqfACHAeOReJ682eUO6HEakAyMe4TS0isbL7dlALvNJbTiUbUhqPdJrE+pCbngWpR3TesnQGnuRrJsmR+b4XF4y4MUtJMXj0wpmSaB0iwNb0IAQYyzpP/X68OPQvgVl+JTWdOJUQgcNKddOM1cGxbgMPMXXUq9lZpSyGhvtHEtWi1vNeXD4DMBKzegzg3L9m66X2XHX5gZ4SjsTyX7GFXDsHRdWtPV/VyXV6utHNCFmRRKQyCgBe3+YJw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Jq4L4JnbQgSr7tfyUK6cd+5rNPE2T5kANARBvFM1YX0=;
+ b=aV1Rjf9VdATlGPgXvh6UE/Nts64HThSxyMtHhVR/Fa7JKApKz5wFcXquUUEd/dj4xKp+97kSm1qjVmObye00l6q+I8haPrK13gbmcVkmChvoon8VI1t/S4AAOeUkA3RuOBVi4z3uD7pXZBzhs1UFGyUoDkL7IdZYlph4w5rDGsgs5hGwYWTgiGZGPEFvlk+J1x6LTSQZIxL9l2tLUMrKIEk+t85jzkstb/B/EKhLvn9Uefsg6feKUGA4oWpwntUJkgMhrWjF2mie4Vjyy09yAiu6ZTn9cOtzQ5hGgpkVTwpQ6LwGqYL36PszBct47WRmYOp5mHYjkPsiMXYBNNBCVw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Jq4L4JnbQgSr7tfyUK6cd+5rNPE2T5kANARBvFM1YX0=;
+ b=V+efI8whBUkEivKHqhYEYNzSBETDMx2haHqqGNCqkR7FlBunso9VVRxnidhbe5/F35wabKNsdWbOtvrRChr9WoffhEasfEUpFDuRhBPHRP9WAC78oSOGuB+L4iGKyUQeVchIk8k2OFaVozYYL243oguyQ61dbV/smBrP20mkrpDCZBfMTATAGM3Fj5Y+NA++C9z/yYW9nY3o08pEMsvV+BAu18rAMIDPR0S2Z2uq8aXsMacCIXqGECoJALUKhA3JwJZFLb70M0g02OIDRxrBUUZRDN6Fhx/MNha6bZsP715NZkfrru7cwB40Hldd4pdTFpm77IcdHihquW7fGkUUcA==
+Received: from DSVPR12MB664020.namprd12.prod.outlook.com (2603:10b6:8:3e5::8)
+ by CY5PR12MB6108.namprd12.prod.outlook.com (2603:10b6:930:27::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.662.6; Wed, 25 Nov
+ 2026 22:14:21 +0000
+Received: from DSVPR12MB664020.namprd12.prod.outlook.com
+ ([fe80::76b4:63e0:3d27:bacf]) by DSVPR12MB664020.namprd12.prod.outlook.com
+ ([fe80::76b4:63e0:3d27:bacf%4]) with mapi id 15.21.0662.004; Wed, 25 Nov 2026
+ 22:14:21 +0000
+From: Daniel Dadap <ddadap@nvidia.com>
+To: =?iso-8859-1?Q?Riccardo_Zangh=ED?= <riccardo.z.dev@gmail.com>
+CC: Armin Wolf <W_Armin@gmx.de>, Denis Benato <denis.benato@linux.dev>,
+	"platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>,
+	"hansg@kernel.org" <hansg@kernel.org>, "ilpo.jarvinen@linux.intel.com"
+	<ilpo.jarvinen@linux.intel.com>, "luke@ljones.dev" <luke@ljones.dev>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Subject: Re: [BUG] ASUS TUF Gaming A16 FA608UM: working backlight device
+ differs between MUX modes
+Thread-Topic: [BUG] ASUS TUF Gaming A16 FA608UM: working backlight device
+ differs between MUX modes
+Thread-Index:
+ AQHde6JUor2pzzw0bk6vTAdpIU+OBbc9kZMAgAAYzQCAADA4gIAA68eygABQ2wCAAETHug==
+Date: Wed, 25 Nov 2026 22:14:21 +0000
+Message-ID:
+ <DSVPR12MB66402044074D6A8B1EDC584825BC432@DSVPR12MB664020.namprd12.prod.outlook.com>
+References:
+ <CAMnz_-Dgg2eCgZxcCaGuKPV=3-kCfg7ajd9w=vs2fGL-Cb6hvw@mail.gmail.com>
+ <f1b7d729-771a-4fba-89c0-996a8a168126@linux.dev>
+ <ce46d69f-2a3e-45fe-abe2-f643f683d09f@gmx.de>
+ <CAMnz_-Dztuj3CRsxcVnfe2=OCB3tTJzK6Lu7-AKfkbuqn5N-UQ@mail.gmail.com>
+ <DSVPR12MB66402023AE5250384B26515942BC432@DSVPR12MB664020.namprd12.prod.outlook.com>
+ <CAMnz_-C02J6CznPD68GgWCPCWEDSGsq6hoC+AJhsZjw39H+hhQ@mail.gmail.com>
+In-Reply-To:
+ <CAMnz_-C02J6CznPD68GgWCPCWEDSGsq6hoC+AJhsZjw39H+hhQ@mail.gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+msip_labels:
+authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: DSVPR12MB664020:EE_|CY5PR12MB6108:EE_
+x-ms-office365-filtering-correlation-id: 880110a2-1a09-476d-895c-08df4b417494
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|1800799024|376014|23010399003|366016|38070700021|261028144727099003|10067099003|56012099006|11063799006|4143699003|5023799004|261021121427099003|261021123027099003|261026121527099003|261022075727099003|261022105027099003|261009223027099003|261102123227099003|261026140227099003|22082099003|18002099003|3023799007;
+x-microsoft-antispam-message-info:
+ fCyWf8dYpDp3KpMBBYX7J0eqdWwYj7E2biQsXfKINlmopzq/xU9PZB4jHrtTQCcp70Gi+OTz6WZWV0rUW97gGiz2okYG/qT4wQIYsYLYsiGf4jMBF006KW0uiOUaWJGlNlcIGB2abvbNXTPrriX8662xzz9CD2sf5PXp7+r+jAg7sX4/6nO+436l2s2apjNCQQYUPgau9zC1+tnl0JsD2O6WgE0+DpWbiVV8CTXJdb+29oPXYqJ7/rEZQdo8tiWiPFRWmYfjnaaOCY/CpNGWZm4VgJk+qTL4b0hmWArdV9TzcbD3VpOD9VZc9ACFmU+j/nRs+bJeTVCtNKsd/SjHE+C0AcO6mEXu5Pst9Dopn0sOZTbUypQnDNSEXtjHXmcUWJ46FIWVJMT2NTYVoiYg7Eus5X+GIKX1n4ILMTjAlAdF0DVV0GZSiOha4eFtDOz2wGRIcEP+kDAnS1VlljcUG3T57oJIVMnKTWmHhuaVQ1hGghmlwm9xkiCwGh8r+puxdWg6T/1H/9aGDI5T0pZVtikzZwmNM3HKf3FPak2tlWsPyBe8nCr/BmNr0zgNGmEnv+0qiu6MMjo3nTAqhw83dmQXqSQWo/Fj5gDV7IxkgsOS5x9Zyvr/ljvN+bma7jtTFKBx7Bij1W8Vly64PO+I4Os8EH1AoVHbvYO6q1cat47bkGKTLd6Vm0YS7vgBd1jzAZw6w1OY8UGjH12ibO62NeGUOtkI8sNKo/VT1RNGe1M=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DSVPR12MB664020.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(23010399003)(366016)(38070700021)(261028144727099003)(10067099003)(56012099006)(11063799006)(4143699003)(5023799004)(261021121427099003)(261021123027099003)(261026121527099003)(261022075727099003)(261022105027099003)(261009223027099003)(261102123227099003)(261026140227099003)(22082099003)(18002099003)(3023799007);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?iso-8859-1?Q?Xu3mJFeVwIiWJ1V2uRBfuaDwnTzWJTd5rKKVCUruFA17nweJwPUdDIPyT1?=
+ =?iso-8859-1?Q?FPTXhJei4CI15PQUJJKNKiX23D5lRGrqi6iTzkkLW0dhO9t5WcrfxbTUTq?=
+ =?iso-8859-1?Q?syW7bIp0yZDFxJIGzYzPRxtGazltY7rIpZh5NocGC+s/0Ehx0kHMBcp7PG?=
+ =?iso-8859-1?Q?gbWJciuB96mXJjSrIMZYv059lRgqVxa31oMoWQg3yK9wPeKiLTKTay4tgk?=
+ =?iso-8859-1?Q?4cspi05bQPGQmeP29TfFkqPX5VmZW3AVhou/CPzv3MxW+Q3/Xm3nbyjXbT?=
+ =?iso-8859-1?Q?6QYO48I3CrmeiZpy8ey89elJqlOwqr1FJFOHTzgO4oCp8/Y2CJG/eLDO86?=
+ =?iso-8859-1?Q?UPjzRgAqE6ssRbWcyJhp7YzXesr6OE+Ql5bO9erSjgZhHnHaToJLVvAIiO?=
+ =?iso-8859-1?Q?JWkVysNWW+m64xt9VdXCpcUVFeaLj3npgoNe6EYPv4Pq/GmCjfWCzzAnOL?=
+ =?iso-8859-1?Q?QaaCQILxlkRZzZ74O6Pyw/f9KRQfq41Rg3kJmOwgCMGJ++3nr98q9oox7Q?=
+ =?iso-8859-1?Q?TncGDTbp7VchncVDI7h413fjtQl9MAC2rf1oOIjCndn6OoJJpjQls+1wRp?=
+ =?iso-8859-1?Q?z7xdrbukmfmuYCL4gmv3Lh5+1rQIXxcrZ4Ktn9IED+obbOqCyQeONSPpPB?=
+ =?iso-8859-1?Q?+4msc16h7PC+fZOJZtYJOGVJ+QvU7woj0XSnrvLBpkuwEZtL0uWu6mxYX+?=
+ =?iso-8859-1?Q?YKO1BvCHJ0Jaklxq3rDIgg1qWUzGpkNKGniQFzYOFW9gX9p6ib6JDogs94?=
+ =?iso-8859-1?Q?Uke1//DRj+kPkxSXAw3jHnXp/7xncjhIFGNWC4m4F08ErQXXcUNNEL7P5u?=
+ =?iso-8859-1?Q?nzHEWzRQIA6sSrhS/CMJy+u8Ny8uGCGb3+yVPufzspbNk1w2GRBgHRO1pz?=
+ =?iso-8859-1?Q?yWBwzzQfUxUPtFnZvs2D70t0czYYCqJIo6NrJcw4ni7dUniMctfYocmN8/?=
+ =?iso-8859-1?Q?id3g6va85rWjNwiFAM5sHtN7LhYGbnNjtnt4bB90N7nrW5k4YtousNhkFD?=
+ =?iso-8859-1?Q?3hlP9H0J1ICks5AjyhNNm2qmNluuu60eLL1klCLx6aYTBSMj6x5K1X5Oo0?=
+ =?iso-8859-1?Q?VjvyGZtBnHRGcLK8du7tM1j//zEjP41soPdMAv/Thbg9QMj+pJjzxjw5QP?=
+ =?iso-8859-1?Q?k/AT46HJTdZQvoivuLJDj+1L992jtBINSGWHUJknMDlpZHlRNPIKHV9R8Z?=
+ =?iso-8859-1?Q?zaj5AA0olSNa5PJEdx0QO+yBzaHSdp8k0GSZYs7CQho7kzSwCFXB1W1Ol3?=
+ =?iso-8859-1?Q?hHODvvWOE4uTdky5qqO15rW4wdASUG5hVO4MW+a5lIu8Ogq9lNd6rX/trq?=
+ =?iso-8859-1?Q?JAp85NcqDXZdqQ8SsrLEv81s8CBtqnaeAf6C80HcFGtzbzErvC6+XRfa8+?=
+ =?iso-8859-1?Q?PFOLajydl+VEmb1xPfIHXZBp7KfCC6dSLD19pifAfnEfKE8O0428fpID61?=
+ =?iso-8859-1?Q?0YxXX09sP0HliADXwVS8VNfZFLXAKE1H20kmBspRpLB7K8qglIkuuV04fU?=
+ =?iso-8859-1?Q?nazeNWrGuJ9Zn19oR+c5MHbPfxoAH974EIyo7IuhfDxPs5BoSg/r5LjBJY?=
+ =?iso-8859-1?Q?HnrXdQbf7PZZWHjJBtQB0iZEWffp3tteZk1XPnYBnu2wCcWHNneasaCNde?=
+ =?iso-8859-1?Q?ZZU/5UNTp1DhOc1TzwfnRLGYbIBfSlQbkbe2MwZ3NuWMzL6FkDgaLRo+nR?=
+ =?iso-8859-1?Q?HblGLwEuU9ssq406cvFLPYvnW1n8QWmtSbuc/GEJH8v6pPWYvAz1EBrpAH?=
+ =?iso-8859-1?Q?fXAZeX3rzDSHnEuBO7Ft2LGFKju4jY2afj0nvwe4hEtf2F?=
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -81,186 +157,139 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 1/5] ACPI: fan: Pass struct acpi_fan pointers to
- functions
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
- Linux PM <linux-pm@vger.kernel.org>
-References: <2859850.mvXUDI8C0e@rafael.j.wysocki>
- <1976174.tdWV9SEqCh@rafael.j.wysocki> <awcYhE0hvgBQMT6_@ashevche-desk.local>
- <CAJZ5v0g1S2EppsW+Co_VD1Rbmv1bAsVDNmQ3a58H_exUFjuyXg@mail.gmail.com>
-Content-Language: en-US
-From: Armin Wolf <W_Armin@gmx.de>
-In-Reply-To: <CAJZ5v0g1S2EppsW+Co_VD1Rbmv1bAsVDNmQ3a58H_exUFjuyXg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:Ithj4kprfKAR7fHSENyGOhpDe4iX2gbTNJ8FFlL67tT9P3d0LjK
- 1Zc+s1KZEeUKXnc1cJkqEFw7Vwv/kT/unAeBYRcRKY5XzEqC+jBjVpDONP/KBZ9PMK5zih4
- zAoWrNAGHdKjS3h5sHlSIM8lrJqNzwYZ5uP5jw/juDPD+JJNqpoBs3iA7kBDVTykhYJPk3/
- 34hTO2yGVGIl5j37PYBCg==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:C9/u2Efu+9s=;wBc6pMTwJ6kEMAg6CspgfsHUqr5
- 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
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: DSVPR12MB664020.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 880110a2-1a09-476d-895c-08df4b417494
+X-MS-Exchange-CrossTenant-originalarrivaltime: 25 Nov 2026 22:14:21.0472
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: IXPDs/bnI7Z8tv5abD90hY62LO0tuTduZTHx4ykdSeLEa7poWs+v4PfRWmkktfF43Ewi4OULd54kKKaUv3fdNg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR12MB6108
 
-Am 25.11.26 um 21:34 schrieb Rafael J. Wysocki (Intel):
-
-> On Wed, Nov 25, 2026 at 8:29=E2=80=AFPM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
->> On Wed, Nov 25, 2026 at 03:07:24PM +0100, Rafael J. Wysocki wrote:
->>> Pass a struct acpi_fan pointer as an argument to several functions in
->>> the ACPI fan driver either instead of or in addition to a struct
->>> acpi_device or a struct device pointer.
->>>
->>> This allows acpi_driver_data() usage to be reduced and some other
->>> simplifications to be made.
->>>
->>> No intentional functional impact.
->> ...
->>
->>> -static int acpi_fan_get_fps(struct device *dev, struct acpi_device *d=
-evice)
->>> +static int acpi_fan_get_fps(struct acpi_fan *fan, struct device *dev,
->>> +                         struct acpi_device *device)
->> Hmm... Can't we derive 'device' from 'fan' as you done elsewhere?
-> It can be done, but it's rather cosmetic IMV.
->
-> It's just a matter of whether or not dereferencing "fan" is better
-> than passing one more arg.  Anyway, this change can be made
-> separately.
->
->> ...
->>
->>> -static int acpi_fan_dsm_init(struct device *dev)
->>> +static int acpi_fan_dsm_init(struct acpi_fan *fan, struct device *dev=
-)
->>>   {
->> Now 'dev' is used solely for dev_info() call AFAICS. Hence when you mov=
-e to
->> acpi_handle_info() this parameter can be killed I assume.
-> However, I'm not sure if using acpi_handle_info() would be better.
-> After all, the platform device is the one using MSFT extensions.
-
-I agree, the idea behind this message was to inform the user that the driv=
-er controlling
-the platform device is going to use the MSFT extensions, so using acpi_han=
-dle_info() would
-not fit here.
-
-IMHO passing both dev and acpi_fan is only a minor issue.
-
-Thanks,
-Armin Wolf
-
->>>        union acpi_object dummy =3D {
->>>                .package =3D {
->>>                        .elements =3D NULL,
->>>                },
->>>        };
->>> -     struct acpi_fan *fan =3D dev_get_drvdata(dev);
->>>        acpi_handle fan_handle =3D fan->adev->handle;
->> --
+On Wed, Nov 25, 2026 at 07:03:18PM +0100, Riccardo Zangh=ED wrote:=0A=
+> On Wed, 25 Nov 2026 at 07:13, Daniel Dadap <ddadap@nvidia.com> wrote:=0A=
+> > So, as an experiment, if you could read the LSb at physical address=0A=
+> > 0xFEDD83B8 in both iGPU and dGPU modes, and report on the value, that=
+=0A=
+> > would help.=0A=
+> =0A=
+> Hi Daniel,=0A=
+> =0A=
+> Thanks for the detailed analysis. I believe I received your full message =
+by=0A=
+> mail.=0A=
+=0A=
+Right, I only got bounces from the lists, not the individual recipients, so=
+=0A=
+you very likely got three copies. (Sorry.)=0A=
+=0A=
+> =0A=
+> Result of: od -An -t x1 -j $((0xFEDD83B8)) -N 1 /dev/mem=0A=
+> =0A=
+> integrated mode:              4a  (bit 0 =3D 0)=0A=
+> dGPU mode (gpu_mux_mode =3D 0): 07  (bit 0 =3D 1)=0A=
+> =0A=
+> So G40C does differ between the two modes. I can try the DSDT=0A=
+> override next and report back, or test any other patch.=0A=
+>=0A=
+=0A=
+Yes, I think doing the DSDT override as the next experiment makes the most=
+=0A=
+sense. The ASL should be amended to read:=0A=
+=0A=
+> If ((MODF =3D=3D Zero))=0A=
+> {=0A=
+>     If ((^^SBRG.EC0.G40C =3D=3D One))=0A=
+>     {=0A=
+>         Return (One)=0A=
+>     }=0A=
+>     Else=0A=
+>     {=0A=
+>         Return (0x02)=0A=
+>     }=0A=
+> } =0A=
+=0A=
+which I suspect will reflect the design intent better.=0A=
+=0A=
+You could also try patching the kernel instead, maybe with something along=
+=0A=
+these lines (completely untested; you'll need to supply your own DMI ID=0A=
+strings from your machine's SMBIOS):=0A=
+=0A=
+=0A=
+--- a/drivers/acpi/video_detect.c=0A=
++++ b/drivers/acpi/video_detect.c=0A=
+@@ -131,6 +131,44 @@ static int video_detect_portege_r100(const struct dmi_=
+system_id *d)=0A=
+ 	return 0;=0A=
+ }=0A=
+ =0A=
++struct video_detect_runtime_dependent_data {=0A=
++	phys_addr_t address;=0A=
++	u8 mask;=0A=
++	enum acpi_backlight_type backlight_type_if_true;=0A=
++	enum acpi_backlight_type backlight_type_if_false;=0A=
++};=0A=
++=0A=
++static struct video_detect_runtime_dependent_data asus_a16_dmi_drvdata =3D=
+ {=0A=
++	.address =3D 0xfedd83b8,=0A=
++	.mask =3D 1,=0A=
++	.backlight_type_if_true =3D acpi_backlight_native,=0A=
++	.backlight_type_if_false =3D acpi_backlight_nvidia_wmi_ec,=0A=
++};=0A=
++=0A=
++static int video_detect_runtime_dependent(const struct dmi_system_id *d)=
+=0A=
++{=0A=
++	const struct video_detect_runtime_dependent_data *data =3D d->driver_data=
+;=0A=
++	void __iomem *map;=0A=
++	u8 val;=0A=
++=0A=
++	map =3D ioremap(data->address, 1);=0A=
++	if (!map) {=0A=
++		pr_warn("Unable to map backlight selection register at %pa; skipping qui=
+rk\n",=0A=
++		       &data->address);=0A=
++		return 0;=0A=
++	}=0A=
++=0A=
++	val =3D readb(map);=0A=
++	iounmap(map);=0A=
++=0A=
++	if (val & data->mask)=0A=
++		acpi_backlight_dmi =3D data->backlight_type_if_true;=0A=
++	else=0A=
++		acpi_backlight_dmi =3D data->backlight_type_if_false;=0A=
++=0A=
++	return 0;=0A=
++}=0A=
++=0A=
+ static const struct dmi_system_id video_detect_dmi_table[] =3D {=0A=
+ 	/*=0A=
+ 	 * Models which should use the vendor backlight interface,=0A=
+@@ -986,6 +1024,19 @@ static const struct dmi_system_id video_detect_dmi_ta=
+ble[] =3D {=0A=
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Mipad2"),=0A=
+ 		},=0A=
+ 	},=0A=
++=0A=
++	/*=0A=
++	 * This notebook is supposed to select the backlight control device=0A=
++	 * based on runtime state readable from the EC's MMIO region, but=0A=
++	 * ends up requesting the EC backlight driver regardless of the state.=0A=
++	 */=0A=
++	{=0A=
++	 .callback =3D video_detect_runtime_dependent,=0A=
++	 .matches =3D {=0A=
++		 /* XXX supply appropriate DMI_MATCH() macros here */=0A=
++		},=0A=
++	 .driver_data =3D &asus_a16_dmi_drvdata,=0A=
++	},=0A=
+ 	{ },=0A=
+ };=0A=
+ =0A=
