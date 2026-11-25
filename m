@@ -1,78 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.10
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795647286;
-	b=urYG4nFgArLnd3GUgMlUiboS0QW4GAB5Mbizx9JS5ZKSTWbuBGUi1dNKKwm5ZeS+7BXV
-	 mR38XcGb+LmyZM8CJZJrg7U/ee9VXKSWjrorTgPxE5cXw+N/+vzmC1nLlwja4MA7I4pBt
-	 JRreZwCKDfBLX1VMcPu3tDzD593KrvHnxmDmzFYoDJY+/aGkm0oe4HEc9D/2CU15jhYkh
-	 iDAaYJJ6ZGeO+WbfyLgve3GdvLSiRRFXDSIbetoyDaYtZPGZ+Tvp6i+ZcqJ7LgITNXeBU
-	 bK9yKZ47ZUsKw70ejpvKFMfJa6Uzv7lBHQrqEzZYWOkGOOtVuZgusnDc+ZZNxJiYe4A==
+	t=1795648197;
+	b=nM/JLqYuwySzUy1NfJX+3Pq560s23n8NjO3ak617vDziaskraJUONLhD7C6W+f9OIIUT
+	 10qgixzdSewJXjjUm6gjReOaetXBkdDet2ptr98S5pMmym1+JmP+Wx2kDhAhCCphjT1Zi
+	 E1Mac2wu3mXSEqHE0+lTCWwUweaNAd9MATtep4rQrO6TUKQT9HeuHHlF9Cnxao0yUo+3a
+	 2dtC8Jthh1Sa9djVdFhD9mcQwy/i+gBiGDsLPEDpe2jIxWpQ6Pn3MOlp2AJz0NjFFL+gj
+	 9+Cvjwb1gHvXIh2IoY0b1Vn3AvYnESeCm0xQhRwc8oqwK/mmSnCwjyUlUoA0Ywl4f+Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795647286;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795648197;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:User-Agent;
-	bh=n7yFyP7ZXnB/MpU/y/bk7Vp4n82DuO9zcApAbBqLpzA=;
-	b=tezCAFlmAMWh2R64sNC/Tx5QMFrF6G540VLfEcsP599mquUbkBbdWkog2S8KlfHKOG/i
-	 Pmd1Z/V7ImvdrmK/0tAFn5GjOu5ZOV8ece3KyfH5gzg+Cef8QDEC54tjcye++LM0O+oCd
-	 mNnb2Tpr7DnJzBg5q8HEyhjoQSiJlDoo1Kg3ryfVh/G/LamUaqUlTmw9E0afz8HAeM4Lx
-	 /qqjvW2CJDpPuqN0Q7dDcEnT8U6ILZQAp+7n8bnx19eY4Fm5VWGyv4xoRcwv+eubn4/Es
-	 XRMsrd62KY8SUCv2mBbiFzzMyQqY+zGx3oWNa/zkZnGknXQUFKeQ2Ph3qkANyQaj9SQ==
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=jTT7ZQT/IeZuZXnF5eJK7WIKxpNbB7mlhkfRnq9M/Fg=;
+	b=cUXJ7CkMW4/djeYTiScAG97ubAkAQlJ8PQR1zSIJ5uA/7HZo716C2jcC6/rmvWc29m04
+	 G8NL1yxrBfKFuOxNhVQxx03th6R03CeordZxBY2gr8CcpBTWMFCZWQy893lv/fTae11Lv
+	 +4YUQpZ0JMDHzSKMGKw8kvVOoxCo9KoaAOqUhsxdC30Zmp/aE3LCX9nJxqZfHVEzRmXQH
+	 IkY4Q4Y4SE+vKKknb4QGqqjxERBWSJzewJh3vphnskT8oJZvaPwB1N2h5yqeXV4B5U8he
+	 0Y9d7PP7wWymBsAvQV/mkJ/45sa9TDZaNIU/opB0nCr2y9XV0VupulytLCDRXvng+bg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=IELDVAXa;
-	arc=none smtp.remote-ip=192.198.163.11
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=EAAYb45w;
+	arc=none smtp.remote-ip=198.175.65.10
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08061606A689;
-	Wed, 25 Nov 2026 22:54:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 08061606A689
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA9DF606A321;
+	Wed, 25 Nov 2026 23:09:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AA9DF606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=IELDVAXa
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=EAAYb45w
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795647286; x=1827183286;
-  h=date:from:to:cc:subject:message-id;
-  bh=d2YRxS7xpesqBMM6B4z2PnG5qmi2zb95+BAh/N1HAxc=;
-  b=IELDVAXa6eQHRkB8AeRlKkqFGXqx8Av92tNcjOAZGLtjZoEcH7+T/dho
-   p2Dzi85KqtuVzFKqhFy2yZtth2QofOatyCacsOiZhyAwoxByhL3ZVOvJY
-   EBG8Vsb+vWye33zqR1QA71b6TLm2nJwb5VoD1YwKY3+QhWIyXeyR9iQXa
-   rJTO2Bys8qc0FF4+T9/q/qEOCBTutXRoJUJaQeDBi8CCnuv5WqMra863J
-   nN35QeWbt5IRIQMHx5pQhkZEQlqvyu3w3KhZvRoSJaFkrV9G0TfpPKGGS
-   0+qUcCKqL42bL8ExhtCO/2mKLMrLjYqwxuJHdUvYRIQWA6AmZ48YF+IV3
+  t=1795648197; x=1827184197;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=kP2SPO5/6lORcTqOAcqARY5ZCI7i60ffA/JZ/vM2yOo=;
+  b=EAAYb45wUgTgy/DfEyj79WogaR+4Nw49JGFeBzxGGRw8pgODNNid5T3g
+   V3NWXFsrKNjgrhDCAUuvx/laxNAfpSMZdgsuU2GJSvZt9QWaDlbP9hdN2
+   tXt6RfvF5p1TV/e7Zb69Nycn5tg4aDix6nVhpyXpU3AjjmcrpMyp/hHcU
+   huCiNnChKez1JA9Quv/Bsj/vS84aqlCyGNmn+J7gLbdjuF2P79ptWEFT8
+   vz4IAAtXI9pUVpYRqPdmBrCzfhHOABCPbA1AsmtFWxWJIHVm924rR1JgW
+   3jXTbsFrCYwNjHywldQGnS/uAWcI5sDCcHkHKkPI0OpL4YSNfqz67xedi
    w==;
-X-CSE-ConnectionGUID: T7nyXwK1Rhq2e7A4uv6T1w==
-X-CSE-MsgGUID: cn7oO2THRhSBCTHME5rW6g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11977"; a="4453572"
+X-CSE-ConnectionGUID: jsDpzAp+TG23T3uFa0AvYw==
+X-CSE-MsgGUID: L2PCUKLyQhSxiKY9YfiS0w==
+X-IronPort-AV: E=McAfee;i="6800,10657,11977"; a="4469380"
 X-IronPort-AV: E=Sophos;i="6.27,233,1787036400"; 
-   d="scan'208";a="4453572"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2026 14:54:45 -0800
-X-CSE-ConnectionGUID: 46RVucZiRLiEGWQ+t0uiew==
-X-CSE-MsgGUID: 2d91PRc/R2+K5FCZyIQVoA==
+   d="scan'208";a="4469380"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2026 15:09:56 -0800
+X-CSE-ConnectionGUID: FSeJ2UOTQfqGpZEEwoMCHA==
+X-CSE-MsgGUID: YkZ16Fu2QqmOys0Qlr7UQw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,233,1787036400"; 
-   d="scan'208";a="11883154"
-Received: from igk-lkp-server01.igk.intel.com (HELO a03d4d989450) ([10.211.93.152])
-  by orviesa003.jf.intel.com with ESMTP; 25 Nov 2026 14:54:43 -0800
-Received: from kbuild by a03d4d989450 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xWLsu-0000000007r-0CpB;
-	Wed, 25 Nov 2026 22:54:40 +0000
-Date: Wed, 25 Nov 2026 23:54:01 +0100
-From: kernel test robot <lkp@intel.com>
-To: "Maciej Wieczor-Retman" <maciej.wieczor-retman@intel.com>
-Cc: oe-kbuild-all@lists.linux.dev, linux-acpi@vger.kernel.org,
- linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [rafael-pm:bleeding-edge 183/194]
- drivers/acpi/acpica/evgpe.c:706 acpi_ev_clear_gpe_dispatch_by_owner() warn:
- inconsistent indenting
-Message-ID: <20261125234605.yAGraiIA-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+   d="scan'208";a="11980046"
+Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.96])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2026 15:09:48 -0800
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+To: linux-pci@vger.kernel.org,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+	Rob Herring <robh@kernel.org>,
+	=?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>,
+	David Matlack <dmatlack@google.com>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Greg Ungerer <gerg@linux-m68k.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Yoshinori Sato <ysato@users.sourceforge.jp>,
+	Rich Felker <dalias@libc.org>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+	Helge Deller <deller@gmx.de>,
+	Len Brown <lenb@kernel.org>,
+	Dominik Brodowski <linux@dominikbrodowski.net>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org,
+	linux-mips@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	linux-parisc@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Cc: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	stable@vger.kernel.org
+Subject: [PATCH v3 01/17] PCI: Add pci_bus_size_and_assign_resources()
+Date: Thu, 26 Nov 2026 01:09:00 +0200
+Message-ID: <20261125230925.2441-2-ilpo.jarvinen@linux.intel.com>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20261125230925.2441-1-ilpo.jarvinen@linux.intel.com>
+References: <20261125230925.2441-1-ilpo.jarvinen@linux.intel.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -81,180 +103,181 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-head:   a2760eeb5e110a0a1a9c926183abb022b400aa3b
-commit: b9a3ceee0af1e7255835e3a025879ee2c9b4a826 [183/194] ACPICA: events: Fix GPE cleanup return after changing program state
-config: x86_64-randconfig-2200-20261125 (https://download.01.org/0day-ci/archive/20261125/20261125234605.yAGraiIA-lkp@intel.com/config)
-compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
-smatch: v0.5.0-9187-g5189e3fb
+Bridge window sizing and resource assignment must not run concurrently
+with another sizing and assignment pass or with device removal.
+Preventing that requires holding locks across both phases. Many callers
+outside of PCI core call pci_bus_size_bridges() immediately followed by
+pci_bus_assign_resources() and cannot hold the PCI core internal locks
+across the two calls.
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/20261125234605.yAGraiIA-lkp@intel.com/
+Add pci_bus_size_and_assign_resources() into PCI core which combines
+these two operations and convert the callers that call them back to
+back.
 
-smatch warnings:
-drivers/acpi/acpica/evgpe.c:706 acpi_ev_clear_gpe_dispatch_by_owner() warn: inconsistent indenting
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+Cc: stable@vger.kernel.org
+---
+ arch/arm/kernel/bios32.c           | 5 ++---
+ arch/m68k/coldfire/pci.c           | 3 +--
+ arch/mips/pci/pci-legacy.c         | 5 ++---
+ arch/sh/drivers/pci/pci.c          | 3 +--
+ drivers/parisc/lba_pci.c           | 7 ++-----
+ drivers/pci/hotplug/acpiphp_glue.c | 3 +--
+ drivers/pci/setup-bus.c            | 7 +++++++
+ drivers/pcmcia/cardbus.c           | 3 +--
+ include/linux/pci.h                | 1 +
+ 9 files changed, 18 insertions(+), 19 deletions(-)
 
-vim +706 drivers/acpi/acpica/evgpe.c
-
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  598  
-3f013ec0f167d3e ikaros                2026-11-20  599  /*******************************************************************************
-3f013ec0f167d3e ikaros                2026-11-20  600   *
-3f013ec0f167d3e ikaros                2026-11-20  601   * FUNCTION:    acpi_ev_clear_gpe_dispatch_by_owner
-3f013ec0f167d3e ikaros                2026-11-20  602   *
-3f013ec0f167d3e ikaros                2026-11-20  603   * PARAMETERS:  owner_id        - Table owner_id being unloaded
-3f013ec0f167d3e ikaros                2026-11-20  604   *
-3f013ec0f167d3e ikaros                2026-11-20  605   * RETURN:      Status
-3f013ec0f167d3e ikaros                2026-11-20  606   *
-3f013ec0f167d3e ikaros                2026-11-20  607   * DESCRIPTION: Clear GPE dispatch info for methods belonging to the table
-3f013ec0f167d3e ikaros                2026-11-20  608   *              being unloaded. If any matching GPE is currently dispatching,
-3f013ec0f167d3e ikaros                2026-11-20  609   *              it is not cleared and AE_ABORT_METHOD is returned.
-3f013ec0f167d3e ikaros                2026-11-20  610   *
-3f013ec0f167d3e ikaros                2026-11-20  611   ******************************************************************************/
-3f013ec0f167d3e ikaros                2026-11-20  612  
-3f013ec0f167d3e ikaros                2026-11-20  613  acpi_status acpi_ev_clear_gpe_dispatch_by_owner(acpi_owner_id owner_id)
-3f013ec0f167d3e ikaros                2026-11-20  614  {
-3f013ec0f167d3e ikaros                2026-11-20  615  	struct acpi_gpe_xrupt_info *gpe_xrupt_info;
-3f013ec0f167d3e ikaros                2026-11-20  616  	struct acpi_gpe_block_info *gpe_block;
-3f013ec0f167d3e ikaros                2026-11-20  617  	struct acpi_gpe_event_info *gpe_event_info;
-3f013ec0f167d3e ikaros                2026-11-20  618  	u32 gpe_number;
-3f013ec0f167d3e ikaros                2026-11-20  619  	acpi_cpu_flags flags;
-3f013ec0f167d3e ikaros                2026-11-20  620  	acpi_status status = AE_OK;
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  621  	u32 gpe_dispatch_type;
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  622  	struct acpi_gpe_handler_info *handler;
-3f013ec0f167d3e ikaros                2026-11-20  623  
-3f013ec0f167d3e ikaros                2026-11-20  624  	ACPI_FUNCTION_TRACE_U32(ev_clear_gpe_dispatch_by_owner, owner_id);
-3f013ec0f167d3e ikaros                2026-11-20  625  
-3f013ec0f167d3e ikaros                2026-11-20  626  	if (owner_id == 0) {
-3f013ec0f167d3e ikaros                2026-11-20  627  		return_ACPI_STATUS(AE_OK);
-3f013ec0f167d3e ikaros                2026-11-20  628  	}
-3f013ec0f167d3e ikaros                2026-11-20  629  
-ec725d1bc3be3f3 Maciej Wieczor-Retman 2026-11-20  630  	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
-ec725d1bc3be3f3 Maciej Wieczor-Retman 2026-11-20  631  	if (ACPI_FAILURE(status)) {
-ec725d1bc3be3f3 Maciej Wieczor-Retman 2026-11-20  632  		return_ACPI_STATUS(status);
-ec725d1bc3be3f3 Maciej Wieczor-Retman 2026-11-20  633  	}
-ec725d1bc3be3f3 Maciej Wieczor-Retman 2026-11-20  634  
-3f013ec0f167d3e ikaros                2026-11-20  635  	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
-3f013ec0f167d3e ikaros                2026-11-20  636  
-3f013ec0f167d3e ikaros                2026-11-20  637  	/* Walk all GPE interrupt blocks */
-3f013ec0f167d3e ikaros                2026-11-20  638  
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  639  	gpe_xrupt_info = acpi_gbl_gpe_xrupt_list_head;
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  640  	while (gpe_xrupt_info) {
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  641  		gpe_block = gpe_xrupt_info->gpe_block_list_head;
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  642  		while (gpe_block) {
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  643  			/*
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  644  			 * Walk all GPEs in this block to make sure none are blocked from
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  645  			 * getting cleared with disable_for_dispatch
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  646  			 */
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  647  
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  648  			for (gpe_number = 0; gpe_number < gpe_block->gpe_count;
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  649  			     gpe_number++) {
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  650  				gpe_event_info =
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  651  					&gpe_block->event_info[gpe_number];
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  652  				gpe_dispatch_type =
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  653  					acpi_ev_dispatch_type_hidden_handler(
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  654  						gpe_event_info, owner_id);
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  655  				if ((gpe_dispatch_type ==
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  656  					     ACPI_GPE_DISPATCH_METHOD ||
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  657  				     gpe_dispatch_type ==
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  658  					     ACPI_GPE_DISPATCH_NOTIFY) &&
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  659  				    gpe_event_info->disable_for_dispatch) {
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  660  					/* At least one handler is polling or executing, cannot clear */
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  661  					status = AE_ABORT_METHOD;
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  662  					acpi_os_release_lock(acpi_gbl_gpe_lock,
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  663  							     flags);
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  664  					(void)acpi_ut_release_mutex(
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  665  						ACPI_MTX_EVENTS);
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  666  					return_ACPI_STATUS(status);
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  667  				}
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  668  			}
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  669  
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  670  			gpe_block = gpe_block->next;
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  671  		}
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  672  
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  673  		gpe_xrupt_info = gpe_xrupt_info->next;
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  674  	}
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  675  
-3f013ec0f167d3e ikaros                2026-11-20  676  	gpe_xrupt_info = acpi_gbl_gpe_xrupt_list_head;
-3f013ec0f167d3e ikaros                2026-11-20  677  	while (gpe_xrupt_info) {
-3f013ec0f167d3e ikaros                2026-11-20  678  		gpe_block = gpe_xrupt_info->gpe_block_list_head;
-3f013ec0f167d3e ikaros                2026-11-20  679  		while (gpe_block) {
-3f013ec0f167d3e ikaros                2026-11-20  680  			/* Walk all GPEs in this block */
-3f013ec0f167d3e ikaros                2026-11-20  681  
-3f013ec0f167d3e ikaros                2026-11-20  682  			for (gpe_number = 0; gpe_number < gpe_block->gpe_count;
-3f013ec0f167d3e ikaros                2026-11-20  683  			     gpe_number++) {
-3f013ec0f167d3e ikaros                2026-11-20  684  				gpe_event_info =
-3f013ec0f167d3e ikaros                2026-11-20  685  					&gpe_block->event_info[gpe_number];
-3f013ec0f167d3e ikaros                2026-11-20  686  
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  687  				gpe_dispatch_type =
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  688  					acpi_ev_dispatch_type_hidden_handler(
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  689  						gpe_event_info, owner_id);
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  690  				switch (gpe_dispatch_type) {
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  691  				case ACPI_GPE_DISPATCH_METHOD:
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  692  					/*
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  693  					 * GPE method belongs to table being unloaded. Clear
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  694  					 * only the dispatch type, preserve other flags.
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  695  					 */
-3f013ec0f167d3e ikaros                2026-11-20  696  						gpe_event_info->flags &=
-3f013ec0f167d3e ikaros                2026-11-20  697  							~ACPI_GPE_DISPATCH_MASK;
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  698  					gpe_event_info->dispatch.method_node =
-b9a3ceee0af1e72 Maciej Wieczor-Retman 2026-11-20  699  						NULL;
-3f013ec0f167d3e ikaros                2026-11-20  700  
-3f013ec0f167d3e ikaros                2026-11-20  701  						/*
-3f013ec0f167d3e ikaros                2026-11-20  702  						 * Hardware-disable the GPE so a late interrupt
-3f013ec0f167d3e ikaros                2026-11-20  703  						 * cannot fire and land in the "no handler" default
-3f013ec0f167d3e ikaros                2026-11-20  704  						 * branch with disable_for_dispatch stuck at TRUE.
-3f013ec0f167d3e ikaros                2026-11-20  705  						 */
-3f013ec0f167d3e ikaros                2026-11-20 @706  						(void)acpi_hw_low_set_gpe(
-3f013ec0f167d3e ikaros                2026-11-20  707  							gpe_event_info,
-3f013ec0f167d3e ikaros                2026-11-20  708  							ACPI_GPE_DISABLE);
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  709  					break;
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  710  
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  711  				case ACPI_GPE_DISPATCH_HANDLER:
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  712  				case ACPI_GPE_DISPATCH_RAW_HANDLER:
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  713  
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  714  					handler =
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  715  						gpe_event_info->dispatch.handler;
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  716  					gpe_dispatch_type =
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  717  						ACPI_GPE_DISPATCH_TYPE(
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  718  							handler->original_flags);
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  719  
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  720  					/* Forget the hidden method so handler removal can't restore it */
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  721  					if (gpe_dispatch_type ==
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  722  					    ACPI_GPE_DISPATCH_METHOD) {
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  723  						handler->method_node = NULL;
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  724  						handler->original_flags &=
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  725  							~ACPI_GPE_DISPATCH_MASK; /* -> NONE */
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  726  						handler->originally_enabled =
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  727  							FALSE;
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  728  					}
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  729  					break;
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  730  
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  731  				default:
-6ee1202890b74c6 Maciej Wieczor-Retman 2026-11-20  732  					break;
-3f013ec0f167d3e ikaros                2026-11-20  733  				}
-3f013ec0f167d3e ikaros                2026-11-20  734  			}
-3f013ec0f167d3e ikaros                2026-11-20  735  
-3f013ec0f167d3e ikaros                2026-11-20  736  			gpe_block = gpe_block->next;
-3f013ec0f167d3e ikaros                2026-11-20  737  		}
-3f013ec0f167d3e ikaros                2026-11-20  738  
-3f013ec0f167d3e ikaros                2026-11-20  739  		gpe_xrupt_info = gpe_xrupt_info->next;
-3f013ec0f167d3e ikaros                2026-11-20  740  	}
-3f013ec0f167d3e ikaros                2026-11-20  741  
-3f013ec0f167d3e ikaros                2026-11-20  742  	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
-ec725d1bc3be3f3 Maciej Wieczor-Retman 2026-11-20  743  	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
-3f013ec0f167d3e ikaros                2026-11-20  744  	return_ACPI_STATUS(status);
-3f013ec0f167d3e ikaros                2026-11-20  745  }
-3f013ec0f167d3e ikaros                2026-11-20  746  
-
-:::::: The code at line 706 was first introduced by commit
-:::::: 3f013ec0f167d3e814399286690b672365662e78 ACPICA: Events: Clear GPE dispatch by owner during table unload
-
-:::::: TO: ikaros <void0red@gmail.com>
-:::::: CC: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
+diff --git a/arch/arm/kernel/bios32.c b/arch/arm/kernel/bios32.c
+index ac0e890510da..555bfb091d30 100644
+--- a/arch/arm/kernel/bios32.c
++++ b/arch/arm/kernel/bios32.c
+@@ -510,15 +510,14 @@ void pci_common_init_dev(struct device *parent, struct hw_pci *hw)
+ 		/*
+ 		 * We insert PCI resources into the iomem_resource and
+ 		 * ioport_resource trees in either pci_bus_claim_resources()
+-		 * or pci_bus_assign_resources().
++		 * or pci_bus_size_and_assign_resources().
+ 		 */
+ 		if (pci_has_flag(PCI_PROBE_ONLY)) {
+ 			pci_bus_claim_resources(bus);
+ 		} else {
+ 			struct pci_bus *child;
+ 
+-			pci_bus_size_bridges(bus);
+-			pci_bus_assign_resources(bus);
++			pci_bus_size_and_assign_resources(bus);
+ 
+ 			list_for_each_entry(child, &bus->children, node)
+ 				pcie_bus_configure_settings(child);
+diff --git a/arch/m68k/coldfire/pci.c b/arch/m68k/coldfire/pci.c
+index 5afb207ccc51..dd21c77c43a6 100644
+--- a/arch/m68k/coldfire/pci.c
++++ b/arch/m68k/coldfire/pci.c
+@@ -250,8 +250,7 @@ static int __init mcf_pci_init(void)
+ 	rootbus->resource[0] = &mcf_pci_io;
+ 	rootbus->resource[1] = &mcf_pci_mem;
+ 
+-	pci_bus_size_bridges(rootbus);
+-	pci_bus_assign_resources(rootbus);
++	pci_bus_size_and_assign_resources(rootbus);
+ 	pci_bus_add_devices(rootbus);
+ 	return 0;
+ }
+diff --git a/arch/mips/pci/pci-legacy.c b/arch/mips/pci/pci-legacy.c
+index dae6dafdd6e0..ec0e42d9a895 100644
+--- a/arch/mips/pci/pci-legacy.c
++++ b/arch/mips/pci/pci-legacy.c
+@@ -129,15 +129,14 @@ static void pcibios_scanbus(struct pci_controller *hose)
+ 	/*
+ 	 * We insert PCI resources into the iomem_resource and
+ 	 * ioport_resource trees in either pci_bus_claim_resources()
+-	 * or pci_bus_assign_resources().
++	 * or pci_bus_size_and_assign_resources().
+ 	 */
+ 	if (pci_has_flag(PCI_PROBE_ONLY)) {
+ 		pci_bus_claim_resources(bus);
+ 	} else {
+ 		struct pci_bus *child;
+ 
+-		pci_bus_size_bridges(bus);
+-		pci_bus_assign_resources(bus);
++		pci_bus_size_and_assign_resources(bus);
+ 		list_for_each_entry(child, &bus->children, node)
+ 			pcie_bus_configure_settings(child);
+ 	}
+diff --git a/arch/sh/drivers/pci/pci.c b/arch/sh/drivers/pci/pci.c
+index 878a27a1acfb..c91ca8f4cb1c 100644
+--- a/arch/sh/drivers/pci/pci.c
++++ b/arch/sh/drivers/pci/pci.c
+@@ -81,8 +81,7 @@ static void pcibios_scanbus(struct pci_channel *hose)
+ 		need_domain_info = 1;
+ 	}
+ 
+-	pci_bus_size_bridges(hose->bus);
+-	pci_bus_assign_resources(hose->bus);
++	pci_bus_size_and_assign_resources(hose->bus);
+ 	pci_bus_add_devices(hose->bus);
+ }
+ 
+diff --git a/drivers/parisc/lba_pci.c b/drivers/parisc/lba_pci.c
+index 5197a3c93c70..39ab93ba458b 100644
+--- a/drivers/parisc/lba_pci.c
++++ b/drivers/parisc/lba_pci.c
+@@ -1639,11 +1639,8 @@ lba_driver_probe(struct parisc_device *dev)
+ 	if (is_pdc_pat()) {
+ 		/* assign resources to un-initialized devices */
+ 
+-		DBG_PAT("LBA pci_bus_size_bridges()\n");
+-		pci_bus_size_bridges(lba_bus);
+-
+-		DBG_PAT("LBA pci_bus_assign_resources()\n");
+-		pci_bus_assign_resources(lba_bus);
++		DBG_PAT("LBA pci_bus_size_and_assign_resources()\n");
++		pci_bus_size_and_assign_resources(lba_bus);
+ 
+ #ifdef DEBUG_LBA_PAT
+ 		DBG_PAT("\nLBA PIOP resource tree\n");
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 78e3effbb32d..632344f34cae 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -465,8 +465,7 @@ static void acpiphp_native_scan_bridge(struct pci_dev *bridge)
+ 		max = pci_scan_bridge(bus, dev, max, 1);
+ 		if (dev->subordinate) {
+ 			pcibios_resource_survey_bus(dev->subordinate);
+-			pci_bus_size_bridges(dev->subordinate);
+-			pci_bus_assign_resources(dev->subordinate);
++			pci_bus_size_and_assign_resources(dev->subordinate);
+ 		}
+ 	}
+ }
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index ed16ef7c26fa..29ec9ba59d92 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -2492,3 +2492,10 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
+ }
+ EXPORT_SYMBOL_GPL(pci_assign_unassigned_bus_resources);
++
++void pci_bus_size_and_assign_resources(struct pci_bus *bus)
++{
++	pci_bus_size_bridges(bus);
++	__pci_bus_assign_resources(bus, NULL, NULL);
++}
++EXPORT_SYMBOL_GPL(pci_bus_size_and_assign_resources);
+diff --git a/drivers/pcmcia/cardbus.c b/drivers/pcmcia/cardbus.c
+index 5e5cf2c3e2c8..19df3f9228a7 100644
+--- a/drivers/pcmcia/cardbus.c
++++ b/drivers/pcmcia/cardbus.c
+@@ -81,8 +81,7 @@ int __ref cb_alloc(struct pcmcia_socket *s)
+ 	/*
+ 	 * Size all resources below the CardBus controller.
+ 	 */
+-	pci_bus_size_bridges(bus);
+-	pci_bus_assign_resources(bus);
++	pci_bus_size_and_assign_resources(bus);
+ 	cardbus_config_irq_and_cls(bus, s->pci_irq);
+ 
+ 	/* socket specific tune function */
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index aa3765a20a96..d89aeb7c9ff7 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1569,6 +1569,7 @@ resource_size_t pcibios_retrieve_fw_addr(struct pci_dev *dev, int idx);
+ void pci_bus_assign_resources(const struct pci_bus *bus);
+ void pci_bus_claim_resources(struct pci_bus *bus);
+ void pci_bus_size_bridges(struct pci_bus *bus);
++void pci_bus_size_and_assign_resources(struct pci_bus *bus);
+ int pci_claim_resource(struct pci_dev *, int);
+ int pci_claim_bridge_resource(struct pci_dev *bridge, int i);
+ void pci_assign_unassigned_resources(void);
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.47.3
+
