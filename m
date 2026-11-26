@@ -1,55 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.54
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795704907;
-	b=RFBAbEjVV63ibbUnxW9LwJC0Fkwo/VzqZCWHqTFR+6K18ih4IAc9WByN0kj90/k4k3QU
-	 xNnkYCWxds40EotiJM50EJ+LPdOFj1cyQTYXcdR4V/zrXFbz7PhnDkcNatHk4nm36pjeC
-	 +g0Nx0N/FuBD89hbN50eoQZbUydevAkfKfVPSMstJY6KYfyBV3JDEejl/UGZELmP0VUYj
-	 Sp8OEaDh63BpgJ5sacRmye6wyMTpgiRr1ys0G71ol6W4WPmOk9LxiCgeb2h/C5w+bmRPh
-	 u5sMHFeCHL1+M85my4dWaOpNPUL7yyLz9YnyWD7en2BMLPMUdOL0w7h/dtVCz0eA3cg==
+	t=1795704985;
+	b=3Ky4TeopqFP1ZTOeBcUh3RRX5UcazI4nYC1eLYm6+5hK1wZw1SwxSuEmI2fjoUZH/DOY
+	 AVOE0vDxumnlFfug3YQm6Z0GhlBgkYBcbGYftPP2Sfc7Y2RzXhoabYO0kP7pCedCg93EB
+	 3Aa9dJOHrZM/8swYV/wi0r/Fp+3Se2dhBPMPo3n1qzlQJNRWcaWKMiVsjlQg7Za5HR4f4
+	 +J6Sbc+9PY7oJA9fuUfSN0zLxA+t9rxKA2w4AEcFSwv2jS/TIDrF/mRrmrbPmrwD6GdhC
+	 b2dKs33Yw0LY1IsiQ/nQDuMeQjlCnaOWbAwBDnwU54XS+kOFh42BGBhIhELTdQ8tDGw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795704907;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=7PJS4YPTW/2+JkJ8MOH+4k5FYkGwMDLSJYs6Tli8Sqs=;
-	b=cPYDNrlNkv5nyr0GbWyvBUrpNFGRg12E9nvwoYrBqzgiNLnI2PnQFVGJKEhs1LdGgAFk
-	 r7Z3E/8chHFyZraMZUZyMtzQv7nAuAVcDSBcwf0JFeB/Ckc2vYZapyH6YVvoCJc8JdfE2
-	 1AyYdm0OAEG4Dqtr3pBeJsvcc8++a7VECA/iTzDswF4mCfIeqjW5WVRuOJyuLlCNR3G9F
-	 x1xmbmuF+zDOm+lUmAq7ZoWervEvr2SFXYHjQ189h9t/ssKaIO3DNILxtCwBPHMc6NvsJ
-	 /cpbVDJLRlGHW2TmaGqb7Q9tDgjJ7yU2nvgHIGWfrophCUAiT5vl+bxdSAJ9NR1Zobg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795704985;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:User-Agent:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=TrHz6TOmRTj7K/IVnMz2oUxTcCVWtjA1RyFgDD9jfkY=;
+	b=p9xvslSeWLFWNJ2PTqxFLfEcyuPRcLEDfb6w6fRa0ufDYUx3up1Q5F+NqAwob+/2lyGM
+	 m4fZFFiwM10hwmjzncUb/2p6cx6dRnb/dLhkBvlE4Yk8u8RuF6zA1Y6s4q+OmrO2d2646
+	 i/8BUT+OaeV3f9AzYumkznDIQ+Aw51NEe27dXaRnMe5VN4BNaYII+5u/Q5QRV6a2y2zmY
+	 gTBQBvjdpnQwqKHsg99YTqToUp4xEPVvQWIwd3ZFkYLCQwvP3/Fl/bFBCtuR1eEPUW0Yp
+	 5uppVCy7d+Gy9Nex12odJ+xP/rR9iLNwZGG6aL8L6juOU6cCmKgEvkrgOk004na4DkA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=m2NCdfZv;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=beagleboard.org;
+	spf=fail smtp.mailfrom=beagleboard.org;
+	dkim=pass header.d=beagleboard.org header.i=@beagleboard.org header.a=rsa-sha256 header.s=google header.b=kuWFX0qE;
+	arc=none smtp.remote-ip=209.85.216.54
+Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E7F3606A321
-	for <linux-acpi@vger.kernel.org>; Thu, 26 Nov 2026 14:55:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D513606A31E
+	for <linux-acpi@vger.kernel.org>; Thu, 26 Nov 2026 14:56:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1D513606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=beagleboard.org
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=beagleboard.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=m2NCdfZv
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E19041F000D0
-	for <linux-acpi@vger.kernel.org>; Thu, 26 Nov 2026 14:55:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795704906;
-	bh=7PJS4YPTW/2+JkJ8MOH+4k5FYkGwMDLSJYs6Tli8Sqs=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=m2NCdfZvPnTxM3+6ECqGj1cWrqH8MBe54WVloxOn4Y9tva3ia7Awv/7zxf7kpWFdH
-	 3Bg+Zr1xf/DejeiDxxI1m4DZmfbfsy3mNmsQciEqdFKTSbiqUrsIA6i1E9m8CErW8w
-	 gsxQ4ulhAwEmLjIjmfTQ5RZeUoZTGQ7zqzsJko3aZ3/zJFg6XX4p3za9qoA8CcoLOC
-	 nFEClvbQtGnhsT+SqNiTDX1kOvFVuU4Y/7AVlQbVh0pbuLTNELOmRROHVzRjiKbT6Y
-	 GYYrjbQ78mBOZ5aUTJ7A12GwA+m4GVseiKxWw4krlxQMesjFk5daZgarYz9JFwSh4r
-	 R/IdOWyBluoBw==
-Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-5bccecba199so6915503e87.1
-        for <linux-acpi@vger.kernel.org>; Thu, 26 Nov 2026 06:55:06 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErEbLcvHmxDGn86oMFtQj4lH9pixXVPXm0gyHiOdLTELh1/5nB0fwApmRcoem1sKoffEMhCLBj8MCokN@vger.kernel.org
-X-Gm-Message-State: APuU4Z+RjSiaReSsA4iludiEftc2XUsSDPQKG4muqlyZ14W7xPG3b/FT
-	MY7DWxbi0ryek5M9w9T2aZKsnh3E5zlIqFght3lO2Drw26KjuDAmxzd+Uzv+lbzjm2TIpmdEeCv
-	bo/CzZZa+Mk8JAIIF+Xs/M5XTzMjOLEo=
-X-Received: by 2002:a05:6512:b9d:b0:5c1:513b:5729 with SMTP id
- 2adb3069b0e04-5c1bc81a0bbmr7539234e87.51.1795704905312; Thu, 26 Nov 2026
- 06:55:05 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=beagleboard.org header.i=@beagleboard.org header.a=rsa-sha256 header.s=google header.b=kuWFX0qE
+Received: by mail-pj1-f54.google.com with SMTP id 98e67ed59e1d1-3b49a6e8212so2806653a91.2
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Nov 2026 06:56:23 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=beagleboard.org; s=google; t=1795704983; x=1796309783; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:user-agent
+         :message-id:date:references:in-reply-to:subject:cc:to:from:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=TrHz6TOmRTj7K/IVnMz2oUxTcCVWtjA1RyFgDD9jfkY=;
+        b=kuWFX0qE3kh/bmWRoRYWh8Ng18vFAxRf5il3ZdEUyKMzo/0HNxSp31hT7PnXO6yLvF
+         PkfPw/WLrJEotnIpGU035hL7l/5qz2HcSmN47wBoEVR0tjJKtc03Q23b+0KmfxzUn0ko
+         zDRXnJxkJ9tn/MQE2vs6Ab7fktR2+8MHGy21NpTgkiabrrY3ogPxhNUVVlbKLcA8pSrI
+         AvE7HqwrCy6rzhXf0Vt6SbE+XgCbyDpZugF58gPBTXbn7etHqdunGJA1c6fESeDQTfPA
+         82/IRIVKWOkoFeEQH2JmGU8XMW0drJSComjFKWPYURGBBUWDBHWsR+UvpmmFBlui6+fp
+         qArQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795704983; x=1796309783;
+        h=content-transfer-encoding:content-type:mime-version:user-agent
+         :message-id:date:references:in-reply-to:subject:cc:to:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=TrHz6TOmRTj7K/IVnMz2oUxTcCVWtjA1RyFgDD9jfkY=;
+        b=DaWCazi7XllpileSWtc/UdlproW4z7EjQ0GLICA+ihAh+yTYIqxzfCC+uKS+NaLT7R
+         XYaahF57CBEDXjNFxUYN/CC7bed+ITcgnUAA2cwOzTIAtfW7EFW81rOTvXyNhVywT4qg
+         YqvP6J+jfAYcEybsPFSFKij0N64w/hFlzdKR/7LNG0vuYV49JpbgLQ08vZSOwCVpH9PC
+         5QIJtHxets+KMkdsdx0uHhmgjaiYyvEnukEu6HByB+VcreSa6PjLbt8Gv0knGSIbuSRE
+         uqBpVmK6xqS031OmmIvXx0HFxj3zqShIFshva+TE4BbyRuUnX9FuDPNnQE5M/wEESOj/
+         R7Kw==
+X-Forwarded-Encrypted: i=1; AL+hErGo9rBv9XJBfujbn/sUAotLFSrlOlrZi98oLtAqhlTrydPOzrZOHwve2ADTcY7G5muHkPY464hnezOx@vger.kernel.org
+X-Gm-Message-State: APuU4Z8FKWOFaodsTUdP8Btg+HpVI4OKlnZCdL6DEeWd9S1MJVB/WDbR
+	BTew8+5b6C4a6mDDVyRMACWprgEu8JH1TpoHn+kLKf/h2YOVugOtrUwQ4ZujvQAYBA==
+X-Gm-Gg: AZFdTZfbLxU8QfzhP1YZqwAIzgN4neObZ2LkXX5mJSQ3yXmER0qs2dJe0gk6c0qIhsV
+	70MaLPQYr0ebrOWSjsJyQG27ZDt4XHZVhJL4N5Dpr+k/QNPCCNfgo35Fl07UAynVg8e5OMVAdDK
+	cGeIZQxLd0+I113l7aJY8pwI4l54mJjSoy4zP2RqxMSsL/8gZDGaV8fL+7DM1B6MccMvaBxr4+J
+	UBHWuC3fuz7pZCbjqVsz0BS06Ho42ejKNkKTRGx5jGTX6cjo916atm8J5Cvtnj8EpsAD6e0ajdN
+	0aK1xxYjzsNLRKPNF4pY85Al2Et34ClN84O/8YY4OglG5QFMHDMW9CbNUOj/J9TXXlbNRNZDJqc
+	h1rPgbNTjwJ7fa1bTalVmnh6v7k4kb9DhhUz1UYpTjBdo0i7zfUijUvcjNisipzTECANH94VLCj
+	pJxlGAwP+QN277147ranrPlYVS3wCA68SUx1AyBhMbpPHYzgc4eOiliU8HeWGK/hh8TbQzlOCfC
+	lNTRv+jlyBUpYWoD51JxYGh2NGkADd/tnR+83NTHwRNs1sbONEQsCa/+SCSwZgGdM2zsmecXAlo
+	S4EoOgCVFm0HW+VdvtFN9D8wn79ZSYY=
+X-Received: by 2002:a17:90b:3f10:b0:3b4:1982:45b4 with SMTP id 98e67ed59e1d1-3b41cb212d5mr19343715a91.57.1795704983367;
+        Thu, 26 Nov 2026 06:56:23 -0800 (PST)
+Received: from fedorapc ([2405:201:4019:32fc:3c55:6b24:5147:322b])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b41ad8ef99sm34215770a91.12.2026.11.26.06.56.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 26 Nov 2026 06:56:23 -0800 (PST)
+From: Ayush Singh <ayush@beagleboard.org>
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Ayush Singh <ayush@beagleboard.org>,  Len Brown <lenb@kernel.org>,
+  linux-acpi@vger.kernel.org,  linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] ACPI: power: Add serialize_power_on_quirk
+In-Reply-To: <CAJZ5v0hVX0vQ3oy_jiSAqERc4tmTZECFbsGfRi3=3Gz1Q2+H1w@mail.gmail.com>
+References: <20261124-ssd-fix-v1-1-ee8ef43190b1@beagleboard.org>
+	<CAJZ5v0hVX0vQ3oy_jiSAqERc4tmTZECFbsGfRi3=3Gz1Q2+H1w@mail.gmail.com>
+Date: Thu, 26 Nov 2026 20:26:19 +0530
+Message-ID: <8733sniquk.fsf@beagleboard.org>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,329 +99,191 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261122-fdo-gitlab-6061-v1-1-8380b1ec4e09@amd.com>
-In-Reply-To: <20261122-fdo-gitlab-6061-v1-1-8380b1ec4e09@amd.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 26 Nov 2026 15:54:53 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0gBSKw87PSY2R2N3PNNXihPqS66U7Vk1orFqOtzW+9cOQ@mail.gmail.com>
-X-Gm-Features: Aa3M54o63X66mkiIqef_kj1ui40niKeIwHOcDrquhMWzH7MwDm70uUV3N1E35j0
-Message-ID: <CAJZ5v0gBSKw87PSY2R2N3PNNXihPqS66U7Vk1orFqOtzW+9cOQ@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: x86: Work around AMD CPM _L05 notifying a missing
- dGPU on ASUS G513QY
-To: Mario Limonciello <mario.limonciello@amd.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, Mike Lothian <mike@fireburn.co.uk>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Nov 22, 2026 at 7:14=E2=80=AFPM Mario Limonciello
-<mario.limonciello@amd.com> wrote:
->
-> The AMD CPM D3cold SSDT (OEM table ID "CPMD3CLD") on the ASUS ROG Strix
-> G513QY (BIOS G513QY.335) handles the dGPU hotplug GPE with:
->
->   Scope (\_GPE) { Method (_L05) { Notify (\_SB.PCI0.GPP0.VGA, 0x81) } }
->
-> On this board the Navi 22 sits behind an on-package PCIe switch and is
-> \_SB.PCI0.GPP0.SWUS.SWDS.VGA; \_SB.PCI0.GPP0.VGA is not defined by any
-> table.  The interpreter correctly aborts the method:
->
->   ACPI BIOS Error (bug): Could not resolve symbol [\_SB.PCI0.GPP0.VGA], A=
-E_NOT_FOUND
->   ACPI Error: Aborting method \_GPE._L05 due to previous error (AE_NOT_FO=
-UND)
->   ACPI Error: AE_NOT_FOUND, while evaluating GPE method [_L05]
->
-> so the Notify is lost and a dGPU in D3cold is never woken for the
-> hotplug.
+"Rafael J. Wysocki (Intel)" <rafael@kernel.org> writes:
 
-Which presumably doesn't happen in Windows.
+> On Tue, Nov 24, 2026 at 1:16=E2=80=AFPM Ayush Singh <ayush@beagleboard.or=
+g> wrote:
+>>
+>> On the Lenovo Yoga Pro 7 14AKP10 (83KG, AMD Krackan), the NVMe drive in
+>> the second M.2 slot is frequently lost after resuming from s2idle:
+>>
+>>   pcieport 0000:00:02.1: broken device, retraining non-functional downst=
+ream link at 2.5GT/s
+>>   pcieport 0000:00:02.1: retraining failed
+>>   pcieport 0000:00:02.1: Data Link Layer Link Active not set in 100 msec
+>>   nvme nvme1: Disabling device after reset failure: -19
+>>
+>> The _ON methods of the two M.2 slots' power resources update a clock
+>> control register shared by both slots without any locking, and sleep in
+>> the middle of the update. Since the root ports are resumed
+>> asynchronously, the two methods can run concurrently, and one of them
+>> can undo the other's change, leaving that slot's reference clock
+>> disabled. Its link then never trains.
+>>
+>> Evaluate power resource _ON methods one at a time on this machine.
+>> With this, 20/20 s2idle cycles succeeded, versus failure within 1-2
+>> cycles before. Also tested in normal laptop usage for a few days.
+>>
+>> The same symptom has been reported on the closely related IdeaPad Pro 5
+>> 14AKP10 (83JL) [0], which may need this quirk as well, but it is not
+>> included here as it could not be tested.
+>>
+>> [0]: https://ratatoskr.run/linux-pci/2026/04/6586201/t
+>>
+>> Assisted-by: claude-opus-5-5
+>> Signed-off-by: Ayush Singh <ayush@beagleboard.org>
+>> ---
+>> On the Lenovo Yoga Pro 7 14AKP10 (83KG, AMD Krackan, BIOS QFCN29WW),
+>> the NVMe drive behind root port 00:02.1 (ACPI GPP3) is lost on nearly
+>> every s2idle resume, while the drive in the other M.2 slot (GP10) always
+>> comes back. Updating to the latest BIOS did not help, and neither did
+>> disabling SSD power management via kernel parameters or recovering the
+>> device from userspace.
+>>
+>> The "broken device, retraining non-functional downstream link at
+>> 2.5GT/s" / "retraining failed" messages come from the Target Speed quirk
+>> reacting to a link that cannot train at all. The actual cause is a race
+>> between the two slots' power resource _ON methods in firmware, which
+>> can leave one slot's reference clock disabled, as described in the
+>> patch. I can share the relevant AML and debug logs if useful.
+>>
+>> Testing: 20/20 s2idle cycles with real S0i3 residency, versus failure
+>> within 1-2 cycles without the patch. I have also done normal daily use
+>> testing outside of synthetic suspend.
+>>
+>> The IdeaPad Pro 5 14AKP10 (83JL) appears to have the same problem on
+>> the same root port [0]. I don't have one to test, so it is not in the
+>> DMI table.
+>>
+>> I went with a DMI quirk that serializes power resource _ON methods
+>> on this machine only. If serializing them unconditionally, or some
+>> other approach, is preferred, I'm happy to rework it.
+>>
+>> [0]: https://ratatoskr.run/linux-pci/2026/04/6586201/t
+>
+> So there is acpi_evaluate_object_exclusive() now and you can use it
+> for _ON evaluation.
+>
+> It will serialize the method with other things too, but that's not a big =
+deal.
+>
+>> ---
+>>  drivers/acpi/power.c | 41 ++++++++++++++++++++++++++++++++++++++++-
+>>  1 file changed, 40 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+>> index 23a4e207a01e..b997d98f38c4 100644
+>> --- a/drivers/acpi/power.c
+>> +++ b/drivers/acpi/power.c
+>> @@ -64,6 +64,10 @@ struct acpi_power_resource_entry {
+>>
+>>  static bool hp_eb_gp12pxp_quirk;
+>>  static bool unused_power_resources_quirk;
+>> +static bool serialize_power_on_quirk;
+>> +
+>> +/* Serializes _ON evaluation when serialize_power_on_quirk is set */
+>> +static DEFINE_MUTEX(power_on_lock);
+>>
+>>  static LIST_HEAD(acpi_power_resource_list);
+>>  static DEFINE_MUTEX(power_resource_list_lock);
+>> @@ -362,13 +366,27 @@ void acpi_device_power_remove_dependent(struct acp=
+i_device *adev,
+>>                 acpi_power_resource_remove_dependent(entry->resource, de=
+v);
+>>  }
+>>
+>> +static acpi_status acpi_power_evaluate_on(acpi_handle handle)
+>> +{
+>> +       acpi_status status;
+>> +
+>> +       if (!serialize_power_on_quirk)
+>> +               return acpi_evaluate_object(handle, "_ON", NULL, NULL);
+>> +
+>> +       mutex_lock(&power_on_lock);
+>> +       status =3D acpi_evaluate_object(handle, "_ON", NULL, NULL);
+>> +       mutex_unlock(&power_on_lock);
+>> +
+>> +       return status;
+>> +}
+>> +
+>>  static int __acpi_power_on(struct acpi_power_resource *resource)
+>>  {
+>>         acpi_handle handle =3D resource->device.handle;
+>>         struct acpi_power_dependent_device *dep;
+>>         acpi_status status =3D AE_OK;
+>>
+>> -       status =3D acpi_evaluate_object(handle, "_ON", NULL, NULL);
+>> +       status =3D acpi_power_evaluate_on(handle);
+>
+> So I'd replace acpi_evaluate_object() above with
+> acpi_evaluate_object_exclusive().
 
-Do you know what the difference is?
+Sure, that sounds good. Just to confirm though, I should do that only for
+devices with the quirk though, right? i.e. behind a conditional. Or do you
+mean that it should use acpi_evaluate_object_exclusive unconditionally?
 
-> Other firmware on the same board (the _L00 handler and the
-> ATIF dispatchers) guards both the GPP0.VGA and GPP0.SWUS.SWDS.VGA paths
-> with CondRefOf(), so only this method was missed.
 >
-> Aliasing the missing name is not an option: those guarded branches would
-> then both resolve and dispatch to the dGPU twice.  Instead, load a small
-> built-in SSDT with a method that notifies the real node and replace _L05
-> with a GPE handler that runs it.  The handler defers to a workqueue, as
-> AML can't run in interrupt context, and re-arms the level-triggered GPE
-> behind the notify queue as ACPICA does for _Lxx methods.
->
-> Match the DMI for the G513QY and introduce a new quirk behind a new
-> ACPI_AML_QUIRKS option.
+>>         if (ACPI_FAILURE(status)) {
+>>                 resource->state =3D ACPI_POWER_RESOURCE_STATE_UNKNOWN;
+>>                 return -ENODEV;
+>> @@ -1096,6 +1114,24 @@ static const struct dmi_system_id dmi_hp_eliteboo=
+k_gp12pxp_quirk[] =3D {
+>>         {}
+>>  };
+>>
+>> +static const struct dmi_system_id dmi_serialize_power_on[] =3D {
+>> +       /*
+>> +        * On the Lenovo Yoga Pro 7 14AKP10, the _ON methods of the M.2 =
+slot
+>> +        * power resources update a shared clock control register without
+>> +        * locking and sleep in the middle of the update. When the root =
+ports
+>> +        * are resumed concurrently, one slot's reference clock can end =
+up
+>> +        * disabled and its NVMe drive is lost after resume.
+>> +        */
+>> +       {
+>> +               /* Lenovo Yoga Pro 7 14AKP10 */
+>> +               .matches =3D {
+>> +                       DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+>> +                       DMI_MATCH(DMI_PRODUCT_NAME, "83KG"),
+>> +               },
+>> +       },
+>> +       {}
+>> +};
+>> +
+>>  static const struct dmi_system_id dmi_leave_unused_power_resources_on[]=
+ =3D {
+>>         {
+>>                 /*
+>> @@ -1156,4 +1192,7 @@ void __init acpi_power_resources_init(void)
+>>         hp_eb_gp12pxp_quirk =3D dmi_check_system(dmi_hp_elitebook_gp12px=
+p_quirk);
+>>         unused_power_resources_quirk =3D
+>>                 dmi_check_system(dmi_leave_unused_power_resources_on);
+>> +       serialize_power_on_quirk =3D dmi_check_system(dmi_serialize_powe=
+r_on);
+>> +       if (serialize_power_on_quirk)
+>> +               pr_info("Serializing power resource _ON methods\n");
+>>  }
+>>
+>> ---
+>> base-commit: 988117cc1bb17338c586a4e21ade88b5397eac33
+>> change-id: 20261122-ssd-fix-6b7ab639796d
+>>
+>> Best regards,
+>> --
+>> Ayush Singh <ayush@beagleboard.org>
+>>
+>>
 
-I'm totally not a fan of adding AML blobs to the kernel.
 
-It would be better to avoid putting the device in question into D3cold
-on the affected system IMV.
+Best Regards,
+Ayush Singh
 
-> Reported-by: Mike Lothian <mike@fireburn.co.uk>
-> Closes: https://gitlab.freedesktop.org/drm/amd/-/work_items/6061
-> Tested-by: Mike Lothian <mike@fireburn.co.uk>
-> Link: https://lore.kernel.org/amd-gfx/20261029151422.56791-1-mike@firebur=
-n.co.uk/
-> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-> ---
->  drivers/acpi/Kconfig          |  16 +++++
->  drivers/acpi/x86/Makefile     |   1 +
->  drivers/acpi/x86/cpm_d3cold.c | 161 ++++++++++++++++++++++++++++++++++++=
-++++++
->  3 files changed, 178 insertions(+)
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index fa3eb52b22cd8..70a8d3c79a1b5 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -393,6 +393,22 @@ config ACPI_TABLE_OVERRIDE_VIA_BUILTIN_INITRD
->
->           See Documentation/admin-guide/acpi/initrd_table_override.rst fo=
-r details
->
-> +config ACPI_AML_QUIRKS
-> +       bool "Workarounds for known AML bugs in system firmware"
-> +       depends on X86
-> +       help
-> +         Some systems ship AML that cannot work as written, for example =
-a
-> +         method that notifies a device which does not exist in the names=
-pace.
-> +         This option builds workarounds for such firmware bugs. Each one=
- is
-> +         enabled only on the specific systems it is known to be needed o=
-n
-> +         (matched by DMI), and loads small built-in tables and/or takes =
-over
-> +         an ACPI event from the firmware's own method on those systems.
-> +
-> +         Currently this covers the AMD CPM D3cold dGPU hotplug GPE on th=
-e
-> +         ASUS ROG Strix G513QY.
-> +
-> +         Systems that are not on the list are unaffected. If unsure, say=
- N.
-> +
->  config ACPI_DEBUG
->         bool "Debug Statements"
->         default y
-> diff --git a/drivers/acpi/x86/Makefile b/drivers/acpi/x86/Makefile
-> index 63c99509ed9de..04c2c7ffc3a1c 100644
-> --- a/drivers/acpi/x86/Makefile
-> +++ b/drivers/acpi/x86/Makefile
-> @@ -4,5 +4,6 @@ acpi-x86-y              +=3D cmos_rtc.o
->  acpi-x86-$(CONFIG_PCI) +=3D lpss.o
->  acpi-x86-y             +=3D s2idle.o
->  acpi-x86-y             +=3D utils.o
-> +acpi-x86-$(CONFIG_ACPI_AML_QUIRKS) +=3D cpm_d3cold.o
->
->  obj-$(CONFIG_X86)      +=3D blacklist.o
-> diff --git a/drivers/acpi/x86/cpm_d3cold.c b/drivers/acpi/x86/cpm_d3cold.=
-c
-> new file mode 100644
-> index 0000000000000..8db5d5ba1a2af
-> --- /dev/null
-> +++ b/drivers/acpi/x86/cpm_d3cold.c
-> @@ -0,0 +1,161 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +/*
-> + * cpm_d3cold.c - Work around AMD CPM D3cold tables that notify a missin=
-g dGPU
-> + *
-> + * The AMD CPM D3cold SSDT (OEM table ID "CPMD3CLD") handles the dGPU ho=
-tplug
-> + * GPE with:
-> + *
-> + *     Scope (\_GPE) { Method (_L05) { Notify (\_SB.PCI0.GPP0.VGA, 0x81)=
- } }
-> + *
-> + * On boards where the dGPU sits behind an on-package PCIe switch the de=
-vice is
-> + * \_SB.PCI0.GPP0.SWUS.SWDS.VGA and \_SB.PCI0.GPP0.VGA does not exist.  =
-The
-> + * interpreter correctly aborts _L05 with AE_NOT_FOUND, the Notify is lo=
-st and
-> + * a dGPU in D3cold is never woken for the hotplug.  Other tables from t=
-he same
-> + * firmware (e.g. the _L00 handler) already guard both paths with CondRe=
-fOf().
-> + *
-> + * Aliasing the missing name is not an option: those other tables would =
-then
-> + * see both paths and dispatch to the dGPU twice.  Instead, on boards kn=
-own to
-> + * be affected, load a small SSDT that notifies the real node and run it=
- from a
-> + * GPE handler that replaces _L05.
-> + *
-> + * The built-in SSDT is the following, compiled with iasl:
-> + *
-> + *     DefinitionBlock ("", "SSDT", 2, "LINUX", "CPML05FX", 1)
-> + *     {
-> + *         External (\_GPE, DeviceObj)
-> + *         External (\_SB.PCI0.GPP0.SWUS.SWDS.VGA, DeviceObj)
-> + *
-> + *         Scope (\_GPE)
-> + *         {
-> + *             Method (FX05, 0, NotSerialized)
-> + *             {
-> + *                 Notify (\_SB.PCI0.GPP0.SWUS.SWDS.VGA, 0x81)
-> + *             }
-> + *         }
-> + *     }
-> + */
-> +
-> +#define pr_fmt(fmt) "ACPI: CPM: " fmt
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/dmi.h>
-> +#include <linux/init.h>
-> +#include <linux/printk.h>
-> +#include <linux/slab.h>
-> +
-> +#define CPM_D3COLD_GPE         0x05
-> +
-> +#define CPM_L05_PATH           "\\_GPE._L05"
-> +#define CPM_FIX_PATH           "\\_GPE.FX05"
-> +#define CPM_MISSING_PATH       "\\_SB.PCI0.GPP0.VGA"
-> +#define CPM_DGPU_PATH          "\\_SB.PCI0.GPP0.SWUS.SWDS.VGA"
-> +
-> +static const u8 cpm_l05_ssdt[] __initconst =3D {
-> +       0x53, 0x53, 0x44, 0x54, 0x79, 0x00, 0x00, 0x00, 0x02, 0x7e, 0x4c,=
- 0x49,
-> +       0x4e, 0x55, 0x58, 0x00, 0x43, 0x50, 0x4d, 0x4c, 0x30, 0x35, 0x46,=
- 0x58,
-> +       0x01, 0x00, 0x00, 0x00, 0x49, 0x4e, 0x54, 0x4c, 0x28, 0x06, 0x23,=
- 0x20,
-> +       0xa0, 0x28, 0x00, 0x15, 0x5c, 0x5f, 0x47, 0x50, 0x45, 0x06, 0x00,=
- 0x15,
-> +       0x5c, 0x2f, 0x06, 0x5f, 0x53, 0x42, 0x5f, 0x50, 0x43, 0x49, 0x30,=
- 0x47,
-> +       0x50, 0x50, 0x30, 0x53, 0x57, 0x55, 0x53, 0x53, 0x57, 0x44, 0x53,=
- 0x56,
-> +       0x47, 0x41, 0x5f, 0x06, 0x00, 0x10, 0x2b, 0x5c, 0x5f, 0x47, 0x50,=
- 0x45,
-> +       0x14, 0x24, 0x46, 0x58, 0x30, 0x35, 0x00, 0x86, 0x5c, 0x2f, 0x06,=
- 0x5f,
-> +       0x53, 0x42, 0x5f, 0x50, 0x43, 0x49, 0x30, 0x47, 0x50, 0x50, 0x30,=
- 0x53,
-> +       0x57, 0x55, 0x53, 0x53, 0x57, 0x44, 0x53, 0x56, 0x47, 0x41, 0x5f,=
- 0x0a,
-> +       0x81
-> +};
-> +
-> +static const struct dmi_system_id cpm_l05_dmi_table[] __initconst =3D {
-> +       {
-> +               .ident =3D "ASUS ROG Strix G513QY",
-> +               .matches =3D {
-> +                       DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."=
-),
-> +                       DMI_MATCH(DMI_BOARD_NAME, "G513QY"),
-> +               },
-> +       },
-> +       {}
-> +};
-> +
-> +static acpi_handle cpm_fix_handle;
-> +
-> +static void cpm_l05_rearm(void *unused)
-> +{
-> +       acpi_finish_gpe(NULL, CPM_D3COLD_GPE);
-> +}
-> +
-> +static void cpm_l05_work(void *unused)
-> +{
-> +       acpi_status status;
-> +
-> +       status =3D acpi_evaluate_object(cpm_fix_handle, NULL, NULL, NULL)=
-;
-> +       if (ACPI_FAILURE(status))
-> +               pr_err("%s failed: %s\n", CPM_FIX_PATH,
-> +                      acpi_format_exception(status));
-> +
-> +       /*
-> +        * Notify() handlers run from the notify workqueue.  As for a fir=
-mware
-> +        * _Lxx method, only clear and re-enable the level-triggered GPE =
-once
-> +        * they have been dispatched so it can't storm while the dGPU res=
-umes.
-> +        */
-> +       if (ACPI_FAILURE(acpi_os_execute(OSL_NOTIFY_HANDLER, cpm_l05_rear=
-m,
-> +                                        NULL)))
-> +               cpm_l05_rearm(NULL);
-> +}
-> +
-> +static u32 cpm_l05_gpe_handler(acpi_handle gpe_device, u32 gpe_number,
-> +                              void *context)
-> +{
-> +       /*
-> +        * Interrupt context, AML can't run here.  Don't return
-> +        * ACPI_REENABLE_GPE: the GPE stays disabled until cpm_l05_rearm(=
-).
-> +        */
-> +       if (ACPI_FAILURE(acpi_os_execute(OSL_GPE_HANDLER, cpm_l05_work, N=
-ULL)))
-> +               pr_err("unable to queue GPE %02X handler\n", gpe_number);
-> +
-> +       return ACPI_INTERRUPT_HANDLED;
-> +}
-> +
-> +static int __init cpm_d3cold_l05_init(void)
-> +{
-> +       struct acpi_table_header *ssdt;
-> +       acpi_status status;
-> +
-> +       if (!dmi_check_system(cpm_l05_dmi_table))
-> +               return 0;
-> +
-> +       /* ACPICA keeps using the table, so it must never be freed */
-> +       ssdt =3D kmemdup(cpm_l05_ssdt, sizeof(cpm_l05_ssdt), GFP_KERNEL);
-> +       if (!ssdt)
-> +               return -ENOMEM;
-> +
-> +       status =3D acpi_load_table(ssdt, NULL);
-> +       if (ACPI_FAILURE(status)) {
-> +               pr_err("unable to load fixup table: %s\n",
-> +                      acpi_format_exception(status));
-> +               kfree(ssdt);
-> +               return -ENODEV;
-> +       }
-> +
-> +       status =3D acpi_get_handle(NULL, CPM_FIX_PATH, &cpm_fix_handle);
-> +       if (ACPI_FAILURE(status))
-> +               return -ENODEV;
-> +
-> +       status =3D acpi_install_gpe_handler(NULL, CPM_D3COLD_GPE,
-> +                                         ACPI_GPE_LEVEL_TRIGGERED,
-> +                                         cpm_l05_gpe_handler, NULL);
-> +       if (ACPI_FAILURE(status)) {
-> +               pr_err("unable to install GPE %02X handler: %s\n",
-> +                      CPM_D3COLD_GPE, acpi_format_exception(status));
-> +               return -ENODEV;
-> +       }
-> +
-> +       /* Installing the handler dropped the reference taken for _L05 */
-> +       status =3D acpi_enable_gpe(NULL, CPM_D3COLD_GPE);
-> +       if (ACPI_FAILURE(status))
-> +               pr_err("unable to enable GPE %02X: %s\n", CPM_D3COLD_GPE,
-> +                      acpi_format_exception(status));
-> +
-> +       pr_info("%s notifies missing %s, using %s instead\n", CPM_L05_PAT=
-H,
-> +               CPM_MISSING_PATH, CPM_DGPU_PATH);
-> +       return 0;
-> +}
-> +subsys_initcall_sync(cpm_d3cold_l05_init);
->
-> ---
-> base-commit: aebb7274476403040d582c61478df8f4a7bf9cd3
-> change-id: 20261122-fdo-gitlab-6061-d6cbed847dbc
->
-> Best regards,
-> --
-> Mario Limonciello <mario.limonciello@amd.com>
->
->
+--=20
+BeagleBoard.org Foundation
+https://www.beagleboard.org
