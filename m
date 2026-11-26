@@ -1,115 +1,64 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.75.84
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795659311;
-	b=H5u78kUerpRMZmjJVsKniDHGFZH6JxDaWm5xN88H+AmQsdtXeUVP1lwD+fh7U1bIiasc
-	 SoijoGtAuNcnea0a3JLb6M4DUO8VkF7Z48+mhDNB+b4JOdbYWobfKvO/WwyubGNl7vK3E
-	 ZJJvZAbdam33EDSJ80eYUN3R/R8Ag/EWjsEF8u1DJolMC7xYrPnkoBXmvTqQAJZ6imCNs
-	 W2Ro0AD6X9ORJe4jWJwO0MCbAdJI2dARCG02i/Sz2zmY7z0mTdlPxIlGrhcRd32ThBAZX
-	 TBvWKI2sF0Y+fFfL5OUDsc2K6utBOJLkWUCpMkhWYDif2vK6kmjcdweH5957irDs1aw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795659311;
-	h=DMARC-Filter:Received:Received:X-MS-Exchange-Authentication-Results:
-	 Received-SPF:Received:Received:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To:
-	 X-EOPAttributedMessage:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=bNfk7c7XhNw0g064mxJvGOAQMtmgbxf7d5d8trfqvpg=;
-	b=n9w3MaTorgFY/sPTZ3u1TQgC9+DvRvPHZZgAogYG/IlR+Rb8rPAh8VDO79bc6SsOu3Vl
-	 4e6uPRrWlinqcSy5r0ODChnK7TLnsLeSIzUwJ7J62rp2LpQy+n9JYDxYjTF9JsZd+KWp6
-	 XV3+y4eeXUKagA+3tk2dp176pCyW+eFUqekT00odyIL7maG1T9vR+nCgUdaZdB4bwEwBY
-	 m3z4Q8izok9yrz5zh/TN2gn6of+f2rLgEGqkNAmK26uLx8LjhRo8p4QTilHJ/GlcIPQO4
-	 xH41QcI8ddxJYlImnbpE1Df8ysSR21q5DVewRvHr+ZkbQ64gtUV895x8qrANJcg+hBA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=none header.from=cixtech.com;
-	spf=pass smtp.mailfrom=cixtech.com;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.75.84
-Received: from OS8PR02CU002.outbound.protection.outlook.com (mail-japanwestazon11022084.outbound.protection.outlook.com [40.107.75.84])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.217
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795662339;
+	b=ifE3th3Fp+XFRA8uY2ljht8NzB/uYfMoVQOBo42HNaSG89Bu0pCu/Hi0tMAPekzqjdxv
+	 yyXGP12CrAR+0g7qlSw73J5rNSvX1e7njNhflr4S+fh4UyTSm+xr3bgG7mnwEfZr6NGRU
+	 TKoXePNmHoTgJLTMgmoVKiICeygGOE+/2aFzeW9Ci0y/H15p0/N98j+4HpoNZ4t+PpKjs
+	 1ZDXRFDyZHiy7D9HCKBDiIbjj4uqldLwpfGdfOmqkmH+jpe4BmVlnfae6T5AIDwfWAuqj
+	 0cztOyZBTAZuhrcMd6yq2+Lz5Epr2hWk6oLjWRV66ged/KCSAxjvp1ogjxKCpDWt4RQ==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795662339;
+	h=DMARC-Filter:dkim-signature:Received:Received:Received:From:To:CC:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
+	 X-ClientProxiedBy;
+	bh=89QTT1HrwEFq+jLZFOj97z86nlVa/c992xyKucriWiQ=;
+	b=m9GB0FlXZd805tSNhHRUpVmcpC3+53DvEKIi+MpKUlEySmz6ydkS7Q5HiSiFA8kt74LU
+	 tq6+pgoiM/3LPuVommBl3fXQaU2aVmAd0/dofw25RX5Mjt1d2o0t2fQbyd+fOSjDVbDWE
+	 iEylPN6Tz8XlBRNpBtNXG2/1Y2Cq1hVShA6S5CAwzwSOUOaQ8PEJnna2HN6sigyEz0jzi
+	 PztysSGVV/K3q5ioeBccQ39gHK2HWoWZaWdjAsXNff9xfl+qJiLdUE4nKq3PxolYOpSPA
+	 0JewODdN26N6YXxpz3A+CfpkccU3vCYzI3B59x7h3pQugDjJXtsS8jFRQQtZ7pOL5Eg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=huawei.com;
+	spf=pass smtp.mailfrom=huawei.com;
+	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=q3Xyqs4c;
+	arc=none smtp.remote-ip=113.46.200.217
+Received: from canpmsgout02.his.huawei.com (canpmsgout02.his.huawei.com [113.46.200.217])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEE30606A31E;
-	Thu, 26 Nov 2026 02:15:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DEE30606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=cixtech.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cixtech.com
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=PfZBcfN4gI8xvGxNOkefr9WrNIn9Vw5oyDycp1AcZkN+P/5Np0fyj4KYLEFxYHs9Y0GRi3L7rzYHUBiEnnpl4k71e8OGJtr/k/2F5aw3xvlvGxVjvPCPW9WKjC5OwMyJMJjdrOkqIRdY/PHW+Ny8dPzzZJCNSv/3nOcAcXDou/e+FNjjwBrRjrb/DbFfLeZQ2tilkXwRLRHlaHfbjWKdKt5pRuoWRbihcbLIeFp+KBSBimgdirEt+Wb/UomRhIyz6O4NdOyjnBX6EOb9/kYWAdkgWXx5X9GHNxe4PaEKdpbsRNmIQe0riePe1dwmChiZtR2lV8VNvNCONtuwJ2DxJg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=bNfk7c7XhNw0g064mxJvGOAQMtmgbxf7d5d8trfqvpg=;
- b=jKJ1BOg172WDiW2mk4qFByimE3a96aaDtTI0tNYGYX3zx9ccUet249qYVKWkzawMtSnDV+6WzbBVWg91DsPaUgcHOzuEtsKdeCgebjFpMHshJ5Y1ea4Hrfp9JD+M9Fe+w1IupvOyPnWan4/f30PglGYyAHgka+l7L5bxnHEWhhDRKtwQK6B5viEsCyUo3LO/aR9bzxPHPXhdQvMOy1I2YAh0SryGb3xVlNoUmJbyOvWqOlPaMFbPslifz7X3fLeE7M+RRD5UBEQV5NZ57c1C79c2OvcGrX5QnpgNzEXnvuWYkEqtGNR6ffYqrw9NmcumI4e102ph+YDP1GEnnTLNnw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 222.71.101.198) smtp.rcpttodomain=arm.com smtp.mailfrom=cixtech.com;
- dmarc=bestguesspass action=none header.from=cixtech.com; dkim=none (message
- not signed); arc=none (0)
-Received: from SG2PR02CA0137.apcprd02.prod.outlook.com (2603:1096:4:188::17)
- by SEYPR06MB5398.apcprd06.prod.outlook.com (2603:1096:101:8f::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.662.4; Thu, 26 Nov
- 2026 02:15:06 +0000
-Received: from SG2PEPF000B66CF.apcprd03.prod.outlook.com
- (2603:1096:4:188:cafe::9f) by SG2PR02CA0137.outlook.office365.com
- (2603:1096:4:188::17) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.662.7 via Frontend Transport; Thu, 26
- Nov 2026 02:15:05 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 222.71.101.198) smtp.mailfrom=cixtech.com; dkim=none (message not signed)
- header.d=none;dmarc=bestguesspass action=none header.from=cixtech.com;
-Received-SPF: Pass (protection.outlook.com: domain of cixtech.com designates
- 222.71.101.198 as permitted sender) receiver=protection.outlook.com;
- client-ip=222.71.101.198; helo=smtprelay.cixcomputing.com; pr=C
-Received: from smtprelay.cixcomputing.com (222.71.101.198) by
- SG2PEPF000B66CF.mail.protection.outlook.com (10.167.240.23) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.662.3 via Frontend Transport; Thu, 26 Nov 2026 02:15:05 +0000
-Received: from JohnnyFan (unknown [172.21.64.24])
-	by smtprelay.cixcomputing.com (Postfix) with ESMTPSA id 8CE25427EFC0;
-	Thu, 26 Nov 2026 10:15:03 +0800 (CST)
-Date: Thu, 26 Nov 2026 10:15:02 +0800
-From: Johnny Fan <johnny.fan@cixtech.com>
-To: Leo Yan <leo.yan@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Will Deacon <will@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Jeremy Linton <jeremy.linton@arm.com>,
-	Marc Zyngier <maz@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Suzuki K Poulose <suzuki.poulose@arm.com>,
-	Mike Leach <mike.leach@arm.com>,
-	James Clark <james.clark@linaro.org>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,
-	Al Grant <al.grant@arm.com>, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
-	devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-perf-users@vger.kernel.org
-Subject: Re: [PATCH 0/8] ACPI: arm64: Support PMU on Heterogeneous Systems
-Message-ID: <aweWJpk82HgKFshd@JohnnyFan>
-References: <20261116-acpi_arm_pmu_registration_hmp-v1-0-0371d4eca626@arm.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED1CE606A321;
+	Thu, 26 Nov 2026 03:05:36 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org ED1CE606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=q3Xyqs4c
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=89QTT1HrwEFq+jLZFOj97z86nlVa/c992xyKucriWiQ=;
+	b=q3Xyqs4cWcUIr1RvjptYUqCH3VLIi2cxLnNzlWr4Oi/0HsOaXRRV9GnN9ODyRbl9WeT9PRlGi
+	TwPGizrsEaIjeAFfN9BwR3Dgn2MZxkEo752wyvLTcgn/g3xgYEkl+n1VAP+05iezb3v9g+c1m5Y
+	+4P0f0bWcdezp+fF+dSQLNg=
+Received: from mail.maildlp.com (unknown [172.19.163.104])
+	by canpmsgout02.his.huawei.com (SkyGuard) with ESMTPS id 4jZhGY1Z6dzcZyd;
+	Thu, 26 Nov 2026 11:04:21 +0800 (CST)
+Received: from kwepemo100017.china.huawei.com (unknown [7.202.195.215])
+	by mail.maildlp.com (Postfix) with ESMTPS id 05BB84057F;
+	Thu, 26 Nov 2026 11:05:28 +0800 (CST)
+Received: from localhost.localdomain (10.50.163.32) by
+ kwepemo100017.china.huawei.com (7.202.195.215) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.56; Thu, 26 Nov 2026 11:05:27 +0800
+From: Bowen Yu <yubowen8@huawei.com>
+To: <gregkh@linuxfoundation.org>
+CC: Bowen Yu <yubowen8@huawei.com>, <rafael@kernel.org>,
+	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [PATCH] driver core: platform: use reg-names for named memory resource lookup
+Date: Thu, 26 Nov 2026 11:05:26 +0800
+Message-ID: <20261126030526.3911143-1-yubowen8@huawei.com>
+X-Mailer: git-send-email 2.33.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -119,70 +68,163 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261116-acpi_arm_pmu_registration_hmp-v1-0-0371d4eca626@arm.com>
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SG2PEPF000B66CF:EE_|SEYPR06MB5398:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2e1220a6-96db-4c0a-e801-08df4b6315fe
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|36860700016|23010399003|7416014|1800799024|376014|6133799003|261009223027099003|18002099003|22082099003|56012099006|261021121427099003|261102123227099003|10067099003;
-X-Microsoft-Antispam-Message-Info:
-	7bbVmeq4ViQ4SAcxILLGy7dW7qe6B75sDk/hCx3bhHJZswBShtzSEB/W9x+/L2f9TM4x0OIxoGARVS2vNVBIxySeXKG3p0J60wM721IKmI+/40AtQu71qslvxvFpX1spoXBE9dPxueY6FS0LM9aP6QEJ8DKzOuVRVOH/Yhxz1vti+vixLrgEiC2fGhWS+FvMnl78CeVeKZen4BM4dSjFaRut70fJH89WK3LWTKEtdsOFLh4btaH9t/+axPH8Nw0Ao9gtCIk+EQlTeTssxtabPgQKrZV5A/S1Wp7Tg+q5N/dh7F0PldgObr4ZGKYfrV6TWOmjsSK019NJihG+DT94YiYbSjVQ0SHLCTfBH/+/5QJPa1m4qK/ESZFEgJufxd5mR1vxWsHxCVkDbrY6wkyl1GZewRLQauRFgSHRXo0n7fTrq+nN+nSmX5oimdM8QQCCpgEfwBZCRMM8Ezu0PXr+6gX0PLv+kEZvxJ8tsSQLbEeVZejrm8u0ObKynZXX8VXHY1NSe/md3aLLYE/GPxHrKDw8oWbOsbIqm8Ohg/L5eOt9/9AgGFEJ+mVDfuuteGCkS27SQIATj/bcwRELtw482wFhRTLdzbIQFtJGD9yoszVBxhiYgqTRiMv3NYnG8fYCoW0x983gMDubovMo1hGCTL0VkEu/6SUBGxxCxuYdrp9Jwbra71+gdEf9vFka/xxyR/AG5X/pA4cf1NK0jerxsQ==
-X-Forefront-Antispam-Report:
-	CIP:222.71.101.198;CTRY:CN;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:smtprelay.cixcomputing.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(23010399003)(7416014)(1800799024)(376014)(6133799003)(261009223027099003)(18002099003)(22082099003)(56012099006)(261021121427099003)(261102123227099003)(10067099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	5TS2jXpZVR8R9kbggziLGfvkUaRK68c3w/1otncHkDWS5CJJomie52nL7000UuXHRJCJFAeyqPglL8qz/NcvdYS67JTWd+rxsyqIJhpcIAS9/5Y60lHYKPzCV5CZXGfuKCPaL8HzOn1hRhocVK1zoNxDNlILM1QUM4Xvfgz23aqdOa7+XO9xeiP6D4Q9+oBpTEjFgdJ3MvOQ7xOMBMyQhCgYS6eDezIy6jeaAxUzlxYxQdCYUKGBqKWVJuqpzCCOMLdqnktnX8PLUZYoupGe7Mw1ZDM1IUfrWf2YtBzrjuDaQLESAMXl+UgYMDernAxlzAesjXhPivcoHqHD8prOF+YtTHPaYMdc2+EoJLmePNQy3aKzMOMin4jUJfSDvHt0p5SqyonJ9jduzw81HEGT38qqDSLzYmxel+Ot8Ft2A3mRD8FoZndA1qjk2U7O17vZ
-X-OriginatorOrg: cixtech.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Nov 2026 02:15:05.1388
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2e1220a6-96db-4c0a-e801-08df4b6315fe
-X-MS-Exchange-CrossTenant-Id: 0409f77a-e53d-4d23-943e-ccade7cb4811
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=0409f77a-e53d-4d23-943e-ccade7cb4811;Ip=[222.71.101.198];Helo=[smtprelay.cixcomputing.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SG2PEPF000B66CF.apcprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SEYPR06MB5398
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
+ kwepemo100017.china.huawei.com (7.202.195.215)
 
-On Mon, Nov 16, 2026 at 06:21:27PM +0000, Leo Yan wrote:
-> This series has been tested on Orion O6, with four little Cortex-A520
-> cores (CPUs 2-5) and eight big Cortex-A720 cores (CPUs 0-1 and 6-11).
-> It exposes the following PMU devices:
-> 
->   # ls /sys/bus/event_source/devices/
->   arm_spe_0  armv8_pmuv3_0  armv8_pmuv3_1  breakpoint  cs_etm  kprobe  software  tracepoint  uprobe
->   # cat /sys/bus/event_source/devices/armv8_pmuv3_0/cpus
->   0-1,6-11
->   # cat /sys/bus/event_source/devices/armv8_pmuv3_1/cpus
->   2-5
->   # cat /sys/bus/event_source/devices/arm_spe_0/cpumask
->   0-1,6-11
->   # ls /sys/bus/event_source/devices/cs_etm/sinks/
->   trbe0  trbe1  trbe10  trbe11  trbe2  trbe3  trbe4  trbe5  trbe6  trbe7  trbe8  trbe9
-> 
-> The CPU PMU masks match the MIDR groups: eight A720 CPUs and four A520
-> CPUs. SPE uses the A720 mask, and TRBE exposes one sink per CPU.
-> 
+Not only platform devices described by OF have named memory resources;
+devices described by ACPI, in particular those enumerated through the
+PRP0001 DT namespace link, may provide the same "reg-names" property in
+_DSD, following the respective Device Tree binding.  However, resources
+created from _CRS carry no names, so platform_get_resource_byname()
+always fails for them, which prevents drivers shared between Device
+Tree and ACPI from using by-name lookups on ACPI.
 
-Hi Leo,
+Teach platform_get_resource_byname() to resolve the "reg-names" device
+property into an index onto the memory resources, in the same manner
+as __platform_get_irq_byname() uses fwnode_irq_get_byname() for IRQs:
+the i-th string of "reg-names" names the i-th memory resource of the
+device, counting memory resources only ("reg" order on DT, _CRS order
+on ACPI).
 
-Tested on a CIX internal development board (Sky1 SoC, 12 cores,
-Hunter 0-1,6-11 / Hayes 2-5) with the latest internal firmware, on
-top of 7.3-rc7.
+No agreement between the length of "reg-names" and the number of
+memory resources is required: an index past the last memory resource
+makes platform_get_resource() return NULL, and the existing
+named-resource walk is kept as a fallback, so DT behavior is
+unchanged and a mis-sized "reg-names" simply yields "resource not
+found" for the names it cannot resolve instead of a wrong mapping.
 
-  arm_spe_0/cpumask   = 0-1,6-11
-  armv8_pmuv3_0/cpus  = 0-1,6-11
-  armv8_pmuv3_1/cpus  = 2-5
+This allows drivers shared between Device Tree and ACPI, e.g. the
+Bosch M_CAN controller driver whose DT binding requires "reg-names",
+to use platform_get_resource_byname() and
+devm_platform_ioremap_resource_byname() unchanged on PRP0001 devices.
 
-SPE sampling works on the Hunter cores, CPU PMU events work on both
-CPU groups, and the boot log is clean. I did not test the TRBE sinks.
+Signed-off-by: Bowen Yu <yubowen8@huawei.com>
+---
+ .../firmware-guide/acpi/dsd/reg-names.rst          | 68 ++++++++++++++++++++++
+ Documentation/firmware-guide/acpi/index.rst        |  1 +
+ drivers/base/platform.c                            | 17 ++++++
+ 3 files changed, 86 insertions(+)
 
-Tested-by: Johnny Fan <johnny.fan@cixtech.com>
-
-Thanks,
-Johnny
+diff --git a/Documentation/firmware-guide/acpi/dsd/reg-names.rst b/Documentation/firmware-guide/acpi/dsd/reg-names.rst
+new file mode 100644
+index 000000000000..76c6363b8d57
+--- /dev/null
++++ b/Documentation/firmware-guide/acpi/dsd/reg-names.rst
+@@ -0,0 +1,68 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++==========================
++_DSD "reg-names" property
++==========================
++
++"reg-names" is a Device Tree binding property that assigns names to the
++memory regions listed in "reg", allowing drivers to look up resources by
++name with platform_get_resource_byname().
++
++The kernel resolves the same property for platform devices regardless of
++the firmware interface: the i-th string of a "reg-names" string array
++names the i-th memory resource of the device, in "reg" order on Device
++Tree and in _CRS order on ACPI.  Only memory resources count toward
++the index; descriptors of other types in _CRS, e.g. interrupts, are
++skipped.  platform_get_resource_byname() and
++devm_platform_ioremap_resource_byname() consult the property when a
++named memory resource is requested, and fall back to the named-resource
++lookup, so drivers shared between Device Tree and ACPI work unchanged
++on both.
++
++For ACPI devices the property is provided in the Device Properties UUID
++package of _DSD.  This is the natural thing to do for devices described
++by a Device Tree binding, i.e. those enumerated through the PRP0001 DT
++namespace link: firmware following such a binding provides the binding's
++properties in _DSD.  Resources created from _CRS carry no names, so
++without the property by-name lookups fail on ACPI.
++
++Note that IRQ resources are handled analogously through
++fwnode_irq_get_byname() (see "Named Interrupts" in
++Documentation/firmware-guide/acpi/enumeration.rst).
++
++Example - a PRP0001 device for a Bosch M_CAN controller, following
++Documentation/devicetree/bindings/net/can/bosch,m_can.yaml::
++
++	Device (CAN0)
++	{
++		Name (_HID, "PRP0001")
++		Name (_DSD, Package () {
++			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++			Package () {
++				Package () { "compatible", "bosch,m_can" },
++				Package () { "reg-names", Package () {
++					"m_can", "message_ram"
++				} },
++			}
++		})
++		Method (_CRS, 0, Serialized)
++		{
++			Name (RBUF, ResourceTemplate ()
++			{
++				QWordMemory (ResourceConsumer, PosDecode,
++					     MinFixed, MaxFixed, NonCacheable,
++					     ReadWrite,
++					     0x0, 0xF0000000, 0xF0000FFF,
++					     0x0, 0x1000)
++				QWordMemory (ResourceConsumer, PosDecode,
++					     MinFixed, MaxFixed, NonCacheable,
++					     ReadWrite,
++					     0x0, 0xF0001000, 0xF0001FFF,
++					     0x0, 0x1000)
++			})
++			Return (RBUF)
++		}
++	}
++
++Here "m_can" names the first and "message_ram" the second MEM resource
++in _CRS.
+diff --git a/Documentation/firmware-guide/acpi/index.rst b/Documentation/firmware-guide/acpi/index.rst
+index db9eb7229948..a6db8f327b7f 100644
+--- a/Documentation/firmware-guide/acpi/index.rst
++++ b/Documentation/firmware-guide/acpi/index.rst
+@@ -13,6 +13,7 @@ ACPI Support
+    dsd/leds
+    dsd/motorcomm-yt8xxx-phy
+    dsd/phy
++   dsd/reg-names
+    enumeration
+    osi
+    method-tracing
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index 66f9ec73d47e..e697316b33c2 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -457,6 +457,10 @@ EXPORT_SYMBOL_GPL(devm_platform_get_irqs_affinity);
+  * @dev: platform device
+  * @type: resource type
+  * @name: resource name
++ *
++ * For memory resources, the name may also be resolved through the
++ * "reg-names" firmware device property, where the i-th string names the
++ * i-th memory resource of the device.
+  */
+ struct resource *platform_get_resource_byname(struct platform_device *dev,
+ 					      unsigned int type,
+@@ -464,6 +468,19 @@ struct resource *platform_get_resource_byname(struct platform_device *dev,
+ {
+ 	u32 i;
+ 
++	if (type == IORESOURCE_MEM) {
++		int index = device_property_match_string(&dev->dev,
++							 "reg-names", name);
++
++		if (index >= 0) {
++			struct resource *r = platform_get_resource(dev, type,
++								   index);
++
++			if (r)
++				return r;
++		}
++	}
++
+ 	for (i = 0; i < dev->num_resources; i++) {
+ 		struct resource *r = &dev->resource[i];
+ 
