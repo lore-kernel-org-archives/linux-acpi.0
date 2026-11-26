@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795693819;
-	b=L3b66Ed1GS5vLUULOZNc3LmmbaTMvOUlPasQbdH6cge01UsTr4o8t5jNoWBM/oC67oi9
-	 CscJUj5NHB4Gk0KSH96L7KeVA9VuroeuwT+1FOoTdttrliyX7pQu+zoqfVm3Jo62O7cVP
-	 SLqlIDODc5SsWfHr0kn0yAPybCyGBreI3AI4pj01Vy3jUjt/eKQB6WGsTLSTLbA+eZooK
-	 Pu4ZLoJLumncDksAOIyWhlnZDmjETugeQ5sxjYBCj6Q2sYJjzPyVW3FR1doTp9dHKkvpe
-	 BF55MSajPzHYPZAYobca1ZVI4rSSO0eioVJtErgoc4jpvdtL/0EhN2HE6jdTQTJptpw==
+	t=1795693816;
+	b=BVloeZDcM//GVmYLco5AhOOA4Wo+MFTsIfiwS6+5owun5bmkzCvQivCVhXQJN0qxjdGp
+	 sSnJUGtEt6KM3fddly8mZn3FD9paFlaQQiSvkzmCPuxHGTYDgqZoHm40ruT8+mesq9bVj
+	 UXPFBTu8IawrlzkXmPxVC2crAHKwe2y9saV5SF4G9MQfNGi5086iO8+lmJEfAHFi93b06
+	 682R4ZBX4EzVl3tk4pQXYfelJJizZpBk9GVY7/hv4jxFqW5GqC4Et4AA2zmw2vZHqbtbo
+	 vh5hVixP+5Haqn/f6XbvLZRvGe8Irav6lpVJBQNC4Yggq3YudaXNfQ/K98OUCzCdCww==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795693819;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795693816;
 	h=DMARC-Filter:Received:Received:DKIM-Signature:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Type:Content-Transfer-Encoding;
-	bh=p6pCAmfKttvQs1qE/yGyvXWawOOJ5bLlKuCjOlPLrCE=;
-	b=U2UZBaa6DcHrBVNRg0FNW1HCMytZAjC/Y90GRae3tf/FXcCevIwBzT8v6B6V1HLaCutj
-	 N6pUzNHrA5+wkuPqbpWTMwtB27YMY9XtwXdafmglEsARoeWoSOZwM8RchHPJs4mbVMp7J
-	 zR2Hi5gjLZAdnxJoG0auiPSUOxBvaxYikZFuJg+qznaRFrmJhvnGcmFl+7eihimR1T15G
-	 JS9AotjyY72NKJg0sLUsiLHF2MkQRYvo8Ivi2RHEGdu7tI7VHEK9S+UmX4UY/FwQ/f+wm
-	 HqDRuSYdkywj4i81vyybx1eNS0PY8nOu6t7dGE0suGHYIn5BikFfU1Jt1+XdBgSVgBg==
+	bh=h5GiJCNwUXIWcpQEzRIOQ92oxBIUY5kMYfK9T+/jm2k=;
+	b=Fvw1kKNk9xEaSMRxQatV1NfxwdUHHdkO6pUUmoZDf6fnqXhvo58R4LA0UgXpPy7/gjDp
+	 FyuWLe1H4WbXlta7FAvRk+bCe2THr4acc+MYhLzEYZGOvnJJ523ODJ34T/NA7fjNYMhvj
+	 d8YVzYKIhgn0ouf/YbivSG1FKFJblrgLqQlqa7CI4WBvHTUjSVtvDKlt0oEL7mHZBT4SP
+	 WZAWJBZMZz74imqamelHX+c7XmFRvKmwiq1huFq5HG2hwV0vNq1yTal9Bv/VCE8MGTxPx
+	 kn2M4Q6G0zKwJutwtYac1yj006giZYF+DD0TyxgP/032tUDrkG9g1+Ikf3v0tGNHphw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=arm.com;
 	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=ugYDt0iB;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=fxS1z5mg;
 	arc=none smtp.remote-ip=217.140.110.172
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5AA7C606A327;
-	Thu, 26 Nov 2026 11:50:19 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5AA7C606A327
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AC671606A31C;
+	Thu, 26 Nov 2026 11:50:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AC671606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=ugYDt0iB
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=fxS1z5mg
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C1F2D1C2B;
-	Thu, 26 Nov 2026 03:50:15 -0800 (PST)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 373251D13;
+	Thu, 26 Nov 2026 03:50:12 -0800 (PST)
 Received: from e142392.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.121.207.14])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 5DEF23F632;
-	Thu, 26 Nov 2026 03:50:15 -0800 (PST)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C66FE3F632;
+	Thu, 26 Nov 2026 03:50:11 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1795693818; bh=Rdgqx0rOK7ovOMli2Zxsy7q/hl7GZXAheTR1CD4NiOs=;
+	t=1795693815; bh=qGBo7r4JAWAjdtqdXgMLeYhrT+7MnCHRFBKY0iTyxLw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ugYDt0iBpMGL6SslLU1XaMAQqU1TNtSmLpd/Gm+m9CvPRgWvTiSxirQYEs1btE/SC
-	 W8SjYqMva5D8yZZ8IX7RmiCLVlL9CeJm1/D6fAHYvddIEAvPIv+LklcoI8TIeHjPIN
-	 tIhw4qShY2o68Y+fqVopvTPsdoU0T2IVDLNb2Qxg=
+	b=fxS1z5mgYeDIlmna6ZpMBnIbhLzYQ4toGwzuedeoRjciWNZAnNrHYgpZFVk4eCNAF
+	 SuBJ0xCT/K6P//3GJj0Q22wzYgrRckSvPZi8Qupnb3eiFcRDtJ0dvEFQDPkSjGRs4w
+	 B7cLqSdsiza7exCocHzLBLHmt0CHyaKygErPJpDE=
 From: =?UTF-8?q?Kristina=20Mart=C5=A1enko?= <kristina.martsenko@arm.com>
 To: linux-arm-kernel@lists.infradead.org,
 	linux-acpi@vger.kernel.org,
@@ -69,9 +69,9 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>,
 	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
 	Jinqian Yang <yangjinqian1@huawei.com>,
 	Zi Yan <ziy@nvidia.com>
-Subject: [RFC v2 03/13] arm64: Detect TLBID
-Date: Thu, 26 Nov 2026 11:49:26 +0000
-Message-ID: <20261126114936.864256-4-kristina.martsenko@arm.com>
+Subject: [RFC v2 02/13] arm64: boot: Handle TLBID boot requirements
+Date: Thu, 26 Nov 2026 11:49:25 +0000
+Message-ID: <20261126114936.864256-3-kristina.martsenko@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261126114936.864256-1-kristina.martsenko@arm.com>
 References: <20261126114936.864256-1-kristina.martsenko@arm.com>
@@ -87,146 +87,58 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Detect if FEAT_TLBID is supported by the system. Detect TLBID
-configuration from TLBIDIDR_EL1. This information will be used in later
-patches.
+To use FEAT_TLBID, some configuration is necessary at EL3 and EL2. This
+patch documents the requirements and adds the initial EL2 setup code,
+which enables the kernel to access the TLBIDIDR_EL1 register at EL1.
 
 Signed-off-by: Kristina Martšenko <kristina.martsenko@arm.com>
 ---
- arch/arm64/include/asm/cpu.h        |  1 +
- arch/arm64/include/asm/cpufeature.h |  7 +++++++
- arch/arm64/kernel/cpufeature.c      | 25 +++++++++++++++++++++++++
- arch/arm64/kernel/cpuinfo.c         |  3 +++
- arch/arm64/tools/cpucaps            |  1 +
- 5 files changed, 37 insertions(+)
+ Documentation/arch/arm64/booting.rst | 10 ++++++++++
+ arch/arm64/include/asm/el2_setup.h   | 10 +++++++++-
+ 2 files changed, 19 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/include/asm/cpu.h b/arch/arm64/include/asm/cpu.h
-index 3d1693aaf4e0..e839edded6ed 100644
---- a/arch/arm64/include/asm/cpu.h
-+++ b/arch/arm64/include/asm/cpu.h
-@@ -48,6 +48,7 @@ struct cpuinfo_arm64 {
- 	u64		reg_gmid;
- 	u64		reg_smidr;
- 	u64		reg_mpamidr;
-+	u64		reg_tlbididr;
+diff --git a/Documentation/arch/arm64/booting.rst b/Documentation/arch/arm64/booting.rst
+index dae5ff9fae26..752917bf62c3 100644
+--- a/Documentation/arch/arm64/booting.rst
++++ b/Documentation/arch/arm64/booting.rst
+@@ -569,6 +569,16 @@ Before jumping into the kernel, the following conditions must be met:
  
- 	u64		reg_id_aa64dfr0;
- 	u64		reg_id_aa64dfr1;
-diff --git a/arch/arm64/include/asm/cpufeature.h b/arch/arm64/include/asm/cpufeature.h
-index e3c8a1493dc8..b236fe3077f5 100644
---- a/arch/arm64/include/asm/cpufeature.h
-+++ b/arch/arm64/include/asm/cpufeature.h
-@@ -658,6 +658,13 @@ static inline bool id_aa64pfr1_mte(u64 pfr1)
- 	return val >= ID_AA64PFR1_EL1_MTE_MTE2;
- }
+     - HCRX_EL2.EnASR (bit 2) must be initialised to 0b1.
  
-+static inline bool id_aa64mmfr4_tlbid(u64 mmfr4)
-+{
-+	u32 val = cpuid_feature_extract_unsigned_field(mmfr4, ID_AA64MMFR4_EL1_TLBID_SHIFT);
++  For CPUs with TLBI domains (FEAT_TLBID):
 +
-+	return val > 0;
-+}
++  - If EL3 is present and the kernel is entered at EL2:
 +
- void __init setup_boot_cpu_features(void);
- void __init setup_system_features(void);
- void __init setup_user_features(void);
-diff --git a/arch/arm64/kernel/cpufeature.c b/arch/arm64/kernel/cpufeature.c
-index c9c9a6889455..a08d1ff632e6 100644
---- a/arch/arm64/kernel/cpufeature.c
-+++ b/arch/arm64/kernel/cpufeature.c
-@@ -523,6 +523,7 @@ static const struct arm64_ftr_bits ftr_id_aa64mmfr3[] = {
- };
- 
- static const struct arm64_ftr_bits ftr_id_aa64mmfr4[] = {
-+	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_LOWER_SAFE, ID_AA64MMFR4_EL1_TLBID_SHIFT, 4, 0),
- 	S_ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_LOWER_SAFE, ID_AA64MMFR4_EL1_E2H0_SHIFT, 4, 0),
- 	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_LOWER_SAFE, ID_AA64MMFR4_EL1_NV_frac_SHIFT, 4, 0),
- 	ARM64_FTR_END,
-@@ -742,6 +743,14 @@ static const struct arm64_ftr_bits ftr_mpamidr[] = {
- 	ARM64_FTR_END,
- };
- 
-+static const struct arm64_ftr_bits ftr_tlbididr[] = {
-+	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_EXACT, TLBIDIDR_EL1_NVOS_SHIFT, TLBIDIDR_EL1_NVOS_WIDTH, 0),
-+	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_EXACT, TLBIDIDR_EL1_NOS_SHIFT, TLBIDIDR_EL1_NOS_WIDTH, 0),
-+	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_EXACT, TLBIDIDR_EL1_NVIS_SHIFT, TLBIDIDR_EL1_NVIS_WIDTH, 0),
-+	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_EXACT, TLBIDIDR_EL1_NIS_SHIFT, TLBIDIDR_EL1_NIS_WIDTH, 0),
-+	ARM64_FTR_END,
-+};
++    - SCR_EL3.VTLBIDEn (bit 56) must be initialised to 0b1.
 +
- /*
-  * Common ftr bits for a 32bit register with all hidden, strict
-  * attributes, with 4bit feature fields and a default safe value of
-@@ -866,6 +875,7 @@ static const struct __ftr_reg_entry {
- 
- 	/* Op1 = 0, CRn = 10, CRm = 4 */
- 	ARM64_FTR_REG(SYS_MPAMIDR_EL1, ftr_mpamidr),
-+	ARM64_FTR_REG(SYS_TLBIDIDR_EL1, ftr_tlbididr),
- 
- 	/* Op1 = 1, CRn = 0, CRm = 0 */
- 	ARM64_FTR_REG(SYS_GMID_EL1, ftr_gmid),
-@@ -1256,6 +1266,9 @@ static void __init init_cpu_features(void)
- 
- 	if (IS_ENABLED(CONFIG_ARM64_MTE) && id_aa64pfr1_mte(info->reg_id_aa64pfr1))
- 		init_cpu_ftr_reg(SYS_GMID_EL1, info->reg_gmid);
++  - If EL2 is present and the kernel is entered at EL1:
 +
-+	if (id_aa64mmfr4_tlbid(info->reg_id_aa64mmfr4))
-+		init_cpu_ftr_reg(SYS_TLBIDIDR_EL1, info->reg_tlbididr);
- }
- 
- static void update_cpu_ftr_reg(struct arm64_ftr_reg *reg, u64 new)
-@@ -3085,6 +3098,13 @@ static const struct arm64_cpu_capabilities arm64_features[] = {
- 		ARM64_CPUID_FIELDS(ID_AA64ISAR3_EL1, LSUI, IMP)
- 	},
- #endif
-+	{
-+		.desc = "TLBI domains (TLBID)",
-+		.capability = ARM64_HAS_TLBID,
-+		.type = ARM64_CPUCAP_SYSTEM_FEATURE,
-+		.matches = has_cpuid_feature,
-+		ARM64_CPUID_FIELDS(ID_AA64MMFR4_EL1, TLBID, IMP)
-+	},
- 	{},
- };
- 
-@@ -3884,6 +3904,11 @@ void update_cpu_features(int cpu)
- 		taint |= check_update_ftr_reg(SYS_GMID_EL1, cpu,
- 					      info->reg_gmid, boot->reg_gmid);
- 
-+	if (id_aa64mmfr4_tlbid(info->reg_id_aa64mmfr4)) {
-+		taint |= check_update_ftr_reg(SYS_TLBIDIDR_EL1, cpu,
-+					info->reg_tlbididr, boot->reg_tlbididr);
-+	}
++    - HFGRTR2_EL2.nTLBIDIDR_EL1 (bit 30) must be initialised to 0b1.
 +
- 	/*
- 	 * If we don't have AArch32 at all then skip the checks entirely
- 	 * as the register values may be UNKNOWN and we're not going to be
-diff --git a/arch/arm64/kernel/cpuinfo.c b/arch/arm64/kernel/cpuinfo.c
-index 94e6cd211d70..da163756fe5c 100644
---- a/arch/arm64/kernel/cpuinfo.c
-+++ b/arch/arm64/kernel/cpuinfo.c
-@@ -504,6 +504,9 @@ static void __cpuinfo_store_cpu(struct cpuinfo_arm64 *info)
- 		info->reg_smidr = read_cpuid(SMIDR_EL1) & ~SMIDR_EL1_SMPS;
- 	}
- 
-+	if (id_aa64mmfr4_tlbid(info->reg_id_aa64mmfr4))
-+		info->reg_tlbididr = read_cpuid_with_overrides(TLBIDIDR_EL1);
+ The requirements described above for CPU mode, caches, MMUs, architected
+ timers, coherency and system registers apply to all CPUs.  All CPUs must
+ enter the kernel in the same exception level.  Where the values documented
+diff --git a/arch/arm64/include/asm/el2_setup.h b/arch/arm64/include/asm/el2_setup.h
+index 12a500181291..1521c9965ae3 100644
+--- a/arch/arm64/include/asm/el2_setup.h
++++ b/arch/arm64/include/asm/el2_setup.h
+@@ -448,7 +448,15 @@
+ .Lskip_spefds_\@:
+ 	msr_s   SYS_HDFGRTR2_EL2, x0
+ 	msr_s   SYS_HDFGWTR2_EL2, x2
+-	msr_s   SYS_HFGRTR2_EL2, xzr
 +
- 	cpuinfo_detect_icache_policy(info);
- }
- 
-diff --git a/arch/arm64/tools/cpucaps b/arch/arm64/tools/cpucaps
-index 3125695122a0..a1500a655407 100644
---- a/arch/arm64/tools/cpucaps
-+++ b/arch/arm64/tools/cpucaps
-@@ -67,6 +67,7 @@ HAS_STAGE2_FWB
- HAS_TCR2
- HAS_TIDCP1
- HAS_TLB_RANGE
-+HAS_TLBID
- HAS_VA52
- HAS_VIRT_HOST_EXTN
- HAS_WFXT
++	mov	x0, xzr
++	mrs_s	x1, SYS_ID_AA64MMFR4_EL1
++	ubfx	x1, x1, #ID_AA64MMFR4_EL1_TLBID_SHIFT, #ID_AA64MMFR4_EL1_TLBID_WIDTH
++	cbz	x1, .Lskip_tlbid_\@
++	orr	x0, x0, #HFGRTR2_EL2_nTLBIDIDR_EL1
++
++.Lskip_tlbid_\@:
++	msr_s   SYS_HFGRTR2_EL2, x0
+ 	msr_s   SYS_HFGWTR2_EL2, xzr
+ 	msr_s   SYS_HFGITR2_EL2, xzr
+ .Lskip_fgt2_\@:
 -- 
 2.43.0
 
