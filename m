@@ -1,123 +1,52 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=205.220.168.131
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795790649;
-	b=o++y4JA+4q902/hKXlgJ15ckhV97pe21q0P3yl2XaejAIXJaMYNYr9iFGUfShcvhZjIo
-	 6P7gaj714T2shoc2LScuima3ifrx5KBlZWztv/yPtYCk6TaZ8LxgbfV0NeoRdnCcMSfUK
-	 fyAvKDGSiNhkxH+YGlhHwcWxmY0t1l49AxNKi01eef0YWfAIFx2Il8RVpqbnNC6CghVqA
-	 deQsNqLdappD70aqOQsitTLmN6AlUUKymg8MqVzIOgL/CEMA9bjoxgsyH5uedPL+RoubK
-	 67e2NSNvYVYHr+Z4z5X89rdftZz+IRYBui0K+DPOpWQawfRAstGLCtp1Y5ildd+2EPQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795790649;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:MIME-Version:
-	 References:In-Reply-To:From:Date:X-Gm-Features:Message-ID:Subject:To:
-	 Cc:Content-Type:Content-Transfer-Encoding:X-Proofpoint-GUID:
-	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Info:
-	 X-Proofpoint-Spam-Details-Enc:X-Authority-Analysis:
-	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
-	bh=8fWmJjgPbxIUKCTGzOe0a4Eos2iKjxVCfgqaeMXCphk=;
-	b=5H7QFz5pHjtgzcXbLbGjBY14TV9CFLyUUwgcpGx2N57zKQns6ZwrUuurSjLEaGq1R4ns
-	 mPqfjxs+cFNiJFe+nUB8vrK0o9mOl2ylx5IFXtPREAXCieFBPp5H4sYT4P9URd+WKsLDM
-	 Nki8waBVE8sqmRMQ6nmSk3WNVbEBqpEBEiThQSrWvCcJ6Q0vYABMAlyMe1mrqdDPfZMGQ
-	 AgJNPXr9XXGrGIoeu/LZmFHctF/NP82HLcBeMy10RZ4LLBlYFiRfVOxegbBJiev+uOVAz
-	 zAF3W2WS8BoxAENvO4xIN/otuSWPAUZ6U+DXrB08YhN7qqJfLUYBg9/RYYBy21vvvMg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.qualcomm.com;
-	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=n+rP5MD4;
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=bzSwTZvP;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=205.220.168.131
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEA4F606A688
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 14:44:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AEA4F606A688
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795793596;
+	b=Bu/IigxpMK692wugE65mgWADQS3cpolzsQ9CL8Ac5e/Z8EOuP7zFkKeONiwuS7HdGE+0
+	 tqqKjuKG4aw9FQuPLNoIRmam40kmPUp7ZUUosdzDpkQ4jDUZHQmfUY695HRDTZCtYubyS
+	 63J9Cv1AkCKBO9JCX3+95nSJ+nL+wNjUZqNtrHMwmcpd+Q9uzBKDYtTnt35WFEpVOn3wH
+	 HpnaY4S8/8KSWGYUgTo1DpHH7x++RzmTbntT8m1v3EFMCEn/btS8RV0QfBgpF4HFp8hT5
+	 vddUa9BFlrmG6BRl/WKZLqt58FJsmC+IczYgu4Mbz5KhIR0JDc3hNFVQ8YIGwzpevMw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795793596;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:From:Subject:Date:
+	 Message-Id:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-B4-Tracking:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key;
+	bh=0E5oFbfWv4al6ZhXYQB+Fc2jmPL18RQBBfOHqivCMnU=;
+	b=cU9BWilRgGTulPclKV2EB2sV9QTmPZvfHpX6LelKpvw3ZC4VvQtdcwQ9cC4iOm3372Md
+	 xtReWRd0q9pvarMduubm6HzNXhSfh7LBHBV1hIGjpffOeDWc9aBJJlfZJv42281UA+sTg
+	 oLaFyB4JSNfusY6U3FZrCCLwcxh8Hxoy0+AAOmMHilTmu7TBuVP0Q2tYJMwNw35KRE2MW
+	 UoaDLECgZFJ58wkkzBpJkABg5ejuOW2Zo3gYrya0ciJVXEMYsyK6JFG3gQV6qWL0vdY8U
+	 nHj7nHbWmwM6Edexh+VyBG0my+X96oES3yJIODNTnk9xcn0YZ+VtQS51kwaP19CwRdg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=arm.com;
+	spf=pass smtp.mailfrom=arm.com;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=bNYggG6W;
+	arc=none smtp.remote-ip=217.140.110.172
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7F946606A31F;
+	Fri, 27 Nov 2026 15:33:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7F946606A31F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=n+rP5MD4;
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=bzSwTZvP
-Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6ARE1Q5N686141
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 14:44:08 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	8fWmJjgPbxIUKCTGzOe0a4Eos2iKjxVCfgqaeMXCphk=; b=n+rP5MD4czaDZqzl
-	J/Gxmm7QvtDaMgxzE/xVipGHdwLg9Qc5qzHYQuTEXFQZtFrUdIgEK803v/WJa8s3
-	UdUF3f6EfFVNiYd6OiAWv6zPw0Vy69sVKowhIdufOQKKSyoW84i/Bom+mYZSVuTT
-	ugN5fzMhxx4FSb/IvuCOoCIuohndlRHgHzc+HYieYj61vVtnfOx8G83ubwm8a4UP
-	1YNBBAXSMlJFlwdWpEHJBeB4FNtaEs/uUkZXkvtdGEh7V3S+zOrLeecE0IWERJUQ
-	CDu6p9p6y1FAFp8gKhLBDiSZdTXATInA5Fxglm5L0ULVRHWrCiwwoqomPn1je2+U
-	B6VlmA==
-Received: from mail-pj1-f70.google.com (mail-pj1-f70.google.com [209.85.216.70])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4j6u49bf7c-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 14:44:07 +0000 (GMT)
-Received: by mail-pj1-f70.google.com with SMTP id 98e67ed59e1d1-3b3a74ee77fso5162965a91.0
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 06:44:07 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1795790647; cv=none;
-        d=google.com; s=arc-20260327;
-        b=IyzNpP3DSt94X9b7W/GjNOQ1bwOlXAWCsTMUrI1nFsGJTP84iptVw9p8qWTEZbIOdr
-         Gc+adp8N3QE0WDxMNdJ4BcFruGy8VIC+z8/PJuuxKbGGfJkgCXnhuNnEFdALbATFPaRj
-         BafxJb9BUMVA2QjpIgNnk64G21FJ7F7Vin/VkiL9qYQvLFux+99v8vyzG4FIn4+ckh0d
-         jLiZrlQReiqYqtdOydSbIS+0Wm9c1eJ262OS+Q6QUdjcdeKlKmZFySUgKEYmnRbgphrR
-         LXC3glYcR+IVSW+3LrU555gkMX71GBLYB3RgeUBn0Ep+v4KQzyoTsTTQqxbe3jK8ZtgO
-         OLmg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=8fWmJjgPbxIUKCTGzOe0a4Eos2iKjxVCfgqaeMXCphk=;
-        fh=A+5fjDP2nY5NdYD2AqnGTXj09R8n72nXC/Z81wopsXI=;
-        b=ESIqZpfzcwYU0az5UpO0HCuXsUUt7ZYOkUiQCRedwT00DAqGcrIOYkF1vKYvjAf5lI
-         1752w2mP2jgzFJtGgbB5giprpBEvx606EJxDgBZDBZ8z1v3g981WieUBXqw1KfkL4fD1
-         Q7WQ3ulFTK2kgPKQjRmkej10W/+DzUsaDj+ZJw2XB6Yzxze8zCSipKeSacHusFmCHgzO
-         qYRwGAho7SNJ4k+5O4iZGQBNvhM77jjB/EqUJCFThGWjkWZnbTPlhlDMVS8Ixjf8vkw9
-         SBgb9ZF7T7eXPR0ZLaVUSXa8ZM1ig7JaMrOHDHqADjyGYIADk5uq+LCqYSoTma7IYdOW
-         +VRg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1795790647; x=1796395447; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=8fWmJjgPbxIUKCTGzOe0a4Eos2iKjxVCfgqaeMXCphk=;
-        b=bzSwTZvPQmGGu8Mm4Vso/hibqoLWrIDGMKSvxKJkgEk4ZV2bnBymGFpbfh71h5j3wM
-         c3rcWK8D7X6sy4HNKeOsQiDNm4pgMeXQvlFi5nM9xQ26Yz0XIhwNaSxCUL8eVBuUvtJv
-         QhQj8LJfx8zQEjqBFmTNxmP8FAMID1NMpnnumXlHRSrcUhg/Mjg0HyKjWKof630nds8S
-         tJUYm7DCOsbxPXrK9As7q9ZbOY2MXeRSM+uH+zoU0Ew0cNevKG36a+UikX2ObEI5yT6x
-         ucvKIcPfI/JqTI2dpvYCjEQfAhHv0RbyGhC/7lyO3O8OH6tX6Z81/r5lZbttB5zP3q9E
-         UFpg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795790647; x=1796395447;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=8fWmJjgPbxIUKCTGzOe0a4Eos2iKjxVCfgqaeMXCphk=;
-        b=y0jEBToZHmXcmvx9uklQBKdff2HpzhX2DKpi4ksLUhoKoxkh2b14GOp+rS1YmDVvID
-         KO2Qg81v3JX7vNylSSHpIJku/stDZjcc3mLXhrBp2SRpc/2O2/wfvuDpbcvdXOXzzFmS
-         24//zGx6fAIMxUdmLTDXEL79VbGaMPmc1On/ohnkQsLD0u1RVhIAlsJkEtwizadI+P6u
-         I5tHgZCFKDMQ2Mc1y9ziYKCgzyqOiMdhT4QO/PrwZHQsXSyPvvcH1GRd4fwXT0H2pxCr
-         wzfdSOOCuGYQ4YUtqsFl2iA3Vw9Kosjt2PT8A19QjNL6dQYZ/vJgvTUkv2mxdQknEH2P
-         Wh+w==
-X-Forwarded-Encrypted: i=1; AL+hErEPQqRkbvsXwawzZB2ddIL1GzcMPPUX7JtkUTKiHIHTNCIcSxgwes1nyb8P1yVflpqJSOr7D2h2c9M2@vger.kernel.org
-X-Gm-Message-State: APuU4Z+A4YIh94I3t6M732vByKV2q5NekdldgFiHNpYaORz68Msnf8KP
-	AU6Db8u5wclyLivjz8zGQcVHmjvmN2coVjcHi7F0Kp3kXMAzEJGUy0qTrdLUe3K+vXgfrIsT3by
-	77VoS7NeURKGohh8TCAn3zFomnhmsx/E7F3FLjkk32mFjvngBHGTZ0GlDnv8vvjojinqA6N3EO3
-	LwmWF8T+/6ch6E7DYCWDubbBtvgvmaVRctNvCFNeE=
-X-Gm-Gg: AZFdTZe+UC75UD31OYT187aC2eDccH4ENfM8vpkH7KzaDZBxE+EGlwBLRJu8MurHNsC
-	/VO0rSfUoJENhT7borGF5/heFAvMewg1BPKhXi69O5lCZlfkk4U6eR2AYakdJ29KIzTGyaFOWaH
-	VzS5VAB0csS+a17g+qgLT1CxInuJRvgzdKxiqeCbjV86BKkOIgm+KwBqV4yA==
-X-Received: by 2002:a17:90b:4b05:b0:3a0:516d:9f88 with SMTP id 98e67ed59e1d1-3b41c911c9emr22651782a91.26.1795790647062;
-        Fri, 27 Nov 2026 06:44:07 -0800 (PST)
-X-Received: by 2002:a17:90b:4b05:b0:3a0:516d:9f88 with SMTP id
- 98e67ed59e1d1-3b41c911c9emr22651754a91.26.1795790646565; Fri, 27 Nov 2026
- 06:44:06 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=bNYggG6W
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E9F16169E;
+	Fri, 27 Nov 2026 07:33:11 -0800 (PST)
+Received: from e129823.arm.com (e129823.arm.com [10.2.213.3])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 422B03F632;
+	Fri, 27 Nov 2026 07:33:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1795793594; bh=CREZT/iY5Maoixa1IibuDtoXUQI0xrQeRjPWVOFSKwA=;
+	h=From:Subject:Date:To:Cc:From;
+	b=bNYggG6W7pYvzbEvPWfcDMwAR0kUCLZHnsj/qbFyAnIGNAE1k/FTdOUVO+MbIjUiL
+	 Bt1iz4axqpaEidiwhz0tkxHw5/CCUg00sNrmBm+0qsIqKgqBJYBWbhCTjyGgHbe/HS
+	 FPT3VzxkYqeqpvRJs428DDnng4TvXLls3+uYj/yE=
+From: Yeoreum Yun <yeoreum.yun@arm.com>
+Subject: [PATCH RFC v3 0/8] attestation: provider: add CCA Realm Guest
+ provider
+Date: Fri, 27 Nov 2026 15:32:55 +0000
+Message-Id: <20261127-arm_cca_mr-v3-0-df3230afce8f@arm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -127,160 +56,153 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261112124430.110629-1-johannes.goede@oss.qualcomm.com> <20261112124430.110629-2-johannes.goede@oss.qualcomm.com>
-In-Reply-To: <20261112124430.110629-2-johannes.goede@oss.qualcomm.com>
-From: Ulf Hansson <ulf.hansson@oss.qualcomm.com>
-Date: Fri, 27 Nov 2026 15:43:54 +0100
-X-Gm-Features: Aa3M54qk4bwCpPsnUmyVfc-bvQG8ppESh3VRSOGzyqFs2PO3uFGfxwQzQmGY3R8
-Message-ID: <CAPx+jO8boi=E6BhvCB-CS+Kuy8B109wGfcZeJqC7yEK-eLz7+A@mail.gmail.com>
-Subject: Re: [PATCH v3] mmc: sdio: Set acpi_device.power.flags.ignore_parent
- flag on sdio_func companion
-To: Hans de Goede <johannes.goede@oss.qualcomm.com>
-Cc: Ulf Hansson <ulfh@kernel.org>, Luka Gejak <luka.gejak@linux.dev>,
-        linux-mmc@vger.kernel.org, linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-X-Proofpoint-GUID: VlLWDoXnj03fePwXkz_e6GEe195ySZaa
-X-Proofpoint-ORIG-GUID: VlLWDoXnj03fePwXkz_e6GEe195ySZaa
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTI3MDA1OCBTYWx0ZWRfX6B3KWE4LjvBb
- l07Ju8g4Yvnm+HeiKS/tZsBkC5dyicsCLZ3fd0gRb6k1iNFlcCNuTv4ECe7INpuBcUM/lj927oP
- NN+KsHlr4pZLKzdp2jPqT+l3u6m/6Dc=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTI3MDA1OCBTYWx0ZWRfX763bVyghT8B/
- +gdDwfbHHpR0uDWjMckYAXx4quZtqNmXj19tVE+rXYucv3JrKVJ+xW4pE+kEEIhMMD/FRU+tP+s
- ESeQ/Ar4dtKlIOchoTcWFQBWhVzJAvIPuFg75sJdTynbF0xdXeApj0ouCnA4eVVWqSgSniKqlTW
- fVjf8Eau8Wh6J5HIeP5qZLvc091vWARDh1ErH9JS5d9XgOaxFkXB27XXYU7LO8VDG3wDns4YWCR
- ep3VM5oKkltuT5Qn/wYpgDDyXpzBRd1gf74Vn1ZLs47ZoRfDBvxz6VwF4uex5na3MrZwjDPSmsz
- ap+t7fWo+G9vKJBK9NOT+awcUV4vLrs8/fPGgmCe9nKaVWEA85rCQKnLtRrCgqYDIgHDHRkGws+
- VTLbrdzma1pGnpUcfuFRlI/C8aDHmT6Hkfy+QXUGemmBB1FP2fDV3/w56N8hiXco6sedveeHEof
- uKU9uqAz8eK/PKBqzIA==
-X-Authority-Analysis: v=2.4 cv=A875rKWG c=1 sm=1 tr=0 ts=6b099737 cx=c_pps
- a=0uOsjrqzRL749jD1oC5vDA==:117 a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10
- a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=DJpcGTmdVt4CTyJn9g5Z:22 a=NEAV23lmAAAA:8 a=EUspDBNiAAAA:8
- a=axVEnJ4QPotxFK-0UZkA:9 a=QEXdDO2ut3YA:10 a=mQ_c8vxmzFEMiUWkPHU9:22
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-27_02,2026-11-27_03,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- phishscore=0 spamscore=0 lowpriorityscore=0 bulkscore=0 malwarescore=0
- priorityscore=1501 adultscore=0 clxscore=1011 suspectscore=0 impostorscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611270058
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAKiiCWsC/22NywrCMBREf6XctZHkKrZxJQh+gFspJY9bm0UaS
+ SQoJf9uyNrlzGHObJAoOkpw7jaIlF1yYa3hsOvALGp9EnO2ZkCOJy5RMhX9ZIyafGRKyKNGkmh
+ ED3XwijS7T5M94H67wljLxaV3iN92kLGhf66MjDNh5aC1EkM/20uFexM8jKWUH8uK1lOnAAAA
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
+ linux-security-module@vger.kernel.org, linux-doc@vger.kernel.org, 
+ linux-kselftest@vger.kernel.org, linux-acpi@vger.kernel.org, 
+ acpica-devel@lists.linux.dev
+Cc: Catalin Marinas <catalin.marinas@arm.com>, 
+ Will Deacon <will@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, 
+ Suzuki Poulose <suzuki.poulose@arm.com>, 
+ Steven Price <steven.price@arm.com>, Sami Mujawar <sami.mujawar@arm.com>, 
+ thuth@redhat.com, "Rafael J. Wysocki" <rafael@kernel.org>, 
+ Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>, 
+ Pawel Chmielewski <pawel.chmielewski@intel.com>, 
+ Jiri Pirko <jiri@resnulli.us>, Jonathan Corbet <corbet@lwn.net>, 
+ Shuah Khan <shuah@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Shuah Khan <skhan@linuxfoundation.org>, 
+ Randy Dunlap <rdunlap@infradead.org>, Mark Brown <broonie@kernel.org>, 
+ "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Gavin Shan <gshan@redhat.com>, 
+ Yeoreum Yun <yeoreum.yun@arm.com>, Sudeep Holla <sudeep.holla@kernel.org>
+X-Mailer: b4 0.13.0
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4966; i=yeoreum.yun@arm.com;
+ h=from:subject:message-id; bh=CREZT/iY5Maoixa1IibuDtoXUQI0xrQeRjPWVOFSKwA=;
+ b=owEB7QES/pANAwAKAW3Vw9FaxTEzAcsmYgBrCaKyr1sL7I3GjufUXjAqUdNumg4Eu4t6MmqHp
+ tAOy6CS0BiJAbMEAAEKAB0WIQQtg+CS3QUzuFh1pJ1t1cPRWsUxMwUCawmisgAKCRBt1cPRWsUx
+ M/DnDACUjQ9s+JwuutCXoESK7Y3sUXsaRo4m18QvFHFWdANC8ghLblUcU2RbSsyopDlIC4GHgS6
+ 3o8yvxhAQUlaN9p4PY1Tf1JdklJSW7hGM89MCOFo9sfffrbHdjc/cHxEv9+I+qqVJ7mUBeLkMkQ
+ 6TiH5pDeXFZDFg14WE5H2C3XlQJmzwdD8HA3GA1MYq7NY4OmYSD1xmdZU1k1bc8VNOL9dGidfsB
+ xQMXxlY1YIG4lxIVNL+tbU7ZBR+66zsMB1+bkuZ74j/+H4aWIxFbail6XTCD6yBdpQeleTUymbS
+ JR5D090Qdxj8biSqS9Tx/OgdaFrsgFLzf7FxCAeggOK9kDfUCF3r3YoCMwrlBplw/aX/GBpXWM6
+ sSZ7Z6nhzocO8wMYU9rSt0Aqz90ARhYLbgQCkkkQ33Zx7I9PQcO8UR1PtHmJScFk0SWSlWhgngX
+ 9kkMuWVDVyFPjKIqlwpGRVcZYHoLv7JaJpjGHSUrmGgG+Q04OeBWS5PjrzsKLRrSLbTZ8=
+X-Developer-Key: i=yeoreum.yun@arm.com; a=openpgp;
+ fpr=2D83E092DD0533B85875A49D6DD5C3D15AC53133
 
-On Thu, Nov 12, 2026 at 1:44=E2=80=AFPM Hans de Goede
-<johannes.goede@oss.qualcomm.com> wrote:
->
-> Many MMC host drivers call pm_suspend_ignore_children() which allows
-> to keep MMC cards and SDIO-functions on while the host is suspended.
->
-> For SDIO functions which are in the ACPI power-domain this causes a race
-> where the host may end up runtime-suspended before the driver for a SDIO
-> function loads and probes it. When the probe() loses this race this cause=
-s
-> the pm_runtime_get_sync() in sdio_bus_probe() to fail in the ACPI pm-doma=
-in
-> code with e.g. the following error:
->
->  ACPI: \_SB_.SDHB.WLAN: Cannot transition to D0 for parent in D3hot
->
-> Busses using pm_suspend_ignore_children() for their children should set
-> acpi_device.power.flags.ignore_parent on the ACPI companion device of
-> their children to avoid this.
->
-> This is safe to do because drivers for sdio_func devices should always
-> call sdio_claim_host() before doing any IO and that runtime-resumes
-> the host.
->
-> Add the missing setting of the acpi_device.power.flags.ignore_parent flag
-> to fix probing of SDIO functions sometimes failing on ACPI systems with
-> the error mentioned above.
->
-> This brings the SDIO func handling in line with the SPI and I2C handling
-> of ACPI fwnodes which both also call pm_suspend_ignore_children().
->
-> Also add a sdio_acpi_clear_handle() function to undo this, since the ACPI
-> companion device will stay around after removing the sdio_func device.
-> This re-does the ACPI handle lookup because acpi_device_notify_remove()
-> runs on some device_add() errors and from device_del() clearing func->dev=
-'s
-> fwnode pointer.
->
-> Fixes: eed222aca8d0 ("mmc: sdio: bind acpi with sdio function device")
-> Closes: https://github.com/MocLG/rtw/issues/2/
-> Reviewed-by: Luka Gejak <luka.gejak@linux.dev>
-> Signed-off-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
+This series adds support for Arm Confidential Compute Architecture (CCA)
+measurement registers in the Linux kernel, enabling guest Realms to
+access, extend, and expose measurement values for attestation and runtime
+integrity tracking.
 
-Applied for fixes and by adding a stable tag, thanks!
+The Realm Management Monitor (RMM) defines a set of measurement registers
+consisting of a Realm Initial Measurement (RIM) and a number of Realm
+Extensible Measurements (REMs). This series introduces the necessary
+infrastructure to interact with these registers via the RSI interface
+and exposes them to userspace through CTLV attestation subsystem.
 
-Kind regards
-Uffe
+Also, this seires includes the CCA attesation token generation interface
+and CCEL event-log exposure through CTLV attestation subsystem.
 
+At a high level, the series includes:
+ - Helper interfaces for reading and extending measurement
+   registers via RSI
+ - Definitions for Realm hash algorithms as defined by the
+   RMM specification
+ - Support CCEL table in arm64
+ - Integration with attestation subsystem by introducing CCA Realm Guest
+   provider
 
-> ---
-> Changes in v3:
-> - Drop unnecessary clear on error in sdio_add_func(), sdio_remove_func()
->   will get called on errors and do the clear
-> - Some spelling fixes for the commit message
->
-> Changes in v2:
-> - Do not clear func->dev's (ACPI) fwnode pointer before calling
->   device_del() so that acpi_device_notify_remove() properly removes
->   the physical-device links from the ACPI fwnode.
-> ---
->  drivers/mmc/core/sdio_bus.c | 24 +++++++++++++++++++++++-
->  1 file changed, 23 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/mmc/core/sdio_bus.c b/drivers/mmc/core/sdio_bus.c
-> index 4b07098c33c3..2cba8c45c8ed 100644
-> --- a/drivers/mmc/core/sdio_bus.c
-> +++ b/drivers/mmc/core/sdio_bus.c
-> @@ -373,11 +373,32 @@ static void sdio_acpi_set_handle(struct sdio_func *=
-func)
->  {
->         struct mmc_host *host =3D func->card->host;
->         u64 addr =3D ((u64)host->slotno << 16) | func->num;
-> +       struct acpi_device *adev;
->
-> -       acpi_preset_companion(&func->dev, ACPI_COMPANION(host->parent), a=
-ddr);
-> +       adev =3D acpi_find_child_device(ACPI_COMPANION(host->parent), add=
-r, false);
-> +       if (adev) {
-> +               adev->power.flags.ignore_parent =3D true;
-> +               ACPI_COMPANION_SET(&func->dev, adev);
-> +       }
-> +}
-> +
-> +static void sdio_acpi_clear_handle(struct sdio_func *func)
-> +{
-> +       struct mmc_host *host =3D func->card->host;
-> +       u64 addr =3D ((u64)host->slotno << 16) | func->num;
-> +       struct acpi_device *adev;
-> +
-> +       /*
-> +        * Re-lookup adev because acpi_device_notify_remove() runs first =
-and
-> +        * clears the fwnode pointer of func->dev.
-> +        */
-> +       adev =3D acpi_find_child_device(ACPI_COMPANION(host->parent), add=
-r, false);
-> +       if (adev)
-> +               adev->power.flags.ignore_parent =3D false;
->  }
->  #else
->  static inline void sdio_acpi_set_handle(struct sdio_func *func) {}
-> +static inline void sdio_acpi_clear_handle(struct sdio_func *func) {}
->  #endif
->
->  static void sdio_set_of_node(struct sdio_func *func)
-> @@ -417,6 +438,7 @@ void sdio_remove_func(struct sdio_func *func)
->         if (sdio_func_present(func))
->                 device_del(&func->dev);
->
-> +       sdio_acpi_clear_handle(func);
->         of_node_put(func->dev.of_node);
->         put_device(&func->dev);
->  }
-> --
-> 2.56.0
->
+After applying this series, measurement registers and relative interface
+will be exposed ctlv interfaces.
+
+This patch based on arm64/for-next/smccc-bus, attestation branch[0-2] and
+firme patch-series [3].
+
+To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+To: linux-security-module@vger.kernel.org
+To: linux-doc@vger.kernel.org
+To: linux-kselftest@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+To: acpica-devel@lists.linux.dev
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Suzuki Poulose <suzuki.poulose@arm.com>
+Cc: Steven Price <steven.price@arm.com>
+Cc: Sami Mujawar <sami.mujawar@arm.com>
+Cc: thuth@redhat.com
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Cc: Pawel Chmielewski <pawel.chmielewski@intel.com>
+Cc: Jiri Pirko <jiri@resnulli.us>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Mark Brown <broonie@kernel.org>
+
+Link: [0] https://github.com/jpirko/linux_mlxsw/tree/wip_attestation_all_2
+Link: [1] https://lore.kernel.org/all/20261113155515.2510194-1-jiri@resnulli.us/
+Link: [2] https://lore.kernel.org/all/20261113160838.2512652-1-jiri@resnulli.us/
+Link: [3] https://lore.kernel.org/all/20261127-firme_interface-v2-0-ab88b2d0b4e0@arm.com/
+---
+Changes in v3:
+- rebase to attestation subsystem.
+- Link to v2: https://lore.kernel.org/r/20260929-arm_cca_mr-v2-0-1d98bba187fd@arm.com
+
+Changes in v2:
+- rebase to arm64 tree's for-next/smccc-bus
+- Link to v1: https://lore.kernel.org/all/20260413084957.327661-1-sami.mujawar@arm.com/
+
+---
+Sami Mujawar (2):
+      arm64: rsi: Add helpers for Arm CCA measurement register operations
+      arm64: rsi: Add realm hash algorithm defines
+
+Suzuki K Poulose (1):
+      arm64: acpi: Enable ACPI CCEL support
+
+Yeoreum Yun (5):
+      acpi: add CCtype value macros for CCEL table
+      Documentation/ctlv: introduce ctlv-attestation-cca-guest family
+      ctlv: add auto-generated files for ctlv-attestation-cca-guest
+      attestation: providers: introduce CCA Guest attestation provider
+      selftest: attestation: add cca_guest_attestation_test selftest
+
+ .../ctlv/abi/ctlv-attestation-cca-guest.yaml       |   19 +
+ Documentation/ctlv/abi/families.registry.yaml      |    1 +
+ Documentation/ctlv/families.yaml                   |    1 +
+ Documentation/ctlv/generated-files.yaml            |   11 +
+ .../ctlv/specs/ctlv-attestation-cca-guest.yaml     |   20 +
+ arch/arm64/kernel/acpi.c                           |   11 +
+ drivers/attestation/Kconfig                        |   10 +
+ drivers/attestation/Makefile                       |    5 +
+ .../generated/ctlv_attestation_cca_guest_gen.c     |   64 +
+ .../generated/ctlv_attestation_cca_guest_gen.h     |   40 +
+ drivers/attestation/providers/cca_guest.c          |  582 ++++++++
+ include/acpi/actbl2.h                              |    7 +
+ include/linux/arm-rsi-cmds.h                       |  118 +-
+ include/linux/arm-smccc-rsi.h                      |    8 +
+ include/uapi/ctlv/ctlv_attestation_cca_guest_gen.h |   34 +
+ include/uapi/ctlv/ctlv_families_gen.h              |    1 +
+ tools/testing/selftests/attestation/.gitignore     |    1 +
+ tools/testing/selftests/attestation/Makefile       |    9 +-
+ .../attestation/cca_guest_attestation_test.c       |  517 +++++++
+ .../ctlv_attestation_cca_guest_user_gen.c          | 1547 ++++++++++++++++++++
+ .../ctlv_attestation_cca_guest_user_gen.h          |   49 +
+ 21 files changed, 3051 insertions(+), 4 deletions(-)
+---
+base-commit: 55e9f5a2188b97fd2e3ef949b0e52910aa77d940
+change-id: 20260929-arm_cca_mr-a194b2e92c17
+
+Best regards,
+-- 
+Sincerely,
+Yeoreum Yun
+
