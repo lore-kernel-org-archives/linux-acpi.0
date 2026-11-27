@@ -1,62 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=213.97.179.56
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795783399;
-	b=01j6elvuXu4Sc6nNEm9JAoSPXf9Amu3ajvNUVbmQcCHsgqzOk60lboI7oOwKoOcIBLi4
-	 5YPGvxIpPsihbXyVi/SpFAc794KvuYSZB21lIVEibxFugOq3yFSQ0h9zZIDVxM1PxaMNS
-	 GNLQZI1q97WX1/G0Al3sJa21F31JUFyr/DPLv9/6HefuITWHaaIpahoduN7gE+gDFoJhH
-	 D5Ri227sXALmljImcW8mXENVia1ZFNYg/WEW3/c8xQ2Ic8A80ibPuzJ0mJh+j/BHi/xB2
-	 G/sJyn46YmEU7xeF/kGXBpX+QFEdKg4Dp9kaqVFU5VU69evOARH73KqqD6JLFe9H7fA==
+	t=1795783429;
+	b=u53447M9YeCgnIu4k8DEc+JWMvLhQyOLm9DTsk1wfZCRLwXsxfBr8v6VSGpPl/PRkuwp
+	 iiFfNsPaqDLtA84ovTQp1in0X6FuEiJfhGSh9goaDHwjZLY6bk05HQil/mUnyF7pfnJvG
+	 urcNBEgG88YEKo65iIuOEJchvjOGuMmLprxlnqoyZkfCnAJzGFECRoGVmYK1OZXryZSN5
+	 75YX2f/+L50DtR80CZDTuxMO9XZ65WQP+0TJXrhnE8/DmtJaRocTNYOwsbAkBJUiDXkzu
+	 JG+0FQ7SlbNkyktrj3tXkOVd5w9dCCTqbqE5E89TQSUEVH/JxO7Lkcp5QN+uSMygEXw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795783399;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Received:MIME-Version:
-	 Date:From:To:Cc:Subject:In-Reply-To:References:Message-ID:X-Sender:
-	 Content-Type:Content-Transfer-Encoding:X-Spam-Report:X-Spam-Score:
-	 X-Spam-Bar:X-Rspamd-Score:X-Rspamd-Action:X-Rspamd-Bar;
-	bh=SW7JHhiu41wfPquSMxR+o4KbZ3UG60Y+QaqGLDrhNjA=;
-	b=VJPM3Q4QapC7Qx+0zWdx1LHZOVyiMbAOjj1WV20+bvoXh9urWoEhy0QlPrTpRrElllw5
-	 tVz98FfSuxX+Irc9nUG+3hEwQGE1IXJJUy17LztfG6PK80qCDz0Ea8oNUPk7PhbCmGSWS
-	 B0Yauo8Hw07rmcsB4eC9KQvD1jRnBYb0m3FMial8SaCEB5h9wksnTitAwT6M/tBLT6hLE
-	 3wAtaAsNn0Pr+eKAMJdziulZuVMkbAutt45EWVu4j+vEAxwDn4tv1aYoaLsk14BAtDArn
-	 Ha6MDf0bNA6VSvOjHG8OtoGHU74DOVF2lOY025K4V7mro6iHnb1IX9Vg7mEDS5ZIw0g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795783429;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=K6o4WaCNvFl65LaFVXvDMyujQeRr+C1WwE1TeM0hXMg=;
+	b=iMKkjq2Jgh34aI2aTcNrZ+dQlWI21gaEKbBrbMzqqbJxhHiF94xBCP1NEGWT4OJHxNpJ
+	 eGzAqHgVNyCcvscDfpqfibmChpJTkr/g8kLF90haVLSTXiqpWWNV6lc+mH0GOCmHXv+Ca
+	 hQlO48YRc2juvvVWWhkNmuzjtaa47T7yHPFbEyoauMD8foSjhLX3/YWOoT/AHDVhnLqe6
+	 Dc02D0xDmliX3coyHlS6yup2aZimigxsUObZSEgC64rsE8Ah8cqY4RIklHJQqVV2dC1+4
+	 b7eZjSODjv6hcrswB1Bg3b7jo0H2OhJDAR+C2MNDwOgLz/NyDej5uDN/GX/I+uE324g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=igalia.com;
-	spf=pass smtp.mailfrom=igalia.com;
-	dkim=pass header.d=igalia.com header.i=@igalia.com header.a=rsa-sha256 header.s=20170329 header.b=M1p+lQ2N;
-	arc=none smtp.remote-ip=213.97.179.56
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fI+QM2x7;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4217F606A31F;
-	Fri, 27 Nov 2026 12:43:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4217F606A31F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89366606A31C
+	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 12:43:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.a=rsa-sha256 header.s=20170329 header.b=M1p+lQ2N
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:Content-Type:Message-ID:Subject:Cc:To
-	:From:Date:MIME-Version:From:Reply-To;
-	bh=SW7JHhiu41wfPquSMxR+o4KbZ3UG60Y+QaqGLDrhNjA=; t=1795783397; x=2111143397; 
-	b=M1p+lQ2N6zAZO5LqctvioCV5yBrQL0nK4dJ4VrC9m0SUDSIYYPk2bdY2mKTyyCEqFta7MPWmBow
-	2EmbOr4C6JdWHUTtP+jaEEcLqE1+BmL1LHfymhy4l3n1s11sJd8cDK91BspsDSKw6carYxmKu93kY
-	boKZOZi8AnhCAUn6O8q04gbQtGhVZfG3xzQZue+YTTVLZcvsZHq7N61qxboWOg/JB64rOpSoeBPH0
-	dj4iD7utbM+JsQrcBlTpnJsNReFKaTbjE8hS1i2BsickSz38HVJLg1BUzp1/AaZ0mnXKOkglC5qHw
-	sNO/qXyt/XeWHbEvF0kWplyFQW9/juvn9hsQ==;
-Received: from maestria.local.igalia.com ([192.168.10.14] helo=mail.igalia.com)
-	by fanzine2.igalia.com with esmtps 
-	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1xWvIJ-00000004nMP-3A2c;
-	Fri, 27 Nov 2026 13:43:15 +0100
-Received: from webmail.service.igalia.com ([192.168.21.45])
-	by mail.igalia.com with esmtp (Exim)
-	id 1xWvII-0000000HOUt-3AJa;
-	Fri, 27 Nov 2026 13:43:15 +0100
-Received: from localhost ([127.0.0.1] helo=webmail.igalia.com)
-	by webmail.service.igalia.com with esmtp (Exim 4.98.2)
-	(envelope-from <uajain@igalia.com>)
-	id 1xWvII-00000003lhK-2bSy;
-	Fri, 27 Nov 2026 13:43:14 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fI+QM2x7
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD8851F0089C
+	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 12:43:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795783428;
+	bh=K6o4WaCNvFl65LaFVXvDMyujQeRr+C1WwE1TeM0hXMg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=fI+QM2x7RQDoI8jx8FwkXMiMnpYC3j8dnpIp0/9Mi6tjsI74YJLI95WtjXDgLDO+E
+	 25cm9xSnitKp4OT7duf2Xfp20RRy9+D6lys8jJltp0jQLq5aBMm74O7pjEYz2A2IMR
+	 gP9CsbEpOzgqKIY1uq0tKa+zG4CyBdfAknJ4/BmlrtxyXcQHQbrYC0vGiW/ERm2PtC
+	 x1ZEOdiGB6ErIXNv+dr/Peif4mx8GG8GPXegdsI8M41q/pJdU+JeYxzDgXyBGttYwA
+	 I+po/IC3DP+V9xUF/5zUu82Ge9QzLCZvTH92vF2UfSydYdF2ToE1DJmP+o4uSaeXQH
+	 HDb8FBIT8Qxfw==
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-3ae0d0b9db2so74332511fa.1
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 04:43:48 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErGPG+trT9Vj8vq7j3AP4CtxBR9wO56e4nyGrSoenVEOtpk3Yk+3zLLWpL7NCBTkDmdJunghGlIH3i0V@vger.kernel.org
+X-Gm-Message-State: APuU4Z/5SXyBVgTAWyQ12fNkiNYlw1VrWFUYOl+L6QpD5yjH9S8P7kza
+	g4b6A1ZVvoRYTSd72SThw+csB7wRbboW/4ky0uLYxJY7wdgy91E8HK92AnqFUXIFoE36nRZL3jz
+	nThUGHn+VPmlgHvPUXwXo0bKYboJw5dA=
+X-Received: by 2002:a05:6512:1049:b0:5c3:3ec5:8ee3 with SMTP id
+ 2adb3069b0e04-5c33ec59054mr467719e87.37.1795783427175; Fri, 27 Nov 2026
+ 04:43:47 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -66,225 +59,243 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Date: Fri, 27 Nov 2026 12:43:14 +0000
-From: Umang Jain <uajain@igalia.com>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, kernel-dev@igalia.com
-Subject: Re: [PATCH v4 1/1] acpi: battery: Read Battery charge time("_BCT")
- for Steamdeck devices
-In-Reply-To: <CAJZ5v0hu=6CxHc4LiUvX=82-St=xjLCtdgHZr_0iobnpbfLRuQ@mail.gmail.com>
-References: <20261116102752.520062-1-uajain@igalia.com>
- <20261116102752.520062-2-uajain@igalia.com>
- <CAJZ5v0hu=6CxHc4LiUvX=82-St=xjLCtdgHZr_0iobnpbfLRuQ@mail.gmail.com>
-Message-ID: <a447bf956dd45a8cef95a013f38dc19c@igalia.com>
-X-Sender: uajain@igalia.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Spam-Report: NO, Score=-4.9, Tests=ALL_TRUSTED=-3,BAYES_00=-1.9,KAM_DMARC_STATUS=0.007
-X-Spam-Score: -48
-X-Spam-Bar: ----
-X-Rspamd-Score: -0.4
-X-Rspamd-Action: no action
-X-Rspamd-Bar: /
+References: <20261120161020.297735-1-paul.cercueil@bootlin.com>
+ <20261120161020.297735-2-paul.cercueil@bootlin.com> <CAJZ5v0jeJSx3C8hdU8iAtje-NGNz4DdaVGhE_T3WpVrODuwemg@mail.gmail.com>
+ <80b96fc3f728b59b26ebde1378f4222cf4b359b0.camel@bootlin.com>
+In-Reply-To: <80b96fc3f728b59b26ebde1378f4222cf4b359b0.camel@bootlin.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 27 Nov 2026 13:43:33 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0g3e26eZG1_yRQzMfPvPYiiv0cHZE70V+_U+NR4kxEpJg@mail.gmail.com>
+X-Gm-Features: Aa3M54p-QXCDrJN7873U0bKzfmK7fh9R56kFv3lmFnJS-C0uYHQdc-4p9sWsq8I
+Message-ID: <CAJZ5v0g3e26eZG1_yRQzMfPvPYiiv0cHZE70V+_U+NR4kxEpJg@mail.gmail.com>
+Subject: Re: [PATCH v5 1/1] ACPI: platform: Add basic support for ACPI 6.5
+ fixed clock resources
+To: Paul Cercueil <paul.cercueil@bootlin.com>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Rafael,
+On Fri, Nov 27, 2026 at 11:05=E2=80=AFAM Paul Cercueil
+<paul.cercueil@bootlin.com> wrote:
+>
+> Hi Rafael,
+>
+> Le mercredi 25 novembre 2026 =C3=A0 21:22 +0100, Rafael J. Wysocki (Intel=
+) a =C3=A9crit :
+> > On Fri, Nov 20, 2026 at 5:10=E2=80=AFPM Paul Cercueil <paul.cercueil@bo=
+otlin.com>
+> > wrote:
+> > >
+> > > ACPI 6.5 introduced a clock input resource descriptor, which allows t=
+o
+> > > specify in the ACPI tables what clocks are connected to a given devic=
+e.
+> > >
+> > > This patch adds support for the most basic clock resource, which is t=
+he
+> > > one that represents a fixed clock. The new code will then create a
+> > > clk_hw for each fixed clock resource, which is then made available to
+> > > the device drivers, that can obtain it through a regular call to
+> > > clk_get(NULL).
+> > >
+> > > Signed-off-by: Paul Cercueil <paul.cercueil@bootlin.com>
+> > > ---
+> > >
+> > > v5: Register fixed clock as "<ACPI_ID>-clkX" because we need a
+> > >     system-wide identifier there, and we don't have the 16-characters
+> > >     limit there.
+> > >     Register the first clock to clkdev without a name, so that
+> > >     clk_get(NULL) will obtain it.
+> > >     Register every other clock for that ACPI device with a "acpi-clkX=
+"
+> > >     name.
+> > >
+> > > v4: Change clock names to "acpi-clkX", because ACPI devices names can=
+ be
+> > >     up to 17 characters long, and our clock name must be 16 character=
+s
+> > >     max.
+> > >
+> > > v3: No change
+> > >
+> > > v2:
+> > > - Use the calculated clock name in devm_clk_hw_register_fixed_rate()
+> > >   instead of the device name
+> > > - Make sure clkres->scale is <=3D 2. The field is 2 bits but the valu=
+e
+> > >   clkres->scale =3D=3D 3 is not defined in the spec.
+> > > - Compute the fraction numerator using 64-bit math, to make sure it
+> > >   won't overflow on 32-bit systems.
+> > > - Initialize clocks only when the device_type matches
+> > >   ACPI_BUS_TYPE_DEVICE.
+> > > - Use a shorter name for clocks as the hard limit is 16 characters
+> > >   including the terminator.
+> > > ---
+> > >  drivers/acpi/acpi_platform.c | 75 ++++++++++++++++++++++++++++++++++=
+++
+> > >  1 file changed, 75 insertions(+)
+> > >
+> > > diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platfor=
+m.c
+> > > index 80ea7121744d..b4f2ccf3e51f 100644
+> > > --- a/drivers/acpi/acpi_platform.c
+> > > +++ b/drivers/acpi/acpi_platform.c
+> > > @@ -10,17 +10,27 @@
+> > >
+> > >  #include <linux/acpi.h>
+> > >  #include <linux/bits.h>
+> > > +#include <linux/clk-provider.h>
+> > > +#include <linux/clkdev.h>
+> > >  #include <linux/device.h>
+> > >  #include <linux/err.h>
+> > >  #include <linux/ioport.h>
+> > > +#include <linux/kconfig.h>
+> > >  #include <linux/kernel.h>
+> > > +#include <linux/list.h>
+> > >  #include <linux/module.h>
+> > >  #include <linux/dma-mapping.h>
+> > >  #include <linux/pci.h>
+> > >  #include <linux/platform_device.h>
+> > > +#include <linux/units.h>
+> > >
+> > >  #include "internal.h"
+> > >
+> > > +struct acpi_clk_data {
+> > > +       struct device *dev;
+> > > +       unsigned int idx;
+> > > +};
+> > > +
+> > >  /* Exclude devices that have no _CRS resources provided */
+> > >  #define ACPI_ALLOW_WO_RESOURCES                BIT(0)
+> > >
+> > > @@ -130,6 +140,68 @@ static unsigned int acpi_platform_resource_count=
+(struct
+> > > acpi_resource *ares, voi
+> > >         return AE_CTRL_TERMINATE;
+> > >  }
+> >
+> > First off, will clocks only be needed for platform devices?  If not,
+> > acpi_add_fixed_clock() should be defined in drivers/acpi/resource.c.
+> >
+> > > +static int acpi_add_fixed_clock(struct acpi_resource *res, void *d)
+> > > +{
+> > > +       static const unsigned long clk_scale[] =3D { 1, HZ_PER_KHZ, H=
+Z_PER_MHZ
+> > > };
+> > > +       struct acpi_resource_clock_input *clkres;
+> > > +       struct acpi_clk_data *data =3D d;
+> > > +       struct device *dev =3D data->dev;
+> > > +       const char *name =3D NULL;
+> > > +       struct clk_hw *clk;
+> > > +       unsigned long rate;
+> > > +       unsigned int idx;
+> > > +       char buf[64];
+> > > +       int err;
+> > > +
+> > > +       if (res->type =3D=3D ACPI_RESOURCE_TYPE_CLOCK_INPUT) {
+> >
+> > Maybe
+> >
+> > if (res->type !=3D ACPI_RESOURCE_TYPE_CLOCK_INPUT)
+> >         return 1;
+> >
+> > > +               clkres =3D &res->data.clock_input;
+> > > +
+> > > +               if (clkres->mode) {
+> > > +                       dev_warn(dev, "Only fixed rate clocks support=
+ed for
+> > > now.\n");
+> >
+> > _warn() is likely overkill here and it would be better to print this
+> > relative to an ACPI handle, so use acpi_handle_info().
+> >
+> > > +                       return 1; /* keep going */
+> > > +               }
+> > > +
+> > > +               if (clkres->frequency_divisor =3D=3D 0 || clkres->sca=
+le > 2)
+> > > +                       return -EINVAL;
+> >
+> > This is firmware providing bad data, so not -EINVAL.
+>
+> Right, that's a -EFAULT.
+>
+> >
+> > > +
+> > > +               rate =3D DIV_ROUND_UP_ULL((u64)clkres->frequency_nume=
+rator *
+> > > clk_scale[clkres->scale],
+> > > +                                       clkres->frequency_divisor);
+> > > +
+> > > +               idx =3D data->idx++;
+> > > +
+> > > +               /* When registering a clk_hw the name must be unique =
+across
+> > > all devs */
+> > > +               snprintf(buf, sizeof(buf), "%s-clk%u", dev_name(dev),=
+ idx);
+> > > +
+> > > +               clk =3D devm_clk_hw_register_fixed_rate(dev, buf, NUL=
+L, 0,
+> > > rate);
+> >
+> > Why devm_?  This is called at the device creation time, not in probe,
+> > so how/when is clk going to be unregistered?
+> >
+> > Also, devm_ doesn't work with struct acpi_device which are never
+> > probed and drivers are never removed from them.
+>
+> Ah, good point. That's going to complicate things.
+>
+> > > +               if (IS_ERR(clk))
+> > > +                       return PTR_ERR(clk);
+> > > +
+> > > +               if (idx > 0) {
+> > > +                       /* When registering a clkdev the name must be=
+ <=3D 16
+> > > characters */
+> > > +                       snprintf(buf, sizeof(buf), "acpi-clk%u", idx)=
+;
+> > > +                       name =3D buf;
+> > > +               }
+> > > +
+> > > +               err =3D devm_clk_hw_register_clkdev(dev, clk, name,
+> > > dev_name(dev));
+> >
+> > Same thing about devm_.
+> >
+> > > +               if (err)
+> > > +                       return err;
+> > > +       }
+> > > +
+> > > +       return 1;
+> > > +}
+> > > +
+> > > +static void acpi_platform_init_clocks(struct acpi_device *adev)
+> > > +{
+> > > +       struct device *dev =3D &adev->dev;
+> >
+> > Note that &adev->dev is not a real device.  It is a "firmware node",
+> > quite like a DT one, but I guess it may be used for registering
+> > clocks.
+> >
+> > How is a platform device driver going to use those clocks though?
+>
+> They just use clk_get(). It searches the clock by device name, which work=
+s here,
 
-Sorry for late reply.
+And they would pass the platform device as dev I suppose?
 
-On 2026-11-20 13:35, Rafael J. Wysocki (Intel) wrote:
-> On Mon, Nov 16, 2026 at 11:26 AM Umang Jain <uajain@igalia.com> wrote:
->>
->> Valve steamdeck devices can report battery status as
->> charging, even when low-powered power supply is connected
->> to the device. The battery status is reported as charging
->> through sysfs, even though in reality, it is discharging.
->>
->> To address this, introduce a battery quirk for Valve Steamdeck devices
->> ACPI_BATTERY_QUIRK_VALVE_STEAMDECK. This is required to detect
->> if a low-power supply unit is connected to the device.
->> To handle this case, read out Battery charge time ("_BCT")
->> as it is reported accurately on these devices and use that
->> information for report charging vs discharging status.
->> Battery charge time ("_BCT") with an eligible power supply unit
->> will have valid values whereas with a low-powered supply unit,
->> it shall report ACPI_BATTERY_VALUE_UNKNOWN. Use this as a
->> differentiator to determine, whether the battery of steamdeck
->> devices is really charging or not.
->>
->> Signed-off-by: Umang Jain <uajain@igalia.com>
-> 
-> Sashiko has feedback on this:
-> 
-> https://sashiko.dev/#/patchset/20261116102752.520062-1-uajain%40igalia.com
+> I guess because the "firmware node" device has the same name as the real =
+device.
 
-I'll post the feedback here and then reply.
+For platform devices created by acpi_create_platform_device(), yes, it
+does, but if that is going to be relied on, that assumption needs to
+be documented in a very visible way.
 
-> Should _BCT be evaluated inside acpi_battery_get_state() using an exclusive
-> evaluation helper instead of directly in acpi_battery_get_property()?
-> Evaluating _BCT here bypasses the cache_time rate-limiting in
-> acpi_battery_get_state(), so every sysfs status read or uevent executes the
-> method on the embedded controller.  In addition, all other battery control
-> methods in this driver (_BIF, _BIX, _BST, and _BTP) serialize execution
-> under acpi_exclusive_eval_lock via acpi_evaluate_object_exclusive() or
-> acpi_execute_simple_method_exclusive(), whereas acpi_evaluate_integer() runs
-> unlocked.
-
-I agree on the part that battery control methods are evaluated in
-acpi_battery_get_state(),
-however we are not trying to determine and store "_BCT" here. We are
-just using to get
-the proper charging status for the steamdeck device using _BCT. We
-rejected the idea of "_BCT"
-being evaluated globally for all devices in previous reviews, which
-would be fit in get_state().
-We just bind _BCT evaluation to steamdeck's quirk case.
-
-Regarding question of rate-limiting calls on every sysfs status read or
-uevent, I don't
-think it's necessary either, since get_property() calls are executed on
-every power supply
-changes from power_supply_core.c - hence as soon as you unplug and plug
-or even replug a
-low-powered charger it will go through acpi_battery_get_property() code
-paths (since power
-supply is effectively changed) and update the correct charging status.
-We don't need to
-constantly call/evaluate _BCT again in this case, since a charger won't
-suddenly change from
-low-power to high-power one or vice versa.
-
-I agree with usage acpi_evaluate_integer_exclusive() though. I will
-include it in next revision.
-
-> Does this overwrite POWER_SUPPLY_STATUS_NOT_CHARGING with
-> POWER_SUPPLY_STATUS_DISCHARGING when the battery is full and its charge rate
-> is zero?
-
-When the battery is full in steamdeck case, it is correctly inferred:
-i.e. acpi_battery_is_charged() returns TRUE.
-
-Hence the branch
-```
-else if (battery->state & ACPI_BATTERY_STATE_CHARGING) {
-...
-...
-    if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags)) {
-    ...
-    }
-}
-```
-is _not_ executed at all and instead the branch
-
-		else if (acpi_battery_is_charged(battery))
-			val->intval = POWER_SUPPLY_STATUS_FULL;
-
-is evaluated instead and status is correctly updated to "Full". So no,
-it would not overwrite.
-
-> When acpi_battery_is_full(battery) is true and battery->rate_now is 0, the
-> preceding else branch sets val->intval to POWER_SUPPLY_STATUS_NOT_CHARGING.
-> Because the quirk check sits outside the if branch, it still runs, and
-> _BCT(100) returns 0xffffffff (ACPI_BATTERY_VALUE_UNKNOWN) when the battery
-> is already at 100% and not actively charging.  Moving the quirk check inside
-> the branch that sets POWER_SUPPLY_STATUS_CHARGING would avoid this
-> regression.
-> 
-> Please let me know what you think about it.
-
-Hope the explanations clarifies things.
-
-I'll send a v5 if there are no more things to discuss?
-The only change in v5 would be use of acpi_evaluate_integer_exclusive()
-instead
-of acpi_evaluate_integer() for evaluating the _BCT.
-
-> 
->> ---
->>  drivers/acpi/battery.c | 49 +++++++++++++++++++++++++++++++++++++++++-
->>  1 file changed, 48 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
->> index 6edea559a5bc..458c2b23a05a 100644
->> --- a/drivers/acpi/battery.c
->> +++ b/drivers/acpi/battery.c
->> @@ -94,6 +94,15 @@ enum {
->>          * on a full charge, but showing degradation in full charge cap.
->>          */
->>         ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE,
->> +       /*
->> +        * Valve steamdeck devices can get discharged even when battery status
->> +        * is charging. This happens typically when low power supply unit is
->> +        * connected. To accurately determine this scenario, we shall read
->> +        * battery charge time ("_BCT") and set this quirk. This is the key
->> +        * differentiator to determine whether the steamdeck is actually
->> +        * charging or not.
->> +        */
->> +       ACPI_BATTERY_QUIRK_VALVE_STEAMDECK,
->>  };
->>
->>  struct acpi_battery {
->> @@ -234,7 +243,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
->>                                         : POWER_SUPPLY_STATUS_DISCHARGING;
->>                                 return 0;
->>                         }
->> -               else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
->> +               else if (battery->state & ACPI_BATTERY_STATE_CHARGING) {
->>                         /* Check the rate and capacity to validate the status. */
->>                         if (!acpi_battery_is_full(battery) ||
->>                             (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
->> @@ -244,6 +253,27 @@ static int acpi_battery_get_property(struct power_supply *psy,
->>                                 /* Full and zero rate. */
->>                                 val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
->>                         }
->> +
->> +                       if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags)) {
->> +                               unsigned long long bct;
->> +                               acpi_status status;
->> +                               union acpi_object arg0 = { ACPI_TYPE_INTEGER };
->> +                               struct acpi_object_list args = { 1, &arg0 };
->> +
->> +                               arg0.integer.value = 100;
->> +                               status = acpi_evaluate_integer(battery->device->handle, "_BCT",
->> +                                                              &args, &bct);
->> +                               if (ACPI_FAILURE(status))
->> +                                       acpi_handle_debug(battery->device->handle,
->> +                                                         "_BCT evaluation failed: %s",
->> +                                                         acpi_format_exception(status));
->> +                               else if (bct > ACPI_UINT32_MAX)
->> +                                       acpi_handle_debug(battery->device->handle,
->> +                                                         "_BCT value is invalid");
->> +                               else if (bct == ACPI_BATTERY_VALUE_UNKNOWN)
->> +                                       val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
->> +                       }
->> +               }
->>                 else if (battery->state & ACPI_BATTERY_STATE_CHARGE_LIMITING)
->>                         val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
->>                 else if (acpi_battery_is_charged(battery))
->> @@ -1150,6 +1180,23 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
->>                 set_bit(ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE, &battery->flags);
->>                 battery->capacity_now = battery->full_charge_capacity;
->>         }
->> +
->> +       if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags))
->> +               return;
->> +
->> +       /*
->> +        * For Valve Steamdeck devices, determine _BCT presence as well before
->> +        * setting its battery quirk.
->> +        */
->> +       if (dmi_name_in_vendors("Valve") &&
->> +           acpi_has_method(battery->device->handle, "_BCT")) {
->> +               const char *name;
->> +
->> +               name = dmi_get_system_info(DMI_PRODUCT_NAME);
->> +               if ((name && (!strncmp("Jupiter", name, 7))) ||
->> +                   (name && (!strncmp("Galileo", name, 7))))
->> +                       set_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags);
->> +       }
->>  }
->>
->>  static int acpi_battery_update(struct acpi_battery *battery, bool resume)
->> --
->> 2.55.0
->>
+Generally speaking though, they should rather pass the ACPI companion
+of the platform device as dev, in which case that the name equality
+doesn't matter, and so the clkdev could be created during the struct
+acpi_device registration (and the corresponding cleanup would occur
+during the struct acpi_device removal which is rare).
