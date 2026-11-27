@@ -1,113 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.175
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=143.55.232.4
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795799343;
-	b=YzL8LaD2Qgra5PNeLD/71teD0wbnUbF6T7LIdqdWvA2vbfFZo4zFNn/b0LPQlXQH1XGp
-	 acuF3FE12l9AzxCYOB/tVXmNnJ0N0SJoZF1MpFZLl5IBta4pjiqSY5VfwVIA2xKbbzAl7
-	 dl4Gr7GRYgQ641KKVZMzIRxX2RQZoWW4lW1DvT0/2+CeANFKbdSz+fCHAnywUTNwiUDkV
-	 x516Cdt15tXquLbDB/+N/VPSBrYJhthD9CrnT311eGswvnBu5gF/fKi137lfvTxkv5nbu
-	 BKQcyucuHkFSS2rk7we4LY6j+kzV+hz/wV6pJvRqp6TqIr6JcBqNgCcNBDhDPZb9qXQ==
+	t=1795799904;
+	b=wWXXDaJuXiSl6+XDGuxg06c1jDi2jbsaG6tVeZwuuSBMob/EAVqa524PdI69a30sxFVG
+	 5lgGM9UvunWOHI76ijJL2J3mkQ2yiLswf1orBnL3u+csBAjKuyjOXtskoIrEl1FI6w6Nd
+	 ZohQ64dFcXyn/1pnNVsqtm+1MWy43e9s5Jbv4twJKMH1GgMfPIHVwKua5umNMweJhBgsT
+	 GE8PjnUTLuZZLzuTWQ4ISDkeEimY4b3AkLsrW/9hbJQ0aWfKTH2O0cJvB1A9KBhFX7+MD
+	 f5XjOze3p3EkPNKCNwCOYGhJPWxnXRQXz2q6rWYNyBMPw8Qzxh5kHgB2c+/G2SJ2Sxg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795799343;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=HB0ZTSdDDmOkIsTidMqTBiLshJg4ThGdlzLSWF0DBNU=;
-	b=gbc8FGIVCVuy6U5TgQGZWsOrZVxSLGsGdevd4kFle0MVjFLcxZYdyFzzyM8lcZhWwq8C
-	 vEZm1HTTRK/w0Knw4H4S4F8Q+HUL8M/SD9Msx58vufF47q5XrhMmM/hjbZVyoMhEMo5Z0
-	 WUVX2xKIw9x09GUuqiyr7amlCkxvEF85iyWd8kOGVQiuFuqbUDqiBtwz9Jwe307rMxF78
-	 Q+p6CYaVX/ydShsbi9t0C6p/3QpAIflZXzx/sq9zfZ13vnpfIqB9j2UbUfKvr5BPKqcFp
-	 ZbPyRjVbzoyJFStHZuunQX7aHlws7RqmEhgGImt2ZcY8h32GuYzfbYGcGVCNvi7YiXw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795799904;
+	h=DMARC-Filter:DKIM-Signature:X-Mailgun-Sid:Received:
+	 X-Mailgun-Sending-Ip:Sender:From:To:Cc:Subject:Date:Message-ID:
+	 X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=U9q6ulQ8EsZQeKd2Hx+C9E7Egn67ZdHVnPPz22Pp8qA=;
+	b=aRBgNfK2FnfmnUfaMzJeK8PZdRpAWWAd/yFUaFHvJJUDo40L1kD2W90z6Yq7HcayjCJ+
+	 TMAWhqCqyU/XtqCEtd3LL+l+kxdK+NMkhQAhzR1732WeW2gBy8xyBhRf3z3cganAiRxRX
+	 jQmdTbi+kpLABJTzTXzG7d3C35ybaEXzrrBhh8RLmNCxJ8YYAsjz9WnV2WJ6QfdpIVTSp
+	 9Ue2U8kKl6RatUAPnW4VfRxUvfr9vc+7Ox0jFGhihqtBUwyZo0TYQdp0/KSmGq2SMx9nN
+	 xt+zU6hXLCMGTLKAos4AK+UL68AJ4TosQTBKidvSNJrWJmHPJZHNAwRLkVDcPclWT7g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=ziepe.ca;
-	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=NpcMn18Z;
-	arc=none smtp.remote-ip=209.85.222.175
-Received: from mail-qk1-f175.google.com (mail-qk1-f175.google.com [209.85.222.175])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=elijahmock.com;
+	spf=pass smtp.mailfrom=elijahmock.com;
+	dkim=pass header.d=elijahmock.com header.i=@elijahmock.com header.a=rsa-sha256 header.s=k1 header.b=ddGv8Jjn;
+	arc=none smtp.remote-ip=143.55.232.4
+Received: from v54.v5f06b487.use4.send.mailgun.net (v54.v5f06b487.use4.send.mailgun.net [143.55.232.4])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9F23606A32C
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 17:09:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B9F23606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id AA0E3606A31C
+	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 17:18:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AA0E3606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=elijahmock.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=elijahmock.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=NpcMn18Z
-Received: by mail-qk1-f175.google.com with SMTP id af79cd13be357-94961ed97bcso821423085a.1
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 09:09:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1795799341; x=1796404141; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=HB0ZTSdDDmOkIsTidMqTBiLshJg4ThGdlzLSWF0DBNU=;
-        b=NpcMn18ZOcBUH/K57xXEmosR6TjqGtaHb4iOQyIq0GgNDqO6dAa3ahAGzdoMm6DK/R
-         3dkns94RmQsNEaf/27kIYiOKFNzoSKhIXNccUkBguWLK26AIyGo+A089UsFFPfbNz3JT
-         fRNukHbF1g5uEH+w2aeet1LpRPQxG0BgLshkGNvKg+X6WFsNVdvtlTlH7jbh0mMU3AE+
-         droQd+7Wzvs1ZZv0Bm+V2UKWtzqHa4QvPeJsxPzSnXUzGeAIakkUFw1mjKjdYkbgy2S8
-         Y9PJhCrLM+XiW39othsK/ZS90eIpfnqQ3cGzLWFY0EcectQslbi4vHXfem+Makltaxhy
-         GuXw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795799341; x=1796404141;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=HB0ZTSdDDmOkIsTidMqTBiLshJg4ThGdlzLSWF0DBNU=;
-        b=dvstTRUYvLnUx/Pjtf5mOibFSzZSgJUza719XF8/jvSZzRtkeHu52YgpYn4g517osL
-         UZi0Pq9GSO9Q8JA+W+EvA2SlWUYU/01CR4M+l66ObcZZekoWpjQ99oytbqiLr9K9YDJ4
-         r4yFiu35lCmMNk5569TEbv0WYTZdxaTgJpGHTvuqI99VVX9ky20WyrDnubvpqtrXA7AB
-         Z9PiPivhPai5pnfqCFaRvePvLeDY0jddRqqSCSXVJuhozgb9qXW4XR8ifu/B/vHbS30w
-         Pdmkuc2606VBLIB4HcLeWy/6T3iRQJZQ5ZQn+L3Obq+nOkZdq26Gu6SeVoAB9DkMfveL
-         /qDQ==
-X-Forwarded-Encrypted: i=1; AL+hErGTHtRxWo73mM9isG2Lz0Is2rE1AXVYKEyNmNg+Kdy82eqo5vfyMgFzf3a1sfHV4f/NG5V3T/P8EdxF@vger.kernel.org
-X-Gm-Message-State: APuU4Z/guLU2TXWBd7TGl7Zjfe8pe5JZAhUiCID4PV/wS7AuyFnuCRee
-	JR1f2d2l0gVOxKT0wlo3rfBll/pNBxQ2M7Iz7j8G5CWDz0qxrf1+jh+L5U7zF+BzF2o=
-X-Gm-Gg: AZFdTZf9S86opB344KHRFqiKdoF+sU80gRaJAOMg8rPKgnqjVSIESgeRHGEusajp3ZG
-	W5Yq03awVPqkgbXljfhdUl82uapeBUjuP/LHdeuAcmz7HZIGDKNyOjXgPEsacv3LgtPvmq4hPEw
-	f1nt4w3L0Br85sQZZD4u79GkoO/yUkdzI4mSxDSMg+GiNITF5pNe8UX1s+gvPDOWLmPZvmsDXPS
-	+JQCJ4ozMlUPnAZDsjp49sd1JVKgJkc6MeMyM51Q3b5I1HQ0ifGDIgdNuNciWs98g+X84o81zAM
-	zjSLQ1YxNuEZJhByTkIn+QC2YHKonwgmI595l51PGxTecbWbyt4xsdJUn13rcFsAS+dVYy3pWk+
-	NLDvcsyrPy/1Oq5kfK7sonqn5cfHNzskdl3smxOQefdJWNiR5lGDG7SDy3bz4JvzomJEhlx2z/2
-	tSz+C5Imm1cwm71KYjYkjXwj3pUh9amNf6VJqqGPZxyILEHtRO5YT46EWc6eSM2WlgrmPldn+tw
-	o7q0an8JK+55b00jbEbERZZHI7Fii6udOtRmIci/sUHih4HESb2red2ujESns1eSw70nLMhk0my
-	1VJ6yA==
-X-Received: by 2002:a05:620a:7206:b0:94a:889:5a33 with SMTP id af79cd13be357-94a08896165mr1311739085a.30.1795799341642;
-        Fri, 27 Nov 2026 09:09:01 -0800 (PST)
-Received: from ziepe.ca ([142.177.118.84])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-949bb41a341sm1875035285a.37.2026.11.27.09.09.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 27 Nov 2026 09:09:01 -0800 (PST)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1xWzRU-000000079ec-2Xcr;
-	Fri, 27 Nov 2026 13:09:00 -0400
-Date: Fri, 27 Nov 2026 13:09:00 -0400
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Yeoreum Yun <yeoreum.yun@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-security-module@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kselftest@vger.kernel.org, linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	Suzuki Poulose <suzuki.poulose@arm.com>,
-	Steven Price <steven.price@arm.com>,
-	Sami Mujawar <sami.mujawar@arm.com>, thuth@redhat.com,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>,
-	Jiri Pirko <jiri@resnulli.us>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <shuah@kernel.org>, Len Brown <lenb@kernel.org>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH RFC v3 8/8] selftest: attestation: add
- cca_guest_attestation_test selftest
-Message-ID: <20261127170900.GU246011@ziepe.ca>
-References: <20261127-arm_cca_mr-v3-0-df3230afce8f@arm.com>
- <20261127-arm_cca_mr-v3-8-df3230afce8f@arm.com>
+	dkim=pass (1024-bit key, unprotected) header.d=elijahmock.com header.i=@elijahmock.com header.a=rsa-sha256 header.s=k1 header.b=ddGv8Jjn
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=elijahmock.com; q=dns/txt; s=k1; t=1795799902; x=1795807102;
+ h=Content-Transfer-Encoding: MIME-Version: Message-ID: Date: Subject: Subject: Cc: To: To: From: From: Sender: Sender;
+ bh=U9q6ulQ8EsZQeKd2Hx+C9E7Egn67ZdHVnPPz22Pp8qA=;
+ b=ddGv8Jjn38zyDyffKFe/AAQnQgiwPud42C5y2rIf3lphBCXVE30mxsxnnvx6SvhNrS1aTV1sJ3goNwjFFcf3HUpDr8ppAh16Sb2WehIow27NeSiVp9PUO51sYkAGKTURG9AR9/KBkEPkcPt4LM19jmdVGl8ueCo4Mbp80x++L5c=
+X-Mailgun-Sid: WyJkMjhkYyIsImxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnIiwiMzdlMTdhYyJd
+Received: from MENTATL04-3 (host-39-195.ilsjcolo.stjoesph.il.us.clients.pavlovmedia.net
+ [173.230.39.195]) by
+ bb88357b52f232183c3d3d25690ffce3ce658099ffb6182f37754c03f1110822 with SMTP id
+ 6b09bb5e050caec93e7d9db3 (version=TLS1.3, cipher=TLS_AES_128_GCM_SHA256);
+ Fri, 27 Nov 2026 17:18:22 GMT
+X-Mailgun-Sending-Ip: 143.55.232.4
+Sender: elijah@elijahmock.com
+From: Elijah Mock <elijah@elijahmock.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Subject: [PATCH v2] ACPI: button: Disable default lid wakeup on MSI MS-15FK
+Date: Fri, 27 Nov 2026 11:18:01 -0600
+Message-ID: <20261127171801.5814-1-elijah@elijahmock.com>
+X-Mailer: git-send-email 2.56.1
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -117,25 +61,247 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261127-arm_cca_mr-v3-8-df3230afce8f@arm.com>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Nov 27, 2026 at 03:33:03PM +0000, Yeoreum Yun wrote:
-> Add CCA Realm Guest attestation selftest to test evidence-get, mr_read
-> and mr_extend interfaces.
-> 
-> Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
-> ---
->  tools/testing/selftests/attestation/.gitignore     |   1 +
->  tools/testing/selftests/attestation/Makefile       |   9 +-
->  .../attestation/cca_guest_attestation_test.c       | 517 +++++++++++++++++++++
->  3 files changed, 524 insertions(+), 3 deletions(-)
+On the MSI Creator A16 AI+ A3HVFG (board MS-15FK), the system fails to
+enter s2idle hardware sleep due to a firmware quirk exposed in v7.0.
 
-FWIW, I really want to have an attestation userspace project and there
-is where stuff like this should end up living..
+ACPI behavior of the device: LID0 (PNP0C0D) defines a _PRW package
+referencing GPE 0x03 with wake state S0 and no AML handler (_L03/_E03);
+the status bit for GPE 0x03 remains 1 regardless of the physical lid
+state. Lid open/close detection via the Embedded Controller (GPE 0x0A)
+functions correctly.
 
-We haven't got to launching a github for it yet, but that's the plan
-anyhow.
+Following commit 52d864019636 ("ACPI: button: Convert the driver to a
+platform one") and commit 57c31e6d620f ("ACPI: scan: Use
+acpi_setup_gpe_for_wake() for buttons"), GPE 0x03 is armed for wakeup
+during suspend, which immediately causes a spurious wakeup (regardless
+of whether the lid is open or closed) [1].
 
-Jason
+To prevent this issue, add a DMI quirk for board MS-15FK so that
+devm_acpi_button_init_wakeup() marks LID0 as wakeup-capable via
+device_set_wakeup_capable(dev, true) but does not enable wakeup by
+default with device_init_wakeup(dev, true); instead, the EC lid
+detection delivers necessary wakeup events. This fixes
+suspend-to-idle while preserving normal lid state reporting and
+preserving the lid wakeup event handler for user space.
+
+Fixes: 52d864019636 ("ACPI: button: Convert the driver to a platform one")
+Fixes: 57c31e6d620f ("ACPI: scan: Use acpi_setup_gpe_for_wake() for buttons")
+Closes: https://gitlab.freedesktop.org/drm/amd/-/work_items/5283 [1]
+Cc: stable@vger.kernel.org
+Signed-off-by: Elijah Mock <elijah@elijahmock.com>
+---
+v1 -> v2: Added new quirk into existing quirk array, using a struct to
+specify lid init state and wakeup overrides. Only one DMI check via a
+static var to track lid_no_wakeup. (Per review feedback.)
+
+v1: https://lore.kernel.org/linux-acpi/20261124182046.33252-1-elijah@elijahmock.com/
+
+Testing:
+- Tested on MSI Creator A16 AI+ A3HVFG (BIOS E15FKAMS.321, 09/17/2026)
+  on top of mainline (v7.4-rc4+)
+- Verified hardware sleep with lid open and lid closed, using amd-s2idle
+  test
+- Verified awake lid state reporting (/proc/acpi/button/lid/LID0/state)
+
+Notes for reviewers:
+- I am supposing that this is a firmware quirk matching MS-15FK (largely
+  due to this issue not being widely reported) and not a generic ACPI
+  kernel issue
+- The Fixes: tags reference the commits that exposed this firmware
+  quirk; let me know if they are not appropriate
+
+ drivers/acpi/button.c | 81 +++++++++++++++++++++++++++++++++----------
+ 1 file changed, 62 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 91a4e9698f7..962e08b2c2a 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -48,6 +48,24 @@ enum {
+ 	ACPI_BUTTON_LID_INIT_DISABLED,
+ };
+ 
++struct acpi_lid_quirk {
++	long init_state;
++	bool no_wakeup;
++};
++
++static const struct acpi_lid_quirk lid_quirk_disabled = {
++	.init_state = ACPI_BUTTON_LID_INIT_DISABLED,
++};
++
++static const struct acpi_lid_quirk lid_quirk_open = {
++	.init_state = ACPI_BUTTON_LID_INIT_OPEN,
++};
++
++static const struct acpi_lid_quirk lid_quirk_no_wakeup = {
++	.init_state = ACPI_BUTTON_LID_INIT_METHOD,
++	.no_wakeup = true,
++};
++
+ static const char * const lid_init_state_str[] = {
+ 	[ACPI_BUTTON_LID_INIT_IGNORE]		= "ignore",
+ 	[ACPI_BUTTON_LID_INIT_OPEN]		= "open",
+@@ -78,7 +96,7 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "T701"),
+ 			DMI_MATCH(DMI_BIOS_VERSION, "BYT70A.YNCHENG.WIN.007"),
+ 		},
+-		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_DISABLED,
++		.driver_data = (void *)&lid_quirk_disabled,
+ 	},
+ 	{
+ 		/* Nextbook Ares 8A tablet, _LID device always reports lid closed */
+@@ -87,7 +105,7 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "CherryTrail"),
+ 			DMI_MATCH(DMI_BIOS_VERSION, "M882"),
+ 		},
+-		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_DISABLED,
++		.driver_data = (void *)&lid_quirk_disabled,
+ 	},
+ 	{
+ 		/*
+@@ -98,7 +116,7 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "82BG"),
+ 		},
+-		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
++		.driver_data = (void *)&lid_quirk_open,
+ 	},
+ 	{
+ 		/*
+@@ -109,7 +127,7 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "MEDION"),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "E2215T"),
+ 		},
+-		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
++		.driver_data = (void *)&lid_quirk_open,
+ 	},
+ 	{
+ 		/*
+@@ -120,7 +138,21 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "MEDION"),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "E2228T"),
+ 		},
+-		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
++		.driver_data = (void *)&lid_quirk_open,
++	},
++	{
++		/*
++		 * MSI Creator A16 AI+ A3HVFG (MS-15FK): LID0 declares a
++		 * handlerless _PRW GPE (0x03) with S0 wake state whose status
++		 * bit stays asserted regardless of lid state, aborting s2idle
++		 * immediately when armed for wakeup.
++		 */
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR,
++				  "Micro-Star International Co., Ltd."),
++			DMI_MATCH(DMI_BOARD_NAME, "MS-15FK"),
++		},
++		.driver_data = (void *)&lid_quirk_no_wakeup,
+ 	},
+ 	{
+ 		/*
+@@ -131,7 +163,7 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Razer"),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "Razer Blade Stealth 13 Late 2019"),
+ 		},
+-		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
++		.driver_data = (void *)&lid_quirk_open,
+ 	},
+ 	{
+ 		/*
+@@ -142,7 +174,7 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Razer"),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "Blade Pro 17 (Early 2020) - RZ09-0329"),
+ 		},
+-		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
++		.driver_data = (void *)&lid_quirk_open,
+ 	},
+ 	{
+ 		/*
+@@ -154,7 +186,7 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Razer"),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "Blade Stealth 13 (Early 2020) - RZ09-0310"),
+ 		},
+-		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
++		.driver_data = (void *)&lid_quirk_open,
+ 	},
+ 	{
+ 		/*
+@@ -165,7 +197,7 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "750XED"),
+ 		},
+-		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
++		.driver_data = (void *)&lid_quirk_open,
+ 	},
+ 	{}
+ };
+@@ -209,6 +241,8 @@ struct acpi_button {
+ 
+ static long lid_init_state = -1;
+ 
++static bool lid_no_wakeup;
++
+ static unsigned long lid_report_interval __read_mostly = 500;
+ module_param(lid_report_interval, ulong, 0644);
+ MODULE_PARM_DESC(lid_report_interval, "Interval (ms) between lid key events");
+@@ -570,9 +604,14 @@ static void acpi_button_wakeup_cleanup(void *data)
+ 	device_init_wakeup(data, false);
+ }
+ 
+-static int devm_acpi_button_init_wakeup(struct device *dev)
++static int devm_acpi_button_init_wakeup(struct device *dev, u8 button_type)
+ {
+-	device_init_wakeup(dev, true);
++	if (lid_no_wakeup && button_type == ACPI_BUTTON_TYPE_LID) {
++		dev_info(dev, "Disabling default wakeup due to DMI quirk\n");
++		device_set_wakeup_capable(dev, true);
++	} else {
++		device_init_wakeup(dev, true);
++	}
+ 	return devm_add_action_or_reset(dev, acpi_button_wakeup_cleanup, dev);
+ }
+ 
+@@ -747,7 +786,7 @@ static int acpi_button_probe(struct platform_device *pdev)
+ 	if (error)
+ 		return error;
+ 
+-	error = devm_acpi_button_init_wakeup(dev);
++	error = devm_acpi_button_init_wakeup(dev, button_type);
+ 	if (error)
+ 		return error;
+ 
+@@ -812,14 +851,18 @@ MODULE_PARM_DESC(lid_init_state, "Behavior for reporting LID initial state");
+ 
+ static int __init acpi_button_init(void)
+ {
+-	const struct dmi_system_id *dmi_id;
++	const struct dmi_system_id *dmi_id = dmi_first_match(dmi_lid_quirks);
+ 
+-	if (lid_init_state == -1) {
+-		dmi_id = dmi_first_match(dmi_lid_quirks);
+-		if (dmi_id)
+-			lid_init_state = (long)dmi_id->driver_data;
+-		else
+-			lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
++	if (dmi_id) {
++		const struct acpi_lid_quirk *quirk = dmi_id->driver_data;
++
++		if (quirk->no_wakeup)
++			lid_no_wakeup = true;
++
++		if (lid_init_state == -1)
++			lid_init_state = quirk->init_state;
++	} else if (lid_init_state == -1) {
++		lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
+ 	}
+ 
+ 	/*
+
+base-commit: b6a9fa34ce4187cb69d3c588a4bbffc31ce5db8f
+-- 
+2.56.1
+
