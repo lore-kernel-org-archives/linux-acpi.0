@@ -1,52 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795793622;
-	b=AXwae1jgYcS3zAw0zwuahBxKxUVwkXqz0Hit6nloTOHPbVpB8QflzXpY+I5nf3dgTyw1
-	 ijqqKnW0vXoaizX9/ia5n8uTpkHK6UiGAnE4XmlaRNVridHhIibOuwv5ZCkJrS0QHlL2j
-	 VY8j6uafPmxApPpBttjzImMIE1ItN2g4X4Q6ofj/+8iK+QFmci6b8dFfmNT1jVXnXY6sT
-	 2lRIrDkHwmsuFFKNFgsj+4RX4m6i4HSMOU1jtE6D9ul89avcSn2HsrwtChlZXJYvavYFb
-	 Na9gwUEvfcCzD3tKnFlIjnHlRnCSOzRBx0fVeSOmo/Cg2f3Ewj/ZJhtJZTxsrFm/i7w==
+	t=1795793788;
+	b=Nee9s+LP2pPbKPE2Eh3xFcp7uJfDUUluZwBoK11r/hjLBbVCxUhCC46RivMnywd0z2/A
+	 JdTvYHxmpLBogwaC3+6rHW+tK6Xjt+Al30PH4+vU2UnAFUiVX+4SAcV9RIThU4xIu2SvJ
+	 wKmPSxrmnalhKvMxFQSdB2/Rql+eNmAStdva5XivWS4lAtExDrz3rRpaEo4cxyoDMwQ6W
+	 J7offHQtpaZ0K8N0QvTiKOIrqK/BeC69tI7L0kHNtle3N35/e2u3DnwL8bzBpzOY44sxZ
+	 vr/qjUogzGhaGcIbHQGqFAEs61B6Z/vf1g7oFrmgCFc3LjNe+jscVqQi87ryocMByLw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795793622;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:From:Date:Subject:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:
-	 References:In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:
-	 X-Developer-Key;
-	bh=vhR6IsG+Rk+VWXlr+ir06fuP3Aj8UKRDlJ6r0XXQ2X8=;
-	b=YDZ+oD0QBPR2BQaeI+/LLkdPBn3E5kjI6uxT0n/AFVXKwsZg+9EyZTjA6HJQ6T6yip+U
-	 0d2Ga79zZzAg29OozZXFVYR+3TZ3M8RI3MtKeulKwILAh2a9c3pDv9zjD+gsESE+y1xdx
-	 9r6yDjGGOgPREd1QKBZcEBLJ9jyQu+5lSsHsV5bYDXMMjjiM/6UplNg1tfeo+nySLOBsC
-	 npYN+qGzdw0NFo522HKILzr//Io8y1ey61rJcHCF4s9OjNGUOHByy07CMcjmZ74hYs9f7
-	 Crui7hO0qiRvOklZy6WTz/8Xesz4EAttYg01oaN7Z/7y2E3DJac96anipMEDhQNeoDQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795793788;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=w2jVZGlmJLc00xihx82mAnoTJNcff4nr2CNxxcQOC0I=;
+	b=dfRSQs2Gk8Igg8XlDzl0q2/9/vNEQ30a7Ue/sDSJXowglLXBfCxGh5B4+uOclg6e8bER
+	 wsIT9jv7t7GKfVXrt2fJR4KMry4DKVntfyQ0DvwymVV58CK5wVKDTuhog9eETDL94ceWe
+	 77wRtiqTa1K2t9Zv6l5T5vBxCXpub+UTVkiXZpZ4b5Ur0aq7cutzz+XPyJ4ulvqQZHW0l
+	 uhLvYesGe3qc5L1H87cd04TgEcpzopSkq1mnsp46NFWuiYCxh4xjXe78VPZSOIh95Yx5C
+	 RepwWQoOnqyVkRXEz8qMWGlkvK0ByUy+DQNYLyOHu6ClAodNqVCNmB3W2Z2uINs9SSA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=UwsntyAk;
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E7D88606A684;
-	Fri, 27 Nov 2026 15:33:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E7D88606A684
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cHOScReJ;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33E63606A321
+	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 15:36:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=UwsntyAk
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8980D1EA6;
-	Fri, 27 Nov 2026 07:33:38 -0800 (PST)
-Received: from e129823.arm.com (e129823.arm.com [10.2.213.3])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 337853F632;
-	Fri, 27 Nov 2026 07:33:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1795793621; bh=qMOM7DQ0sgq5yTKvksMRjqHLxSAWZJcGOYDwTILlBFw=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=UwsntyAk3EvvMQ7NNAnNwZBDAiwOohDVWpmJ/5HOTKX/HROalC3otlIErFpkfMem6
-	 nLvmRYy8pRlCZkbQkbs+UxtQXDf7zW2UER+wrg99IuwcDBejTPOZxTNsZqh2REv+/1
-	 11eWoPvdGGf5IvZkibe/Lep1KaiDkcqu6BBUBXRY=
-From: Yeoreum Yun <yeoreum.yun@arm.com>
-Date: Fri, 27 Nov 2026 15:33:03 +0000
-Subject: [PATCH RFC v3 8/8] selftest: attestation: add
- cca_guest_attestation_test selftest
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cHOScReJ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BD861F0089C
+	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 15:36:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795793787;
+	bh=w2jVZGlmJLc00xihx82mAnoTJNcff4nr2CNxxcQOC0I=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=cHOScReJP7aCKzihZUtxDQndRJd1u34XMvId/PTaM0E2FnwPYtNG0V3S1cHO3dvDz
+	 laFcghqOcITv99OHKGEIy6gC7DsJrUYh+piDZysbk4SPw3TckRJZkbH4AXkx8njzds
+	 JwjkG8tA8IsJejF4u9d4wCEe30Y1oR1HnljEm4oVmRnUiwahl8tcLBMbMbOzxEKGL7
+	 yXIP9zuXtpAZaKdXXe50yKaoMbC7qjRmmcxWVuBmM0F5xZu3CgiPo1NhRArOyyFYqK
+	 Mb45h3zBzHpUvJB72ZhOhqhAgavJcWQr7sdapoEG9stuin26W0cMAcNzHI+IOBr59Q
+	 Wwa+UjhkcsyoA==
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5c07c7306e1so7048005e87.1
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 07:36:27 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErF/RCxhTse9xAOEpZFAohxFggKnCUQDTtULXmwWHvSYUKM1DKO38rgEBiedzXMhQDDWQU+XNk21u0uj@vger.kernel.org
+X-Gm-Message-State: APuU4Z8ExbjNu1NF55DQgCv0MxAQQ+Lp++LOO3Dfrn3b+8ud3Wcx90DH
+	jSA5xp8GjoLBlU8Z9krlo7f8RPBofWFK5Yp4LS0s8tb44avyhrSSU7i09AtpYFsJS7u7RVqh9ne
+	A7zuVOxswj9n/LVRn8mWqXw0KN7317lI=
+X-Received: by 2002:a05:6512:238a:b0:5bf:a6e9:4cc with SMTP id
+ 2adb3069b0e04-5c1bc680e91mr6776625e87.1.1795793785922; Fri, 27 Nov 2026
+ 07:36:25 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -56,621 +59,109 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261127-arm_cca_mr-v3-8-df3230afce8f@arm.com>
-References: <20261127-arm_cca_mr-v3-0-df3230afce8f@arm.com>
-In-Reply-To: <20261127-arm_cca_mr-v3-0-df3230afce8f@arm.com>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
- linux-security-module@vger.kernel.org, linux-doc@vger.kernel.org, 
- linux-kselftest@vger.kernel.org, linux-acpi@vger.kernel.org, 
- acpica-devel@lists.linux.dev
-Cc: Catalin Marinas <catalin.marinas@arm.com>, 
- Will Deacon <will@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, 
- Suzuki Poulose <suzuki.poulose@arm.com>, 
- Steven Price <steven.price@arm.com>, Sami Mujawar <sami.mujawar@arm.com>, 
- thuth@redhat.com, "Rafael J. Wysocki" <rafael@kernel.org>, 
- Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>, 
- Pawel Chmielewski <pawel.chmielewski@intel.com>, 
- Jiri Pirko <jiri@resnulli.us>, Jonathan Corbet <corbet@lwn.net>, 
- Shuah Khan <shuah@kernel.org>, Len Brown <lenb@kernel.org>, 
- Shuah Khan <skhan@linuxfoundation.org>, 
- Randy Dunlap <rdunlap@infradead.org>, Mark Brown <broonie@kernel.org>, 
- Yeoreum Yun <yeoreum.yun@arm.com>
-X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=17380; i=yeoreum.yun@arm.com;
- h=from:subject:message-id; bh=qMOM7DQ0sgq5yTKvksMRjqHLxSAWZJcGOYDwTILlBFw=;
- b=owEB7QES/pANAwAKAW3Vw9FaxTEzAcsmYgBrCaK2VJe6b3BqSaIwfhduUKb/9stMF6YV1SktY
- jKzdLAm+WWJAbMEAAEKAB0WIQQtg+CS3QUzuFh1pJ1t1cPRWsUxMwUCawmitgAKCRBt1cPRWsUx
- M11gDADLkIqjnqHEbebnT6bfBEdC0jLB3YptcAD/djs4CMNe0dNZL8JXHWCgxMLNuR8BicovyWk
- vZAoPV05TFsajtlkia9me8/H1YExGNUJmNe/b7FBJPUFA+k4YOk3ww35RXskZTgH+4dt3Kxvmqj
- rp5CtDdDGhSVn3BRK8rbHZ+3sjlixIc5YBrl63QMibQBY+oUzFc9fBfPWEznnFux+tRaabE/uEl
- p1MKdfFOhK1Ka5VHNBbToqo+rM9AMH8P2Gtoxmc5PBegoIgJNWMBiLvQKFSYhfS8Wl102q+OnWZ
- fplQIocAraCvAgvbK2F8/fZus1wIn3Td5RkBd8UednDrI7Pi8+MPAAb9bcTi7L5op2jvdN4XIst
- fsJDWjmw5Agbr5xQ7ElGE9ZzyICKMwLh7zBTqAUnnVceQcZIp9ezcrKVcy/d2Q/iNbQwfQr0tQH
- 2f9PP/jucGhqSxHsFQ9df/JuHMlduz/ll/fddbsNRllEHaddBCmVnQA4Av1aipT+hvLW0=
-X-Developer-Key: i=yeoreum.yun@arm.com; a=openpgp;
- fpr=2D83E092DD0533B85875A49D6DD5C3D15AC53133
+References: <20261126060825.910-1-luob87709@gmail.com>
+In-Reply-To: <20261126060825.910-1-luob87709@gmail.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 27 Nov 2026 16:36:12 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0giAORstOTeds2bPpQVVJQ2aC7D4ah9oAMDEZvvBEraPQ@mail.gmail.com>
+X-Gm-Features: Aa3M54qcbFiW2XenZglxjjFI7zAb5v3QRPSrOYk6ZuWdkJtnn3jMQpgjnmU47n0
+Message-ID: <CAJZ5v0giAORstOTeds2bPpQVVJQ2aC7D4ah9oAMDEZvvBEraPQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: APEI: GHES: sync ghes_proc_irq_work before freeing ghes
+To: "Bin Luo (University of Electronic Science and Technology of China)" <luob87709@gmail.com>
+Cc: rafael@kernel.org, tony.luck@intel.com, bp@alien8.de, guohanjun@huawei.com, 
+	mchehab@kernel.org, xueshuai@linux.alibaba.com, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Add CCA Realm Guest attestation selftest to test evidence-get, mr_read
-and mr_extend interfaces.
+On Thu, Nov 26, 2026 at 7:08=E2=80=AFAM Bin Luo (University of Electronic
+Science and Technology of China) <luob87709@gmail.com> wrote:
+>
+> NMI, SEA, and SDEI handlers enqueue estatus nodes holding a raw
+> estatus_node->ghes pointer onto ghes_estatus_llist and schedule
+> ghes_proc_irq_work to run ghes_proc_in_irq().
+>
+> During ghes_remove(), ghes_nmi_remove(), ghes_sea_remove(), and
+> apei_sdei_unregister_ghes() stop further callbacks and synchronize RCU,
+> but do not synchronize ghes_proc_irq_work before ghes_fini() and
+> kfree(ghes). In addition, ghes_in_nmi_spool_from_list() calls
+> irq_work_queue(&ghes_proc_irq_work) after rcu_read_unlock(), leaving a
+> window where synchronize_rcu() can finish before the irq_work is queued.
+>
+> Move irq_work_queue(&ghes_proc_irq_work) inside the RCU read-side
+> critical section in ghes_in_nmi_spool_from_list(), and call
+> irq_work_sync(&ghes_proc_irq_work) in the NMI, SEA, and SDEI removal
+> paths so all queued estatus nodes for the removed source are drained
+> before ghes is freed.
+>
+> Fixes: 67eb2e990767 ("ACPI, APEI, GHES, printk support for recoverable er=
+ror via NMI")
+> Signed-off-by: Bin Luo (University of Electronic Science and Technology o=
+f China) <luob87709@gmail.com>
 
-Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
----
- tools/testing/selftests/attestation/.gitignore     |   1 +
- tools/testing/selftests/attestation/Makefile       |   9 +-
- .../attestation/cca_guest_attestation_test.c       | 517 +++++++++++++++++++++
- 3 files changed, 524 insertions(+), 3 deletions(-)
+Sashiko has feedback on this:
 
-diff --git a/tools/testing/selftests/attestation/.gitignore b/tools/testing/selftests/attestation/.gitignore
-index e10d0c9e4723c..9ae9baec654d1 100644
---- a/tools/testing/selftests/attestation/.gitignore
-+++ b/tools/testing/selftests/attestation/.gitignore
-@@ -3,3 +3,4 @@ attestation_test
- ima_attestation_test
- tdx_attestation_test
- firme_attestation_test
-+cca_guest_attestation_test
-diff --git a/tools/testing/selftests/attestation/Makefile b/tools/testing/selftests/attestation/Makefile
-index d4875652b4a14..f5a1ae68c0c4a 100644
---- a/tools/testing/selftests/attestation/Makefile
-+++ b/tools/testing/selftests/attestation/Makefile
-@@ -4,13 +4,14 @@ CFLAGS += -I../../../ctlv/libctlv
- LDLIBS += -lpthread
- 
- TEST_GEN_PROGS := attestation_test ima_attestation_test tdx_attestation_test \
--		  firme_attestation_test
-+		  firme_attestation_test cca_guest_attestation_test
- 
- LIBCTLV_DIR := ../../../ctlv/libctlv
- BINDINGS := ctlv_attestation_user_gen.c \
- 	    ctlv_attestation_sim_user_gen.c \
- 	    ctlv_attestation_tdx_user_gen.c \
--	    ctlv_attestation_firme_user_gen.c
-+	    ctlv_attestation_firme_user_gen.c \
-+	    ctlv_attestation_cca_guest_user_gen.c
- 
- EXTRA_CLEAN = $(OUTPUT)/libctlv
- 
-@@ -30,6 +31,9 @@ $(OUTPUT)/tdx_attestation_test: tdx_attestation_test.c $(BINDINGS) $(LIBCTLV)
- $(OUTPUT)/firme_attestation_test: firme_attestation_test.c $(BINDINGS) $(LIBCTLV)
- 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) -o $@
- 
-+$(OUTPUT)/cca_guest_attestation_test: cca_guest_attestation_test.c $(BINDINGS) $(LIBCTLV)
-+	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) -o $@
-+
- $(LIBCTLV): FORCE
- 	$(Q)mkdir -p $(OUTPUT)/libctlv
- 	$(Q)$(MAKE) -C $(LIBCTLV_DIR) CC="$(CC)" OUTPUT=$(OUTPUT)/libctlv/ \
-@@ -38,4 +42,3 @@ $(LIBCTLV): FORCE
- FORCE:
- 
- .PHONY: FORCE
--
-diff --git a/tools/testing/selftests/attestation/cca_guest_attestation_test.c b/tools/testing/selftests/attestation/cca_guest_attestation_test.c
-new file mode 100644
-index 0000000000000..c6dc0452f79d6
---- /dev/null
-+++ b/tools/testing/selftests/attestation/cca_guest_attestation_test.c
-@@ -0,0 +1,517 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <stdbool.h>
-+#include <stdlib.h>
-+#include <string.h>
-+
-+#include <linux/bits.h>
-+#include <linux/hash_info.h>
-+
-+#include "../kselftest_harness.h"
-+#include "ctlv_attestation_cca_guest_user_gen.h"
-+
-+#define EVENT_WAIT_MS 5000
-+#define TDX_REPORTDATA_LEN 64
-+#define TDX_REPORT_LEN 1024
-+#define TDX_REPORTDATA_OFFSET 128
-+#define TDX_QUOTE_MAX_LEN ((128 * 1024) - 24)
-+
-+static const char *error_text(const struct ctlv_error *error)
-+{
-+	static char text[512];
-+
-+	return ctlv_error_str(error, text, sizeof(text));
-+}
-+
-+static void dump_hex(const void *data, __u64 size)
-+{
-+	__u64 i;
-+
-+	if (!TH_LOG_ENABLED)
-+		return;
-+
-+	for (i = 0; i < size; i++) {
-+		if (!(i % 16)) {
-+			if (i)
-+				fprintf(TH_LOG_STREAM, "\n");
-+			fprintf(TH_LOG_STREAM, "\t");
-+		}
-+		fprintf(TH_LOG_STREAM, "%02x ", ((uint8_t *)(data))[i]);
-+	}
-+	fprintf(TH_LOG_STREAM, "\n");
-+}
-+
-+static int mr_hash_info_get(struct ctlv_dev *dev, __u64 *hash_alg, size_t *digest_size)
-+{
-+	const struct ctlv_hdr *item, *algorithm;
-+	struct ctlv_error error;
-+	struct ctlv_reply *reply;
-+	__u64 id, hash = HASH_ALGO__LAST;
-+	int ret;
-+	bool got;
-+
-+	ret = ctlv_attestation_mr_get(dev, NULL, &reply, &error);
-+	if (ret)
-+		return ret;
-+
-+	ret = -EIO;
-+	ctlv_attestation_mr_get_items_for_each(item, ctlv_reply_root(reply)) {
-+		got = ctlv_attestation_mr_get_items_id_get(item, &id);
-+		if (!got)
-+			goto err_out;
-+		algorithm = NULL;
-+		ctlv_attestation_mr_desc_supported_hash_algorithms_for_each(algorithm, item) {
-+			break;
-+		}
-+		if (!algorithm)
-+			goto err_out;
-+
-+		got = ctlv_attestation_mr_desc_supported_hash_algorithms_get(algorithm,
-+								 	     &hash, NULL);
-+		if (!got)
-+			goto err_out;
-+
-+		break;
-+	}
-+
-+	if (hash != HASH_ALGO_SHA256 && hash != HASH_ALGO_SHA384 &&
-+	    hash != HASH_ALGO_SHA512) {
-+		ret = -EINVAL;
-+		goto err_out;
-+	}
-+
-+	*hash_alg = hash;
-+
-+	if (hash == HASH_ALGO_SHA256)
-+		*digest_size = 32;
-+	else if (hash == HASH_ALGO_SHA384)
-+		*digest_size = 48;
-+	else
-+		*digest_size = 64;
-+
-+	ret = 0;
-+
-+err_out:
-+	ctlv_reply_free(reply);
-+	return ret;
-+}
-+
-+static int cca_guest_token_get(struct ctlv_dev *dev, __u64 id,
-+			       const unsigned char *challenge, size_t challenge_length,
-+			       void *output, size_t output_length,
-+			       struct ctlv_reply **reply, struct ctlv_error *error)
-+{
-+	struct ctlv_msg *request;
-+	int ret;
-+
-+	ret = ctlv_attestation_evidence_get_request_new(&request);
-+	if (ret)
-+		return ret;
-+	ctlv_attestation_evidence_get_challenge_put(request, challenge,
-+						    challenge_length);
-+
-+	ctlv_attestation_evidence_get_objects_start(request);
-+	ctlv_attestation_evidence_get_objects_id_put(request, id);
-+	ctlv_attestation_evidence_get_objects_data_put_va(request, output, output_length);
-+	ctlv_record_end(request);
-+
-+	ret = ctlv_msg_err(request);
-+	if (!ret)
-+		ret = ctlv_attestation_evidence_get(dev, request, reply, error);
-+	ctlv_msg_free(request);
-+	return ret;
-+}
-+
-+static int cca_guest_eventlog_get(struct ctlv_dev *dev, __u64 id,
-+				  void *output, size_t output_length,
-+				  struct ctlv_reply **reply, struct ctlv_error *error)
-+{
-+	struct ctlv_msg *request;
-+	int ret;
-+
-+	if (!id)
-+		return -EOPNOTSUPP;
-+
-+	ret = ctlv_attestation_evidence_get_request_new(&request);
-+	if (ret)
-+		return ret;
-+
-+	ctlv_attestation_evidence_get_objects_start(request);
-+	ctlv_attestation_evidence_get_objects_id_put(request, id);
-+	ctlv_attestation_evidence_get_objects_data_put_va(request, output, output_length);
-+	ctlv_record_end(request);
-+	
-+	ret = ctlv_msg_err(request);
-+	if (!ret)
-+		ret = ctlv_attestation_evidence_get(dev, request, reply, error);
-+	ctlv_msg_free(request);
-+	return ret;
-+}
-+
-+static int cca_guest_mr_read(struct ctlv_dev *dev, unsigned int id,
-+			     struct ctlv_reply **reply, struct ctlv_error *error)
-+{
-+	struct ctlv_msg *request;
-+	int ret;
-+
-+	ret = ctlv_attestation_mr_read_request_new(&request);
-+	if (ret)
-+		return ret;
-+	ctlv_attestation_mr_read_id_put(request, id);
-+	ret = ctlv_msg_err(request);
-+	if (!ret)
-+		ret = ctlv_attestation_mr_read(dev, request, reply, error);
-+	ctlv_msg_free(request);
-+	return ret;
-+}
-+
-+static int cca_guest_mr_extend(struct ctlv_dev *dev, unsigned int id,
-+			       const unsigned char digest[64],
-+			       struct ctlv_reply **reply, struct ctlv_error *error)
-+{
-+	struct ctlv_msg *request;
-+	__u64 hash_alg;
-+	size_t digest_size;
-+	int ret;
-+
-+	ret = mr_hash_info_get(dev, &hash_alg, &digest_size);
-+	if (ret)
-+		return ret;
-+
-+	ret = ctlv_attestation_mr_extend_request_new(&request);
-+	if (ret)
-+		return ret;
-+
-+	ctlv_attestation_mr_extend_id_put(request, id);
-+	ctlv_attestation_mr_values_start(request);
-+	ctlv_attestation_mr_value_hash_algo_put(request, hash_alg);
-+	ctlv_attestation_mr_value_data_put(request, digest, digest_size);
-+	ctlv_record_end(request);
-+
-+	ret = ctlv_msg_err(request);
-+	if (!ret)
-+		ret = ctlv_attestation_mr_extend(dev, request, reply, error);
-+	ctlv_msg_free(request);
-+	return ret;
-+}
-+
-+FIXTURE(cca_guest_attestation)
-+{
-+	struct ctlv_dev *dev;
-+	struct ctlv_error error;
-+	__u64 max_challenge_size;
-+	__u64 max_token_size;
-+	__u64 max_eventlog_size;
-+	__u64 token_id;
-+	__u64 ccel_id;
-+};
-+
-+FIXTURE_SETUP(cca_guest_attestation)
-+{
-+	const struct ctlv_hdr *caps, *evidence, *obj, *format, *challenge;
-+	struct ctlv_reply *reply;
-+	__u64 value, class;
-+	__u32 obj_count = 0;
-+	int ret;
-+	bool got, known;
-+
-+	ret = ctlv_open("ctlv-attestation-cca-guest", 0, O_RDWR, &self->dev);
-+	if (ret)
-+		SKIP(return, "no CCA Realm guest attestation device: %s", strerror(-ret));
-+
-+	ASSERT_EQ(0, ctlv_attestation_device_get(self->dev, NULL, &reply,
-+						 &self->error))
-+	{
-+		TH_LOG("%s", error_text(&self->error));
-+	}
-+
-+	caps = ctlv_attestation_device_get_caps_get(ctlv_reply_root(reply));
-+	ASSERT_NE(NULL, caps);
-+
-+	evidence = ctlv_attestation_device_get_caps_evidence_get(caps);
-+	ASSERT_NE(NULL, evidence);
-+
-+	ctlv_attestation_device_get_evidence_objects_for_each(obj, evidence) {
-+		obj_count++;
-+	}
-+
-+	obj = ctlv_hdr_find(evidence, CTLV_ATTESTATION_T_DEVICE_GET_EVIDENCE_OBJECTS);
-+	ASSERT_NE(NULL, obj);
-+
-+	got = ctlv_attestation_device_get_objects_class_get(obj, &class, &known);
-+	ASSERT_TRUE(got);
-+	ASSERT_EQ(class, CTLV_ATTESTATION_EVIDENCE_CLASS_SIGNED);
-+
-+	got = ctlv_attestation_device_get_objects_id_get(obj, &value);
-+	ASSERT_TRUE(got);
-+	self->token_id = value;
-+	ASSERT_EQ(0, self->token_id);
-+
-+	got = ctlv_attestation_device_get_objects_max_length_get(obj, &value);
-+	ASSERT_TRUE(got);
-+	self->max_token_size = value;
-+	ASSERT_NE(0, self->max_token_size);
-+
-+	challenge = ctlv_hdr_find(obj, CTLV_ATTESTATION_T_DEVICE_GET_OBJECTS_CHALLENGE_LENGTHS);
-+	ASSERT_NE(NULL, challenge);
-+
-+	got = ctlv_attestation_device_get_challenge_lengths_max_length_get(challenge, &value);
-+	ASSERT_TRUE(got);
-+	self->max_challenge_size = value;
-+	ASSERT_NE(0, self->max_challenge_size);
-+
-+	if (obj_count < 2) {
-+		self->ccel_id = 0;
-+		goto out;
-+	}
-+
-+	obj = ctlv_hdr_find_next(evidence, obj, CTLV_ATTESTATION_T_DEVICE_GET_EVIDENCE_OBJECTS);
-+	ASSERT_NE(NULL, obj);
-+
-+	format = ctlv_hdr_find(obj, CTLV_ATTESTATION_T_DEVICE_GET_OBJECTS_FORMATS);
-+	ASSERT_NE(NULL, format);
-+
-+	got = ctlv_attestation_device_get_objects_formats_get(format, &value, &known);
-+	ASSERT_TRUE(got);
-+	ASSERT_EQ(value, CTLV_ATTESTATION_EVIDENCE_FORMAT_CCEL);
-+
-+	got = ctlv_attestation_device_get_objects_id_get(obj, &value);
-+	ASSERT_TRUE(got);
-+	self->ccel_id = value;
-+
-+	got = ctlv_attestation_device_get_objects_max_length_get(obj, &value);
-+	ASSERT_TRUE(got);
-+	self->max_eventlog_size = value;
-+	ASSERT_NE(0, self->max_eventlog_size);
-+
-+out:
-+	ctlv_reply_free(reply);
-+}
-+
-+FIXTURE_TEARDOWN(cca_guest_attestation)
-+{
-+	if (self->dev)
-+		ctlv_close(self->dev);
-+}
-+
-+TEST_F(cca_guest_attestation, discovery_and_construction_fields)
-+{
-+	const struct ctlv_hdr *caps, *evidence, *mr, *info;
-+	struct ctlv_reply *reply;
-+	__u64 flags, unknown, value;
-+	bool got;
-+
-+	EXPECT_TRUE(ctlv_dev_inherits(self->dev, "ctlv-attestation"));
-+	ASSERT_EQ(0, ctlv_attestation_device_get(self->dev, NULL, &reply,
-+						 &self->error))
-+	{
-+		TH_LOG("%s", error_text(&self->error));
-+	}
-+	caps = ctlv_attestation_device_get_caps_get(ctlv_reply_root(reply));
-+	ASSERT_NE(NULL, caps);
-+	evidence = ctlv_attestation_device_get_caps_evidence_get(caps);
-+	mr = ctlv_attestation_device_get_caps_mr_get(caps);
-+	ASSERT_NE(NULL, evidence);
-+	ASSERT_NE(NULL, mr);
-+	got = ctlv_attestation_device_get_evidence_flags_get(evidence, &flags,
-+							     &unknown);
-+	ASSERT_TRUE(got);
-+	EXPECT_EQ(0, flags);
-+	EXPECT_EQ(0, unknown);
-+
-+	got = ctlv_attestation_device_get_mr_flags_get(mr, &flags, &unknown);
-+	ASSERT_TRUE(got);
-+	EXPECT_EQ(flags, CTLV_ATTESTATION_MR_DEVICE_CAPS_EXTEND);
-+	EXPECT_EQ(0, unknown);
-+
-+	info = ctlv_attestation_device_get_info_get(ctlv_reply_root(reply));
-+	ASSERT_NE(NULL, info);
-+
-+	got = ctlv_attestation_cca_guest_device_info_version_get(info, &value);
-+	ASSERT_TRUE(got);
-+	TH_LOG("CCA Realm Guest attestation version: %lld.%lld\n",
-+		(value & __GENMASK_ULL(31, 16)) >> 16,
-+		value & __GENMASK_ULL(15, 0));
-+
-+	ctlv_reply_free(reply);
-+}
-+
-+TEST_F(cca_guest_attestation, cca_attestation_token_get)
-+{
-+	void *challenge, *token;
-+	struct ctlv_reply *reply;
-+	const struct ctlv_hdr *root, *result;
-+	unsigned int index;
-+	__u64 token_size;
-+	bool got;
-+	int ret;
-+
-+	ASSERT_EQ(0, posix_memalign(&challenge, 8, self->max_challenge_size));
-+	ASSERT_EQ(0, posix_memalign(&token, 8, self->max_token_size));
-+
-+	for (index = 0; index < self->max_challenge_size; index++)
-+		((uint8_t *)challenge)[index] = index;
-+
-+	ret = cca_guest_token_get(self->dev, self->token_id,
-+				  challenge, self->max_challenge_size,
-+				  token, self->max_token_size,
-+				  &reply, &self->error);
-+	if (ret == -EIO || ret == -ETIMEDOUT || ret == -EOPNOTSUPP) {
-+		free(token);
-+		free(challenge);
-+		SKIP(return, "CCA atesation token is unavailable: %s", strerror(-ret));
-+	}
-+
-+	ASSERT_EQ(0, ret)
-+	{
-+		TH_LOG("%s", error_text(&self->error));
-+	}
-+
-+	root = ctlv_reply_root(reply);
-+	got = ctlv_attestation_evidence_get_evidence_generation_present(root);
-+	EXPECT_FALSE(got);
-+
-+	got = ctlv_attestation_mr_generation_present(root);
-+	EXPECT_TRUE(got);
-+
-+	result = ctlv_hdr_find(root, CTLV_ATTESTATION_T_EVIDENCE_GET_RESULTS);
-+	ASSERT_NE(NULL, result);
-+
-+	got = ctlv_attestation_evidence_get_results_length_get(result, &token_size);
-+	ASSERT_TRUE(got);
-+	ASSERT_GT(token_size, 0);
-+	ASSERT_LE(token_size, self->max_token_size);
-+	TH_LOG("CCA attestation token size: 0x%llx\n", token_size);
-+
-+	fprintf(TH_LOG_STREAM, "CCA attestation token:\n");
-+	dump_hex(token, token_size);
-+
-+	ctlv_reply_free(reply);
-+	free(token);
-+	free(challenge);
-+}
-+
-+TEST_F(cca_guest_attestation, cca_eventlog_get)
-+{
-+	void *eventlog;
-+	struct ctlv_reply *reply;
-+	const struct ctlv_hdr *root, *result;
-+	__u64 log_size;
-+	bool got;
-+	int ret;
-+
-+	ASSERT_EQ(0, posix_memalign(&eventlog, 8, self->max_eventlog_size));
-+
-+	ret = cca_guest_eventlog_get(self->dev, self->ccel_id,
-+				     eventlog, self->max_eventlog_size,
-+				     &reply, &self->error);
-+	if (ret == -EIO || ret == -ETIMEDOUT || ret == -EOPNOTSUPP) {
-+		free(eventlog);
-+		SKIP(return, "CCA eventlog is unavailable: %s", strerror(-ret));
-+	}
-+
-+	ASSERT_EQ(0, ret)
-+	{
-+		TH_LOG("%s", error_text(&self->error));
-+	}
-+
-+	root = ctlv_reply_root(reply);
-+	got = ctlv_attestation_evidence_get_evidence_generation_present(root);
-+	EXPECT_FALSE(got);
-+
-+	result = ctlv_hdr_find(root, CTLV_ATTESTATION_T_EVIDENCE_GET_RESULTS);
-+	ASSERT_NE(NULL, result);
-+
-+	got = ctlv_attestation_evidence_get_results_length_get(result, &log_size);
-+	ASSERT_TRUE(got);
-+	ASSERT_GT(log_size, 0);
-+	ASSERT_LE(log_size, self->max_eventlog_size);
-+	TH_LOG("CCA attestation eventlog size: 0x%llx\n", log_size);
-+
-+	fprintf(TH_LOG_STREAM, "CCA attestation eventlog:\n");
-+	dump_hex(eventlog, log_size);
-+
-+	ctlv_reply_free(reply);
-+	free(eventlog);
-+}
-+
-+TEST_F(cca_guest_attestation, read_measurement_registers)
-+{
-+	const struct ctlv_hdr *item, *algorithm, *value;
-+	struct ctlv_reply *reply;
-+	const void *digest;
-+	__u64 id, hash = HASH_ALGO__LAST;
-+	__u32 length;
-+	unsigned int count = 0;
-+	bool got;
-+
-+	ASSERT_EQ(0, ctlv_attestation_mr_get(self->dev, NULL, &reply,
-+					     &self->error));
-+	ctlv_attestation_mr_get_items_for_each(item, ctlv_reply_root(reply)) {
-+		ASSERT_TRUE(ctlv_attestation_mr_get_items_id_get(item, &id));
-+		EXPECT_EQ(count, id);
-+		algorithm = NULL;
-+		ctlv_attestation_mr_desc_supported_hash_algorithms_for_each(algorithm, item) {
-+			break;
-+		}
-+		ASSERT_NE(NULL, algorithm);
-+		got = ctlv_attestation_mr_desc_supported_hash_algorithms_get(algorithm,
-+									     &hash, NULL);
-+		ASSERT_TRUE(got);
-+		count++;
-+	}
-+	ASSERT_EQ(5, count);
-+	ASSERT_TRUE(hash == HASH_ALGO_SHA256 || hash == HASH_ALGO_SHA384 ||
-+		    hash == HASH_ALGO_SHA512);
-+	ctlv_reply_free(reply);
-+
-+	for (id = 0; id < 5; id++) {
-+		ASSERT_EQ(0, cca_guest_mr_read(self->dev, id, &reply, &self->error));
-+		value = NULL;
-+		ctlv_attestation_mr_values_for_each(value, ctlv_reply_root(reply)) {
-+			break;
-+		}
-+		ASSERT_NE(NULL, value);
-+		got = ctlv_attestation_mr_value_data_get(value, &digest, &length);
-+		ASSERT_TRUE(got);
-+		if (hash == HASH_ALGO_SHA256) {
-+			EXPECT_EQ(32, length);
-+		} else if (hash == HASH_ALGO_SHA384) {
-+			EXPECT_EQ(48, length);
-+		} else {
-+			EXPECT_EQ(64, length);
-+		}
-+
-+		fprintf(TH_LOG_STREAM, "mr_id(%llu):\n", id);
-+		dump_hex(digest, length);
-+
-+		ctlv_reply_free(reply);
-+	}
-+}
-+
-+TEST_F(cca_guest_attestation, extend_measurment_registers)
-+{
-+	const __u64 subscriptions[] = {
-+		CTLV_ATTESTATION_OP_MR_LOG_ENTRY_APPENDED,
-+	};
-+	unsigned char digest[64] = { 0xa5 };
-+	struct ctlv_event *event;
-+	struct ctlv_reply *reply;
-+	unsigned long id;
-+
-+	ASSERT_EQ(0, ctlv_subscribe(self->dev, subscriptions,
-+				    ARRAY_SIZE(subscriptions), &self->error));
-+
-+	for (id = 1; id < 5; id++) {
-+		ASSERT_EQ(0, cca_guest_mr_extend(self->dev, id, digest,
-+						 &reply, &self->error));
-+		ctlv_reply_free(reply);
-+		ASSERT_EQ(0, ctlv_event_wait(self->dev, EVENT_WAIT_MS));
-+		ASSERT_EQ(0, ctlv_event_read(self->dev, &event));
-+		EXPECT_TRUE(ctlv_attestation_mr_log_entry_appended_is(event));
-+		ctlv_event_free(event);
-+	}
-+}
-+
-+TEST_HARNESS_MAIN
+https://sashiko.dev/#/patchset/20261126060825.910-1-luob87709%40gmail.com
 
--- 
-2.43.0
+Please address it or if it doesn't need to be addressed, please let me know=
+ why.
 
+> ---
+> Found by code inspection. Compile-tested on x86_64 with W=3D1 and KASAN
+> (drivers/acpi/apei/ghes.o); not runtime-tested on APEI/NMI hardware.
+>
+>  drivers/acpi/apei/ghes.c | 9 ++++++---
+>  1 file changed, 6 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 5d888c8..75dd603 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -1483,10 +1483,10 @@ static int __maybe_unused ghes_in_nmi_spool_from_=
+list(struct list_head *rcu_list
+>                 if (!ghes_in_nmi_queue_one_entry(ghes, fixmap_idx))
+>                         ret =3D 0;
+>         }
+> -       rcu_read_unlock();
+>
+>         if (IS_ENABLED(CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG) && !ret)
+>                 irq_work_queue(&ghes_proc_irq_work);
+> +       rcu_read_unlock();
+>
+>         return ret;
+>  }
+> @@ -1600,6 +1600,7 @@ static void ghes_sea_remove(struct ghes *ghes)
+>         mutex_unlock(&ghes_list_mutex);
+>         ghes_unmap_error_status(ghes);
+>         synchronize_rcu();
+> +       irq_work_sync(&ghes_proc_irq_work);
+>  }
+>  #else /* CONFIG_ACPI_APEI_SEA */
+>  static inline int ghes_sea_add(struct ghes *ghes) { return -EINVAL; }
+> @@ -1663,10 +1664,11 @@ static void ghes_nmi_remove(struct ghes *ghes)
+>         ghes_unmap_error_status(ghes);
+>
+>         /*
+> -        * To synchronize with NMI handler, ghes can only be
+> -        * freed after NMI handler finishes.
+> +        * To synchronize with NMI handler and any queued estatus work,
+> +        * ghes can only be freed after both complete.
+>          */
+>         synchronize_rcu();
+> +       irq_work_sync(&ghes_proc_irq_work);
+>  }
+>  #else /* CONFIG_HAVE_ACPI_APEI_NMI */
+>  static inline int ghes_nmi_add(struct ghes *ghes) { return -EINVAL; }
+> @@ -1921,6 +1923,7 @@ static void ghes_remove(struct platform_device *ghe=
+s_dev)
+>                                 ERR_PTR(rc));
+>                         return;
+>                 }
+> +               irq_work_sync(&ghes_proc_irq_work);
+>                 break;
+>         default:
+>                 BUG();
+> --
+> 2.43.0
+>
+>
