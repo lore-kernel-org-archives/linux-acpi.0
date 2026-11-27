@@ -1,74 +1,80 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.171.202.116
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=34.218.115.239
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795789245;
-	b=4ahfjMW3en2VYlwhTH6Kdj6h6eaG6x3/4dy3XiW91toMoCua0qgz6xtS0PJdmn5DsgN1
-	 P9wI1YFDR9FP8JSZqvrzCGdjAQvu5sr/6j3F3A+9FTCc6SD1QyDB+Hd7gAJduWOFXo8XV
-	 O19KNiQKxkimutAlSa2BS/ocdMnWE3PhJoLUFt1uxlxr4isL8oYtQTtvOBstseiTG478N
-	 LjnG4/FXtAgFQpMVS7iyTnT8PoeJoyDSDMruB3rtKOnWJWy4UWM1lLD4MfbpmxJd0VE3Y
-	 4LUFX6mVKyZ19jlbByNk7Tbkv1qlJIWQLfVmj+zZ6IuTRufuuLpTsT/TRqRz06ULBeA==
+	t=1795789394;
+	b=LvjGGDISy6avN5/GJxnTO+lOdu59S6I1oF4ekFvbAM2I0uyVp0elhOAGi/dJBpAYdvWt
+	 yaAElCf3EeXxndId0uDQ1C42pbMmgFtANGdd/wqMEtTFfCdyn8kIDZ98bUt48nmH0I/MQ
+	 UnpbrFE+fIWiR80sYJ5pMgpGbszbMXpNzZkhtNtQhQwDoF/vpSKdHVYjD5QY920AJll/y
+	 R5/UUj6kHXAcnLqo2BRK8ifXtkVu6lO0Ljbd6lEBFelZCWqjoxdKQ+U1rY9m7X3TB92ni
+	 sfB5qFHXggHyEY8qK35y/oGpgOXgzLAhOVFhCzTLiELxxXnC+Y42K6IUQVJy4rHOHXw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795789245;
-	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:Message-ID:
-	 Subject:From:To:Cc:Date:In-Reply-To:References:Content-Type:
-	 Content-Transfer-Encoding:User-Agent:MIME-Version:
-	 X-Last-TLS-Session-Version;
-	bh=6RlqKNDJafGcHvmloSCC6w2YY4+OIN/Uqr4hTcsP5MQ=;
-	b=Jm+Xb4a9nVdqqbjNahSzS6NSd4yssn8TcMiQtt6k5z8pedpHR0KrDHaMBBUtoVaosftt
-	 lglYcs46ki9jtbi/0Wwgj6OaHvqUcRjTx2XglzKYnOT5D7jdam13AQTz2Ax+7P0leFVLk
-	 7vIi/cX5Ha3BiqFfblI0kgglo8Uq6FeLcnyqU+g2Vpqs+f2Ji2Fgj8MFa6uZH6DHHtF13
-	 CKhJ4qnhBSw0K7RG3JsVMGLvtMkyS2FeKoQrW5+nfFKIAm3K9ktOlBdBpazcVQHZg39bb
-	 xdKWg+Dhc/lCoCJ1A6stz4wdh3o4nIxN2fXNnczmxt9vCRoErpIF7MI3m/tQOu2ovuA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795789394;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:Received:Received:X-Farcaster-Flow-ID:Received:Received:
+	 From:To:CC:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
+	 X-ClientProxiedBy;
+	bh=XXVbt2lZJPrbMuYhKg18MJou4D4reflAzqt8Nx+t96c=;
+	b=O6MAxKBQfwsRcXzhodWcsUceJBX3rlhGM3XSV+eFjcwnAGqWfaNgBmUpG4PnJFPh3gsY
+	 SJ3Ft5qr5ygSeC4cE5BBBcPrP/AXO9wqBEiiHBOJq5ujr1qBfhhLfn5uyAZ/zOtFslVZO
+	 3Imv1PiczD2gIpF/DfhMvqx7Bx4nrBWdCocSeR7UGEmERDiKMfU3RdOMr2Ii3bNC/hugH
+	 fzVijSe+62tD7Tw+LpugyoB4boJSmDejvATh4nV4z5TINJxw/IJxFv1cpAL3YPtH0b2KD
+	 /W/2cFuQoy+ERuT/mVIcBeIXcarTfeVQMFwJVH1E7Qeo+3lrzxnZlRF3bm1BBCG5IGg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=bootlin.com;
-	spf=pass smtp.mailfrom=bootlin.com;
-	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b="h/ULD6tL";
-	arc=none smtp.remote-ip=185.171.202.116
-Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=amazon.de;
+	spf=pass smtp.mailfrom=amazon.de;
+	dkim=pass header.d=amazon.de header.i=@amazon.de header.a=rsa-sha256 header.s=amazoncorp2 header.b=P79ZmFJk;
+	arc=none smtp.remote-ip=34.218.115.239
+Received: from pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com [34.218.115.239])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 179AE606A31E
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 14:20:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 179AE606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACD03606A31C;
+	Fri, 27 Nov 2026 14:23:09 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org ACD03606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=h/ULD6tL
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-04.galae.net (Postfix) with ESMTPS id D5332C2AC4C;
-	Fri, 27 Nov 2026 14:20:50 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 121EF6049C;
-	Fri, 27 Nov 2026 14:20:42 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 59AFF11E68FDF;
-	Fri, 27 Nov 2026 15:20:36 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1795789237; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=6RlqKNDJafGcHvmloSCC6w2YY4+OIN/Uqr4hTcsP5MQ=;
-	b=h/ULD6tLmDGowQqyUTP1aYbbVNWg8QPINu60gPYqefLq1OTI7dUMXXliPCLPLkf+FSmNYz
-	kfC88i/bB3lCgcLpzAhVEUrT162zs5PIElTR5dSUCUuTfQIJG7Vz/Ceus5GuanDOrFqb8q
-	tIn335ycfv8GqUGyUImBsUKcfLxDq5IRVajoojr+BFhzgmDLPBBxFeofOfigmuF0yKktWM
-	L87ZU4nsvBx5CcapclK9bWTVxMeMvlhdZuMucmSEyQnTQYGaS+nbhXBQkFcwiI6kJBPQsa
-	LBFnghHAYFLRYF4j8YzMcsDXZGD1UTIrcmPhkXmipvUBv3G6wIoddzv/rCCwRw==
-Message-ID: <83bea8441ea9b1fee1ec5144c335b5cd8e2de168.camel@bootlin.com>
-Subject: Re: [PATCH v5 1/1] ACPI: platform: Add basic support for ACPI 6.5
- fixed clock resources
-From: Paul Cercueil <paul.cercueil@bootlin.com>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Thomas Petazzoni
- <thomas.petazzoni@bootlin.com>
-Date: Fri, 27 Nov 2026 15:20:33 +0100
-In-Reply-To: <CAJZ5v0g3e26eZG1_yRQzMfPvPYiiv0cHZE70V+_U+NR4kxEpJg@mail.gmail.com>
-References: <20261120161020.297735-1-paul.cercueil@bootlin.com>
-	 <20261120161020.297735-2-paul.cercueil@bootlin.com>
-	 <CAJZ5v0jeJSx3C8hdU8iAtje-NGNz4DdaVGhE_T3WpVrODuwemg@mail.gmail.com>
-	 <80b96fc3f728b59b26ebde1378f4222cf4b359b0.camel@bootlin.com>
-	 <CAJZ5v0g3e26eZG1_yRQzMfPvPYiiv0cHZE70V+_U+NR4kxEpJg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2-0+deb13u1 
+	dkim=pass (2048-bit key, unprotected) header.d=amazon.de header.i=@amazon.de header.a=rsa-sha256 header.s=amazoncorp2 header.b=P79ZmFJk
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.de; i=@amazon.de; q=dns/txt; s=amazoncorp2;
+  t=1795789389; x=1827325389;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=XXVbt2lZJPrbMuYhKg18MJou4D4reflAzqt8Nx+t96c=;
+  b=P79ZmFJkov6wpdFK/2ftI2DdzJEA+hJvh0RtR6tDuIvuH4gtm/CQBmX+
+   mY6b65Aa3G2oUe70M8TvQYwYcg3tW9h0K7jDaYDm2hNVIOGWqYx6scJK5
+   +Iy1fjJAqlfkjm7ZRGlhRxrmjSagHyqAMcvSE45Dh6/4d+t8x50uxr6hi
+   BJrI17exWY55vUkyi/ncJ5GytS3pscajLxebgise+FG0XgtI50+Twrp7p
+   Xvdn80AQX1VMbb2/T9bJmcwJWACDGUuJeKMn7WviD0ara0upq5EO7Iazl
+   BuIXkkJppCxjQdDDHZ23ubKEl1KUyVGIOgSB1/aeReowTMVyZUGRFKD4X
+   A==;
+X-CSE-ConnectionGUID: 2XRNJa1qQ0GOy7neF2zocA==
+X-CSE-MsgGUID: kML5ru2zRtqGI9YUY1QgPQ==
+X-IronPort-AV: E=Sophos;i="6.27,237,1787011200"; 
+   d="scan'208";a="35096891"
+Received: from ip-10-5-9-48.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.9.48])
+  by internal-pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Nov 2026 14:23:01 +0000
+Received: from EX19MTAUWA002.ant.amazon.com [205.251.233.178:1578]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.50.116:2525] with esmtp (Farcaster)
+ id 81d18a74-bdcb-4d36-81c6-45082ffe4af5; Fri, 27 Nov 2026 14:23:01 +0000 (UTC)
+X-Farcaster-Flow-ID: 81d18a74-bdcb-4d36-81c6-45082ffe4af5
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWA002.ant.amazon.com (10.250.64.202) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.57;
+ Fri, 27 Nov 2026 14:23:01 +0000
+Received: from dev-dsk-gyokhan-1a-87ab81cc.eu-west-1.amazon.com
+ (10.253.85.128) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.57; Fri, 27 Nov 2026
+ 14:23:00 +0000
+From: Gyokhan Kochmarla <gyokhan@amazon.de>
+To: <stable@vger.kernel.org>
+CC: "Rafael J. Wysocki" <rafael@kernel.org>, Mika Westerberg
+	<mika.westerberg@linux.intel.com>, Alan Borzeszkowski
+	<alan.borzeszkowski@linux.intel.com>, <linux-acpi@vger.kernel.org>
+Subject: [STABLE REQUEST] ACPI: PM: Avoid initializing power management for absent devices
+Date: Fri, 27 Nov 2026 14:22:38 +0000
+Message-ID: <20261127142238.1260712-1-gyokhan@amazon.de>
+X-Mailer: git-send-email 2.50.1
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -78,60 +84,32 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: EX19D031UWC002.ant.amazon.com (10.13.139.212) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-[...]
+Hi,
 
-> > > > +static void acpi_platform_init_clocks(struct acpi_device *adev)
-> > > > +{
-> > > > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 struct device *dev =3D &adev-=
->dev;
-> > >=20
-> > > Note that &adev->dev is not a real device.=C2=A0 It is a "firmware no=
-de",
-> > > quite like a DT one, but I guess it may be used for registering
-> > > clocks.
-> > >=20
-> > > How is a platform device driver going to use those clocks though?
-> >=20
-> > They just use clk_get(). It searches the clock by device name, which wo=
-rks
-> > here,
->=20
-> And they would pass the platform device as dev I suppose?
+Please consider this mainline commit (v7.4-rc4) for the stable trees:
 
-Yes, I like the fact that it does not change the API - on the driver side y=
-ou
-just use clk_get(&pdev->dev, NULL) or clk_get(&pdev->dev, "acpi-clk1") like=
- you
-would do with a clock resource from DT.
+  b91ad39f29ce ("ACPI: PM: Avoid initializing power management for absent devices")
+    Fixes: 2f4ddf2bd1ba ("ACPI: scan: Stop calling acpi_bus_init_power() early")
 
-> > I guess because the "firmware node" device has the same name as the rea=
-l
-> > device.
->=20
-> For platform devices created by acpi_create_platform_device(), yes, it
-> does, but if that is going to be relied on, that assumption needs to
-> be documented in a very visible way.
->=20
-> Generally speaking though, they should rather pass the ACPI companion
-> of the platform device as dev, in which case that the name equality
-> doesn't matter, and so the clkdev could be created during the struct
-> acpi_device registration (and the corresponding cleanup would occur
-> during the struct acpi_device removal which is rare).
+All of the following trees have 2f4ddf2bd1ba but not the fix:
+7.3.y 6.18.y 6.12.y 6.6.y 6.1.y. Without the fix, an absent device
+with power resources can keep shared power resources referenced, so
+other devices that share them never get powered down. The commit has
+no Cc: stable, so it has not been picked up.
 
-I think I should update clk_get() then.
+It cherry-picks cleanly onto v7.3.6, v6.18.65, v6.12.119, v6.6.163 and
+v6.1.193. 5.15.y and 5.10.y do not have 2f4ddf2bd1ba and do not need
+it.
 
-It gets passed a "struct device" pointer, if it has an ACPI companion, I ca=
-n
-just recurse on the ACPI companion's device struct.
+We carry it on 6.18.65 in the Amazon Linux kernel, and
+drivers/acpi/device_pm.o and glue.o build cleanly there.
+The other trees are only checked for a clean cherry-pick, not
+build-tested.
 
-Btw - I'm working on the v6 and I added the cleanup on acpi_device removal.=
- Is
-there a way to test a ACPI device removal from userspace? Looking at
-Documentation/ABI/testing/sysfs-bus-acpi it seems to only be for ACPI devic=
-es
-which have a _AJ0 method?
-
-Cheers,
--Paul
+Thanks,
+Gyokhan
