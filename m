@@ -1,55 +1,99 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795783429;
-	b=u53447M9YeCgnIu4k8DEc+JWMvLhQyOLm9DTsk1wfZCRLwXsxfBr8v6VSGpPl/PRkuwp
-	 iiFfNsPaqDLtA84ovTQp1in0X6FuEiJfhGSh9goaDHwjZLY6bk05HQil/mUnyF7pfnJvG
-	 urcNBEgG88YEKo65iIuOEJchvjOGuMmLprxlnqoyZkfCnAJzGFECRoGVmYK1OZXryZSN5
-	 75YX2f/+L50DtR80CZDTuxMO9XZ65WQP+0TJXrhnE8/DmtJaRocTNYOwsbAkBJUiDXkzu
-	 JG+0FQ7SlbNkyktrj3tXkOVd5w9dCCTqbqE5E89TQSUEVH/JxO7Lkcp5QN+uSMygEXw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795783429;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=K6o4WaCNvFl65LaFVXvDMyujQeRr+C1WwE1TeM0hXMg=;
-	b=iMKkjq2Jgh34aI2aTcNrZ+dQlWI21gaEKbBrbMzqqbJxhHiF94xBCP1NEGWT4OJHxNpJ
-	 eGzAqHgVNyCcvscDfpqfibmChpJTkr/g8kLF90haVLSTXiqpWWNV6lc+mH0GOCmHXv+Ca
-	 hQlO48YRc2juvvVWWhkNmuzjtaa47T7yHPFbEyoauMD8foSjhLX3/YWOoT/AHDVhnLqe6
-	 Dc02D0xDmliX3coyHlS6yup2aZimigxsUObZSEgC64rsE8Ah8cqY4RIklHJQqVV2dC1+4
-	 b7eZjSODjv6hcrswB1Bg3b7jo0H2OhJDAR+C2MNDwOgLz/NyDej5uDN/GX/I+uE324g==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fI+QM2x7;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.22
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795783480;
+	b=JLDL/B3htQEjNUkv9AHMmWsFhB7CgvQe8F3h57r/JMmmUWefIWV7Q41R2jQJJYH+1HW0
+	 xaa1xoC9XNT++A1NwCsdZIecY9+qXYPl0BeijNC+jjBaAjSgSWX7HVDDNTSWFEeNNoNMD
+	 W3TRgONF6/TeCxTpGEEQ4oEd1CHdKxt+Taew+ZqVwawetbsQWc09U0ethbwEznvgh9E9M
+	 QZbZQzxgjzqV6xqB6ImyqE5Suac1z2nOeyweRfYEXzuNxqGqywAuYxSqD1rvy8RqmWEMI
+	 4Xm1iqC3CJ6hWYn8bobQCHZks0AN5W4ffs7OeDAsl4qEAEPXi+/H/vOiPq5yR+CjLrw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795783480;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 Content-Transfer-Encoding:Content-Type:X-ClientProxiedBy:MIME-Version:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=lv4q6JSdbhWBG+OdfXXyNHjNN35P2owBKVVrbkNJhiA=;
+	b=z+awZz6YAn191o42ra3BUiOmhTs/jW4Uq1yyTwxU05g3O0gdB3zOrm1kGHUWwSXlX7ri
+	 8l4EWw3eKnqutGOAyav64KH/R6rWtARMD2hBiQzhKYYuzEAE73mmlueCjxqOIUzSo9OTD
+	 EDFKipGl8ALqzGlqay7SH5339hdcQieYUKjzfKEDaL9lYSi3IFgPT65aC1hZPo8yaHTIg
+	 YbNj4AKk8YBTLCNNrW+Y/l1Ih69iQ3RzeKGBg+JlzF3BAb1msyVuFRPNjPRMiDaKLlIYR
+	 cYq2H2GIpLtfVC9swDcyR8McpztkK3xXwq6xQHj407OdowT8XnB4bcwzAQrnQ1EYmHw==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=m7Msd2Zo;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.22
+Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013022.outbound.protection.outlook.com [40.93.201.22])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89366606A31C
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 12:43:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2B71606A31F;
+	Fri, 27 Nov 2026 12:44:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A2B71606A31F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fI+QM2x7
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD8851F0089C
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 12:43:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795783428;
-	bh=K6o4WaCNvFl65LaFVXvDMyujQeRr+C1WwE1TeM0hXMg=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=fI+QM2x7RQDoI8jx8FwkXMiMnpYC3j8dnpIp0/9Mi6tjsI74YJLI95WtjXDgLDO+E
-	 25cm9xSnitKp4OT7duf2Xfp20RRy9+D6lys8jJltp0jQLq5aBMm74O7pjEYz2A2IMR
-	 gP9CsbEpOzgqKIY1uq0tKa+zG4CyBdfAknJ4/BmlrtxyXcQHQbrYC0vGiW/ERm2PtC
-	 x1ZEOdiGB6ErIXNv+dr/Peif4mx8GG8GPXegdsI8M41q/pJdU+JeYxzDgXyBGttYwA
-	 I+po/IC3DP+V9xUF/5zUu82Ge9QzLCZvTH92vF2UfSydYdF2ToE1DJmP+o4uSaeXQH
-	 HDb8FBIT8Qxfw==
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-3ae0d0b9db2so74332511fa.1
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 04:43:48 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErGPG+trT9Vj8vq7j3AP4CtxBR9wO56e4nyGrSoenVEOtpk3Yk+3zLLWpL7NCBTkDmdJunghGlIH3i0V@vger.kernel.org
-X-Gm-Message-State: APuU4Z/5SXyBVgTAWyQ12fNkiNYlw1VrWFUYOl+L6QpD5yjH9S8P7kza
-	g4b6A1ZVvoRYTSd72SThw+csB7wRbboW/4ky0uLYxJY7wdgy91E8HK92AnqFUXIFoE36nRZL3jz
-	nThUGHn+VPmlgHvPUXwXo0bKYboJw5dA=
-X-Received: by 2002:a05:6512:1049:b0:5c3:3ec5:8ee3 with SMTP id
- 2adb3069b0e04-5c33ec59054mr467719e87.37.1795783427175; Fri, 27 Nov 2026
- 04:43:47 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=m7Msd2Zo
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=a5WH+mWXM9ynXDQBkA1UB86Q2uyE6yEWNoD2nhyzVMvSdeR1xbTRiiIl7THLFMPCgRzIJIJ0T6vC8bXs3GL7VMalIE2V04CbaGcP2xzgApg9NRA9g2DMNHaH6ayeE1XpRiz1lm6N/fJl8UN5rYawcWNzC+k/Y5Q3I+r5zRjadJCfnHxk6y0ZWYUpvmb9y3mLKGI3WE6CIOS64s+JS68qKv7ptbXiROLMM+X5QGqZh0KWK4AlL4grJXFWPPIVkdvtSP+7IWH+9qQ1bIEwkDWhfmFUaRQiCpimK/WdRZxV5jvhEk2NWFBPoveX7XhLeNYdRzRgbKnEYp5xaDqXWoaz9w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=lv4q6JSdbhWBG+OdfXXyNHjNN35P2owBKVVrbkNJhiA=;
+ b=sAV8M+8sCYkL0zu6FOUACjeXgEt5TXyZ88ppCFEKqWkLcFth3P4jD6MrKn/lvYy1LhZ9q1vV0GUxuTfaJuhJWGNR8EAztwrc37osU99S+22wF0IyjiM4TUlAmk7vwC0tgpwjwoXjhr7YLTKSk5niGIPPUGsH5GSLLpKBX7qSR7l3wlFv9iN71m4WtDPTxzwEFoRccSOVGe8iC+AZ9q9vgBIjLFi43KPj6Byk1gIWuZYsww05iJwknwrClp6c+bu8mLoZffGnvoaFlRLle2jJ0rimpJCOVv6xw+vu/VAbc73AnvvZs+dqS3NgHLmxyvsb8bbjaTQ4CmAluqFA/GLgww==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=lv4q6JSdbhWBG+OdfXXyNHjNN35P2owBKVVrbkNJhiA=;
+ b=m7Msd2ZosilcjxMjK1BdGi5r11HB+v4aB9gEnDBfXVKKmPPGiIjPNqeGTSfmTrwpvy8je/7eo0Zo1dIpSuzG61U/gJ34rP5Yhmo0S/ez7X+l64NS8bXC2fjW4lfjGBc5tlkyR9YgAN02FyAxXDSM7NW9RBHEHQQ5F8317RxeyzLcJP7vOdaMVeudZsGy3NjFfy/4ENGHJ2gQVUnUrqHxuWsNqwKHtr2CxMuylXYXTwyO3807IywgvuaQgfIFhJma29FByfiQRae6Z0ADdMqTQJ5KemlpX8HIgC+TWy8FnVK7gY7rj9aiRakKmFYMOqtJKyXz1QB2oDiyEeurZD8lJQ==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from PH7PR12MB5974.namprd12.prod.outlook.com (2603:10b6:510:1d9::19)
+ by SA3PR12MB7975.namprd12.prod.outlook.com (2603:10b6:806:320::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.662.9; Fri, 27 Nov
+ 2026 12:44:33 +0000
+Received: from PH7PR12MB5974.namprd12.prod.outlook.com
+ ([fe80::f5a5:bbc3:e9da:f8a0]) by PH7PR12MB5974.namprd12.prod.outlook.com
+ ([fe80::f5a5:bbc3:e9da:f8a0%3]) with mapi id 15.21.0662.007; Fri, 27 Nov 2026
+ 12:44:33 +0000
+From: Adrian Ambrozewicz <aambrozewicz@nvidia.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Bartosz Golaszewski <brgl@kernel.org>,
+	Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Kent Gibson <warthog618@gmail.com>,
+	Mika Westerberg <westeri@kernel.org>,
+	Herve Codina <herve.codina@bootlin.com>,
+	linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 2/3] gpiolib: release the chip's own lines before numbing it on removal
+Date: Fri, 27 Nov 2026 14:44:30 +0200
+Message-ID: <20261127124429.3423977-2-aambrozewicz@nvidia.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <awltlfkwFWv8O4pG@ashevche-desk.local>
+References: <20261127-gpiolib-ownlines-v2-0-aambrozewicz@nvidia.com> <20261127-gpiolib-ownlines-v2-2-aambrozewicz@nvidia.com> <awltlfkwFWv8O4pG@ashevche-desk.local>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: TL2P290CA0030.ISRP290.PROD.OUTLOOK.COM
+ (2603:1096:950:3::16) To PH7PR12MB5974.namprd12.prod.outlook.com
+ (2603:10b6:510:1d9::19)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,243 +103,100 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261120161020.297735-1-paul.cercueil@bootlin.com>
- <20261120161020.297735-2-paul.cercueil@bootlin.com> <CAJZ5v0jeJSx3C8hdU8iAtje-NGNz4DdaVGhE_T3WpVrODuwemg@mail.gmail.com>
- <80b96fc3f728b59b26ebde1378f4222cf4b359b0.camel@bootlin.com>
-In-Reply-To: <80b96fc3f728b59b26ebde1378f4222cf4b359b0.camel@bootlin.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 27 Nov 2026 13:43:33 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0g3e26eZG1_yRQzMfPvPYiiv0cHZE70V+_U+NR4kxEpJg@mail.gmail.com>
-X-Gm-Features: Aa3M54p-QXCDrJN7873U0bKzfmK7fh9R56kFv3lmFnJS-C0uYHQdc-4p9sWsq8I
-Message-ID: <CAJZ5v0g3e26eZG1_yRQzMfPvPYiiv0cHZE70V+_U+NR4kxEpJg@mail.gmail.com>
-Subject: Re: [PATCH v5 1/1] ACPI: platform: Add basic support for ACPI 6.5
- fixed clock resources
-To: Paul Cercueil <paul.cercueil@bootlin.com>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH7PR12MB5974:EE_|SA3PR12MB7975:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0f0f312f-c307-43b6-bb67-08df4c842ffb
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|376014|1800799024|7416014|23010399003|10067099003|56012099006|261026121527099003|261026140227099003|261028144727099003|261022105027099003|261022075727099003|261021121427099003|261102123227099003|261009223027099003|5023799004|22082099003|18002099003|11063799006|4143699003;
+X-Microsoft-Antispam-Message-Info:
+	XX4lFKHiEllR58A11jOlOLDM4h3+1SlTQ1FChHk00463OrkKzcvhtNU0Ydw0oD7VsGek0Bn1ng4I1NcZbTsYg0+3Kb46UNwBAOG2w/2VAWQwEHNsipoVL3DAecYuEPOAaXQU/F9h4Wbqe9FGBYFssGZFnI/JEfuE9pU0IPg8s539kITgrdI/59yV6DgwZTnu8g0vDUaaZZEAHFmDBos8Ha5Nnkvx2eaM8uVUDbSpUzLh4MvqVcj43L/LTKhDH9ROHr7Z6UAdMYAAsE+x8hST4s598W3o1i/sMT//1vwZC+Wa38IKNHoNFIYJ1nihTXZZBG+/ciQyomf/PzbUFw6n0r2pxkUmbb74bUEpQu5jzFjV6LRNkN7s1aJatLnJvJE+C63GNDs2W5K3/27Aou1aLoETDUWefadvmF75V9Xou0BXO3aqXsEB/38BY4QGAKnXCTh71/FL+nI17sG/JqKr71QkL+qTVbKrON4Sakx59ikzY7QX6gjMCBDbk91rt5X7Ph7xsmf2OmUaozPsODMHBBdgQyFDpxhyOBSp9PCseiBLotrzqkIW59wPXb06pWEmtd1W7TlhDVAh4mJSD5g6CH5pVAsziUQhfDtb/5lscso/nkVHNayFNK2TmgF1e5YAuPEPoVjB1I4Z0eNQkEN3iw==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5974.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(7416014)(23010399003)(10067099003)(56012099006)(261026121527099003)(261026140227099003)(261028144727099003)(261022105027099003)(261022075727099003)(261021121427099003)(261102123227099003)(261009223027099003)(5023799004)(22082099003)(18002099003)(11063799006)(4143699003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?H9il2LS/alBv1P/5F0xMa3BE9pdwuS8E2oJdXYgir2gjAig1KlLjfPPMKTcZ?=
+ =?us-ascii?Q?6ns+U6+58xduWHj5Au+XEvOvKWOgxc2tRgDoYqtd9d8gpGeRSI6hTBwfI1XE?=
+ =?us-ascii?Q?fp3RLHpNoF0r9XZhvf4wleQk96Bpg+UTKhtRa/5EAGA1X0WOMacxerGtFe0m?=
+ =?us-ascii?Q?C4tF4fgwrNtXHbg/XBF1fAbEwEXrSwvHETeigRbLiUOsugRihvhZnf7gh5up?=
+ =?us-ascii?Q?geMnGVaYoPB+8MWWc9yZkCZ9Fi/equSDoSOOSPnzOJruK3md5ZdASmn8YkNF?=
+ =?us-ascii?Q?6sAdf4LvjbjlRb8rxGYRWbaqc6sWeHoyUmAhEsp3ltAG81+1fEQx2ZeK3azV?=
+ =?us-ascii?Q?XFMZ1mNh3aH2hM7lOqzR2ylRmru0h8ZF/eFzw2fuKUo0eJnmYMZSgftzjZd6?=
+ =?us-ascii?Q?UrDlg573XWwPiKrcB2MN9Plj2Hezm6JNn3RU5RSNBrcmOeVKWjWpH5dlU01P?=
+ =?us-ascii?Q?wDU9cJRdfFDco/cC22VjdIsysZ3QJ6UvoaGtPSwNQxwC9vMoFP6cusvPmSPD?=
+ =?us-ascii?Q?t7APj/BXuC91bzSS4kKPTCXEBFPNJYa5vAwZtnxk+6nVLOCkPTIq7/BlE1Zj?=
+ =?us-ascii?Q?pB8XNIQTQxBDotRkhACBLc27J/5K3tSXE/D/SxOsT8/cskVAaI7UA1d1VA/U?=
+ =?us-ascii?Q?NBqjYBSvhrJb+zqTmAlzy3ghKluoo6E400wUzgt8P/9FyKjKh206iyijlLLG?=
+ =?us-ascii?Q?3IgxIVISygMgTM9Pbt8uUb3M0MPwiVF+vxzZB+y8oUA4qlHIKDrHVBD54S+7?=
+ =?us-ascii?Q?dteqVU4inYCfmeoifBgBtpsEbagwtdsTZlrIbIh67e4xVW49PCNK2rsM+oF3?=
+ =?us-ascii?Q?FQ6U1wypzkP9r5MJpcPNMq1Ca9vO1+kF5+ihI5pIWUluX/ipukcynogwf3D6?=
+ =?us-ascii?Q?rJmZMdamYmNQML0DMTimDoqbsQ/+tpDHZBcsLcHZgvrCwfqV6AW/nalsqOFj?=
+ =?us-ascii?Q?AQCg+1t3Mnhan3KUU40l+OWLS+WqOadhryV+XWddZznan7VOeYOZequUNCyj?=
+ =?us-ascii?Q?severVn2n0IsBhyJWBW6H4xtwZmsw8ZUjfFJ7Ke1EUmmSQPzjBbgKJNHHqh2?=
+ =?us-ascii?Q?stJzAlTZyQpUq0GPQnHVKTSZEDMJgf3+0htR/irvsX31g2iACMZsc6FVR+kG?=
+ =?us-ascii?Q?kZLNghwFfqx1AlzU2/vUSkVXo2BqSSbOQ75M+Iad5k9ZFzVwkITCmW4zWiNz?=
+ =?us-ascii?Q?nG1wkzcGmVW6TNPbmZkdzzyp6wmEXpN2vmGbifYIs+kNkYeZDcomon3U1bqA?=
+ =?us-ascii?Q?M0XmyaWSjyIyCcNhUtHOgOmzehbMGGS+GsFSTMt57+JAn0ZIeaghwtD6NUyl?=
+ =?us-ascii?Q?eoqdk67Q5WeXC6OIbBnRzwr+zc3YWKS7u7wrSkaXJ8onR9veTqhri/ze0VuT?=
+ =?us-ascii?Q?S+HFks2gAd5CYDWTvIH31mUK6RO4WWYuz/fbs6VCKoUswbUFsB3+kKdWc2F8?=
+ =?us-ascii?Q?Ny+KGQXDofvXTDe4HP3qickN714tPVUaG0i2QQUtAJ0j/rcwhbZe+f07ytXQ?=
+ =?us-ascii?Q?fQpw5As7QNLiBKrbXT4VJCSKHfoyshaVtaMSbxiD3TJ05v+9DQAmS/jR7oke?=
+ =?us-ascii?Q?B5ykujS9bwirCXyiwMzg32PwHhtAw5VSKnFE6RdxiOk0WpKmcXFj1BKWakQP?=
+ =?us-ascii?Q?i5kFExDOIEPXL6UJz0SjRb/WmoqBL7ssL6R1kA0EWvSJF2v/kGBGdrlPCD10?=
+ =?us-ascii?Q?AkgbjLIi3qhD869TIkEcm6+i/XKOJMmC/nYqZQUUK4JiEbwvV0Og0ON+l3W5?=
+ =?us-ascii?Q?yUf3LIfKHw=3D=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0f0f312f-c307-43b6-bb67-08df4c842ffb
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB5974.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Nov 2026 12:44:33.7274
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 0S8GNAzUtnVBEaMk17QAfACg7zg3pE4StqkRIEjK/CWBoly6vwTfWyzJlLFISLuWD9ULowgog06f7BdkUdA+1Q==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR12MB7975
 
-On Fri, Nov 27, 2026 at 11:05=E2=80=AFAM Paul Cercueil
-<paul.cercueil@bootlin.com> wrote:
+On Fri, Nov 27, 2026 at 01:46:29PM +0200, Andy Shevchenko wrote:
+> On Fri, Nov 27, 2026 at 09:49:26AM +0200, Adrian Ambrozewicz wrote:
+> >  	gpiochip_irqchip_remove(gc);
+> > -	acpi_gpiochip_remove(gc);
+> >  	of_gpiochip_remove(gc);
 >
-> Hi Rafael,
->
-> Le mercredi 25 novembre 2026 =C3=A0 21:22 +0100, Rafael J. Wysocki (Intel=
-) a =C3=A9crit :
-> > On Fri, Nov 20, 2026 at 5:10=E2=80=AFPM Paul Cercueil <paul.cercueil@bo=
-otlin.com>
-> > wrote:
-> > >
-> > > ACPI 6.5 introduced a clock input resource descriptor, which allows t=
-o
-> > > specify in the ACPI tables what clocks are connected to a given devic=
-e.
-> > >
-> > > This patch adds support for the most basic clock resource, which is t=
-he
-> > > one that represents a fixed clock. The new code will then create a
-> > > clk_hw for each fixed clock resource, which is then made available to
-> > > the device drivers, that can obtain it through a regular call to
-> > > clk_get(NULL).
-> > >
-> > > Signed-off-by: Paul Cercueil <paul.cercueil@bootlin.com>
-> > > ---
-> > >
-> > > v5: Register fixed clock as "<ACPI_ID>-clkX" because we need a
-> > >     system-wide identifier there, and we don't have the 16-characters
-> > >     limit there.
-> > >     Register the first clock to clkdev without a name, so that
-> > >     clk_get(NULL) will obtain it.
-> > >     Register every other clock for that ACPI device with a "acpi-clkX=
-"
-> > >     name.
-> > >
-> > > v4: Change clock names to "acpi-clkX", because ACPI devices names can=
- be
-> > >     up to 17 characters long, and our clock name must be 16 character=
-s
-> > >     max.
-> > >
-> > > v3: No change
-> > >
-> > > v2:
-> > > - Use the calculated clock name in devm_clk_hw_register_fixed_rate()
-> > >   instead of the device name
-> > > - Make sure clkres->scale is <=3D 2. The field is 2 bits but the valu=
-e
-> > >   clkres->scale =3D=3D 3 is not defined in the spec.
-> > > - Compute the fraction numerator using 64-bit math, to make sure it
-> > >   won't overflow on 32-bit systems.
-> > > - Initialize clocks only when the device_type matches
-> > >   ACPI_BUS_TYPE_DEVICE.
-> > > - Use a shorter name for clocks as the hard limit is 16 characters
-> > >   including the terminator.
-> > > ---
-> > >  drivers/acpi/acpi_platform.c | 75 ++++++++++++++++++++++++++++++++++=
-++
-> > >  1 file changed, 75 insertions(+)
-> > >
-> > > diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platfor=
-m.c
-> > > index 80ea7121744d..b4f2ccf3e51f 100644
-> > > --- a/drivers/acpi/acpi_platform.c
-> > > +++ b/drivers/acpi/acpi_platform.c
-> > > @@ -10,17 +10,27 @@
-> > >
-> > >  #include <linux/acpi.h>
-> > >  #include <linux/bits.h>
-> > > +#include <linux/clk-provider.h>
-> > > +#include <linux/clkdev.h>
-> > >  #include <linux/device.h>
-> > >  #include <linux/err.h>
-> > >  #include <linux/ioport.h>
-> > > +#include <linux/kconfig.h>
-> > >  #include <linux/kernel.h>
-> > > +#include <linux/list.h>
-> > >  #include <linux/module.h>
-> > >  #include <linux/dma-mapping.h>
-> > >  #include <linux/pci.h>
-> > >  #include <linux/platform_device.h>
-> > > +#include <linux/units.h>
-> > >
-> > >  #include "internal.h"
-> > >
-> > > +struct acpi_clk_data {
-> > > +       struct device *dev;
-> > > +       unsigned int idx;
-> > > +};
-> > > +
-> > >  /* Exclude devices that have no _CRS resources provided */
-> > >  #define ACPI_ALLOW_WO_RESOURCES                BIT(0)
-> > >
-> > > @@ -130,6 +140,68 @@ static unsigned int acpi_platform_resource_count=
-(struct
-> > > acpi_resource *ares, voi
-> > >         return AE_CTRL_TERMINATE;
-> > >  }
-> >
-> > First off, will clocks only be needed for platform devices?  If not,
-> > acpi_add_fixed_clock() should be defined in drivers/acpi/resource.c.
-> >
-> > > +static int acpi_add_fixed_clock(struct acpi_resource *res, void *d)
-> > > +{
-> > > +       static const unsigned long clk_scale[] =3D { 1, HZ_PER_KHZ, H=
-Z_PER_MHZ
-> > > };
-> > > +       struct acpi_resource_clock_input *clkres;
-> > > +       struct acpi_clk_data *data =3D d;
-> > > +       struct device *dev =3D data->dev;
-> > > +       const char *name =3D NULL;
-> > > +       struct clk_hw *clk;
-> > > +       unsigned long rate;
-> > > +       unsigned int idx;
-> > > +       char buf[64];
-> > > +       int err;
-> > > +
-> > > +       if (res->type =3D=3D ACPI_RESOURCE_TYPE_CLOCK_INPUT) {
-> >
-> > Maybe
-> >
-> > if (res->type !=3D ACPI_RESOURCE_TYPE_CLOCK_INPUT)
-> >         return 1;
-> >
-> > > +               clkres =3D &res->data.clock_input;
-> > > +
-> > > +               if (clkres->mode) {
-> > > +                       dev_warn(dev, "Only fixed rate clocks support=
-ed for
-> > > now.\n");
-> >
-> > _warn() is likely overkill here and it would be better to print this
-> > relative to an ACPI handle, so use acpi_handle_info().
-> >
-> > > +                       return 1; /* keep going */
-> > > +               }
-> > > +
-> > > +               if (clkres->frequency_divisor =3D=3D 0 || clkres->sca=
-le > 2)
-> > > +                       return -EINVAL;
-> >
-> > This is firmware providing bad data, so not -EINVAL.
->
-> Right, that's a -EFAULT.
->
-> >
-> > > +
-> > > +               rate =3D DIV_ROUND_UP_ULL((u64)clkres->frequency_nume=
-rator *
-> > > clk_scale[clkres->scale],
-> > > +                                       clkres->frequency_divisor);
-> > > +
-> > > +               idx =3D data->idx++;
-> > > +
-> > > +               /* When registering a clk_hw the name must be unique =
-across
-> > > all devs */
-> > > +               snprintf(buf, sizeof(buf), "%s-clk%u", dev_name(dev),=
- idx);
-> > > +
-> > > +               clk =3D devm_clk_hw_register_fixed_rate(dev, buf, NUL=
-L, 0,
-> > > rate);
-> >
-> > Why devm_?  This is called at the device creation time, not in probe,
-> > so how/when is clk going to be unregistered?
-> >
-> > Also, devm_ doesn't work with struct acpi_device which are never
-> > probed and drivers are never removed from them.
->
-> Ah, good point. That's going to complicate things.
->
-> > > +               if (IS_ERR(clk))
-> > > +                       return PTR_ERR(clk);
-> > > +
-> > > +               if (idx > 0) {
-> > > +                       /* When registering a clkdev the name must be=
- <=3D 16
-> > > characters */
-> > > +                       snprintf(buf, sizeof(buf), "acpi-clk%u", idx)=
-;
-> > > +                       name =3D buf;
-> > > +               }
-> > > +
-> > > +               err =3D devm_clk_hw_register_clkdev(dev, clk, name,
-> > > dev_name(dev));
-> >
-> > Same thing about devm_.
-> >
-> > > +               if (err)
-> > > +                       return err;
-> > > +       }
-> > > +
-> > > +       return 1;
-> > > +}
-> > > +
-> > > +static void acpi_platform_init_clocks(struct acpi_device *adev)
-> > > +{
-> > > +       struct device *dev =3D &adev->dev;
-> >
-> > Note that &adev->dev is not a real device.  It is a "firmware node",
-> > quite like a DT one, but I guess it may be used for registering
-> > clocks.
-> >
-> > How is a platform device driver going to use those clocks though?
->
-> They just use clk_get(). It searches the clock by device name, which work=
-s here,
+> I need to look closer for ACPI bits, but above doesn't sound right. Why
+> of_gpiochip_remove() is not associated with ACPI counterpart? Wouldn't it bring
+> a completely different experience on the same platform depending on the
+> firmware in use (DT or ACPI)?
 
-And they would pass the platform device as dev I suppose?
+Thanks for the review. acpi_gpiochip_remove() releases the OpRegion
+connections with gpiochip_free_own_desc(), which skips ->free() once
+the chip is numbed. of_gpiochip_remove() releases no lines; the DT hogs
+are freed by gpiochip_free_hogs(), which commit 5018ada69a04 ("gpio:
+Move freeing of GPIO hogs before numbing of the device") already moved
+ahead of the numbing. So both now free their lines before it.
 
-> I guess because the "firmware node" device has the same name as the real =
-device.
+To keep the two calls paired, for v3 I plan to split the OpRegion
+release out of acpi_gpiochip_remove() and move only that ahead of the
+numbing. Would that work for you?
 
-For platform devices created by acpi_create_platform_device(), yes, it
-does, but if that is going to be relied on, that assumption needs to
-be documented in a very visible way.
+> > - * This is called only from gpiochip_remove()
+> > + * acpi_gpiochip_free_interrupts() below finds nothing once
+> > + * gpiochip_free_own_lines() has run; it is for the error paths before that.
+>
+> This doesn't sound right either. Why the common method of freeing ACPI event
+> interrupts can't be shut down here and this one called when we need to remove
+> the IRQ chip altogether?
 
-Generally speaking though, they should rather pass the ACPI companion
-of the platform device as dev, in which case that the name equality
-doesn't matter, and so the clkdev could be created during the struct
-acpi_device registration (and the corresponding cleanup would occur
-during the struct acpi_device removal which is rare).
+The event IRQs cannot wait for the irqchip removal: the numbing ends
+with gpiochip_free_remaining_irqs(), which frees them, and
+acpi_gpiochip_free_interrupts() then frees them again ("Trying to free
+already-free IRQ"). The irqchip cannot go before the numbing either:
+the character device frees its IRQs only after it.
+
+So for v3 I plan to drop acpi_gpiochip_free_interrupts() and this
+comment from gpiochip_irqchip_remove(), and call it from
+gpiochip_remove() and the error paths instead. Is that what you had in
+mind?
+
+Adrian
