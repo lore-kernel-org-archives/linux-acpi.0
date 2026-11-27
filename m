@@ -1,113 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=213.97.179.56
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795781440;
-	b=zZBbS7s/jvdUdbrbZeHriLpynmJfYDSbsMaJ1blKJe267OTmiHw0TcVG7sOMZ5D1VZH/
-	 CZ6PTOPefqC82QFylXxhq5rSyC9Kw4Phev/fIJcKIGGJNuffQTTV+DMmQfAFQRnxUVtCg
-	 IQXM23qygVns1ZWPdkCRVMQJuMXV4Mkrwlj66XXKObdtqhUZz98nMzBY8VWQ/SdS0HykJ
-	 Dv0YuJkpuU9RWXA6vaWkBUms12JtB7V8sJKEY/yEvH2LuYRjFlJAKsmNP78EnkKZYqNDZ
-	 ByflDkT5deghLebEZiyI7yhcsReB/KvQZ82WVipVYnhMhELSjp7os4nQYomQm/1/FYw==
+	t=1795783399;
+	b=01j6elvuXu4Sc6nNEm9JAoSPXf9Amu3ajvNUVbmQcCHsgqzOk60lboI7oOwKoOcIBLi4
+	 5YPGvxIpPsihbXyVi/SpFAc794KvuYSZB21lIVEibxFugOq3yFSQ0h9zZIDVxM1PxaMNS
+	 GNLQZI1q97WX1/G0Al3sJa21F31JUFyr/DPLv9/6HefuITWHaaIpahoduN7gE+gDFoJhH
+	 D5Ri227sXALmljImcW8mXENVia1ZFNYg/WEW3/c8xQ2Ic8A80ibPuzJ0mJh+j/BHi/xB2
+	 G/sJyn46YmEU7xeF/kGXBpX+QFEdKg4Dp9kaqVFU5VU69evOARH73KqqD6JLFe9H7fA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795781440;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Message-ID:
-	 Date:MIME-Version:User-Agent:Subject:To:Cc:References:
-	 Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:X-Proofpoint-Spam-Info:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-ORIG-GUID:
-	 X-Authority-Analysis:X-Proofpoint-GUID:X-Proofpoint-Virus-Version:
-	 X-Proofpoint-Spam-Details;
-	bh=Edlnli8/pVvjmsK/V5fSAop1oIXHSuOLdm8aMgYJNLU=;
-	b=3TSz3xDRhCcIuOhTbobM2sC/2pWBQJmUXLz0y9P2JMTqKsP6WhixEgN0TKVIZB4NXVl5
-	 uW66Y+au0G6YPpmx17QYZM2xgbjdoes8Pliqd92PFmZqABGgr/LaTiD4E9rDhClrAcm64
-	 Jftwxb9ktPzKvyVkw5OhFh0a3gvhaPQg6TnVoQoTaBPzGPBE0waBVjhVJp37yddmspo3v
-	 ipjUwnLPMkO/EAhCTt4WXIRz9JmTKGTXHaveqya+w3Y73K5Z7LgYO0/mGK0MgrSwwjObX
-	 5t4+3Ln5G0UUYrEwmR3xw3mp+WG6URK4HIg86xn15bJM7pv8dIxNolV6Q+9E4RjhcPA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795783399;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Received:MIME-Version:
+	 Date:From:To:Cc:Subject:In-Reply-To:References:Message-ID:X-Sender:
+	 Content-Type:Content-Transfer-Encoding:X-Spam-Report:X-Spam-Score:
+	 X-Spam-Bar:X-Rspamd-Score:X-Rspamd-Action:X-Rspamd-Bar;
+	bh=SW7JHhiu41wfPquSMxR+o4KbZ3UG60Y+QaqGLDrhNjA=;
+	b=VJPM3Q4QapC7Qx+0zWdx1LHZOVyiMbAOjj1WV20+bvoXh9urWoEhy0QlPrTpRrElllw5
+	 tVz98FfSuxX+Irc9nUG+3hEwQGE1IXJJUy17LztfG6PK80qCDz0Ea8oNUPk7PhbCmGSWS
+	 B0Yauo8Hw07rmcsB4eC9KQvD1jRnBYb0m3FMial8SaCEB5h9wksnTitAwT6M/tBLT6hLE
+	 3wAtaAsNn0Pr+eKAMJdziulZuVMkbAutt45EWVu4j+vEAxwDn4tv1aYoaLsk14BAtDArn
+	 Ha6MDf0bNA6VSvOjHG8OtoGHU74DOVF2lOY025K4V7mro6iHnb1IX9Vg7mEDS5ZIw0g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.qualcomm.com;
-	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b="NME0/zL3";
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=C9ssFRfx;
-	arc=none smtp.remote-ip=205.220.180.131
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+	dmarc=pass header.from=igalia.com;
+	spf=pass smtp.mailfrom=igalia.com;
+	dkim=pass header.d=igalia.com header.i=@igalia.com header.a=rsa-sha256 header.s=20170329 header.b=M1p+lQ2N;
+	arc=none smtp.remote-ip=213.97.179.56
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2791C606A31F
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 12:10:38 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2791C606A31F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4217F606A31F;
+	Fri, 27 Nov 2026 12:43:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4217F606A31F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=NME0/zL3;
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=C9ssFRfx
-Received: from pps.filterd (m0279872.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6ARApQr31560743
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 12:10:38 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	Edlnli8/pVvjmsK/V5fSAop1oIXHSuOLdm8aMgYJNLU=; b=NME0/zL3lOee5+hA
-	/Mj60l7TselHqAE2SvbCoAJihq0N6SaOIl9sRs65slPfhPSyAyBKIY2Vlo4MkRbW
-	+PfwaFn5WjxTgoE4kcKnUv8stNlGPARGhfcGAklz1ZgcG4JBOKs5192vM/lyDZal
-	5ZDPAXlYhpRLeMf8J7V9mv8IQKjMV0/DDHCeQjK0pBOMtyjK5u7fSdOMFX8c6LxZ
-	nd7wiCoICVjweMbV9tqb3HU4HRDm0SVyPp0bnXBgLZ1Ff9L3MouI8equqEWkHMpt
-	32kbbOWVOhSihkxsYHOiEs4blKFK0xs0W0Aqy3wH3d6So3o7vGti7Q4x7P911Dmo
-	CVUH8Q==
-Received: from mail-pg1-f199.google.com (mail-pg1-f199.google.com [209.85.215.199])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4j6u55tvn0-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 12:10:37 +0000 (GMT)
-Received: by mail-pg1-f199.google.com with SMTP id 41be03b00d2f7-cdeb1f93b63so133295a12.0
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 04:10:37 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1795781437; x=1796386237; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Edlnli8/pVvjmsK/V5fSAop1oIXHSuOLdm8aMgYJNLU=;
-        b=C9ssFRfxwZa5kc2BV8cV0s7EZM4CtUyhCyfxO76uNWU6Tg3aMnGw5OcPF5dxsZ8QBO
-         7w5iYSruqnl6jYsgDFlwsug0ml05Szcf4qAqDP04FSKtyhhtgnDB2DbCAjq5b4BdxqYM
-         Djmw7sk7s+Lc8t1U0NG6OgCXAZXLv17gr3jkN23DQFKXJT+1wdJvONGiUVLVG/wYlKoI
-         8oOew/3upnw81FOj0T9dQgRpbaAgEE+GOl/WGcVggb4rE+BlcV7FqxpHzNAx4k4PUV0s
-         GXWHXHCoeBs2IngqUaW26lELE10ygXkKFVtQwpw+//ZBmbU9bgRnKLEP5hgA0jf8bup4
-         zqkw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795781437; x=1796386237;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=Edlnli8/pVvjmsK/V5fSAop1oIXHSuOLdm8aMgYJNLU=;
-        b=YD4Ol8Qp7fnXk6FGhaWZpxsgZrhpdiQOIHKVyqijBEY/JcZbreyjxnTIM63vUHNbiq
-         dAfcEoRuZbsnRBCGrsKOgiFMpm1FPN/mK5n1XC5tJBuGv/U1G1IdG7l/BsZfgq6owVG4
-         ah/HIYWq4Ejf1/5GqeD8E+9jUiweczoyOcnGq+nrH3+cLvWo1tyYwkDxHUzTCaDYlA+s
-         zcN+rbJWy3ZHngYmtoFsrSh4FPxOeBu9dTSnDFRU8Y2SMunbqj5PeHQ4Bl7FKSizrt9M
-         ursw3CuyEy4ZFVx5cQW9IWfATHG3jZFLKMg3lgCwzzxsZnss4vhJnzMCu0iarNzTf0ec
-         +yMg==
-X-Forwarded-Encrypted: i=1; AL+hErEp01IPXd51Oj0nu1arpaERjtVTrw4E8M2+v90i5KhUEQnTf1veQsNF7CfwbYAy5FmB6OMM+FeoD6C3@vger.kernel.org
-X-Gm-Message-State: APuU4Z/VuHLRsLCfud5T3Jki/6ap8hvU+J6RmEyvhq0Xb4RbdC7j7XXx
-	b2iydhwPaW85lUZsZ48s+tkrY1TCi15aGGyUEqqS6VweF4bQrWZ1PkmtcREYkXf6tWnrMUq6yA6
-	LUcax+6MKZLrI9SscPLPbCR1ckNlKrjXstKTOtRX+TLgEmPijFruVQqW7I8fsEWj9
-X-Gm-Gg: AZFdTZfUdoOxGkuTZan/pzFM5xLwbgDsI4I/46RaiLLVVET6gkBANsw7Ws08LhHvu4S
-	egTdSwpgqlzVqQtAUPf7rvgpfe+Lw8/ZXaG67PqheIGv+5FPHN5tBfD2ohu/BTQ2LkG+U623SJp
-	l7kqcKNR+EsF737IxLNj/kAwLnbYRWHnYuRQapUvvf7DpbM+zAChpkuds55ZFqJnFaBtViC43Ni
-	dm7PLRxqo+URsX2TjIUwoLOY1QWR4tsaA6TelV/FBGy6xdzvkCNv3cqx3o/LUvPh7nnHq/IIQoh
-	qKjlwkFKxJTCxHbj4WzcywGFCBtfDab3+UPAB8gSKvklXMM8wo7CIKKcUIEFQweN+AHuRY48x0c
-	1ecwG5jMLk9TIqVXkwgKNC+xnBhLwlwVF5TiIAblGU1ZHsWNKZd0ZNsPoM9sT8umqdP5er4LoRJ
-	hXWtr/ZP3GeC0A1oSUvdgpjhVclM8H+NRXxEqkfrqBXSNoKq2JvkUsssiG6K/OxwbsKI2fBZryz
-	WE=
-X-Received: by 2002:a17:902:e847:b0:2e9:6468:2005 with SMTP id d9443c01a7336-2f03f117acfmr387784875ad.2.1795781436591;
-        Fri, 27 Nov 2026 04:10:36 -0800 (PST)
-X-Received: by 2002:a17:902:e847:b0:2e9:6468:2005 with SMTP id d9443c01a7336-2f03f117acfmr387784315ad.2.1795781436128;
-        Fri, 27 Nov 2026 04:10:36 -0800 (PST)
-Received: from [10.149.104.122] (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com. [103.229.18.19])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2f03f120016sm119339635ad.58.2026.11.27.04.10.23
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 27 Nov 2026 04:10:35 -0800 (PST)
-Message-ID: <079e0de1-f07d-429d-bb50-c0f6b8600c70@oss.qualcomm.com>
-Date: Fri, 27 Nov 2026 17:40:21 +0530
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.a=rsa-sha256 header.s=20170329 header.b=M1p+lQ2N
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Content-Transfer-Encoding:Content-Type:Message-ID:Subject:Cc:To
+	:From:Date:MIME-Version:From:Reply-To;
+	bh=SW7JHhiu41wfPquSMxR+o4KbZ3UG60Y+QaqGLDrhNjA=; t=1795783397; x=2111143397; 
+	b=M1p+lQ2N6zAZO5LqctvioCV5yBrQL0nK4dJ4VrC9m0SUDSIYYPk2bdY2mKTyyCEqFta7MPWmBow
+	2EmbOr4C6JdWHUTtP+jaEEcLqE1+BmL1LHfymhy4l3n1s11sJd8cDK91BspsDSKw6carYxmKu93kY
+	boKZOZi8AnhCAUn6O8q04gbQtGhVZfG3xzQZue+YTTVLZcvsZHq7N61qxboWOg/JB64rOpSoeBPH0
+	dj4iD7utbM+JsQrcBlTpnJsNReFKaTbjE8hS1i2BsickSz38HVJLg1BUzp1/AaZ0mnXKOkglC5qHw
+	sNO/qXyt/XeWHbEvF0kWplyFQW9/juvn9hsQ==;
+Received: from maestria.local.igalia.com ([192.168.10.14] helo=mail.igalia.com)
+	by fanzine2.igalia.com with esmtps 
+	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
+	id 1xWvIJ-00000004nMP-3A2c;
+	Fri, 27 Nov 2026 13:43:15 +0100
+Received: from webmail.service.igalia.com ([192.168.21.45])
+	by mail.igalia.com with esmtp (Exim)
+	id 1xWvII-0000000HOUt-3AJa;
+	Fri, 27 Nov 2026 13:43:15 +0100
+Received: from localhost ([127.0.0.1] helo=webmail.igalia.com)
+	by webmail.service.igalia.com with esmtp (Exim 4.98.2)
+	(envelope-from <uajain@igalia.com>)
+	id 1xWvII-00000003lhK-2bSy;
+	Fri, 27 Nov 2026 13:43:14 +0100
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -117,136 +66,225 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v23 2/2] ras: mem: Add ACPI RAS2 memory driver
-To: Borislav Petkov <bp@alien8.de>, Shiju Jose <shijujose2008@gmail.com>
-Cc: rafael@kernel.org, akpm@linux-foundation.org, rppt@kernel.org,
-        dferguson@amperecomputing.com, linux-edac@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-mm@kvack.org,
-        linux-doc@vger.kernel.org, tony.luck@intel.com, lenb@kernel.org,
-        Yazen.Ghannam@amd.com, mchehab@kernel.org, ashok.raj@oss.qualcomm.com,
-        jic23@kernel.org, linuxarm@huawei.com, rientjes@google.com,
-        jiaqiyan@google.com, Jon.Grimm@amd.com, dave.hansen@linux.intel.com,
-        naoya.horiguchi@nec.com, james.morse@arm.com, jthoughton@google.com,
-        somasundaram.a@hpe.com, erdemaktas@google.com, pgonda@google.com,
-        duenwen@google.com, gthelen@google.com, wschwartz@amperecomputing.com,
-        wbs@os.amperecomputing.com, nifan.cxl@gmail.com, tanxiaofei@huawei.com,
-        prime.zeng@hisilicon.com, roberto.sassu@huawei.com,
-        kangkang.shen@futurewei.com, wanghuiqiang@huawei.com,
-        sathvika.vasireddy@oss.qualcomm.com
-References: <20260726212812.89266-1-shijujose2008@gmail.com>
- <20260726212812.89266-3-shijujose2008@gmail.com>
- <20261017055852.GBatMOnEl66YObvU5k@fat_crate.local>
- <CAG4KcR+NOKHNzg6FN-oLLHgUxeitZHKXg9cN7dz24+Ap=RrwSA@mail.gmail.com>
- <20261110071729.GIavLFCfLKzPx8R0i0@fat_crate.local>
- <CAG4KcR+ikfQEBjCZiNJ1CUz=u3Gtbk_XDroA_GQqYpgO4Lo5Qw@mail.gmail.com>
- <20261121194030.GBawHzrrCNCMpfr7Gx@fat_crate.local>
- <CAG4KcRKhE1UXwrhscUdSpDJS8R0t7kWp8RXZm8j_9yXYJSQ2KQ@mail.gmail.com>
- <20261121210749.GCawIIJcidCeWs3ij9@fat_crate.local>
-Content-Language: en-US
-From: Sathvika Vasireddy <sathvika.vasireddy@oss.qualcomm.com>
-In-Reply-To: <20261121210749.GCawIIJcidCeWs3ij9@fat_crate.local>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Date: Fri, 27 Nov 2026 12:43:14 +0000
+From: Umang Jain <uajain@igalia.com>
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, kernel-dev@igalia.com
+Subject: Re: [PATCH v4 1/1] acpi: battery: Read Battery charge time("_BCT")
+ for Steamdeck devices
+In-Reply-To: <CAJZ5v0hu=6CxHc4LiUvX=82-St=xjLCtdgHZr_0iobnpbfLRuQ@mail.gmail.com>
+References: <20261116102752.520062-1-uajain@igalia.com>
+ <20261116102752.520062-2-uajain@igalia.com>
+ <CAJZ5v0hu=6CxHc4LiUvX=82-St=xjLCtdgHZr_0iobnpbfLRuQ@mail.gmail.com>
+Message-ID: <a447bf956dd45a8cef95a013f38dc19c@igalia.com>
+X-Sender: uajain@igalia.com
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTI3MDA0OCBTYWx0ZWRfX0LYsCV11Cr5U
- SLqhEm+1wZUl8kVFw6QWWCeimCL14pC6o9tYBPSb1zOcz9WnmqTjxd55Uq10WSNF99/PPpWMiY7
- stii+hUwjue5tC0yZ+xdxy0nAKAUzRs=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTI3MDA0OCBTYWx0ZWRfXw0ZKKW1HUWND
- n9xmraaYbkkhKw3WnzSdEPIRLWaXdHlkhVOmW/LXSnJaXgRzNi/OtdboglPIBCOIKwhKD2nRTgs
- eB/CEvDsVouvLrUr5+mIzcXw6fA1JeJ6KEDOgPUoJLGJhR5eaGMG20mvcdpnYNkwjzBjd/fkpz4
- BG4nqoO9DuG+rqG4R/5wGE3t8BxqgpiD/oZDKu4RJrFM6QKhmX7Ec8WjMnXwJUyoneN6z3N3CzK
- GXOiVXn0uBG7/PF8hMgA5XW1yIQ7PTB6h9rGk8rdCFs2vw931EmxQ6tXNnY0eJfe5ZgtKG8uIpP
- Mlim/cY984ogTBEVmhwurs8AF7KrmArp/YSnBv0Q+BhHSOB53ji3elXC5T/LHsXtqMOC4dD+ieX
- mptw7WlSYV50uHH+n5I437BR7bJfWHFc0iosSRiGXBlt3egOg5Bx1P/DHhWMxINjM9CT37p+Ut3
- kbtzRz1dHBL5FW4Zp8Q==
-X-Proofpoint-ORIG-GUID: jnr7i-aUEdu-BNK249Hqw4jSdVGHeptj
-X-Authority-Analysis: v=2.4 cv=Z795j3RA c=1 sm=1 tr=0 ts=6b09733d cx=c_pps
- a=Oh5Dbbf/trHjhBongsHeRQ==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
- a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=yx91gb_oNiZeI1HMLzn7:22
- a=VwQbUJbxAAAA:8 a=EUspDBNiAAAA:8 a=PZ-A5icK-3gcoNPXnSMA:9 a=3ZKOabzyN94A:10
- a=QEXdDO2ut3YA:10 a=_Vgx9l1VpLgwpw_dHYaR:22
-X-Proofpoint-GUID: jnr7i-aUEdu-BNK249Hqw4jSdVGHeptj
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-27_02,2026-11-26_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- phishscore=0 suspectscore=0 malwarescore=0 clxscore=1015 priorityscore=1501
- adultscore=0 spamscore=0 bulkscore=0 lowpriorityscore=0 impostorscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611270048
+X-Spam-Report: NO, Score=-4.9, Tests=ALL_TRUSTED=-3,BAYES_00=-1.9,KAM_DMARC_STATUS=0.007
+X-Spam-Score: -48
+X-Spam-Bar: ----
+X-Rspamd-Score: -0.4
+X-Rspamd-Action: no action
+X-Rspamd-Bar: /
 
-Hi Boris, Shiju
+Hi Rafael,
 
-On 22-11-2026 02:37, Borislav Petkov wrote:
-> On Sat, Nov 21, 2026 at 07:53:54PM +0000, Shiju Jose wrote:
->> Please find the attached patch with the changes.
+Sorry for late reply.
+
+On 2026-11-20 13:35, Rafael J. Wysocki (Intel) wrote:
+> On Mon, Nov 16, 2026 at 11:26 AM Umang Jain <uajain@igalia.com> wrote:
+>>
+>> Valve steamdeck devices can report battery status as
+>> charging, even when low-powered power supply is connected
+>> to the device. The battery status is reported as charging
+>> through sysfs, even though in reality, it is discharging.
+>>
+>> To address this, introduce a battery quirk for Valve Steamdeck devices
+>> ACPI_BATTERY_QUIRK_VALVE_STEAMDECK. This is required to detect
+>> if a low-power supply unit is connected to the device.
+>> To handle this case, read out Battery charge time ("_BCT")
+>> as it is reported accurately on these devices and use that
+>> information for report charging vs discharging status.
+>> Battery charge time ("_BCT") with an eligible power supply unit
+>> will have valid values whereas with a low-powered supply unit,
+>> it shall report ACPI_BATTERY_VALUE_UNKNOWN. Use this as a
+>> differentiator to determine, whether the battery of steamdeck
+>> devices is really charging or not.
+>>
+>> Signed-off-by: Umang Jain <uajain@igalia.com>
 > 
-> Thanks, you missed a spot. I fixed it up:
+> Sashiko has feedback on this:
 > 
-> diff --git a/drivers/ras/ras2_mem.c b/drivers/ras/ras2_mem.c
-> index 70f7f0b497ed..de5555d2e1b8 100644
-> --- a/drivers/ras/ras2_mem.c
-> +++ b/drivers/ras/ras2_mem.c
-> @@ -117,10 +117,10 @@ static int ras2_get_demand_scrub_running(struct ras2_mem_ctx *ras2_ctx, bool *ru
->   		return 0;
->   	}
->   
-> -	iowrite8(RAS2_SUPPORT_HW_PARTOL_SCRUB, &ps_sm->common.set_caps[0]);
-> -	iowrite16(RAS2_GET_PATROL_PARAMETERS, &ps_sm->params.command);
-> -	iowrite64(ras2_ctx->mem_base, &ps_sm->params.req_addr_range[0]);
-> -	iowrite64(ras2_ctx->mem_size, &ps_sm->params.req_addr_range[1]);
-> +	writeb(RAS2_SUPPORT_HW_PARTOL_SCRUB, &ps_sm->common.set_caps[0]);
-> +	writew(RAS2_GET_PATROL_PARAMETERS, &ps_sm->params.command);
-> +	writeq(ras2_ctx->mem_base, &ps_sm->params.req_addr_range[0]);
-> +	writeq(ras2_ctx->mem_size, &ps_sm->params.req_addr_range[1]);
->   
->   	ret = ras2_send_pcc_cmd(ras2_ctx, PCC_CMD_EXEC_RAS2);
->   	if (ret) {
+> https://sashiko.dev/#/patchset/20261116102752.520062-1-uajain%40igalia.com
+
+I'll post the feedback here and then reply.
+
+> Should _BCT be evaluated inside acpi_battery_get_state() using an exclusive
+> evaluation helper instead of directly in acpi_battery_get_property()?
+> Evaluating _BCT here bypasses the cache_time rate-limiting in
+> acpi_battery_get_state(), so every sysfs status read or uevent executes the
+> method on the embedded controller.  In addition, all other battery control
+> methods in this driver (_BIF, _BIX, _BST, and _BTP) serialize execution
+> under acpi_exclusive_eval_lock via acpi_evaluate_object_exclusive() or
+> acpi_execute_simple_method_exclusive(), whereas acpi_evaluate_integer() runs
+> unlocked.
+
+I agree on the part that battery control methods are evaluated in
+acpi_battery_get_state(),
+however we are not trying to determine and store "_BCT" here. We are
+just using to get
+the proper charging status for the steamdeck device using _BCT. We
+rejected the idea of "_BCT"
+being evaluated globally for all devices in previous reviews, which
+would be fit in get_state().
+We just bind _BCT evaluation to steamdeck's quirk case.
+
+Regarding question of rate-limiting calls on every sysfs status read or
+uevent, I don't
+think it's necessary either, since get_property() calls are executed on
+every power supply
+changes from power_supply_core.c - hence as soon as you unplug and plug
+or even replug a
+low-powered charger it will go through acpi_battery_get_property() code
+paths (since power
+supply is effectively changed) and update the correct charging status.
+We don't need to
+constantly call/evaluate _BCT again in this case, since a charger won't
+suddenly change from
+low-power to high-power one or vice versa.
+
+I agree with usage acpi_evaluate_integer_exclusive() though. I will
+include it in next revision.
+
+> Does this overwrite POWER_SUPPLY_STATUS_NOT_CHARGING with
+> POWER_SUPPLY_STATUS_DISCHARGING when the battery is full and its charge rate
+> is zero?
+
+When the battery is full in steamdeck case, it is correctly inferred:
+i.e. acpi_battery_is_charged() returns TRUE.
+
+Hence the branch
+```
+else if (battery->state & ACPI_BATTERY_STATE_CHARGING) {
+...
+...
+    if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags)) {
+    ...
+    }
+}
+```
+is _not_ executed at all and instead the branch
+
+		else if (acpi_battery_is_charged(battery))
+			val->intval = POWER_SUPPLY_STATUS_FULL;
+
+is evaluated instead and status is correctly updated to "Full". So no,
+it would not overwrite.
+
+> When acpi_battery_is_full(battery) is true and battery->rate_now is 0, the
+> preceding else branch sets val->intval to POWER_SUPPLY_STATUS_NOT_CHARGING.
+> Because the quirk check sits outside the if branch, it still runs, and
+> _BCT(100) returns 0xffffffff (ACPI_BATTERY_VALUE_UNKNOWN) when the battery
+> is already at 100% and not actively charging.  Moving the quirk check inside
+> the branch that sets POWER_SUPPLY_STATUS_CHARGING would avoid this
+> regression.
 > 
+> Please let me know what you think about it.
 
-I tested the updated RAS2 series with the readb/w/l/q and writeb/w/l/q 
-changes. Below is the git log --oneline output for reference:
+Hope the explanations clarifies things.
 
-f2508c0f7672 ras: mem: Replace ioread8/16/32/64 with readb/w/l/q & 
-iowrite8/16/32/64 with writeb/w/l/q
-21c2b3102060 ras: mem: Add ACPI RAS2 memory driver
-cefb17f4cc2b ACPI:RAS2: Add a driver for the ACPI RAS2 feature table
-4dce97c6c265 Merge tag 'ext4_for_linus-7.4-rc5' of 
-git://git.kernel.org/pub/scm/linux/kernel/git/tytso/ext4
+I'll send a v5 if there are no more things to discuss?
+The only change in v5 would be use of acpi_evaluate_integer_exclusive()
+instead
+of acpi_evaluate_integer() for evaluating the _BCT.
 
-
-Since my tree is not based on linux.git v7.2-rc2, the diff suggested 
-here did not apply cleanly. I manually applied the equivalent iowrite* 
-to write* changes in drivers/ras/acpi_ras2.c:
-
-└─$ git diff
-diff --git a/drivers/ras/acpi_ras2.c b/drivers/ras/acpi_ras2.c
-index 0849dd247cac..cb80fb193347 100644
---- a/drivers/ras/acpi_ras2.c
-+++ b/drivers/ras/acpi_ras2.c
-@@ -117,10 +117,10 @@ static int ras2_get_demand_scrub_running(struct 
-ras2_mem_ctx *ras2_ctx, bool *ru
-                 return 0;
-         }
-
--       iowrite8(RAS2_SUPPORT_HW_PARTOL_SCRUB, &ps_sm->common.set_caps[0]);
--       iowrite16(RAS2_GET_PATROL_PARAMETERS, &ps_sm->params.command);
--       iowrite64(ras2_ctx->mem_base, &ps_sm->params.req_addr_range[0]);
--       iowrite64(ras2_ctx->mem_size, &ps_sm->params.req_addr_range[1]);
-+       writeb(RAS2_SUPPORT_HW_PARTOL_SCRUB, &ps_sm->common.set_caps[0]);
-+       writew(RAS2_GET_PATROL_PARAMETERS, &ps_sm->params.command);
-+       writeq(ras2_ctx->mem_base, &ps_sm->params.req_addr_range[0]);
-+       writeq(ras2_ctx->mem_size, &ps_sm->params.req_addr_range[1]);
-
-         ret = ras2_send_pcc_cmd(ras2_ctx, PCC_CMD_EXEC_RAS2);
-         if (ret) {
-
-
-With the above commits and this additional change, RAS2 functionality 
-works as expected. I also verified that the series builds successfully 
-for x86_64.
-
-For the series with the above change, feel free to add:
-Tested-by: Sathvika Vasireddy <sathvika.vasireddy@oss.qualcomm.com>
-
+> 
+>> ---
+>>  drivers/acpi/battery.c | 49 +++++++++++++++++++++++++++++++++++++++++-
+>>  1 file changed, 48 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+>> index 6edea559a5bc..458c2b23a05a 100644
+>> --- a/drivers/acpi/battery.c
+>> +++ b/drivers/acpi/battery.c
+>> @@ -94,6 +94,15 @@ enum {
+>>          * on a full charge, but showing degradation in full charge cap.
+>>          */
+>>         ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE,
+>> +       /*
+>> +        * Valve steamdeck devices can get discharged even when battery status
+>> +        * is charging. This happens typically when low power supply unit is
+>> +        * connected. To accurately determine this scenario, we shall read
+>> +        * battery charge time ("_BCT") and set this quirk. This is the key
+>> +        * differentiator to determine whether the steamdeck is actually
+>> +        * charging or not.
+>> +        */
+>> +       ACPI_BATTERY_QUIRK_VALVE_STEAMDECK,
+>>  };
+>>
+>>  struct acpi_battery {
+>> @@ -234,7 +243,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
+>>                                         : POWER_SUPPLY_STATUS_DISCHARGING;
+>>                                 return 0;
+>>                         }
+>> -               else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
+>> +               else if (battery->state & ACPI_BATTERY_STATE_CHARGING) {
+>>                         /* Check the rate and capacity to validate the status. */
+>>                         if (!acpi_battery_is_full(battery) ||
+>>                             (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
+>> @@ -244,6 +253,27 @@ static int acpi_battery_get_property(struct power_supply *psy,
+>>                                 /* Full and zero rate. */
+>>                                 val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+>>                         }
+>> +
+>> +                       if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags)) {
+>> +                               unsigned long long bct;
+>> +                               acpi_status status;
+>> +                               union acpi_object arg0 = { ACPI_TYPE_INTEGER };
+>> +                               struct acpi_object_list args = { 1, &arg0 };
+>> +
+>> +                               arg0.integer.value = 100;
+>> +                               status = acpi_evaluate_integer(battery->device->handle, "_BCT",
+>> +                                                              &args, &bct);
+>> +                               if (ACPI_FAILURE(status))
+>> +                                       acpi_handle_debug(battery->device->handle,
+>> +                                                         "_BCT evaluation failed: %s",
+>> +                                                         acpi_format_exception(status));
+>> +                               else if (bct > ACPI_UINT32_MAX)
+>> +                                       acpi_handle_debug(battery->device->handle,
+>> +                                                         "_BCT value is invalid");
+>> +                               else if (bct == ACPI_BATTERY_VALUE_UNKNOWN)
+>> +                                       val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
+>> +                       }
+>> +               }
+>>                 else if (battery->state & ACPI_BATTERY_STATE_CHARGE_LIMITING)
+>>                         val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+>>                 else if (acpi_battery_is_charged(battery))
+>> @@ -1150,6 +1180,23 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
+>>                 set_bit(ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE, &battery->flags);
+>>                 battery->capacity_now = battery->full_charge_capacity;
+>>         }
+>> +
+>> +       if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags))
+>> +               return;
+>> +
+>> +       /*
+>> +        * For Valve Steamdeck devices, determine _BCT presence as well before
+>> +        * setting its battery quirk.
+>> +        */
+>> +       if (dmi_name_in_vendors("Valve") &&
+>> +           acpi_has_method(battery->device->handle, "_BCT")) {
+>> +               const char *name;
+>> +
+>> +               name = dmi_get_system_info(DMI_PRODUCT_NAME);
+>> +               if ((name && (!strncmp("Jupiter", name, 7))) ||
+>> +                   (name && (!strncmp("Galileo", name, 7))))
+>> +                       set_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags);
+>> +       }
+>>  }
+>>
+>>  static int acpi_battery_update(struct acpi_battery *battery, bool resume)
+>> --
+>> 2.55.0
+>>
