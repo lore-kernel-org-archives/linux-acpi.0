@@ -1,95 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.51
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795804610;
-	b=4maFO56QdOB2fQpuzJnql1bVyZ45lrQwajmevb6sO929+aQB47JwXckiD60G/bD6Ak1O
-	 jx6HcPBSbBWhCYPYx9a4jnBEM8hunt0uc2tWbjlU9YyEVClWFx2e0DnOTUjHs+1W3xjis
-	 0kXe0qc2pitcLCsw8jHnjroLyWL0Dzk15AwuWiJTVP7Dx0T+cGePSLjEUu5Tu8orEJ3Rd
-	 ptHi8rnwl/5KA8Pm5MWOrejPiauPI8yrbCeL7AnEp+uBS52WekfzZtf/BvLwesguaRuzC
-	 TBIXfveg4c39TaomLRVgDk9GOYmo3lu6GWQl60JOVlxJu5qY7lHjmtxEircG/nWLaEw==
+	t=1795806700;
+	b=jOFqsTXrynbg6svmeTOZwAxLW8Rq4YFcujAQwwRgubeNEM0ySVW/F8MULQFtHgP10H5Q
+	 NQBqSrgg9I2c8DProaiS6S1RiLQnQZKHFA3CvS/NXCieqO/CKUcyIzRId9/6uS04B/jjR
+	 6Bb11rF/eFFUQK8jG1xAN74YXv0QrOZdcyd4rOy3Ermu9NP5C+cEEjkNIGtDy0pSHaxBl
+	 /ErRdcSasuMNn+lKv1Dgdl26F9iGvZ/Q9YoLRI3rWIzQcUHxD5eqKpc52GnpaT+T1U1lu
+	 AVpGqy1sXNufjXUggb2/Ti51Roo3HOUiIbgL7YEW6bnfcuQ0Xctx1TdynubpN4kdADA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795804610;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=+9Dw/wen6g6fWY32jCYKXg0uC2F+6Oaru/Dn4CTkyZM=;
-	b=A8Z8EeODo9PJjTU8ASyLMOgb0+st4SqjGkHWWaGDAfNoecYcG2qP55myja1SEzfndfb0
-	 dcos7P19onrlI+RvnG10SiW5Bz+G/Zf6SlBfJlY1oyeh0H45yJ8vicsuZe/cwZ9oQIOdX
-	 OxxOIaCwXyxusAUoyAdxanhPSC3HPQQoTwjiBHXrEuvyWJpFF10RhR2k28jAoKDfUCeiQ
-	 r15nqlzA/iLKq/t9FulVFRK7x1fAVf7b4JqZ5wI2I9DxVReUouwyCC5jvrh7Xc9jyjs28
-	 giWltWLbyZutX9k1+QYlaHsWwzmy+dm5ixwP1C/e8c8wFyGt8Xd6J+LvWZRqLd9oZeg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795806700;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=Z5ynsES00wYEUeedNs4jtHwgichiF18CXZfx/XgmedE=;
+	b=r+/DuHMKjloSb5uxgAYP5A4J6+oTKHIKD3LBv0bQtmmI8ZCz4Yh3/MF7vcYENYpV1SZy
+	 Hv42uU2ulUPZ4p0LsJDf7csJ6HHIx7gAfAAUGTPUUnh7OE6gcLkTrc+kRN+S5s4Aeh7oa
+	 cdvUR7EDFkjxl3W84kXLRLHQU7UwgqawlWTXq53VmsJafEY7j8SqZmkyUFtLOQ0bkL6Kb
+	 6Sii9X5EWwI3qOKO8xQlC8vG5lSCZm7iUit/Sq5baVeR21j6mBnKXfNSluGKjen0yW6GY
+	 hJo1nA+FOBVuxamu3kvHAhcgF/55haFBd0mWOj6R05t8XuJKzKZ1IRPMl4n9mbMuaQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=ziepe.ca;
-	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=FQqDBy6J;
-	arc=none smtp.remote-ip=209.85.219.51
-Received: from mail-qv1-f51.google.com (mail-qv1-f51.google.com [209.85.219.51])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 710AC606A327
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 18:36:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 710AC606A327
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	dmarc=pass header.from=arm.com;
+	spf=pass smtp.mailfrom=arm.com;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=K2lPE9jj;
+	arc=none smtp.remote-ip=217.140.110.172
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A23AA606A31E;
+	Fri, 27 Nov 2026 19:11:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A23AA606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=FQqDBy6J
-Received: by mail-qv1-f51.google.com with SMTP id 6a1803df08f44-91f0274f88cso109181786d6.0
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 10:36:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1795804609; x=1796409409; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=+9Dw/wen6g6fWY32jCYKXg0uC2F+6Oaru/Dn4CTkyZM=;
-        b=FQqDBy6Js8XrvXmyD8SL/u+yExsfiOIjX+3Qv8PFjqWbEOS/J/sDfstl24lcNicd6M
-         PkL4KLFLOjm+xuNYdQwqUcHAIrXcJ//DNqWVnzEugXxJV52uk6eRNVvaVxXJbY5Bl7ou
-         7rubMrQs8EdQfsO5xRzjEsGHJQpkeR1g0nRGIcWUrMhQ+w2TgK1gza7wJaMgYVAeHUVG
-         ges3+956+qMurZGsh19qeYrM1aQmOnZrNaBhNPYHVU0VuU1IhVr1vVlTiL1tqNFxWPhg
-         YdOIvlBcF3YHxrQhupM7z96IFAXcMGRFNkKk+1lOeoAkMMQd+mWGr1YNQMt75thCP0QE
-         XNtw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795804609; x=1796409409;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=+9Dw/wen6g6fWY32jCYKXg0uC2F+6Oaru/Dn4CTkyZM=;
-        b=qRC7HV+XpA9xzIe24h4iG/K62x3vEKJGfK0H8KJ1yxCt2d0xOM6bdi+BMAB+BC+zfh
-         UMwy98gfBqakmBCvIsHWp1hmPZ/So0Wsd6/6whus7xYAER1C8l3XDYxo/5CKfqtMOP6L
-         VdlhLAvmP6oYD5quNfF0v5jtmUXkk1bg3utdLot452tkL+XknCuTUiZqGfOcf/Rv4vX2
-         SJ8VsZ1sDKTvHyu/lLdsS6rYbXf7bxNuwMESUNNfkY0FwAMcQg/8x1U6JODcYPd+Nbqy
-         DiYYQkuip8gSMchgZmhRR1y6lQWo8L8Fq7NYlxMdqa0XLCkfPbhx0wTs+TlIKSkRxvuh
-         LjFA==
-X-Forwarded-Encrypted: i=1; AL+hErFMB6m+S7KQaLoDzQRaWInP4A0/GU2k/S6tUrkOMRw16ERpCliSIJrQzP94z3CrcND9GqdTiIBtKKBH@vger.kernel.org
-X-Gm-Message-State: APuU4Z9+1YEuxTvM/8w5/N1kueh2JvE0PrIK0A9UZiofBSP/U6GOvUBg
-	ehOnmGqdDJMigbHElg0RzZijtCjUYcrDnp54HR5pxd/A0PE/5Mr8QAkk5pEDrD6XNMI=
-X-Gm-Gg: AZFdTZcHOGwxKzRdSZ8eQffYY/907wnnJDvGo9eCuDjONpaYQGYaydoNtlWlJKCleoT
-	3KQKKyx3GR6ZNDj9wUPmnKFKKWnbwKp8Qz1wZgoWvtFsnQm7+ji/Zi+HWx6WMx/qaAsf/nwDZ6C
-	/vjS8R83wg5SWVs56RVsaxHjZs9Oe5nsYAhH2Sadh52zoOlkjFqXEXBJF/sQpazOgXTrBlQMf77
-	+4zyMvxw/ZrSSWKXN4XC0h0xFYXJ4vKoIjR7aYzUs4uyPRjRcMpRB7qLsLy8DsCxj7ikbOGLyaF
-	3VoZaa6QP4FNJ4rv18jZNQklVZEvkUexEWJOcdlM41wOqG71X9EJCRBPLaWzS+l2pqyUe+2QTxI
-	a05WVxKKfMegd4O0wTCucHHELsn4UP5n0FGq6Z/6uGj9FyhasmIfELIScJousW58o0J24XONpl7
-	4e/nAZHcFl14ISOD6zA5xLPNZzgC1sXETS51vZOXsaEt3V4ZIYCc1+SvdtJJK9YTFORN5VeiySn
-	Ad4+vLubFe4mpiyr+m0Aodgsc2T/F21Z2C0MMLVhP2jloh6S9rBO1ti6SGnBTE9+JHYmup0eZNj
-	VBTJC8U=
-X-Received: by 2002:a05:6214:4686:b0:921:1ac1:34e2 with SMTP id 6a1803df08f44-921653a9042mr254285806d6.24.1795804609400;
-        Fri, 27 Nov 2026 10:36:49 -0800 (PST)
-Received: from ziepe.ca ([142.177.118.84])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-921349b253csm225559716d6.15.2026.11.27.10.36.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 27 Nov 2026 10:36:48 -0800 (PST)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1xX0oS-00000007aS6-1aU4;
-	Fri, 27 Nov 2026 14:36:48 -0400
-Date: Fri, 27 Nov 2026 14:36:48 -0400
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Yeoreum Yun <yeoreum.yun@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-security-module@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kselftest@vger.kernel.org, linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev,
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=K2lPE9jj
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E15231575;
+	Fri, 27 Nov 2026 11:11:35 -0800 (PST)
+Received: from e129823.arm.com (e129823.arm.com [10.2.213.3])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A401D3F632;
+	Fri, 27 Nov 2026 11:11:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1795806698; bh=JdKubajU0Ssw7SHvFWHr6lht5z3s8WLxzysColAW2jM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=K2lPE9jjBra7em4MB8/Ba7uuYvZTFFBbnH4UkDOCn1jPrFuqN3NaedvG0f/iA14t5
+	 xSTGOJ9TEbVyFbPWAeSUnykq0ZzhaZ+Bf+Cq9VG6RmPP0KLVBuGoaqb8VE0VjuJN9h
+	 hFEpZ8z1UdOYcFrBpKGNplVRM5wbCItZIUnvUIrE=
+Date: Fri, 27 Nov 2026 19:11:33 +0000
+From: Yeoreum Yun <yeoreum.yun@arm.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Yeoreum Yun <yeoreum.yun@arm.com>, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kselftest@vger.kernel.org,
+	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
 	Catalin Marinas <catalin.marinas@arm.com>,
 	Will Deacon <will@kernel.org>,
 	Suzuki Poulose <suzuki.poulose@arm.com>,
@@ -105,11 +64,12 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
 	Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCH RFC v3 7/8] attestation: providers: introduce CCA Guest
  attestation provider
-Message-ID: <20261127183648.GW246011@ziepe.ca>
+Message-ID: <awnV5S703Rgf5sh5@e129823.arm.com>
 References: <20261127-arm_cca_mr-v3-0-df3230afce8f@arm.com>
  <20261127-arm_cca_mr-v3-7-df3230afce8f@arm.com>
  <20261127170722.GT246011@ziepe.ca>
- <awnLgFZIhRZENiE4@e129823.arm.com>
+ <awnK2c3kMq8p2a_7@e129823.arm.com>
+ <20261127183550.GV246011@ziepe.ca>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -121,21 +81,88 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <awnLgFZIhRZENiE4@e129823.arm.com>
+In-Reply-To: <20261127183550.GV246011@ziepe.ca>
 
-On Fri, Nov 27, 2026 at 06:27:12PM +0000, Yeoreum Yun wrote:
-> [...]
+> On Fri, Nov 27, 2026 at 06:24:25PM +0000, Yeoreum Yun wrote:
+> > > > +static const struct attestation_evidence_format cca_attestation_token_formats[] = {
+> > > > +	{ .vendor = true, .value = CTLV_ATTESTATION_CCA_GUEST_EVIDENCE_VENDOR_FORMAT_CCA_ATTESTATION_TOKEN },
+> > > > +};
+> > > 
+> > > should be the generic EAT token type
 > > 
-> > > +static enum hash_algo cca_guest_attestation_algorithms[] = {
-> > > +	HASH_ALGO_SHA512,
-> > > +};
-> > 
-> > static const
+> > Is there?
 > 
-> No. it's a scaling issue since the attestion algorithms could be not
-> only SHA512 but also SHA256 and SHA384....
+> That's the idea. TDX uses EAT as well.
+> 
+> > but the content seems to be different according to vendor, So would
+> > it be better to keep it as vendor type format?
+> 
+> EAT is intended to be self describing, so if you parse the EAT then
+> you should understand what the vendor and content is.
+> 
+> Knowing the EAT came from RMM won't even tell you which ARM profile
+> version it follows, so I'm feeling like maybe we just need to tell
+> userspace it is an EAT and then userspace can parse it deeply to learn
+> exactly what it is??
 
-Then don't init it here and do it entirely when you query the RSI to
-learn the right value
+Okay. might this would be applied in the FIRME too for PAT once the
+attestation patchset is updated.
+> 
+> > > What is this and the related work? That isn't making sense to
+> > > me. If the token size is not absolutely fixed when the driver starts
+> > > then it should be fully dynamic and this just streams the variable
+> > > sized token.
+> > > 
+> > > Ideally directly into user memory so we don't need to allocate a kvmalloc.
+> > 
+> > In case of live-activation. I think in that case CCA-Realm token could be
+> > different by activating the new RMM.
+> 
+> Then the size isn't static and you need to just stream it to userspace
+> whatever you have.
+> 
+> I'm expecting these unsized tokens to work by streaming them into a
+> memfd so that userspace doesn't have to try to guess how much space is
+> required.
+> 
+> I also think it is pretty broken if LFA is changing the token for
+> realms that are already running. How is that even going to work with
+> an RSI API like that gets the length then tries to fetch into the
+> allocated buffer? Token silently truncates? You need to loop?
 
-Jason
+I think the problem is the *max-token-size* could be changed.
+once the LFA updates the Realm definitely the contents of hash of
+firmware binary can be changed. this means the token's content could be
+change including the *max-token-size*.
+
+For this, the RSI host call interface has the way to get LFA eventlog.
+IOW, after LFA, there will be LFA log is genreated and then for the
+time of re-attestation, it should deliver the LFA logs together.
+
+And userspace to get a token, it'll check the *max-token-size*,
+So I think it's enough with virtual address not needing streaming.
+
+IOW, after LFA, the max-token-size can be changed and it should
+re-attestat, get new token and sent with LFA eventlog.
+
+> 
+> > > This isn't OK.. We only get one struct device per RSI and it gets to
+> > > bind to only one driver. Given there are other drivers that will need
+> > > to use the RSI, like the TSM and others, this needs some other
+> > > solution?
+> > 
+> > Currently, this attestation driver is enabled when !ARM_CCA_GUEST only
+> > (IOW, when this driver can be built only when TSM arm-cca-guest
+> > disabled).
+> 
+> I saw in your FIRME series a solution to this problem, I think that
+> would be good to get out on its own and apply it first to RSI as
+> well. We will have the core RSI stuff, the realm attestation and TSM
+> driver at a minimum..
+
+Hm,, Does this mean do we need to create two device one for TSM and
+one for attestation even the functionality same?
+
+-- 
+Sincerely,
+Yeoreum Yun
