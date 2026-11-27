@@ -1,72 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.171.202.116
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.51
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795773905;
-	b=Ow4JNHukJ8xfpAipJbJn8H/2ilBTeJz8XTFsxDc7XEKybFLaWt1OBDVjUw3IbsI5dc/5
-	 0yesn5LMLz/I1vRQnzE/QxcVhQcYPhWcWSKuJAGl8TaAbEgDnbxxaEOsUYtM9GLFaF1ne
-	 mblxhi4/Ko/TKvwjHZWdbLXfHJ2jV2m+STjhuDaayC4qHjHXh5k8ei7D0WzhqKmmwJgOq
-	 wdILvi6gWNnrRgedLt5Em+lJ7c162KkG+UY6ibalZJ1CubVYud/qAmxRGNdduyuUm6nEv
-	 lZPyEl6WZAg5NXObErPy3pT5S3p88OF3ua/C0b8K+qUUMFYNhPs/DqMmzdDIAybff3Q==
+	t=1795775443;
+	b=PlR/dlly68Ncz25IXdl9KUZ+PYOSKc1P3vSQO2z7IXyll54QndngYuICWILvGQRW/GKD
+	 Tl0l0EHupJvHpWne8xw22Th4WAMjr85I8rXG+kBMF6bvgynYAsO3lxJi00mXxAeXACWqk
+	 9DLz+H+I5CPEYtiRsXM81AsesownH5dqL4ge4iYmPzYh+R9J3GGO0n+6ERA3gH830OQo/
+	 7yq/XFNh3TGVbnKGWLfDZUMFUpZB44iDFObGIrPgWct0WT2ifV5TA7vNMtNxDD6tJhN9D
+	 89JMEjiq7RQwlrmcxC54dNAouz2Ftdv10Ki7fTkucTduyRGPmZhYSGdciUxc1/xAd9w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795773905;
-	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:Message-ID:
-	 Subject:From:To:Cc:Date:In-Reply-To:References:Content-Type:
-	 Content-Transfer-Encoding:User-Agent:MIME-Version:
-	 X-Last-TLS-Session-Version;
-	bh=lT0W2OnlXjtA7fK1rLcgLrdnYrw3Ustk1PC0aPQoyNY=;
-	b=wf0nR/K3o0ksIzMXVnKgHEJAgKFFBlnDJM3f4SzD9qw7b7161+8nYNxbvzOgbf84ZBpA
-	 rUEejtYHSWFEtTIacymCHM+gUXBW6Uez/r40OQHw7TzI1/LltXXLnekKksDTSPZeLwBwr
-	 ruIIxpzlxXAhV6CQP74CGmbb+HlZupCag2SiqN5aZVruv8iX7LUtlXaULpfaprmwgJvIo
-	 1vN++UNxwi4lpRhZum9HU4o4rx6Mm9SgztjJQ5Qcf/ddRQHNtnPrghaMdhbzx486Ejfjr
-	 mz9RtROQZXRl9TD7wZwEz9PYrSEfqcCj+e2P9T7akyPL14SeGnLTtYoMGOzHgeGZJKQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795775443;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=wDNCT5dmOQWaRk4g039B7mVnjd1E54Q443a1ugSNbRY=;
+	b=4NcsQNfbsNfxA28ppvcifTJ0BCvV2N+xLDu34hd4ErG8wt/VTkePwOd9mqv6Mguw2Nxr
+	 ZEo27cLjoSMr6pYx+kcXJjIBaHykzv5WwRFrVCsyNVlxHgHpOmuWP+SPVPpw5YSzquuMO
+	 2PeufwUvXk6bx9IeDNZkuKAzKlymwHFyu7YCsGBBdXXoT4MT0HKD/0q5XibY4tVSTO5Mi
+	 opd9jbPuyEnn9bkNsq2xP9ZrFtcVqC04DSdGBYrxXWv92EMfDcQBkDANsgjKP+iTiDW7P
+	 AxBAkVfHgJsfhVG0Gl4D6+1sy+s1+gxY/IpNlYMINxVVSrAN/RbghaNicuhc2AOh68w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=bootlin.com;
-	spf=pass smtp.mailfrom=bootlin.com;
-	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=MUol+m+l;
-	arc=none smtp.remote-ip=185.171.202.116
-Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=yVSmZXRJ;
+	arc=none smtp.remote-ip=209.85.128.51
+Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ED20606A324
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 10:05:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7ED20606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E790B606A324
+	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 10:30:42 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E790B606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=MUol+m+l
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-04.galae.net (Postfix) with ESMTPS id DBCC4C6223B
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 10:05:10 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 25F5B6049C;
-	Fri, 27 Nov 2026 10:05:02 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 97C7F11E692ED;
-	Fri, 27 Nov 2026 11:04:56 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1795773897; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=lT0W2OnlXjtA7fK1rLcgLrdnYrw3Ustk1PC0aPQoyNY=;
-	b=MUol+m+lUoQTaUCTKUiwh4ZXGPFALgB13nC6noDQ2+3KTBnFsbfYsg9/njoQ/fP0kxRLgH
-	68BJ3HEOtb1G+3ZYU8K3A3Fgc9nzgHn93AIMzwkgHbuPpee4F9rcRzS2+JX38cZHnXabaA
-	2nauPWrjxPvqd7fv2vG2fPAKrBE6m6Tgu1cjUYnY25mIvpt+u8E5W7xDu7o0AJe17BUgdx
-	auf/tr5BNMYIqJKVi2867fat2w9cTGeQSeS9Trr781R13SxzbcwnsNCefFYbyI/YOTxz7Y
-	T6Cxdsciv7ilH1rgWIQvnYUkl5j45dQBZP0IN+wIGFGg+jvXbuwGv8IzQhsBSQ==
-Message-ID: <80b96fc3f728b59b26ebde1378f4222cf4b359b0.camel@bootlin.com>
-Subject: Re: [PATCH v5 1/1] ACPI: platform: Add basic support for ACPI 6.5
- fixed clock resources
-From: Paul Cercueil <paul.cercueil@bootlin.com>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Thomas Petazzoni
- <thomas.petazzoni@bootlin.com>
-Date: Fri, 27 Nov 2026 11:04:53 +0100
-In-Reply-To: <CAJZ5v0jeJSx3C8hdU8iAtje-NGNz4DdaVGhE_T3WpVrODuwemg@mail.gmail.com>
-References: <20261120161020.297735-1-paul.cercueil@bootlin.com>
-	 <20261120161020.297735-2-paul.cercueil@bootlin.com>
-	 <CAJZ5v0jeJSx3C8hdU8iAtje-NGNz4DdaVGhE_T3WpVrODuwemg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
-User-Agent: Evolution 3.56.2-0+deb13u1 
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=yVSmZXRJ
+Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-4bb6886d30aso75602355e9.3
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 02:30:42 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795775441; x=1796380241; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=wDNCT5dmOQWaRk4g039B7mVnjd1E54Q443a1ugSNbRY=;
+        b=yVSmZXRJYx3E6v9UxQWskPzH8yjkZi2B4TVBRq4ks0OEuNtjjtwnLI+9Zk5LfuExQi
+         RiVych+svllJSThx5VcfSY5OVhFCF2BNWCLl5hhkA4NvjuZcexiDDVJNLQkHhs3CauNJ
+         keAgPD6I623K4zcUaUnWdGasPOZ00oqnV8/bBv2LPgz3+jFeXR8kxmBeav9u6dn7KlX6
+         qiiNlmLTPZpoBiWM9QJe7emXvwPhP2IYfUQO3jZaQjxFN/qdFxKFl9fIrp8q+OelE5+O
+         /ewA5wzfhSXz9WnUN9gDFirV1+qBycLZTQYLkfD/RHL5tRVrB90n/Wu7M8DYSsbkzY4h
+         3Fpw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795775441; x=1796380241;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=wDNCT5dmOQWaRk4g039B7mVnjd1E54Q443a1ugSNbRY=;
+        b=iFKduare7NGwJYS+sKmF4JVCZbIojnYynV7V5gAdyVTLcouND8lMPJ9+eKG4nB3qol
+         5cA8O9hpjRW8H85A6C7icOU7wQwGzsFZzWiOrUsFUnZQ92vvNLhfJgPdGxWDoiznQk1U
+         1EjXoIuhn3bzPCYFFueHrwm3JdLHS6gu85GF1105dmU6Qq2vjh88AMNZcD235IgLRHdB
+         NkHDR8lSa0OxMyrHLAmf+7Hp6piXgOFlw56ATqc7ZkLmbMlaPJiVTtYz66bIsENuMZjf
+         sRe+wnbhoyr+ALEkTS8+SEzmyaYS2Z1fV7tM9IHYXqIh1kztk3IbfffBkZn91JEDPTni
+         iuhw==
+X-Gm-Message-State: APuU4Z9IlVxez43at7SGXdYIZiuvZtaV9nC3/Ts35gH5hF9pGf1LW6iR
+	8vuJ53J85GaCVakCyxTn39pKRWponu3dxpatnqGlysjAs/A7iWSu2oSBAAXYkQ==
+X-Gm-Gg: AZFdTZfHmkTMRl4bempuuhAQ4uMKG6uNeoSkwj9dDTO/apoqYgJt+AbPylX4CXkKo9v
+	Uex2EOXzTyWTYtXsoQH12dc1hajJgO7OdfzE9QqKl9y0DKfN84IsyOYojYV+3cpPeY429NxEIQt
+	Pvf7oqZ7H1VEs+atb8hFYAwr931vV2DDQiF97ej+IdLYPxrnedu5HhEcftkF2/XJqifoEi+6gd1
+	4rfpgpUJzEu4i0cKS+1djrgcxJcxjsX0Lv0zgsJlnBYnNb2LAHA8XkoSRign4tErksotJ+uhMp0
+	As7jxMFhXTfVsG6WcDy32X6yfAsLEd1UDm8nlpmx1zbTQhCNY0cgJfERIvrjGx/vj5iqpRrp68U
+	GS8P/8FKTaGXW0cnfzDN9jTlRB0Tfx7js1Jrj8o03xKo1d/RMOlY5hI9actqC2otoNb7uLbxXUM
+	Mt8x+ng+h/BhVQCJaaceQIeGyoB0f5MyDT57RVLvBWK4dDWS13HFAcOYy0oHDLPk9xj4J6dINEt
+	PuPeYp7Diebpyao2sFiiD4UdyfJUc+8dkU4UPPdzpV2pMAm76CXVW8z9BonnNswA8FwOw9DKauP
+	7DOPsy11v7Le/SQqWgtvbC5S871S6XZXP+DKM1G6/fi9i9OAzMBZPtxhZK/XApz1hcAZHb1VtiL
+	berWbmWvOJXItag==
+X-Received: by 2002:a05:600c:6749:b0:4bb:5f95:c014 with SMTP id 5b1f17b1804b1-4bb8880f283mr486885245e9.19.1795775440820;
+        Fri, 27 Nov 2026 02:30:40 -0800 (PST)
+Received: from archlinux ([178.197.204.131])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb853a12acsm710882185e9.8.2026.11.27.02.30.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 27 Nov 2026 02:30:40 -0800 (PST)
+From: Tobias Predel <tobias.predel@gmail.com>
+To: linux-acpi@vger.kernel.org,
+	linux-pm@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [BUG] HP Dragonfly G4: AML deadlock (ECMX vs. Serialized GBAP) between EC _Q08/_Q18 and int3400_notify() -> ODVP
+Date: Fri, 27 Nov 2026 11:30:39 +0100
+Message-ID: <20261127103039.5035-1-tobias.predel@gmail.com>
+X-Mailer: git-send-email 2.56.1
+In-Reply-To: <20261121093708.5097-1-tobias.predel@gmail.com>
+References: <20261120191423.10876-1-tobias.predel@gmail.com> <20261121093708.5097-1-tobias.predel@gmail.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -76,148 +99,90 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Transfer-Encoding: 8bit
 
-SGkgUmFmYWVsLAoKTGUgbWVyY3JlZGkgMjUgbm92ZW1icmUgMjAyNiDDoCAyMToyMiArMDEwMCwg
-UmFmYWVsIEouIFd5c29ja2kgKEludGVsKSBhIMOpY3JpdMKgOgo+IE9uIEZyaSwgTm92IDIwLCAy
-MDI2IGF0IDU6MTDigK9QTSBQYXVsIENlcmN1ZWlsIDxwYXVsLmNlcmN1ZWlsQGJvb3RsaW4uY29t
-Pgo+IHdyb3RlOgo+ID4gCj4gPiBBQ1BJIDYuNSBpbnRyb2R1Y2VkIGEgY2xvY2sgaW5wdXQgcmVz
-b3VyY2UgZGVzY3JpcHRvciwgd2hpY2ggYWxsb3dzIHRvCj4gPiBzcGVjaWZ5IGluIHRoZSBBQ1BJ
-IHRhYmxlcyB3aGF0IGNsb2NrcyBhcmUgY29ubmVjdGVkIHRvIGEgZ2l2ZW4gZGV2aWNlLgo+ID4g
-Cj4gPiBUaGlzIHBhdGNoIGFkZHMgc3VwcG9ydCBmb3IgdGhlIG1vc3QgYmFzaWMgY2xvY2sgcmVz
-b3VyY2UsIHdoaWNoIGlzIHRoZQo+ID4gb25lIHRoYXQgcmVwcmVzZW50cyBhIGZpeGVkIGNsb2Nr
-LiBUaGUgbmV3IGNvZGUgd2lsbCB0aGVuIGNyZWF0ZSBhCj4gPiBjbGtfaHcgZm9yIGVhY2ggZml4
-ZWQgY2xvY2sgcmVzb3VyY2UsIHdoaWNoIGlzIHRoZW4gbWFkZSBhdmFpbGFibGUgdG8KPiA+IHRo
-ZSBkZXZpY2UgZHJpdmVycywgdGhhdCBjYW4gb2J0YWluIGl0IHRocm91Z2ggYSByZWd1bGFyIGNh
-bGwgdG8KPiA+IGNsa19nZXQoTlVMTCkuCj4gPiAKPiA+IFNpZ25lZC1vZmYtYnk6IFBhdWwgQ2Vy
-Y3VlaWwgPHBhdWwuY2VyY3VlaWxAYm9vdGxpbi5jb20+Cj4gPiAtLS0KPiA+IAo+ID4gdjU6IFJl
-Z2lzdGVyIGZpeGVkIGNsb2NrIGFzICI8QUNQSV9JRD4tY2xrWCIgYmVjYXVzZSB3ZSBuZWVkIGEK
-PiA+IMKgwqDCoCBzeXN0ZW0td2lkZSBpZGVudGlmaWVyIHRoZXJlLCBhbmQgd2UgZG9uJ3QgaGF2
-ZSB0aGUgMTYtY2hhcmFjdGVycwo+ID4gwqDCoMKgIGxpbWl0IHRoZXJlLgo+ID4gwqDCoMKgIFJl
-Z2lzdGVyIHRoZSBmaXJzdCBjbG9jayB0byBjbGtkZXYgd2l0aG91dCBhIG5hbWUsIHNvIHRoYXQK
-PiA+IMKgwqDCoCBjbGtfZ2V0KE5VTEwpIHdpbGwgb2J0YWluIGl0Lgo+ID4gwqDCoMKgIFJlZ2lz
-dGVyIGV2ZXJ5IG90aGVyIGNsb2NrIGZvciB0aGF0IEFDUEkgZGV2aWNlIHdpdGggYSAiYWNwaS1j
-bGtYIgo+ID4gwqDCoMKgIG5hbWUuCj4gPiAKPiA+IHY0OiBDaGFuZ2UgY2xvY2sgbmFtZXMgdG8g
-ImFjcGktY2xrWCIsIGJlY2F1c2UgQUNQSSBkZXZpY2VzIG5hbWVzIGNhbiBiZQo+ID4gwqDCoMKg
-IHVwIHRvIDE3IGNoYXJhY3RlcnMgbG9uZywgYW5kIG91ciBjbG9jayBuYW1lIG11c3QgYmUgMTYg
-Y2hhcmFjdGVycwo+ID4gwqDCoMKgIG1heC4KPiA+IAo+ID4gdjM6IE5vIGNoYW5nZQo+ID4gCj4g
-PiB2MjoKPiA+IC0gVXNlIHRoZSBjYWxjdWxhdGVkIGNsb2NrIG5hbWUgaW4gZGV2bV9jbGtfaHdf
-cmVnaXN0ZXJfZml4ZWRfcmF0ZSgpCj4gPiDCoCBpbnN0ZWFkIG9mIHRoZSBkZXZpY2UgbmFtZQo+
-ID4gLSBNYWtlIHN1cmUgY2xrcmVzLT5zY2FsZSBpcyA8PSAyLiBUaGUgZmllbGQgaXMgMiBiaXRz
-IGJ1dCB0aGUgdmFsdWUKPiA+IMKgIGNsa3Jlcy0+c2NhbGUgPT0gMyBpcyBub3QgZGVmaW5lZCBp
-biB0aGUgc3BlYy4KPiA+IC0gQ29tcHV0ZSB0aGUgZnJhY3Rpb24gbnVtZXJhdG9yIHVzaW5nIDY0
-LWJpdCBtYXRoLCB0byBtYWtlIHN1cmUgaXQKPiA+IMKgIHdvbid0IG92ZXJmbG93IG9uIDMyLWJp
-dCBzeXN0ZW1zLgo+ID4gLSBJbml0aWFsaXplIGNsb2NrcyBvbmx5IHdoZW4gdGhlIGRldmljZV90
-eXBlIG1hdGNoZXMKPiA+IMKgIEFDUElfQlVTX1RZUEVfREVWSUNFLgo+ID4gLSBVc2UgYSBzaG9y
-dGVyIG5hbWUgZm9yIGNsb2NrcyBhcyB0aGUgaGFyZCBsaW1pdCBpcyAxNiBjaGFyYWN0ZXJzCj4g
-PiDCoCBpbmNsdWRpbmcgdGhlIHRlcm1pbmF0b3IuCj4gPiAtLS0KPiA+IMKgZHJpdmVycy9hY3Bp
-L2FjcGlfcGxhdGZvcm0uYyB8IDc1ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-Kwo+ID4gwqAxIGZpbGUgY2hhbmdlZCwgNzUgaW5zZXJ0aW9ucygrKQo+ID4gCj4gPiBkaWZmIC0t
-Z2l0IGEvZHJpdmVycy9hY3BpL2FjcGlfcGxhdGZvcm0uYyBiL2RyaXZlcnMvYWNwaS9hY3BpX3Bs
-YXRmb3JtLmMKPiA+IGluZGV4IDgwZWE3MTIxNzQ0ZC4uYjRmMmNjZjNlNTFmIDEwMDY0NAo+ID4g
-LS0tIGEvZHJpdmVycy9hY3BpL2FjcGlfcGxhdGZvcm0uYwo+ID4gKysrIGIvZHJpdmVycy9hY3Bp
-L2FjcGlfcGxhdGZvcm0uYwo+ID4gQEAgLTEwLDE3ICsxMCwyNyBAQAo+ID4gCj4gPiDCoCNpbmNs
-dWRlIDxsaW51eC9hY3BpLmg+Cj4gPiDCoCNpbmNsdWRlIDxsaW51eC9iaXRzLmg+Cj4gPiArI2lu
-Y2x1ZGUgPGxpbnV4L2Nsay1wcm92aWRlci5oPgo+ID4gKyNpbmNsdWRlIDxsaW51eC9jbGtkZXYu
-aD4KPiA+IMKgI2luY2x1ZGUgPGxpbnV4L2RldmljZS5oPgo+ID4gwqAjaW5jbHVkZSA8bGludXgv
-ZXJyLmg+Cj4gPiDCoCNpbmNsdWRlIDxsaW51eC9pb3BvcnQuaD4KPiA+ICsjaW5jbHVkZSA8bGlu
-dXgva2NvbmZpZy5oPgo+ID4gwqAjaW5jbHVkZSA8bGludXgva2VybmVsLmg+Cj4gPiArI2luY2x1
-ZGUgPGxpbnV4L2xpc3QuaD4KPiA+IMKgI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPgo+ID4gwqAj
-aW5jbHVkZSA8bGludXgvZG1hLW1hcHBpbmcuaD4KPiA+IMKgI2luY2x1ZGUgPGxpbnV4L3BjaS5o
-Pgo+ID4gwqAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+Cj4gPiArI2luY2x1ZGUg
-PGxpbnV4L3VuaXRzLmg+Cj4gPiAKPiA+IMKgI2luY2x1ZGUgImludGVybmFsLmgiCj4gPiAKPiA+
-ICtzdHJ1Y3QgYWNwaV9jbGtfZGF0YSB7Cj4gPiArwqDCoMKgwqDCoMKgIHN0cnVjdCBkZXZpY2Ug
-KmRldjsKPiA+ICvCoMKgwqDCoMKgwqAgdW5zaWduZWQgaW50IGlkeDsKPiA+ICt9Owo+ID4gKwo+
-ID4gwqAvKiBFeGNsdWRlIGRldmljZXMgdGhhdCBoYXZlIG5vIF9DUlMgcmVzb3VyY2VzIHByb3Zp
-ZGVkICovCj4gPiDCoCNkZWZpbmUgQUNQSV9BTExPV19XT19SRVNPVVJDRVPCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqAgQklUKDApCj4gPiAKPiA+IEBAIC0xMzAsNiArMTQwLDY4IEBAIHN0
-YXRpYyB1bnNpZ25lZCBpbnQgYWNwaV9wbGF0Zm9ybV9yZXNvdXJjZV9jb3VudChzdHJ1Y3QKPiA+
-IGFjcGlfcmVzb3VyY2UgKmFyZXMsIHZvaQo+ID4gwqDCoMKgwqDCoMKgwqAgcmV0dXJuIEFFX0NU
-UkxfVEVSTUlOQVRFOwo+ID4gwqB9Cj4gCj4gRmlyc3Qgb2ZmLCB3aWxsIGNsb2NrcyBvbmx5IGJl
-IG5lZWRlZCBmb3IgcGxhdGZvcm0gZGV2aWNlcz/CoCBJZiBub3QsCj4gYWNwaV9hZGRfZml4ZWRf
-Y2xvY2soKSBzaG91bGQgYmUgZGVmaW5lZCBpbiBkcml2ZXJzL2FjcGkvcmVzb3VyY2UuYy4KPiAK
-PiA+ICtzdGF0aWMgaW50IGFjcGlfYWRkX2ZpeGVkX2Nsb2NrKHN0cnVjdCBhY3BpX3Jlc291cmNl
-ICpyZXMsIHZvaWQgKmQpCj4gPiArewo+ID4gK8KgwqDCoMKgwqDCoCBzdGF0aWMgY29uc3QgdW5z
-aWduZWQgbG9uZyBjbGtfc2NhbGVbXSA9IHsgMSwgSFpfUEVSX0tIWiwgSFpfUEVSX01IWgo+ID4g
-fTsKPiA+ICvCoMKgwqDCoMKgwqAgc3RydWN0IGFjcGlfcmVzb3VyY2VfY2xvY2tfaW5wdXQgKmNs
-a3JlczsKPiA+ICvCoMKgwqDCoMKgwqAgc3RydWN0IGFjcGlfY2xrX2RhdGEgKmRhdGEgPSBkOwo+
-ID4gK8KgwqDCoMKgwqDCoCBzdHJ1Y3QgZGV2aWNlICpkZXYgPSBkYXRhLT5kZXY7Cj4gPiArwqDC
-oMKgwqDCoMKgIGNvbnN0IGNoYXIgKm5hbWUgPSBOVUxMOwo+ID4gK8KgwqDCoMKgwqDCoCBzdHJ1
-Y3QgY2xrX2h3ICpjbGs7Cj4gPiArwqDCoMKgwqDCoMKgIHVuc2lnbmVkIGxvbmcgcmF0ZTsKPiA+
-ICvCoMKgwqDCoMKgwqAgdW5zaWduZWQgaW50IGlkeDsKPiA+ICvCoMKgwqDCoMKgwqAgY2hhciBi
-dWZbNjRdOwo+ID4gK8KgwqDCoMKgwqDCoCBpbnQgZXJyOwo+ID4gKwo+ID4gK8KgwqDCoMKgwqDC
-oCBpZiAocmVzLT50eXBlID09IEFDUElfUkVTT1VSQ0VfVFlQRV9DTE9DS19JTlBVVCkgewo+IAo+
-IE1heWJlCj4gCj4gaWYgKHJlcy0+dHlwZSAhPSBBQ1BJX1JFU09VUkNFX1RZUEVfQ0xPQ0tfSU5Q
-VVQpCj4gwqDCoMKgwqDCoMKgwqAgcmV0dXJuIDE7Cj4gCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoCBjbGtyZXMgPSAmcmVzLT5kYXRhLmNsb2NrX2lucHV0Owo+ID4gKwo+ID4gK8Kg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaWYgKGNsa3Jlcy0+bW9kZSkgewo+ID4gK8KgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGRldl93YXJuKGRldiwgIk9u
-bHkgZml4ZWQgcmF0ZSBjbG9ja3Mgc3VwcG9ydGVkIGZvcgo+ID4gbm93LlxuIik7Cj4gCj4gX3dh
-cm4oKSBpcyBsaWtlbHkgb3ZlcmtpbGwgaGVyZSBhbmQgaXQgd291bGQgYmUgYmV0dGVyIHRvIHBy
-aW50IHRoaXMKPiByZWxhdGl2ZSB0byBhbiBBQ1BJIGhhbmRsZSwgc28gdXNlIGFjcGlfaGFuZGxl
-X2luZm8oKS4KPiAKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoCByZXR1cm4gMTsgLyoga2VlcCBnb2luZyAqLwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqAgfQo+ID4gKwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaWYgKGNs
-a3Jlcy0+ZnJlcXVlbmN5X2Rpdmlzb3IgPT0gMCB8fCBjbGtyZXMtPnNjYWxlID4gMikKPiA+ICvC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXR1cm4gLUVJTlZB
-TDsKPiAKPiBUaGlzIGlzIGZpcm13YXJlIHByb3ZpZGluZyBiYWQgZGF0YSwgc28gbm90IC1FSU5W
-QUwuCgpSaWdodCwgdGhhdCdzIGEgLUVGQVVMVC4KCj4gCj4gPiArCj4gPiArwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoCByYXRlID0gRElWX1JPVU5EX1VQX1VMTCgodTY0KWNsa3Jlcy0+ZnJl
-cXVlbmN5X251bWVyYXRvciAqCj4gPiBjbGtfc2NhbGVbY2xrcmVzLT5zY2FsZV0sCj4gPiArwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoCBjbGtyZXMtPmZyZXF1ZW5jeV9kaXZpc29yKTsKPiA+ICsKPiA+ICvC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGlkeCA9IGRhdGEtPmlkeCsrOwo+ID4gKwo+ID4g
-K8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgLyogV2hlbiByZWdpc3RlcmluZyBhIGNsa19o
-dyB0aGUgbmFtZSBtdXN0IGJlIHVuaXF1ZSBhY3Jvc3MKPiA+IGFsbCBkZXZzICovCj4gPiArwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBzbnByaW50ZihidWYsIHNpemVvZihidWYpLCAiJXMt
-Y2xrJXUiLCBkZXZfbmFtZShkZXYpLCBpZHgpOwo+ID4gKwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqAgY2xrID0gZGV2bV9jbGtfaHdfcmVnaXN0ZXJfZml4ZWRfcmF0ZShkZXYsIGJ1
-ZiwgTlVMTCwgMCwKPiA+IHJhdGUpOwo+IAo+IFdoeSBkZXZtXz/CoCBUaGlzIGlzIGNhbGxlZCBh
-dCB0aGUgZGV2aWNlIGNyZWF0aW9uIHRpbWUsIG5vdCBpbiBwcm9iZSwKPiBzbyBob3cvd2hlbiBp
-cyBjbGsgZ29pbmcgdG8gYmUgdW5yZWdpc3RlcmVkPwo+IAo+IEFsc28sIGRldm1fIGRvZXNuJ3Qg
-d29yayB3aXRoIHN0cnVjdCBhY3BpX2RldmljZSB3aGljaCBhcmUgbmV2ZXIKPiBwcm9iZWQgYW5k
-IGRyaXZlcnMgYXJlIG5ldmVyIHJlbW92ZWQgZnJvbSB0aGVtLgoKQWgsIGdvb2QgcG9pbnQuIFRo
-YXQncyBnb2luZyB0byBjb21wbGljYXRlIHRoaW5ncy4KCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoCBpZiAoSVNfRVJSKGNsaykpCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0dXJuIFBUUl9FUlIoY2xrKTsKPiA+ICsKPiA+ICvCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGlmIChpZHggPiAwKSB7Cj4gPiArwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgLyogV2hlbiByZWdpc3RlcmluZyBhIGNs
-a2RldiB0aGUgbmFtZSBtdXN0IGJlIDw9IDE2Cj4gPiBjaGFyYWN0ZXJzICovCj4gPiArwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgc25wcmludGYoYnVmLCBzaXpl
-b2YoYnVmKSwgImFjcGktY2xrJXUiLCBpZHgpOwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgIG5hbWUgPSBidWY7Cj4gPiArwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoCB9Cj4gPiArCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBlcnIg
-PSBkZXZtX2Nsa19od19yZWdpc3Rlcl9jbGtkZXYoZGV2LCBjbGssIG5hbWUsCj4gPiBkZXZfbmFt
-ZShkZXYpKTsKPiAKPiBTYW1lIHRoaW5nIGFib3V0IGRldm1fLgo+IAo+ID4gK8KgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqAgaWYgKGVycikKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoCByZXR1cm4gZXJyOwo+ID4gK8KgwqDCoMKgwqDCoCB9Cj4gPiAr
-Cj4gPiArwqDCoMKgwqDCoMKgIHJldHVybiAxOwo+ID4gK30KPiA+ICsKPiA+ICtzdGF0aWMgdm9p
-ZCBhY3BpX3BsYXRmb3JtX2luaXRfY2xvY2tzKHN0cnVjdCBhY3BpX2RldmljZSAqYWRldikKPiA+
-ICt7Cj4gPiArwqDCoMKgwqDCoMKgIHN0cnVjdCBkZXZpY2UgKmRldiA9ICZhZGV2LT5kZXY7Cj4g
-Cj4gTm90ZSB0aGF0ICZhZGV2LT5kZXYgaXMgbm90IGEgcmVhbCBkZXZpY2UuwqAgSXQgaXMgYSAi
-ZmlybXdhcmUgbm9kZSIsCj4gcXVpdGUgbGlrZSBhIERUIG9uZSwgYnV0IEkgZ3Vlc3MgaXQgbWF5
-IGJlIHVzZWQgZm9yIHJlZ2lzdGVyaW5nCj4gY2xvY2tzLgo+IAo+IEhvdyBpcyBhIHBsYXRmb3Jt
-IGRldmljZSBkcml2ZXIgZ29pbmcgdG8gdXNlIHRob3NlIGNsb2NrcyB0aG91Z2g/CgpUaGV5IGp1
-c3QgdXNlIGNsa19nZXQoKS4gSXQgc2VhcmNoZXMgdGhlIGNsb2NrIGJ5IGRldmljZSBuYW1lLCB3
-aGljaCB3b3JrcyBoZXJlLApJIGd1ZXNzIGJlY2F1c2UgdGhlICJmaXJtd2FyZSBub2RlIiBkZXZp
-Y2UgaGFzIHRoZSBzYW1lIG5hbWUgYXMgdGhlIHJlYWwgZGV2aWNlLgoKQ2hlZXJzLAotUGF1bAoK
-PiA+ICvCoMKgwqDCoMKgwqAgc3RydWN0IGFjcGlfY2xrX2RhdGEgZGF0YSA9IHsgLmRldiA9IGRl
-diB9Owo+ID4gK8KgwqDCoMKgwqDCoCBMSVNUX0hFQUQobGlzdCk7Cj4gPiArwqDCoMKgwqDCoMKg
-IGludCByZXQ7Cj4gPiArCj4gPiArwqDCoMKgwqDCoMKgIHJldCA9IGFjcGlfZGV2X2dldF9yZXNv
-dXJjZXMoYWRldiwgJmxpc3QsIGFjcGlfYWRkX2ZpeGVkX2Nsb2NrLAo+ID4gJmRhdGEpOwo+ID4g
-K8KgwqDCoMKgwqDCoCBpZiAocmV0IDwgMCkKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgIGRldl9lcnIoZGV2LCAiRmFpbGVkIHRvIGFkZCBjbG9jayByZXNvdXJjZXM6ICVkXG4iLCBy
-ZXQpOwo+ID4gK30KPiA+ICsKPiA+IMKgLyoqCj4gPiDCoCAqIGFjcGlfY3JlYXRlX3BsYXRmb3Jt
-X2RldmljZSAtIENyZWF0ZSBwbGF0Zm9ybSBkZXZpY2UgZm9yIEFDUEkgZGV2aWNlCj4gPiBub2Rl
-Cj4gPiDCoCAqIEBhZGV2OiBBQ1BJIGRldmljZSBub2RlIHRvIGNyZWF0ZSBhIHBsYXRmb3JtIGRl
-dmljZSBmb3IuCj4gPiBAQCAtMTk2LDYgKzI2OCw5IEBAIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UK
-PiA+ICphY3BpX2NyZWF0ZV9wbGF0Zm9ybV9kZXZpY2Uoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2
-LAo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB9Cj4g
-PiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGFjcGlfZGV2
-X2ZyZWVfcmVzb3VyY2VfbGlzdCgmcmVzb3VyY2VfbGlzdCk7Cj4gPiDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqAgfQo+ID4gKwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAg
-aWYgKElTX0VOQUJMRUQoQ09ORklHX0NPTU1PTl9DTEspKQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGFjcGlfcGxhdGZvcm1faW5pdF9jbG9ja3MoYWRl
-dik7Cj4gPiDCoMKgwqDCoMKgwqDCoCB9Cj4gPiAKPiA+IMKgwqDCoMKgwqDCoMKgIG1lbXNldCgm
-cGRldmluZm8sIDAsIHNpemVvZihwZGV2aW5mbykpOwo+ID4gLS0K
+Hi,
 
+A third occurrence today (2026-11-27), on 7.3.6-arch1-1 (not tainted),
+same BIOS 01.13.01, again with acpi.ec_max_queries=1. It started about
+33 minutes after boot.
+
+This time it was the original variant from my first mail again, not the
+EC-only one from 2026-11-21:
+
+  - kworker/2:2 (kacpi_notify): int3400_notify() -> evaluate_odvp()
+    waits in acpi_ds_begin_method_execution(), i.e. on the sync mutex of
+    the Serialized GBAP, while ODVP already holds ECMX.
+  - kworker/2:1 (kec_query): waits in an explicit Acquire, matching
+    _Q08/_Q18 inside GBAP waiting for ECMX.
+
+hung_task reports each as waiting on what the other holds (excerpt
+below). Behind them were four more kec_query workers (kworker/5:1,
+7:1, 10:1, 11:1) and thermald (int340x_thermal_get_zone_temp).
+
+Two observations:
+
+1. This correction concerns my question in the previous mail. Making
+   kec_query unbound or ordered would not have prevented this
+   variant, because the other side runs on kacpi_notify, not on
+   kec_query. Both workers were even on the same CPU. Fully serializing
+   EC queries only covers the EC-only variant (_Q09 vs. _Q08/_Q18).
+
+2. It does support the max_active observation, though: with
+   ec_max_queries=1 there were five kec_query work items inside
+   acpi_ec_event_processor() at the same time, on CPUs 2, 5, 7, 10
+   and 11.
+
+The practical impact is that poweroff hangs. thermald and upowerd stay
+in D state, systemd's SIGKILL after the stop timeout has no effect, and
+the journal ends there. Only holding the power button turns the machine
+off.
+
+Since the firmware takes the two locks in opposite order on two kernel
+paths (EC query and Notify(IETM, 0x88)), is there a reasonable
+mitigation on the kernel side for this machine, for example a DMI
+quirk that runs EC query handlers and these notify handlers on one
+ordered workqueue? Or would you rather leave it to HP? I reported it to
+HP (case 5166872861) with the acpidump, but there's been no fix so far.
+
+Excerpt (unreliable frames and scheduler frames removed):
+
+  INFO: task kworker/2:2:247 blocked for more than 122 seconds.
+        Not tainted 7.3.6-arch1-1 #1
+  task:kworker/2:2     state:D stack:0     pid:247   tgid:247   ppid:2      task_flags:0x4208060 flags:0x00080000
+  Workqueue: kacpi_notify acpi_os_execute_deferred
+   acpi_os_wait_semaphore+0x76/0x1d0
+   acpi_ex_system_wait_mutex+0xb6/0x110
+   acpi_ds_begin_method_execution+0xb3/0x420
+   acpi_ds_call_control_method+0xae/0x4c0
+   acpi_ps_parse_aml+0x3f2/0x610
+   acpi_ps_execute_method+0x185/0x430
+   acpi_ns_evaluate+0x196/0x5d0
+   acpi_evaluate_object+0x1f4/0x470
+   evaluate_odvp.isra.0+0x4c/0x240 [int3400_thermal]
+   int3400_notify+0x192/0x1b0 [int3400_thermal]
+   acpi_ev_notify_dispatch+0x4e/0x70
+   acpi_os_execute_deferred+0x1a/0x30
+  INFO: task kworker/2:2:247 blocked on a semaphore likely last held by task kworker/2:1:33130
+  INFO: task kworker/2:1:33130 blocked for more than 122 seconds.
+        Not tainted 7.3.6-arch1-1 #1
+  task:kworker/2:1     state:D stack:0     pid:33130 tgid:33130 ppid:2      task_flags:0x4208060 flags:0x00080000
+  Workqueue: kec_query acpi_ec_event_processor
+   acpi_os_wait_semaphore+0x76/0x1d0
+   acpi_ex_system_wait_mutex+0xb6/0x110
+   acpi_ex_acquire_mutex_object+0x61/0x150
+   acpi_ex_acquire_mutex+0x8a/0x2a0
+   acpi_ex_opcode_2A_0T_1R+0x163/0x1e0
+   acpi_ds_exec_end_op+0x204/0x890
+   acpi_ps_parse_loop+0x13d/0xb80
+   acpi_ps_parse_aml+0x419/0x610
+   acpi_ps_execute_method+0x185/0x430
+   acpi_ns_evaluate+0x196/0x5d0
+   acpi_evaluate_object+0x1f4/0x470
+   acpi_ec_event_processor+0xe5/0x130
+  INFO: task kworker/2:1:33130 blocked on a semaphore likely last held by task kworker/2:2:247
+
+The full hung_task output and the acpidump are available on request.
+
+Thanks,
+Tobias Predel
