@@ -1,47 +1,72 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=141.14.17.11
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.171.202.116
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795772768;
-	b=l2UlK8b7xpZdA1ymXAZvGnvY4/BlXj7sW9Oo+BAVd3HB7lF6/FUXRHlwBl3HqRlL+mPt
-	 0Dy2YF359Wc7fF1WrBpp/HG3z1XzTguIUm/SK9q+WkW0wzBRsQHXjGv7US121cOZi/nJD
-	 XsNIfC+FmV8Qpt3y+pVrvn7IjQY6+vdpfBlhxSOuwgjIwMG2DhJ16LRox5LhuxH3G+VMA
-	 9oAoxvG3k02bx1BQ8azwldMPksgRAUJC0BbpDdta/rCSYJmgex974pmKDC2EmD02ZN/W8
-	 gD/TlTFnMOeKM4FOJuVfqS+VcUmZaSEhjyBTA8B1Dfz/TeoTmstdcJ65qcNvzYQBIIg==
+	t=1795773905;
+	b=Ow4JNHukJ8xfpAipJbJn8H/2ilBTeJz8XTFsxDc7XEKybFLaWt1OBDVjUw3IbsI5dc/5
+	 0yesn5LMLz/I1vRQnzE/QxcVhQcYPhWcWSKuJAGl8TaAbEgDnbxxaEOsUYtM9GLFaF1ne
+	 mblxhi4/Ko/TKvwjHZWdbLXfHJ2jV2m+STjhuDaayC4qHjHXh5k8ei7D0WzhqKmmwJgOq
+	 wdILvi6gWNnrRgedLt5Em+lJ7c162KkG+UY6ibalZJ1CubVYud/qAmxRGNdduyuUm6nEv
+	 lZPyEl6WZAg5NXObErPy3pT5S3p88OF3ua/C0b8K+qUUMFYNhPs/DqMmzdDIAybff3Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795772768;
-	h=DMARC-Filter:Received:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:DKIM-Signature;
-	bh=3Y5xW9zL7afkUZwasjtlFb9Ki7bYkdZcTDdq3Crlcdg=;
-	b=dTSSWsZrKv6dFwJ8wZRV0Ae055RB56ycHVuHedGpVrGMma0kY2HZLROXIZ+D+FYPolf7
-	 5nB9hSjfmS6bqhd99Ch6mpDT0vvN4UCZxYFNXPVLDT9HuhM5yMpgUcxOLKiCkc8CrMSzs
-	 TdlL44tPF6tgjcdYLNWiaEO/tvMrDYl9G+HsGR5FcV0WeO+2qhiTOa9AMxvdgg79IKXJf
-	 Eh5WVWXuPPDZahToS3LsuppQpJqo0m9V3y74vbNYV0G/067IkKzAL54Kct1jb8zpUk0QU
-	 sQ6jc1RHKAA6IHSnfSinUWMP0nWugqlgmdlYrentM+SeNUPuxBRZ3/GkLgjnBSSsTAg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795773905;
+	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:Message-ID:
+	 Subject:From:To:Cc:Date:In-Reply-To:References:Content-Type:
+	 Content-Transfer-Encoding:User-Agent:MIME-Version:
+	 X-Last-TLS-Session-Version;
+	bh=lT0W2OnlXjtA7fK1rLcgLrdnYrw3Ustk1PC0aPQoyNY=;
+	b=wf0nR/K3o0ksIzMXVnKgHEJAgKFFBlnDJM3f4SzD9qw7b7161+8nYNxbvzOgbf84ZBpA
+	 rUEejtYHSWFEtTIacymCHM+gUXBW6Uez/r40OQHw7TzI1/LltXXLnekKksDTSPZeLwBwr
+	 ruIIxpzlxXAhV6CQP74CGmbb+HlZupCag2SiqN5aZVruv8iX7LUtlXaULpfaprmwgJvIo
+	 1vN++UNxwi4lpRhZum9HU4o4rx6Mm9SgztjJQ5Qcf/ddRQHNtnPrghaMdhbzx486Ejfjr
+	 mz9RtROQZXRl9TD7wZwEz9PYrSEfqcCj+e2P9T7akyPL14SeGnLTtYoMGOzHgeGZJKQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=molgen.mpg.de;
-	spf=pass smtp.mailfrom=molgen.mpg.de;
-	dkim=pass header.d=molgen.mpg.de header.i=@molgen.mpg.de header.a=rsa-sha256 header.s=20260906 header.b=b+fvNiyz;
-	arc=none smtp.remote-ip=141.14.17.11
-Received: from mx3.molgen.mpg.de (mx3.molgen.mpg.de [141.14.17.11])
+	dmarc=pass header.from=bootlin.com;
+	spf=pass smtp.mailfrom=bootlin.com;
+	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=MUol+m+l;
+	arc=none smtp.remote-ip=185.171.202.116
+Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ADFB606A31C;
-	Fri, 27 Nov 2026 09:46:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1ADFB606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=molgen.mpg.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=molgen.mpg.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ED20606A324
+	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 10:05:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7ED20606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=molgen.mpg.de header.i=@molgen.mpg.de header.a=rsa-sha256 header.s=20260906 header.b=b+fvNiyz
-Received: from [141.14.220.44] (g44.guest.molgen.mpg.de [141.14.220.44])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: pmenzel)
-	by mx.molgen.mpg.de (Postfix) with ESMTPSA id 392454C1A256EC;
-	Fri, 27 Nov 2026 10:45:27 +0100 (CET)
-Message-ID: <7dac94da-c783-4a17-b0de-32b3bf257cf3@molgen.mpg.de>
-Date: Fri, 27 Nov 2026 10:45:25 +0100
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=MUol+m+l
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-04.galae.net (Postfix) with ESMTPS id DBCC4C6223B
+	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2026 10:05:10 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 25F5B6049C;
+	Fri, 27 Nov 2026 10:05:02 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 97C7F11E692ED;
+	Fri, 27 Nov 2026 11:04:56 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1795773897; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=lT0W2OnlXjtA7fK1rLcgLrdnYrw3Ustk1PC0aPQoyNY=;
+	b=MUol+m+lUoQTaUCTKUiwh4ZXGPFALgB13nC6noDQ2+3KTBnFsbfYsg9/njoQ/fP0kxRLgH
+	68BJ3HEOtb1G+3ZYU8K3A3Fgc9nzgHn93AIMzwkgHbuPpee4F9rcRzS2+JX38cZHnXabaA
+	2nauPWrjxPvqd7fv2vG2fPAKrBE6m6Tgu1cjUYnY25mIvpt+u8E5W7xDu7o0AJe17BUgdx
+	auf/tr5BNMYIqJKVi2867fat2w9cTGeQSeS9Trr781R13SxzbcwnsNCefFYbyI/YOTxz7Y
+	T6Cxdsciv7ilH1rgWIQvnYUkl5j45dQBZP0IN+wIGFGg+jvXbuwGv8IzQhsBSQ==
+Message-ID: <80b96fc3f728b59b26ebde1378f4222cf4b359b0.camel@bootlin.com>
+Subject: Re: [PATCH v5 1/1] ACPI: platform: Add basic support for ACPI 6.5
+ fixed clock resources
+From: Paul Cercueil <paul.cercueil@bootlin.com>
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Thomas Petazzoni
+ <thomas.petazzoni@bootlin.com>
+Date: Fri, 27 Nov 2026 11:04:53 +0100
+In-Reply-To: <CAJZ5v0jeJSx3C8hdU8iAtje-NGNz4DdaVGhE_T3WpVrODuwemg@mail.gmail.com>
+References: <20261120161020.297735-1-paul.cercueil@bootlin.com>
+	 <20261120161020.297735-2-paul.cercueil@bootlin.com>
+	 <CAJZ5v0jeJSx3C8hdU8iAtje-NGNz4DdaVGhE_T3WpVrODuwemg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
+User-Agent: Evolution 3.56.2-0+deb13u1 
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -51,110 +76,148 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] i2c: acpi: Limit DLL0945 100 kHz quirk to Dell Precision
- 5560 and XPS 15 9510
-To: Fangzhong Zhou <myth5@myth5.com>, mika.westerberg@linux.intel.com
-Cc: Mika Westerberg <westeri@kernel.org>, Andi Shyti <andi.shyti@kernel.org>,
- Wolfram Sang <wsa+renesas@sang-engineering.com>,
- Hans de Goede <johannes.goede@oss.qualcomm.com>,
- Dell.Client.Kernel@dell.com, linux-i2c@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261119143218.586632-2-pmenzel@molgen.mpg.de>
- <20261120071924.GI229695@black.igk.intel.com>
- <20261127021203.35477-1-myth5@myth5.com>
-Content-Language: en-US
-From: Paul Menzel <pmenzel@molgen.mpg.de>
-In-Reply-To: <20261127021203.35477-1-myth5@myth5.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=molgen.mpg.de; s=20260906; 
-	t=1795772727; 
-	h=from:from:subject:date:message-id:mime-version:content-type:content-transfer-encoding; 
-	bh=3Y5xW9zL7afkUZwasjtlFb9Ki7bYkdZcTDdq3Crlcdg=; 
-	b=b+fvNiyzLPgmEh6XKNTNCS1HPav55zvqgYZRMIVBK++S66PnLwsxH/TeE8UiZBmPPj3A/uGzZF0w
-	aB+3J08f5EQcOOpJgH6Wtdzqcmw/BWb47fhcLs/M+UwrIQa4c6pYm3ObV+Ogz+LsZYB+KB3r4WYBsG
-	3SDVxgwKERLncwLJv+F92lOnC0wf/PZfVW2m6wh262JgDwh8oDr3RK0UqdBqUvEGo9P5iIipXYSOw2
-	kT2/XIOrqado+lrKMkx6f3ynWDAxxZq5o1fd/cZz9xIEQN2urWFyWlS6OrTFTQXeAhT99D9pp0sVbd
-	VbIiB3E5rIE+wv0UnMAadJOJRzWSdZtQ==
+X-Last-TLS-Session-Version: TLSv1.3
 
-Dear Fangzhong,
+SGkgUmFmYWVsLAoKTGUgbWVyY3JlZGkgMjUgbm92ZW1icmUgMjAyNiDDoCAyMToyMiArMDEwMCwg
+UmFmYWVsIEouIFd5c29ja2kgKEludGVsKSBhIMOpY3JpdMKgOgo+IE9uIEZyaSwgTm92IDIwLCAy
+MDI2IGF0IDU6MTDigK9QTSBQYXVsIENlcmN1ZWlsIDxwYXVsLmNlcmN1ZWlsQGJvb3RsaW4uY29t
+Pgo+IHdyb3RlOgo+ID4gCj4gPiBBQ1BJIDYuNSBpbnRyb2R1Y2VkIGEgY2xvY2sgaW5wdXQgcmVz
+b3VyY2UgZGVzY3JpcHRvciwgd2hpY2ggYWxsb3dzIHRvCj4gPiBzcGVjaWZ5IGluIHRoZSBBQ1BJ
+IHRhYmxlcyB3aGF0IGNsb2NrcyBhcmUgY29ubmVjdGVkIHRvIGEgZ2l2ZW4gZGV2aWNlLgo+ID4g
+Cj4gPiBUaGlzIHBhdGNoIGFkZHMgc3VwcG9ydCBmb3IgdGhlIG1vc3QgYmFzaWMgY2xvY2sgcmVz
+b3VyY2UsIHdoaWNoIGlzIHRoZQo+ID4gb25lIHRoYXQgcmVwcmVzZW50cyBhIGZpeGVkIGNsb2Nr
+LiBUaGUgbmV3IGNvZGUgd2lsbCB0aGVuIGNyZWF0ZSBhCj4gPiBjbGtfaHcgZm9yIGVhY2ggZml4
+ZWQgY2xvY2sgcmVzb3VyY2UsIHdoaWNoIGlzIHRoZW4gbWFkZSBhdmFpbGFibGUgdG8KPiA+IHRo
+ZSBkZXZpY2UgZHJpdmVycywgdGhhdCBjYW4gb2J0YWluIGl0IHRocm91Z2ggYSByZWd1bGFyIGNh
+bGwgdG8KPiA+IGNsa19nZXQoTlVMTCkuCj4gPiAKPiA+IFNpZ25lZC1vZmYtYnk6IFBhdWwgQ2Vy
+Y3VlaWwgPHBhdWwuY2VyY3VlaWxAYm9vdGxpbi5jb20+Cj4gPiAtLS0KPiA+IAo+ID4gdjU6IFJl
+Z2lzdGVyIGZpeGVkIGNsb2NrIGFzICI8QUNQSV9JRD4tY2xrWCIgYmVjYXVzZSB3ZSBuZWVkIGEK
+PiA+IMKgwqDCoCBzeXN0ZW0td2lkZSBpZGVudGlmaWVyIHRoZXJlLCBhbmQgd2UgZG9uJ3QgaGF2
+ZSB0aGUgMTYtY2hhcmFjdGVycwo+ID4gwqDCoMKgIGxpbWl0IHRoZXJlLgo+ID4gwqDCoMKgIFJl
+Z2lzdGVyIHRoZSBmaXJzdCBjbG9jayB0byBjbGtkZXYgd2l0aG91dCBhIG5hbWUsIHNvIHRoYXQK
+PiA+IMKgwqDCoCBjbGtfZ2V0KE5VTEwpIHdpbGwgb2J0YWluIGl0Lgo+ID4gwqDCoMKgIFJlZ2lz
+dGVyIGV2ZXJ5IG90aGVyIGNsb2NrIGZvciB0aGF0IEFDUEkgZGV2aWNlIHdpdGggYSAiYWNwaS1j
+bGtYIgo+ID4gwqDCoMKgIG5hbWUuCj4gPiAKPiA+IHY0OiBDaGFuZ2UgY2xvY2sgbmFtZXMgdG8g
+ImFjcGktY2xrWCIsIGJlY2F1c2UgQUNQSSBkZXZpY2VzIG5hbWVzIGNhbiBiZQo+ID4gwqDCoMKg
+IHVwIHRvIDE3IGNoYXJhY3RlcnMgbG9uZywgYW5kIG91ciBjbG9jayBuYW1lIG11c3QgYmUgMTYg
+Y2hhcmFjdGVycwo+ID4gwqDCoMKgIG1heC4KPiA+IAo+ID4gdjM6IE5vIGNoYW5nZQo+ID4gCj4g
+PiB2MjoKPiA+IC0gVXNlIHRoZSBjYWxjdWxhdGVkIGNsb2NrIG5hbWUgaW4gZGV2bV9jbGtfaHdf
+cmVnaXN0ZXJfZml4ZWRfcmF0ZSgpCj4gPiDCoCBpbnN0ZWFkIG9mIHRoZSBkZXZpY2UgbmFtZQo+
+ID4gLSBNYWtlIHN1cmUgY2xrcmVzLT5zY2FsZSBpcyA8PSAyLiBUaGUgZmllbGQgaXMgMiBiaXRz
+IGJ1dCB0aGUgdmFsdWUKPiA+IMKgIGNsa3Jlcy0+c2NhbGUgPT0gMyBpcyBub3QgZGVmaW5lZCBp
+biB0aGUgc3BlYy4KPiA+IC0gQ29tcHV0ZSB0aGUgZnJhY3Rpb24gbnVtZXJhdG9yIHVzaW5nIDY0
+LWJpdCBtYXRoLCB0byBtYWtlIHN1cmUgaXQKPiA+IMKgIHdvbid0IG92ZXJmbG93IG9uIDMyLWJp
+dCBzeXN0ZW1zLgo+ID4gLSBJbml0aWFsaXplIGNsb2NrcyBvbmx5IHdoZW4gdGhlIGRldmljZV90
+eXBlIG1hdGNoZXMKPiA+IMKgIEFDUElfQlVTX1RZUEVfREVWSUNFLgo+ID4gLSBVc2UgYSBzaG9y
+dGVyIG5hbWUgZm9yIGNsb2NrcyBhcyB0aGUgaGFyZCBsaW1pdCBpcyAxNiBjaGFyYWN0ZXJzCj4g
+PiDCoCBpbmNsdWRpbmcgdGhlIHRlcm1pbmF0b3IuCj4gPiAtLS0KPiA+IMKgZHJpdmVycy9hY3Bp
+L2FjcGlfcGxhdGZvcm0uYyB8IDc1ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+Kwo+ID4gwqAxIGZpbGUgY2hhbmdlZCwgNzUgaW5zZXJ0aW9ucygrKQo+ID4gCj4gPiBkaWZmIC0t
+Z2l0IGEvZHJpdmVycy9hY3BpL2FjcGlfcGxhdGZvcm0uYyBiL2RyaXZlcnMvYWNwaS9hY3BpX3Bs
+YXRmb3JtLmMKPiA+IGluZGV4IDgwZWE3MTIxNzQ0ZC4uYjRmMmNjZjNlNTFmIDEwMDY0NAo+ID4g
+LS0tIGEvZHJpdmVycy9hY3BpL2FjcGlfcGxhdGZvcm0uYwo+ID4gKysrIGIvZHJpdmVycy9hY3Bp
+L2FjcGlfcGxhdGZvcm0uYwo+ID4gQEAgLTEwLDE3ICsxMCwyNyBAQAo+ID4gCj4gPiDCoCNpbmNs
+dWRlIDxsaW51eC9hY3BpLmg+Cj4gPiDCoCNpbmNsdWRlIDxsaW51eC9iaXRzLmg+Cj4gPiArI2lu
+Y2x1ZGUgPGxpbnV4L2Nsay1wcm92aWRlci5oPgo+ID4gKyNpbmNsdWRlIDxsaW51eC9jbGtkZXYu
+aD4KPiA+IMKgI2luY2x1ZGUgPGxpbnV4L2RldmljZS5oPgo+ID4gwqAjaW5jbHVkZSA8bGludXgv
+ZXJyLmg+Cj4gPiDCoCNpbmNsdWRlIDxsaW51eC9pb3BvcnQuaD4KPiA+ICsjaW5jbHVkZSA8bGlu
+dXgva2NvbmZpZy5oPgo+ID4gwqAjaW5jbHVkZSA8bGludXgva2VybmVsLmg+Cj4gPiArI2luY2x1
+ZGUgPGxpbnV4L2xpc3QuaD4KPiA+IMKgI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPgo+ID4gwqAj
+aW5jbHVkZSA8bGludXgvZG1hLW1hcHBpbmcuaD4KPiA+IMKgI2luY2x1ZGUgPGxpbnV4L3BjaS5o
+Pgo+ID4gwqAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+Cj4gPiArI2luY2x1ZGUg
+PGxpbnV4L3VuaXRzLmg+Cj4gPiAKPiA+IMKgI2luY2x1ZGUgImludGVybmFsLmgiCj4gPiAKPiA+
+ICtzdHJ1Y3QgYWNwaV9jbGtfZGF0YSB7Cj4gPiArwqDCoMKgwqDCoMKgIHN0cnVjdCBkZXZpY2Ug
+KmRldjsKPiA+ICvCoMKgwqDCoMKgwqAgdW5zaWduZWQgaW50IGlkeDsKPiA+ICt9Owo+ID4gKwo+
+ID4gwqAvKiBFeGNsdWRlIGRldmljZXMgdGhhdCBoYXZlIG5vIF9DUlMgcmVzb3VyY2VzIHByb3Zp
+ZGVkICovCj4gPiDCoCNkZWZpbmUgQUNQSV9BTExPV19XT19SRVNPVVJDRVPCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqAgQklUKDApCj4gPiAKPiA+IEBAIC0xMzAsNiArMTQwLDY4IEBAIHN0
+YXRpYyB1bnNpZ25lZCBpbnQgYWNwaV9wbGF0Zm9ybV9yZXNvdXJjZV9jb3VudChzdHJ1Y3QKPiA+
+IGFjcGlfcmVzb3VyY2UgKmFyZXMsIHZvaQo+ID4gwqDCoMKgwqDCoMKgwqAgcmV0dXJuIEFFX0NU
+UkxfVEVSTUlOQVRFOwo+ID4gwqB9Cj4gCj4gRmlyc3Qgb2ZmLCB3aWxsIGNsb2NrcyBvbmx5IGJl
+IG5lZWRlZCBmb3IgcGxhdGZvcm0gZGV2aWNlcz/CoCBJZiBub3QsCj4gYWNwaV9hZGRfZml4ZWRf
+Y2xvY2soKSBzaG91bGQgYmUgZGVmaW5lZCBpbiBkcml2ZXJzL2FjcGkvcmVzb3VyY2UuYy4KPiAK
+PiA+ICtzdGF0aWMgaW50IGFjcGlfYWRkX2ZpeGVkX2Nsb2NrKHN0cnVjdCBhY3BpX3Jlc291cmNl
+ICpyZXMsIHZvaWQgKmQpCj4gPiArewo+ID4gK8KgwqDCoMKgwqDCoCBzdGF0aWMgY29uc3QgdW5z
+aWduZWQgbG9uZyBjbGtfc2NhbGVbXSA9IHsgMSwgSFpfUEVSX0tIWiwgSFpfUEVSX01IWgo+ID4g
+fTsKPiA+ICvCoMKgwqDCoMKgwqAgc3RydWN0IGFjcGlfcmVzb3VyY2VfY2xvY2tfaW5wdXQgKmNs
+a3JlczsKPiA+ICvCoMKgwqDCoMKgwqAgc3RydWN0IGFjcGlfY2xrX2RhdGEgKmRhdGEgPSBkOwo+
+ID4gK8KgwqDCoMKgwqDCoCBzdHJ1Y3QgZGV2aWNlICpkZXYgPSBkYXRhLT5kZXY7Cj4gPiArwqDC
+oMKgwqDCoMKgIGNvbnN0IGNoYXIgKm5hbWUgPSBOVUxMOwo+ID4gK8KgwqDCoMKgwqDCoCBzdHJ1
+Y3QgY2xrX2h3ICpjbGs7Cj4gPiArwqDCoMKgwqDCoMKgIHVuc2lnbmVkIGxvbmcgcmF0ZTsKPiA+
+ICvCoMKgwqDCoMKgwqAgdW5zaWduZWQgaW50IGlkeDsKPiA+ICvCoMKgwqDCoMKgwqAgY2hhciBi
+dWZbNjRdOwo+ID4gK8KgwqDCoMKgwqDCoCBpbnQgZXJyOwo+ID4gKwo+ID4gK8KgwqDCoMKgwqDC
+oCBpZiAocmVzLT50eXBlID09IEFDUElfUkVTT1VSQ0VfVFlQRV9DTE9DS19JTlBVVCkgewo+IAo+
+IE1heWJlCj4gCj4gaWYgKHJlcy0+dHlwZSAhPSBBQ1BJX1JFU09VUkNFX1RZUEVfQ0xPQ0tfSU5Q
+VVQpCj4gwqDCoMKgwqDCoMKgwqAgcmV0dXJuIDE7Cj4gCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoCBjbGtyZXMgPSAmcmVzLT5kYXRhLmNsb2NrX2lucHV0Owo+ID4gKwo+ID4gK8Kg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaWYgKGNsa3Jlcy0+bW9kZSkgewo+ID4gK8KgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGRldl93YXJuKGRldiwgIk9u
+bHkgZml4ZWQgcmF0ZSBjbG9ja3Mgc3VwcG9ydGVkIGZvcgo+ID4gbm93LlxuIik7Cj4gCj4gX3dh
+cm4oKSBpcyBsaWtlbHkgb3ZlcmtpbGwgaGVyZSBhbmQgaXQgd291bGQgYmUgYmV0dGVyIHRvIHBy
+aW50IHRoaXMKPiByZWxhdGl2ZSB0byBhbiBBQ1BJIGhhbmRsZSwgc28gdXNlIGFjcGlfaGFuZGxl
+X2luZm8oKS4KPiAKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoCByZXR1cm4gMTsgLyoga2VlcCBnb2luZyAqLwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqAgfQo+ID4gKwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaWYgKGNs
+a3Jlcy0+ZnJlcXVlbmN5X2Rpdmlzb3IgPT0gMCB8fCBjbGtyZXMtPnNjYWxlID4gMikKPiA+ICvC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXR1cm4gLUVJTlZB
+TDsKPiAKPiBUaGlzIGlzIGZpcm13YXJlIHByb3ZpZGluZyBiYWQgZGF0YSwgc28gbm90IC1FSU5W
+QUwuCgpSaWdodCwgdGhhdCdzIGEgLUVGQVVMVC4KCj4gCj4gPiArCj4gPiArwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoCByYXRlID0gRElWX1JPVU5EX1VQX1VMTCgodTY0KWNsa3Jlcy0+ZnJl
+cXVlbmN5X251bWVyYXRvciAqCj4gPiBjbGtfc2NhbGVbY2xrcmVzLT5zY2FsZV0sCj4gPiArwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoCBjbGtyZXMtPmZyZXF1ZW5jeV9kaXZpc29yKTsKPiA+ICsKPiA+ICvC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGlkeCA9IGRhdGEtPmlkeCsrOwo+ID4gKwo+ID4g
+K8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgLyogV2hlbiByZWdpc3RlcmluZyBhIGNsa19o
+dyB0aGUgbmFtZSBtdXN0IGJlIHVuaXF1ZSBhY3Jvc3MKPiA+IGFsbCBkZXZzICovCj4gPiArwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBzbnByaW50ZihidWYsIHNpemVvZihidWYpLCAiJXMt
+Y2xrJXUiLCBkZXZfbmFtZShkZXYpLCBpZHgpOwo+ID4gKwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqAgY2xrID0gZGV2bV9jbGtfaHdfcmVnaXN0ZXJfZml4ZWRfcmF0ZShkZXYsIGJ1
+ZiwgTlVMTCwgMCwKPiA+IHJhdGUpOwo+IAo+IFdoeSBkZXZtXz/CoCBUaGlzIGlzIGNhbGxlZCBh
+dCB0aGUgZGV2aWNlIGNyZWF0aW9uIHRpbWUsIG5vdCBpbiBwcm9iZSwKPiBzbyBob3cvd2hlbiBp
+cyBjbGsgZ29pbmcgdG8gYmUgdW5yZWdpc3RlcmVkPwo+IAo+IEFsc28sIGRldm1fIGRvZXNuJ3Qg
+d29yayB3aXRoIHN0cnVjdCBhY3BpX2RldmljZSB3aGljaCBhcmUgbmV2ZXIKPiBwcm9iZWQgYW5k
+IGRyaXZlcnMgYXJlIG5ldmVyIHJlbW92ZWQgZnJvbSB0aGVtLgoKQWgsIGdvb2QgcG9pbnQuIFRo
+YXQncyBnb2luZyB0byBjb21wbGljYXRlIHRoaW5ncy4KCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoCBpZiAoSVNfRVJSKGNsaykpCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0dXJuIFBUUl9FUlIoY2xrKTsKPiA+ICsKPiA+ICvCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGlmIChpZHggPiAwKSB7Cj4gPiArwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgLyogV2hlbiByZWdpc3RlcmluZyBhIGNs
+a2RldiB0aGUgbmFtZSBtdXN0IGJlIDw9IDE2Cj4gPiBjaGFyYWN0ZXJzICovCj4gPiArwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgc25wcmludGYoYnVmLCBzaXpl
+b2YoYnVmKSwgImFjcGktY2xrJXUiLCBpZHgpOwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgIG5hbWUgPSBidWY7Cj4gPiArwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoCB9Cj4gPiArCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBlcnIg
+PSBkZXZtX2Nsa19od19yZWdpc3Rlcl9jbGtkZXYoZGV2LCBjbGssIG5hbWUsCj4gPiBkZXZfbmFt
+ZShkZXYpKTsKPiAKPiBTYW1lIHRoaW5nIGFib3V0IGRldm1fLgo+IAo+ID4gK8KgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqAgaWYgKGVycikKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoCByZXR1cm4gZXJyOwo+ID4gK8KgwqDCoMKgwqDCoCB9Cj4gPiAr
+Cj4gPiArwqDCoMKgwqDCoMKgIHJldHVybiAxOwo+ID4gK30KPiA+ICsKPiA+ICtzdGF0aWMgdm9p
+ZCBhY3BpX3BsYXRmb3JtX2luaXRfY2xvY2tzKHN0cnVjdCBhY3BpX2RldmljZSAqYWRldikKPiA+
+ICt7Cj4gPiArwqDCoMKgwqDCoMKgIHN0cnVjdCBkZXZpY2UgKmRldiA9ICZhZGV2LT5kZXY7Cj4g
+Cj4gTm90ZSB0aGF0ICZhZGV2LT5kZXYgaXMgbm90IGEgcmVhbCBkZXZpY2UuwqAgSXQgaXMgYSAi
+ZmlybXdhcmUgbm9kZSIsCj4gcXVpdGUgbGlrZSBhIERUIG9uZSwgYnV0IEkgZ3Vlc3MgaXQgbWF5
+IGJlIHVzZWQgZm9yIHJlZ2lzdGVyaW5nCj4gY2xvY2tzLgo+IAo+IEhvdyBpcyBhIHBsYXRmb3Jt
+IGRldmljZSBkcml2ZXIgZ29pbmcgdG8gdXNlIHRob3NlIGNsb2NrcyB0aG91Z2g/CgpUaGV5IGp1
+c3QgdXNlIGNsa19nZXQoKS4gSXQgc2VhcmNoZXMgdGhlIGNsb2NrIGJ5IGRldmljZSBuYW1lLCB3
+aGljaCB3b3JrcyBoZXJlLApJIGd1ZXNzIGJlY2F1c2UgdGhlICJmaXJtd2FyZSBub2RlIiBkZXZp
+Y2UgaGFzIHRoZSBzYW1lIG5hbWUgYXMgdGhlIHJlYWwgZGV2aWNlLgoKQ2hlZXJzLAotUGF1bAoK
+PiA+ICvCoMKgwqDCoMKgwqAgc3RydWN0IGFjcGlfY2xrX2RhdGEgZGF0YSA9IHsgLmRldiA9IGRl
+diB9Owo+ID4gK8KgwqDCoMKgwqDCoCBMSVNUX0hFQUQobGlzdCk7Cj4gPiArwqDCoMKgwqDCoMKg
+IGludCByZXQ7Cj4gPiArCj4gPiArwqDCoMKgwqDCoMKgIHJldCA9IGFjcGlfZGV2X2dldF9yZXNv
+dXJjZXMoYWRldiwgJmxpc3QsIGFjcGlfYWRkX2ZpeGVkX2Nsb2NrLAo+ID4gJmRhdGEpOwo+ID4g
+K8KgwqDCoMKgwqDCoCBpZiAocmV0IDwgMCkKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgIGRldl9lcnIoZGV2LCAiRmFpbGVkIHRvIGFkZCBjbG9jayByZXNvdXJjZXM6ICVkXG4iLCBy
+ZXQpOwo+ID4gK30KPiA+ICsKPiA+IMKgLyoqCj4gPiDCoCAqIGFjcGlfY3JlYXRlX3BsYXRmb3Jt
+X2RldmljZSAtIENyZWF0ZSBwbGF0Zm9ybSBkZXZpY2UgZm9yIEFDUEkgZGV2aWNlCj4gPiBub2Rl
+Cj4gPiDCoCAqIEBhZGV2OiBBQ1BJIGRldmljZSBub2RlIHRvIGNyZWF0ZSBhIHBsYXRmb3JtIGRl
+dmljZSBmb3IuCj4gPiBAQCAtMTk2LDYgKzI2OCw5IEBAIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UK
+PiA+ICphY3BpX2NyZWF0ZV9wbGF0Zm9ybV9kZXZpY2Uoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2
+LAo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB9Cj4g
+PiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGFjcGlfZGV2
+X2ZyZWVfcmVzb3VyY2VfbGlzdCgmcmVzb3VyY2VfbGlzdCk7Cj4gPiDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqAgfQo+ID4gKwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAg
+aWYgKElTX0VOQUJMRUQoQ09ORklHX0NPTU1PTl9DTEspKQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGFjcGlfcGxhdGZvcm1faW5pdF9jbG9ja3MoYWRl
+dik7Cj4gPiDCoMKgwqDCoMKgwqDCoCB9Cj4gPiAKPiA+IMKgwqDCoMKgwqDCoMKgIG1lbXNldCgm
+cGRldmluZm8sIDAsIHNpemVvZihwZGV2aW5mbykpOwo+ID4gLS0K
 
-
-Am 27.11.26 um 03:11 schrieb fangzhong.zhou:
-> On Fri, 20 Nov 2026 08:19:24 +0100, Mika Westerberg wrote:
-
->> On Thu, Nov 19, 2026 at 03:32:16PM +0100, Paul Menzel wrote:
->>> Commit 0b7c9528facd ("i2c: Force DLL0945 touchpad i2c freq to 100khz")
->>> forces the I2C bus to 100 kHz for all devices with the ACPI ID DLL0945 to
->>> work around a sluggish cursor on the Dell Precision 5560. But DLL0945 does
->>> not identify a touchpad model. Dell uses it for touchpads from different
->>> vendors:
->>>
->>>      System                Touchpad
->>>      Dell Precision 5560   ELAN 04F3:311C
->>>      Dell XPS 15 9510      ELAN 04F3:311C (bugzilla #214597)
->>>      Dell XPS 13 9310      Synaptics 06CB:CDE6
->>>
->>> The ELAN touchpads are the ones known to need 100 kHz, but the Synaptics
->>> touchpad of the Dell XPS 13 9310 is slowed down without need. Its DSDT
->>> specifies 400 kHz, and Linux logs:
->>>
->>>      i2c_designware i2c_designware.0: [Firmware Bug]: DSDT uses known not-working I2C bus speed 400000, forcing it to 100000
->>>
->>> The touchpad scans every 7.1 ms (scan time field in the input report), and
->>> i2c-hid reads wMaxInputLength (64 bytes) for each report. Tracing the I2C
->>> transfers for 30 seconds of moving a finger on the touchpad shows:
->>>
->>>                               100 kHz   400 kHz
->>>      read time (median)        7.3 ms    2.5 ms
->>>      bus busy                   87 %      36 %
->>>      reports per second          111       140
->>>      frames lost                18.6 %     0 %
->>>
->>> At 100 kHz the host cannot keep up with the touchpad, and every fifth frame
->>> is lost. At 400 kHz all frames arrive, and no sluggish cursor was noticed.
->>>
->>> So, only apply the DLL0945 entry on the Dell Precision 5560 and XPS 15 9510
->>> by pointing the entry's driver_data to a DMI table, which can be used to
->>> restrict other entries in the same way.
->>
->> Yeah, we should really figure out how this works in Windows. I'm sure they
->> don't have such a quirk list so maybe it's up to the vendor specific
->> drivers to "tune" the bus to their needs whereas in Linux we obey the ACPI
->> description.
->>
->>> Tested on the Dell XPS 13 9310.
->>>
->>> - The `[Firmware Bug] … forcing it to 100000` line is gone from dmesg.
->>> - Re-probed the touchpad’s I²C controller with debug output on, and it
->>>    reports `Bus speed: Fast Mode (400 kHz)`. The touchpad came back up
->>>    under hid-multitouch.
->>>
->>> Fixes: 0b7c9528facd ("i2c: Force DLL0945 touchpad i2c freq to 100khz")
->>> Link: https://bugzilla.kernel.org/show_bug.cgi?id=214597
->>> Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>
->>> Cc: Dell.Client.Kernel@dell.com
->>> Signed-off-by: Paul Menzel <pmenzel@molgen.mpg.de>
->>
->> Acked-by: Mika Westerberg (Intel) <westeri@kernel.org>
-> 
-> From my subsequent testing, the cursor lag issue still appears when the
-> laptop is under high load or any other reasons, so my earlier patch did
-> not fully resolve the problem.
-> 
-> I then replaced the original touchpad with a brand-new unit. After more
-> than one and a half months of continuous testing, the cursor lag has not
-> reappeared.
-> 
-> I will keep testing to confirm whether the issue is completely gone.
-
-Thank you for your update. Do you know, what is different exactly in the 
-brand-new unit? Revision or firmware?
-
-And just to be sure, you indeed have an ELAN touchpad, right?
-
-
-Kind regards,
-
-Paul
