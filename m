@@ -1,97 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.49
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795859760;
-	b=y78lJw3zpgwRI39gMPnRLQTVZaq+lvQ1k3hPhm33AnI6jGdPojqU4b7WbbbodpH5Y1gv
-	 6rW39rdyTqvPOXWp2nX8WpGfE1oeBzbBNjssMNpAwjwV13J++3s+xe6hERZZNKpSoYoNk
-	 8LrenrTb8NOfOMont69y6hth0hgwgEpTCCtvWZVfv3BsCiTDldrRPmnjogeEpU7l6uqAJ
-	 2eGBEsT6+LnUo3RvVDFcg1/b45VklQd45w5UPS7n0/HW6Ya/IhirtD7XL4wAi7oeDDafQ
-	 s50J6Y+PyvWSvinvZKr8E0OmfM36fQft7ncxNyOYe06tqX+1FoDtqKUJ930pG4cn0Mw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795859760;
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.138
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795859780;
+	b=ThFfGZHipgdQG4c5yhNWdJMwIOPoYW/LnJRdf28oKtUdtrWc1yHvdMLkVhvDum9Ml02w
+	 Jg0pcVJdEppTZ2qUN/vbXGNGXoGHGZRW9KUvQwZM6mY0GYW0DXqCbXOEgazByc3kh1o51
+	 pFQEvCOM2+q6b1K86PaK7KOo/yrgfg6aEWfKsOI0rCc0S0oAJoQ9cKtiWADkHCs73Gg++
+	 BVr27UirLTcIgjKPOy4pZ5fsSqmGluprJdfQ5KoOzwYBXBpE06dm/oRywQTwTLwFjvJ6W
+	 edoY9Rzkt+bSiQiJq9FdXRySr/ajcxla02+ZCasRJnCq/o1S4TCin3u6G+tzhMfywUA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795859780;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:From:Date:
+	 X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=PvlEG+ER8M2Vy2xbs4JceEuPCkBHgu2+F8E6dhnU3BQ=;
-	b=ZJao8gKbQn+P4/3VgYkBBtoKyYG1//v8GX+F2rb8uoSn8KpZ0GVkOE1rpTFIv/2ZC2kc
-	 /eyGZOxDCw+YzNSB2bx48TwNlFkzq5Jw/QQX49XNt3SSTZ39MTAjTQ6PMNOeRi/yQQjH+
-	 drGWX5hA89LavDxpLOnD+2td67T/ipDWVHig3Mbcwd6uPSWBlvvsPXnTdxek/uVXovb6M
-	 KBCOYvxNGY4GrLZglkVjlhSpeuxhaL+AOyByqN5C18734ihxLQa4HDpWAS/WXjzeNnOc1
-	 Ne4OltYg5aNlvLTIVKLRHslArPFTv78vCSeMdyX5X1W02qpSQQwS6fXROGuZkDKH0/w==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	bh=W6VYQXUuMNet9TO/oFD0qhwG1QVrLrv0K6QiopT3mtY=;
+	b=flGaxOmcFl27upg0icKty+43kyxTA42YlmQ9MVtjSNyyGdJAj9bu3+HyXa9t7YUynrs3
+	 QmMk8MdOIiCN+XD673ojIuFvDYohwBjjOrtCoyZxqQr6LR5YQ9kmRfaU3LkqoJTXKuK5A
+	 gnF072kXzlLwK4Vj2TbOHRyfCAJS5HjV2adpIvtUES7SbUpfiqT0qFFzu2gX7/3Tyvzux
+	 H6zfxxS8ctQb+jiUqOs5KhT23sfIaKTf3p9d851yTqohRutQAnWvlYruuOhTQU7d+fsXI
+	 bA8PorR51Cfr1NNEAbKW1rRPq/+HKy0YCXUPcMlnd851u+K7LjsrA0x0eSUgStLLfSw==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ZbJz1Nyz;
-	arc=none smtp.remote-ip=209.85.216.49
-Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="J+KcM/FO";
+	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.138
+Received: from mail-yx2-f10.google.com (mail-yx2-f10.google.com [74.125.224.138])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DC22606A31F
-	for <linux-acpi@vger.kernel.org>; Sat, 28 Nov 2026 09:55:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9DC22606A31F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09A8D606A31C
+	for <linux-acpi@vger.kernel.org>; Sat, 28 Nov 2026 09:56:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 09A8D606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ZbJz1Nyz
-Received: by mail-pj1-f49.google.com with SMTP id 98e67ed59e1d1-3b54096b2d0so673028a91.1
-        for <linux-acpi@vger.kernel.org>; Sat, 28 Nov 2026 01:55:59 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=J+KcM/FO
+Received: by mail-yx2-f10.google.com with SMTP id 00721157ae682-8b2fa622fddso21039297b3.0
+        for <linux-acpi@vger.kernel.org>; Sat, 28 Nov 2026 01:56:19 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1795859779; cv=none;
+        d=google.com; s=arc-20260327;
+        b=KjcoVVoxBOLRxHmRHnmt+Wze2CXY/3cXgNRAEbb8t4pMV/T/tVgewoUewrucNG7xgz
+         0hXj6Aml7EBRgfCeanMIN4u1+NWyAl/xGbysjz9qQu5fub3N3GrynA4f1ByL6qgkipfo
+         whxlwxOp1ej30+uYFp7iXGu0l+eBm4shzLoX6u6O2thKpcC9SnHvVtal8tYb6BRXoIO/
+         lCWQZPmqT/TTjonfIav9+1UEnPq0RytzCcgbHy10I8Ga5oQGFBe9TBUdO6kmstv0ArSW
+         DESzKUZge0s+boRZ5bDqorvL+CUBw/2IHSNHHNw8emzwNalfiGJTYfGIGLt70KYHCfBr
+         4SqQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :mime-version:dkim-signature;
+        bh=W6VYQXUuMNet9TO/oFD0qhwG1QVrLrv0K6QiopT3mtY=;
+        fh=6HWioG9/nCsiDskh/DJRvUurRG1gA6jg1BPaGRs9BP4=;
+        b=VZUEaB/sybG4s9cF3LZb9I8ewrbnYuEPZug5nb60VqhOdG05xwFn8YvXzi5U8QR3hA
+         Ac5O7SkZvYBZQ+YAuagsZ3hlrw25PsZRHEH2eI6Nkz2wXaMZrdduzw4FrqJgY4uLfH0i
+         nFWav1FDpd14mRvcBVWoABULnUXmV3BkMu3q2GK5JihwJ6uYWORI2xYuT1lTF+DT+N+B
+         qd9wFmtI4l2jtiVG/yTwjg9j/rWW6rpjlpaaQWlKJVKNbOaNd8vlx3xWrV0whxb5cU5/
+         ef+n2EucqZ5+QiqbBOjf0688gUGxs4ssUVaGQ6M2DL8dfaEaor6639Ox2wVIJ167x2mw
+         NX+w==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795859759; x=1796464559; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=PvlEG+ER8M2Vy2xbs4JceEuPCkBHgu2+F8E6dhnU3BQ=;
-        b=ZbJz1Nyzfsy699ZCq1Nvvbd9tIXOvJPsqYRr1U/Mx4SsbxOBcL15Ddq+nFsCFmHSX6
-         HpbKl6yqDVbQf+iVLQYaWc/CSdE2D1N2lZ3i/l1k5RmlNLnhSaJg/1iGRu/vUjzIQ2Rj
-         0EFkB9pnlwO7xAnuW8uDNw7kfjLSODBXAtsY/zHGIbpj+Cq3YJ/L/S4O4ud81eOF47DF
-         XLbkvL+FfgZaibN0+UUsfZeChV5HpbbCc74huY7Z0qf5q+zGxgyhdqHIlB/mIxS9GEzS
-         /nEYt1CVMW3RmkavL4OIOCCF3BKhG9jayxnP0+i3vfJoLL/VCsE7zr/Q79yCLsh0WY/J
-         zhRg==
+        d=gmail.com; s=20260707; t=1795859779; x=1796464579; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=W6VYQXUuMNet9TO/oFD0qhwG1QVrLrv0K6QiopT3mtY=;
+        b=J+KcM/FOvt/EvQvnED2+wg2AQuydAPHsZ/vmGYExQWTqok8Yv7TUqoSXMdW2ZiYlkI
+         kjHhF99H3BiEWEFdHvwsjyuz+eulcyO8opooFO1xf7tiCnl4hQB1QZUFEWpQDfaNEUhj
+         jWIvoHVgepc8HMwNQTex/ctdktWqZpfKXL//3cgaVacEBICmU9O2Z1DUkXoXZC7o5Tpb
+         eeDNXVuB7FAIpzmywT0xNuCIOKAG30LecXxZZX0A5/fL2D8bzUr78tn0OhjmXKJnB3cS
+         RBSsdjITxnw6an43nNPM3vNuJnC3Vnm8ML4+VYv51M8d8jssE2fRtCNTfJh/5JF8yPc9
+         9tkg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795859759; x=1796464559;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=PvlEG+ER8M2Vy2xbs4JceEuPCkBHgu2+F8E6dhnU3BQ=;
-        b=Xkf8K+8916Y//v6tB3QlSLINZJy+vUltvuZnZaIvWe1f2D/W8+6LWKRNhaMU6kuQGM
-         TKZbb4mPYchIi22Q5auMxSCOikTDtiwTl+mNS2JO9lnF8+Pi/FKTRQZClaJL1kzKhJ/J
-         h8nfFUfGOHneoorTJDI4kCn36oay/xZXHAxGmEtW3UlFiakF4lCUVOzuiiwsq+9OQTa6
-         mIwckR/NeuXTcQ5eS3N+HLxVmZrEzns+xvL+7WaeCkzDJqrW0bSDz1fApGPySQd9zaoP
-         lSDeY9ubfcY+xWt++DE0ZgLfYT02AKyE+uwCQZEvylHzSbppddrgmiRSIILwI+BrUsaw
-         lR7A==
-X-Forwarded-Encrypted: i=1; AL+hErH2awXLHRCtnYcwklkA6gpH6f8+YrRTLtP6p1E8Y/2qbUTYrUWaAyVPbWmllgJTaXBqCrWOith8Bp+F@vger.kernel.org
-X-Gm-Message-State: APuU4Z9FJV/IIyLkW/ECyPBwOAr7Byn3Y03qJpnLOJvFEwN0Tb3Ohvxk
-	zfjUzcaJjTzvO+1erRUyi4FNkij90jF6zcwArZD4VE8VMzoW7PZeeLUA
-X-Gm-Gg: AZFdTZfAQekAzGM1VdNCOyhwJBaHjP9jxsJeIYK6A1OO+7Lt5zADJLlStmvzD0WYjDW
-	gRSLv2QfXr00yBXta1pn7vA0jK5kjVe3nBZEFDvVvqPRr/dbvOTozJL9xqzzjD5F75zwQ2u1TYb
-	oUIzTlE6j1ww97N1qGbmHTrLyRsWZ3kDwfaNb2BoX5DnyybiAfddhsbHKO2AoWqncqd+g9XoF+t
-	nZW5k6dpJzOrG2Ao1kdMRxy3fQBUeLGmzdaFu4vTABljLEmTDq3VCSQoeYP1w6fz1Vb1oiXhSgf
-	oMv0na2u3GCjmd7W10exLu+HcgZuMgDgbhGPYJZCE6LsTg+VR3Vd6TrBhATj1tJQxavX1c02KhR
-	/Xvc2YkSaAWY86pfFvwolmT58whjacvd8BrPzTjjWCyZniFcLeRUNDxt9x+sfefM/4zCf41GCFC
-	M0gEwLyWNvUjZVZXvpOY3rZrpPCVvEhWcFIqWzi106tP7d+6SvEWQjqYjeivRfSFsFnFjD9zxlO
-	txjcKcKb6/VXGXYj6zM6B+lFSp4Khz5CqRTBHZMTzGDXgNpnj81+k5GYhQlQm/jmgAg0cYtJo7p
-	M/hDllqHmWbnw54b1Q7YFY2ztqgTWkAxXM4G3NpziL4hjP9kehKbQCHKNRD23MlrIEQb2v1pBxB
-	tqo513bSxgWI3q0LYIb5wS4uxGV5nf6eSyXJMeG3V8jCSGQFcLfAATRxPdA4OnJSwznyC8Prom4
-	cRTYfatby3qOjyqojroGmZBmQ7I9K4fNkk4kyD+ECL
-X-Received: by 2002:a17:90b:258e:b0:3b4:fd89:5f99 with SMTP id 98e67ed59e1d1-3b4fd896a22mr11593107a91.17.1795859758798;
-        Sat, 28 Nov 2026 01:55:58 -0800 (PST)
-Received: from LAPTOP-3B99V33A (ec2-18-138-229-8.ap-southeast-1.compute.amazonaws.com. [18.138.229.8])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b44b8c2fcesm15732795a91.4.2026.11.28.01.55.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 28 Nov 2026 01:55:57 -0800 (PST)
-From: "Bin Luo (University of Electronic Science and Technology of China)" <luob87709@gmail.com>
-To: rafael@kernel.org
-Cc: tony.luck@intel.com,
-	bp@alien8.de,
-	guohanjun@huawei.com,
-	mchehab@kernel.org,
-	xueshuai@linux.alibaba.com,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2] ACPI: APEI: GHES: drain per-CPU estatus irq_work before freeing ghes
-Date: Sat, 28 Nov 2026 17:55:46 +0800
-Message-ID: <20261128095546.1364-1-luob87709@gmail.com>
-X-Mailer: git-send-email 2.51.0.windows.1
+        d=1e100.net; s=20260707; t=1795859779; x=1796464579;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=W6VYQXUuMNet9TO/oFD0qhwG1QVrLrv0K6QiopT3mtY=;
+        b=kVOCPD9FG92jAVLBemnqhKANm7p8MTLLeE3Q6pUThWBKRQ87k0VPLqqXljDzJ+iy1B
+         2JPDw/Iwe1rlvn8MJusypJTmq2JjxH96/X+iVSE44jozGJma9XniznP+2Zq5r95+d23/
+         kG+OcHNG8BhPywjF2q4rJqLSv5z2pqoyjlR6EzfWbD3FxaLQ++/3d0tMmqLREqxYUV/u
+         /WGTPiSB24UP5/nAsf/8z08rkq4JYv4cdkAup0og0fMygRXlRcwpgclkrjNhQuS0XXZQ
+         nzzTQFKpknVKTm4FXi0tS9G0yFHQJTIS/NEYvgxnFWjuelD7/KFgFb9WwVbuUbMgHybY
+         SEEQ==
+X-Gm-Message-State: APuU4Z84E7AqYDyBqBlsw1FlWG7OG1HXQCJroxyIIdu/+FlOnrA2hMc8
+	Ku67ilN5nQf0twf4akMHG2yZFjRvlTTnEqZQnZYqQdUhGsmIhyo1GSUxpj7Y6cBbqtia/h6ck15
+	DlCL9HzhuL67wIYJ1pakOqvJijIuxFZ8xwjYvogrhfg7vaa0=
+X-Gm-Gg: AZFdTZeYARDHqR5JVKzgKwBvZuoL/QHWkIFQIY24RSw0UaosahXqzcIEJ5W0t8g7FAL
+	7wOGHtHZSKjX6scTBG+n0GDh4ZE+9ATNpiBdhDwk1/YBJWOzzpw9y78cHaFrjRjEpE41gzdKdVc
+	FT1BAzOqveXkqfg+FqXMK4pm0dyJPs8br0qnYyJYjT3F0YkggM3v67/Y+3etk59D1IcAnp9hDCd
+	IOZoDSmsRiv6XBLvJJWTop4v7f3WJeDTmggtxVOgIj0Dz2j1gJdqKKgCQsdW1kOP+3nAecE5Xfe
+	8oUywteM1//8+H5dFHXlc5CsTrxSGqdxiksH9URTFezbuh1grobZb4ZIsFHs5ppodQRJTx78uFj
+	o6oTVE1HaYR/N+8iz7X/iCfgqb504vI9iQXdO
+X-Received: by 2002:a05:690e:1188:b0:679:97d1:4378 with SMTP id
+ 956f58d0204a3-67df9f5f19fmr10281087d50.51.1795859778966; Sat, 28 Nov 2026
+ 01:56:18 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -101,225 +102,94 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: abu naser nayeem <abunasernayeemm@gmail.com>
+Date: Sat, 28 Nov 2026 15:56:06 +0600
+X-Gm-Features: Aa3M54qf4xorV5b39SFPbrzuV0i62xVRkgY-twqAg2FRzbLULxEppfS74zV0F_4
+Message-ID: <CAPm+oWq4iuc2PZYq3Pc2Tuv72_Nnn36pZEUG2ojTV9_C_bdWSg@mail.gmail.com>
+Subject: [ACPI] HP ENVY x360 14-fa0xxx: HPQOEM thermal zone findings and
+ request for review
+To: linux-acpi@vger.kernel.org
+Cc: rafael@kernel.org, rui.zhang@intel.com, lenb@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-NMI, SEA, and SDEI handlers enqueue estatus nodes holding a raw
-estatus_node->ghes pointer and schedule irq_work to run
-ghes_proc_in_irq().
+Hello ACPI maintainers,
 
-During ghes_remove(), ghes_nmi_remove(), ghes_sea_remove(), and
-apei_sdei_unregister_ghes() stop further callbacks and synchronize RCU,
-but do not wait for queued ghes_proc_in_irq() work before calling
-ghes_fini() and kfree(ghes). In addition, ghes_in_nmi_spool_from_list()
-calls irq_work_queue() after rcu_read_unlock(), leaving a window where
-synchronize_rcu() can finish before the irq_work is queued.
+My name is Md Abu Naser Nayeem (GitHub: MrEchoFi). I independently
+investigated abnormal ACPI thermal behavior on an HP ENVY x360 2-in-1
+Laptop 14-fa0xxx (system board 8C69).
 
-Furthermore, a single global ghes_proc_irq_work and ghes_estatus_llist
-cannot be safely synchronized across CPUs with irq_work_sync(): once
-irq_work_single() clears IRQ_WORK_PENDING on one CPU, a notification on
-another CPU can reclaim and complete the same irq_work first, clearing
-IRQ_WORK_BUSY while the first CPU is still executing ghes_proc_in_irq()
-or allowing another CPU to dequeue nodes from the shared llist after its
-CPU has already been synced.
+The initial discovery came from my Grafana monitoring setup on Omarchy
+Linux, followed by kernel-log analysis, ACPI table extraction and
+disassembly, and Linux source-code investigation.
 
-Convert the estatus llist and irq_work to a paired per-CPU
-ghes_estatus_work structure (all callers hold a raw_spinlock, keeping
-llist_add() and irq_work_queue() on the same CPU), move irq_work_queue()
-inside the RCU read-side critical section in
-ghes_in_nmi_spool_from_list(), and synchronize every possible CPU's
-irq_work in the NMI, SEA, and SDEI removal paths before freeing ghes.
+My findings include:
 
-Found by static code audit.
+1. TSZ0 =E2=80=94 Critical threshold
 
-Fixes: 21480547c8b8 ("ghes: add the needed hooks for EDAC error report")
-Fixes: ee2eb3d4ee17 ("ACPI / APEI: Generalise the estatus queue's notify code")
-Signed-off-by: Bin Luo (University of Electronic Science and Technology of China) <luob87709@gmail.com>
----
-Changes in v2:
-- Replace the single global ghes_estatus_llist and ghes_proc_irq_work
-  with a paired per-CPU struct ghes_estatus_work and sync all possible
-  CPUs via ghes_sync_irq_work(), eliminating the multi-CPU
-  IRQ_WORK_BUSY / llist-stealing race flagged by Sashiko on v1.
-- Update Fixes: tags to reference 21480547c8b8 and ee2eb3d4ee17.
+The HP DSDT defines:
 
-Testing note:
-Compile-tested on x86_64 with W=1 and KASAN (drivers/acpi/apei/ghes.o);
-not runtime-tested on APEI/NMI/SEA/SDEI hardware.
+Method (_CRT, 0, Serialized)
+{
+    Return (0x1388)
+}
 
- drivers/acpi/apei/ghes.c | 80 ++++++++++++++++++++++++++++------------
- 1 file changed, 56 insertions(+), 24 deletions(-)
+This represents 5000 dK (500 K / approximately 226.85=C2=B0C).
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 5d888c8..bcd86a3 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -33,8 +33,10 @@
- #include <linux/mutex.h>
- #include <linux/ratelimit.h>
- #include <linux/vmalloc.h>
-+#include <linux/cpumask.h>
- #include <linux/irq_work.h>
- #include <linux/llist.h>
-+#include <linux/percpu.h>
- #include <linux/genalloc.h>
- #include <linux/kfifo.h>
- #include <linux/pci.h>
-@@ -1339,18 +1341,25 @@ static struct notifier_block ghes_notifier_hed = {
-  * Memory from the ghes_estatus_pool is also used with the ghes_estatus_cache
-  * to suppress frequent messages.
-  */
--static struct llist_head ghes_estatus_llist;
--static struct irq_work ghes_proc_irq_work;
-+struct ghes_estatus_work {
-+	struct llist_head llist;
-+	struct irq_work irq_work;
-+};
-+
-+static DEFINE_PER_CPU(struct ghes_estatus_work, ghes_estatus_work);
- 
- static void ghes_proc_in_irq(struct irq_work *irq_work)
- {
-+	struct ghes_estatus_work *ew = container_of(irq_work,
-+						    struct ghes_estatus_work,
-+						    irq_work);
- 	struct llist_node *llnode, *next;
- 	struct ghes_estatus_node *estatus_node;
- 	struct acpi_hest_generic *generic;
- 	struct acpi_hest_generic_status *estatus;
- 	u32 len, node_len;
- 
--	llnode = llist_del_all(&ghes_estatus_llist);
-+	llnode = llist_del_all(&ew->llist);
- 	/*
- 	 * Because the time order of estatus in list is reversed,
- 	 * revert it back to proper order.
-@@ -1384,23 +1393,36 @@ static void ghes_print_queued_estatus(void)
- 	struct ghes_estatus_node *estatus_node;
- 	struct acpi_hest_generic *generic;
- 	struct acpi_hest_generic_status *estatus;
-+	int cpu;
- 
--	llnode = llist_del_all(&ghes_estatus_llist);
--	/*
--	 * Because the time order of estatus in list is reversed,
--	 * revert it back to proper order.
--	 */
--	llnode = llist_reverse_order(llnode);
--	while (llnode) {
--		estatus_node = llist_entry(llnode, struct ghes_estatus_node,
--					   llnode);
--		estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
--		generic = estatus_node->generic;
--		ghes_print_estatus(NULL, generic, estatus);
--		llnode = llnode->next;
-+	for_each_possible_cpu(cpu) {
-+		llnode = llist_del_all(per_cpu_ptr(&ghes_estatus_work.llist,
-+						   cpu));
-+		/*
-+		 * Because the time order of estatus in list is reversed,
-+		 * revert it back to proper order.
-+		 */
-+		llnode = llist_reverse_order(llnode);
-+		while (llnode) {
-+			estatus_node = llist_entry(llnode,
-+						   struct ghes_estatus_node,
-+						   llnode);
-+			estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
-+			generic = estatus_node->generic;
-+			ghes_print_estatus(NULL, generic, estatus);
-+			llnode = llnode->next;
-+		}
- 	}
- }
- 
-+static void ghes_sync_irq_work(void)
-+{
-+	int cpu;
-+
-+	for_each_possible_cpu(cpu)
-+		irq_work_sync(per_cpu_ptr(&ghes_estatus_work.irq_work, cpu));
-+}
-+
- static int ghes_in_nmi_queue_one_entry(struct ghes *ghes,
- 				       enum fixed_addresses fixmap_idx)
- {
-@@ -1461,7 +1483,7 @@ static int ghes_in_nmi_queue_one_entry(struct ghes *ghes,
- 		goto no_work;
- 	}
- 
--	llist_add(&estatus_node->llnode, &ghes_estatus_llist);
-+	llist_add(&estatus_node->llnode, this_cpu_ptr(&ghes_estatus_work.llist));
- 
- 	return rc;
- 
-@@ -1483,10 +1505,9 @@ static int __maybe_unused ghes_in_nmi_spool_from_list(struct list_head *rcu_list
- 		if (!ghes_in_nmi_queue_one_entry(ghes, fixmap_idx))
- 			ret = 0;
- 	}
--	rcu_read_unlock();
--
- 	if (IS_ENABLED(CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG) && !ret)
--		irq_work_queue(&ghes_proc_irq_work);
-+		irq_work_queue(this_cpu_ptr(&ghes_estatus_work.irq_work));
-+	rcu_read_unlock();
- 
- 	return ret;
- }
-@@ -1600,6 +1621,7 @@ static void ghes_sea_remove(struct ghes *ghes)
- 	mutex_unlock(&ghes_list_mutex);
- 	ghes_unmap_error_status(ghes);
- 	synchronize_rcu();
-+	ghes_sync_irq_work();
- }
- #else /* CONFIG_ACPI_APEI_SEA */
- static inline int ghes_sea_add(struct ghes *ghes) { return -EINVAL; }
-@@ -1663,10 +1685,11 @@ static void ghes_nmi_remove(struct ghes *ghes)
- 	ghes_unmap_error_status(ghes);
- 
- 	/*
--	 * To synchronize with NMI handler, ghes can only be
--	 * freed after NMI handler finishes.
-+	 * To synchronize with NMI handler and any queued estatus work,
-+	 * ghes can only be freed after both complete.
- 	 */
- 	synchronize_rcu();
-+	ghes_sync_irq_work();
- }
- #else /* CONFIG_HAVE_ACPI_APEI_NMI */
- static inline int ghes_nmi_add(struct ghes *ghes) { return -EINVAL; }
-@@ -1675,14 +1698,22 @@ static inline void ghes_nmi_remove(struct ghes *ghes) { }
- 
- static void ghes_nmi_init_cxt(void)
- {
--	init_irq_work(&ghes_proc_irq_work, ghes_proc_in_irq);
-+	int cpu;
-+
-+	for_each_possible_cpu(cpu) {
-+		struct ghes_estatus_work *ew =
-+			per_cpu_ptr(&ghes_estatus_work, cpu);
-+
-+		init_llist_head(&ew->llist);
-+		init_irq_work(&ew->irq_work, ghes_proc_in_irq);
-+	}
- }
- 
- static int __ghes_sdei_callback(struct ghes *ghes,
- 				enum fixed_addresses fixmap_idx)
- {
- 	if (!ghes_in_nmi_queue_one_entry(ghes, fixmap_idx)) {
--		irq_work_queue(&ghes_proc_irq_work);
-+		irq_work_queue(this_cpu_ptr(&ghes_estatus_work.irq_work));
- 
- 		return 0;
- 	}
-@@ -1921,6 +1952,7 @@ static void ghes_remove(struct platform_device *ghes_dev)
- 				ERR_PTR(rc));
- 			return;
- 		}
-+		ghes_sync_irq_work();
- 		break;
- 	default:
- 		BUG();
--- 
-2.51.0.windows.1
+The inspected Linux ACPI thermal helper accepts trip-point values
+between 2180 and 4480 dK. The returned value is therefore rejected and
+replaced with THERMAL_TEMP_INVALID (-274000).
 
+The corresponding firmware warning was reproduced on:
+
+Linux 7.2.8-9-omarchy
+
+Linux 7.2.11-arch1-1
+
+2. TZ01 =E2=80=94 Temperature method
+
+SSDT26 (OEM table ID 8C69) defines an empty _TMP method in thermal
+zone TZ01. Linux reports approximately -273.2=C2=B0C for this zone.
+
+I am treating this as a separate finding requiring further runtime
+investigation.
+
+Related upstream history
+
+I reviewed Bugzilla reports 218652 and 218586, including commit
+8a4ff545, "ACPI: thermal: Register thermal zones without valid trip
+points."
+
+I understand that the existing upstream fix permits thermal-zone
+registration despite invalid trip points. My tested kernels register
+all three HP thermal zones, so I am not reporting the same
+missing-thermal-zone regression.
+
+My questions
+
+Is the TSZ0 _CRT value of 5000 dK expected to be rejected under the
+existing ACPI thermal validation policy?
+
+Is there any reason Linux should handle this HP-specific firmware
+definition differently?
+
+Would the TZ01 empty _TMP method warrant a separate ACPI investigation?
+
+Should these findings be tracked as an OEM firmware issue and referred
+to HP, or is there a distinct Linux-side concern worth reporting?
+
+I have prepared a preliminary investigation report containing the ACPI
+excerpts, kernel logs, hardware information and source-code analysis.
+
+I have not yet reproduced the behavior on a vanilla upstream mainline
+kernel. I am explicitly not claiming a confirmed Linux kernel defect
+or proposing a patch at this stage.
+
+Thank you for reviewing my findings and advising on the appropriate next st=
+eps.
+
+Best regards,
+
+Md Abu Naser Nayeem
+GitHub: https://github.com/MrEchoFi
+Email: abunasernayeemm@gmail.com
